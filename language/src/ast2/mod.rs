@@ -1,7 +1,6 @@
-mod capture;
 mod raw;
-mod traversal;
 mod typed;
+mod walk;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Range {
@@ -162,7 +161,7 @@ pub enum Declaration<Expr, Param, Mod, TExpr> {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum TypeExpression<TExpr> {
+pub enum TypePrimitive {
     Nil,
     Boolean,
     Integer,
@@ -170,7 +169,11 @@ pub enum TypeExpression<TExpr> {
     String,
     Style,
     Component,
+}
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum TypeExpression<TExpr> {
+    Primitive(TypePrimitive),
     Identifier(String),
     Group(Box<TExpr>),
     PropertyAccess(Box<TExpr>, String),
@@ -193,9 +196,9 @@ pub struct Import {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct Module<Import, Declaration> {
-    imports: Vec<Import>,
-    declarations: Vec<Declaration>,
+pub struct Module<Imp, Decl> {
+    imports: Vec<Imp>,
+    declarations: Vec<Decl>,
 }
 
 #[derive(Debug, Eq, PartialEq)]

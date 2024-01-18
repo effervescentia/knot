@@ -1,78 +1,147 @@
-use super::{
-    capture::{self, Fragment},
-    traversal::{NodeId, Visit, Visitor},
+use crate::ast2::{
+    self,
+    walk::{NodeId, Visit, Walk},
+    Range,
 };
 
-pub struct Node<Value> {
-    pub value: Value,
-    pub range: super::Range,
+#[derive(Debug, PartialEq)]
+pub enum Fragment {
+    Expression(ast2::Expression<NodeId, NodeId, NodeId>),
+    Statement(ast2::Statement<NodeId>),
+    Component(ast2::Component<NodeId, NodeId>),
+    Parameter(ast2::Parameter<NodeId, NodeId>),
+    Declaration(ast2::Declaration<NodeId, NodeId, NodeId, NodeId>),
+    TypeExpression(ast2::TypeExpression<NodeId>),
+    Import(ast2::Import),
+    Module(ast2::Module<NodeId, NodeId>),
 }
 
-impl<Value> Node<Value> {
-    pub const fn new(value: Value, range: super::Range) -> Self {
-        Self { value, range }
+#[derive(Default)]
+pub struct Context {
+    next_id: usize,
+    fragments: Vec<(NodeId, Fragment)>,
+}
+
+impl Context {
+    pub fn add(mut self, fragment: Fragment) -> (NodeId, Self) {
+        let id = NodeId(self.next_id);
+        self.next_id += 1;
+        self.fragments.push((id, fragment));
+        (id, self)
+    }
+
+    pub fn into_fragments(self) -> Vec<(NodeId, Fragment)> {
+        self.fragments
     }
 }
 
-pub struct Expression(pub Node<super::Expression<Expression, Statement, Component>>);
+struct CollectVisitor;
 
-pub struct Statement(pub Node<super::Statement<Expression>>);
+impl Visit for CollectVisitor {
+    type Context = Context;
 
-pub struct Component(pub Node<super::Component<Expression, Component>>);
+    type Expr = NodeId;
 
-pub struct Parameter(pub Node<super::Parameter<Expression, TypeExpression>>);
+    type Stmt = NodeId;
 
-pub struct Declaration(pub Node<super::Declaration<Expression, Parameter, Module, TypeExpression>>);
+    type Comp = NodeId;
 
-pub struct TypeExpression(pub Node<super::TypeExpression<TypeExpression>>);
+    type TExpr = NodeId;
 
-pub struct Import(pub Node<super::Import>);
+    type Param = NodeId;
 
-pub struct Module(pub Node<super::Module<Import, Declaration>>);
+    type Decl = NodeId;
 
-pub struct Program(pub Node<super::Program<Module>>);
+    type Imp = NodeId;
 
-impl capture::Capture<capture::Fragment> for Program {
-    fn capture<F>(self, f: F, context: capture::Context) -> Vec<(NodeId, Fragment)>
-    where
-        F: Fn(capture::Fragment, capture::Context) -> (NodeId, capture::Context),
-    {
-        fn bind<Value, Bind, Capture>(
-            bind: Bind,
-            capture: Capture,
-        ) -> impl Fn(Value, capture::Context) -> (NodeId, capture::Context)
-        where
-            Capture: Fn(capture::Fragment, capture::Context) -> (NodeId, capture::Context),
-            Bind: Fn(Value) -> capture::Fragment,
-        {
-            move |x, c| capture(bind(x), c)
-        }
+    type Mod = NodeId;
 
-        let visitor = Visitor {
-            expression: &bind(capture::Fragment::Expression, &f),
-            statement: &bind(capture::Fragment::Statement, &f),
-            component: &bind(capture::Fragment::Component, &f),
-            type_expression: &bind(capture::Fragment::TypeExpression, &f),
-            parameter: &bind(capture::Fragment::Parameter, &f),
-            declaration: &bind(capture::Fragment::Declaration, &f),
-            import: &bind(capture::Fragment::Import, &f),
-            module: &bind(capture::Fragment::Module, &f),
-        };
+    fn expression(
+        &self,
+        x: ast2::Expression<Self::Expr, Self::Stmt, Self::Comp>,
+        _: Range,
+        c: Self::Context,
+    ) -> (Self::Expr, Self::Context) {
+        c.add(Fragment::Expression(x))
+    }
 
-        let super::Program(module) = self.0.value;
-        let (_, context) = module.visit(&visitor, context);
+    fn statement(
+        &self,
+        x: ast2::Statement<Self::Expr>,
+        _: Range,
+        c: Self::Context,
+    ) -> (Self::Stmt, Self::Context) {
+        c.add(Fragment::Statement(x))
+    }
 
-        context.into_fragments()
+    fn component(
+        &self,
+        x: ast2::Component<Self::Expr, Self::Comp>,
+        _: Range,
+        c: Self::Context,
+    ) -> (Self::Comp, Self::Context) {
+        c.add(Fragment::Component(x))
+    }
+
+    fn type_expression(
+        &self,
+        x: ast2::TypeExpression<Self::TExpr>,
+        _: Range,
+        c: Self::Context,
+    ) -> (Self::TExpr, Self::Context) {
+        c.add(Fragment::TypeExpression(x))
+    }
+
+    fn parameter(
+        &self,
+        x: ast2::Parameter<Self::Expr, Self::TExpr>,
+        _: Range,
+        c: Self::Context,
+    ) -> (Self::Param, Self::Context) {
+        c.add(Fragment::Parameter(x))
+    }
+
+    fn declaration(
+        &self,
+        x: ast2::Declaration<Self::Expr, Self::Param, Self::Mod, Self::TExpr>,
+        _: Range,
+        c: Self::Context,
+    ) -> (Self::Decl, Self::Context) {
+        c.add(Fragment::Declaration(x))
+    }
+
+    fn import(&self, x: ast2::Import, _: Range, c: Self::Context) -> (Self::Imp, Self::Context) {
+        c.add(Fragment::Import(x))
+    }
+
+    fn module(
+        &self,
+        x: ast2::Module<Self::Imp, Self::Decl>,
+        _: Range,
+        c: Self::Context,
+    ) -> (Self::Mod, Self::Context) {
+        c.add(Fragment::Module(x))
+    }
+}
+
+impl super::Program {
+    fn collect(self) -> Vec<(NodeId, Fragment)> {
+        let ast2::Program(module) = self.0.value;
+
+        module
+            .walk(&CollectVisitor, Context::default())
+            .1
+            .into_fragments()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Node;
+    use super::Fragment;
     use crate::ast2::{
         self,
-        capture::{self, Capture},
-        traversal::NodeId,
+        raw::{self, Node},
+        walk::NodeId,
         Range,
     };
     use kore::{assert_eq, str};
@@ -86,36 +155,37 @@ mod tests {
     }
 
     #[test]
-    fn capture() {
-        let context = capture::Context::default();
-        let program = super::Program(mock_node(ast2::Program(super::Module(mock_node(
+    fn collect() {
+        let program = raw::Program(mock_node(ast2::Program(raw::Module(mock_node(
             ast2::Module {
-                imports: vec![super::Import(mock_node(ast2::Import {
+                imports: vec![raw::Import(mock_node(ast2::Import {
                     source: ast2::ImportSource::Local,
                     path: vec![str!("foo"), str!("bar"), str!("fizz")],
                     alias: None,
                 }))],
                 declarations: vec![
-                    super::Declaration(mock_node(ast2::Declaration::TypeAlias {
+                    raw::Declaration(mock_node(ast2::Declaration::TypeAlias {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("MyType"), mock_range()),
                         ),
-                        value: super::TypeExpression(mock_node(ast2::TypeExpression::Nil)),
+                        value: raw::TypeExpression(mock_node(ast2::TypeExpression::Primitive(
+                            ast2::TypePrimitive::Nil,
+                        ))),
                     })),
-                    super::Declaration(mock_node(ast2::Declaration::Constant {
+                    raw::Declaration(mock_node(ast2::Declaration::Constant {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("MY_CONSTANT"), mock_range()),
                         ),
-                        value_type: Some(super::TypeExpression(mock_node(
-                            ast2::TypeExpression::Boolean,
+                        value_type: Some(raw::TypeExpression(mock_node(
+                            ast2::TypeExpression::Primitive(ast2::TypePrimitive::Boolean),
                         ))),
-                        value: super::Expression(mock_node(ast2::Expression::Primitive(
+                        value: raw::Expression(mock_node(ast2::Expression::Primitive(
                             ast2::Primitive::Boolean(true),
                         ))),
                     })),
-                    super::Declaration(mock_node(ast2::Declaration::Enumerated {
+                    raw::Declaration(mock_node(ast2::Declaration::Enumerated {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("MyEnum"), mock_range()),
@@ -124,72 +194,72 @@ mod tests {
                             (str!("Empty"), vec![]),
                             (
                                 str!("Number"),
-                                vec![super::TypeExpression(mock_node(
-                                    ast2::TypeExpression::Integer,
+                                vec![raw::TypeExpression(mock_node(
+                                    ast2::TypeExpression::Primitive(ast2::TypePrimitive::Integer),
                                 ))],
                             ),
                         ],
                     })),
-                    super::Declaration(mock_node(ast2::Declaration::Function {
+                    raw::Declaration(mock_node(ast2::Declaration::Function {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("my_function"), mock_range()),
                         ),
-                        parameters: vec![super::Parameter(mock_node(ast2::Parameter {
+                        parameters: vec![raw::Parameter(mock_node(ast2::Parameter {
                             name: str!("zip"),
-                            value_type: Some(super::TypeExpression(mock_node(
-                                ast2::TypeExpression::String,
+                            value_type: Some(raw::TypeExpression(mock_node(
+                                ast2::TypeExpression::Primitive(ast2::TypePrimitive::String),
                             ))),
-                            default_value: Some(super::Expression(mock_node(
+                            default_value: Some(raw::Expression(mock_node(
                                 ast2::Expression::Primitive(ast2::Primitive::String(str!(
                                     "my string"
                                 ))),
                             ))),
                         }))],
-                        body_type: Some(super::TypeExpression(mock_node(
-                            ast2::TypeExpression::Nil,
+                        body_type: Some(raw::TypeExpression(mock_node(
+                            ast2::TypeExpression::Primitive(ast2::TypePrimitive::Nil),
                         ))),
-                        body: super::Expression(mock_node(ast2::Expression::Primitive(
+                        body: raw::Expression(mock_node(ast2::Expression::Primitive(
                             ast2::Primitive::Nil,
                         ))),
                     })),
-                    super::Declaration(mock_node(ast2::Declaration::View {
+                    raw::Declaration(mock_node(ast2::Declaration::View {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("MyView"), mock_range()),
                         ),
-                        parameters: vec![super::Parameter(mock_node(ast2::Parameter {
+                        parameters: vec![raw::Parameter(mock_node(ast2::Parameter {
                             name: str!("zap"),
-                            value_type: Some(super::TypeExpression(mock_node(
-                                ast2::TypeExpression::Float,
+                            value_type: Some(raw::TypeExpression(mock_node(
+                                ast2::TypeExpression::Primitive(ast2::TypePrimitive::Float),
                             ))),
-                            default_value: Some(super::Expression(mock_node(
+                            default_value: Some(raw::Expression(mock_node(
                                 ast2::Expression::Primitive(ast2::Primitive::Float(1.432, 4)),
                             ))),
                         }))],
-                        body: super::Expression(mock_node(ast2::Expression::Primitive(
+                        body: raw::Expression(mock_node(ast2::Expression::Primitive(
                             ast2::Primitive::Nil,
                         ))),
                     })),
-                    super::Declaration(mock_node(ast2::Declaration::Module {
+                    raw::Declaration(mock_node(ast2::Declaration::Module {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("my_module"), mock_range()),
                         ),
-                        value: super::Module(mock_node(ast2::Module {
-                            imports: vec![super::Import(mock_node(ast2::Import {
+                        value: raw::Module(mock_node(ast2::Module {
+                            imports: vec![raw::Import(mock_node(ast2::Import {
                                 source: ast2::ImportSource::Local,
                                 path: vec![str!("buzz")],
                                 alias: Some(str!("Buzz")),
                             }))],
-                            declarations: vec![super::Declaration(mock_node(
+                            declarations: vec![raw::Declaration(mock_node(
                                 ast2::Declaration::TypeAlias {
                                     storage: ast2::Storage::new(
                                         ast2::Visibility::Public,
                                         ast2::Binding::new(str!("NestedType"), mock_range()),
                                     ),
-                                    value: super::TypeExpression(mock_node(
-                                        ast2::TypeExpression::Nil,
+                                    value: raw::TypeExpression(mock_node(
+                                        ast2::TypeExpression::Primitive(ast2::TypePrimitive::Nil),
                                     )),
                                 },
                             ))],
@@ -200,11 +270,11 @@ mod tests {
         )))));
 
         assert_eq!(
-            program.capture(|x, c| c.register(x), context),
+            program.collect(),
             vec![
                 (
                     NodeId(0),
-                    capture::Fragment::Import(ast2::Import {
+                    Fragment::Import(ast2::Import {
                         source: ast2::ImportSource::Local,
                         path: vec![str!("foo"), str!("bar"), str!("fizz")],
                         alias: None,
@@ -212,11 +282,13 @@ mod tests {
                 ),
                 (
                     NodeId(1),
-                    capture::Fragment::TypeExpression(ast2::TypeExpression::Nil)
+                    Fragment::TypeExpression(ast2::TypeExpression::Primitive(
+                        ast2::TypePrimitive::Nil
+                    ))
                 ),
                 (
                     NodeId(2),
-                    capture::Fragment::Declaration(ast2::Declaration::TypeAlias {
+                    Fragment::Declaration(ast2::Declaration::TypeAlias {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("MyType"), mock_range()),
@@ -226,17 +298,19 @@ mod tests {
                 ),
                 (
                     NodeId(3),
-                    capture::Fragment::TypeExpression(ast2::TypeExpression::Boolean)
-                ),
-                (
-                    NodeId(4),
-                    capture::Fragment::Expression(ast2::Expression::Primitive(
-                        ast2::Primitive::Boolean(true),
+                    Fragment::TypeExpression(ast2::TypeExpression::Primitive(
+                        ast2::TypePrimitive::Boolean
                     ))
                 ),
                 (
+                    NodeId(4),
+                    Fragment::Expression(ast2::Expression::Primitive(ast2::Primitive::Boolean(
+                        true
+                    ),))
+                ),
+                (
                     NodeId(5),
-                    capture::Fragment::Declaration(ast2::Declaration::Constant {
+                    Fragment::Declaration(ast2::Declaration::Constant {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("MY_CONSTANT"), mock_range()),
@@ -247,11 +321,13 @@ mod tests {
                 ),
                 (
                     NodeId(6),
-                    capture::Fragment::TypeExpression(ast2::TypeExpression::Integer)
+                    Fragment::TypeExpression(ast2::TypeExpression::Primitive(
+                        ast2::TypePrimitive::Integer
+                    ))
                 ),
                 (
                     NodeId(7),
-                    capture::Fragment::Declaration(ast2::Declaration::Enumerated {
+                    Fragment::Declaration(ast2::Declaration::Enumerated {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("MyEnum"), mock_range()),
@@ -261,17 +337,19 @@ mod tests {
                 ),
                 (
                     NodeId(8),
-                    capture::Fragment::TypeExpression(ast2::TypeExpression::String)
-                ),
-                (
-                    NodeId(9),
-                    capture::Fragment::Expression(ast2::Expression::Primitive(
-                        ast2::Primitive::String(str!("my string"))
+                    Fragment::TypeExpression(ast2::TypeExpression::Primitive(
+                        ast2::TypePrimitive::String
                     ))
                 ),
                 (
+                    NodeId(9),
+                    Fragment::Expression(ast2::Expression::Primitive(ast2::Primitive::String(
+                        str!("my string")
+                    )))
+                ),
+                (
                     NodeId(10),
-                    capture::Fragment::Parameter(ast2::Parameter {
+                    Fragment::Parameter(ast2::Parameter {
                         name: str!("zip"),
                         value_type: Some(NodeId(8)),
                         default_value: Some(NodeId(9)),
@@ -279,17 +357,17 @@ mod tests {
                 ),
                 (
                     NodeId(11),
-                    capture::Fragment::TypeExpression(ast2::TypeExpression::Nil)
-                ),
-                (
-                    NodeId(12),
-                    capture::Fragment::Expression(ast2::Expression::Primitive(
-                        ast2::Primitive::Nil,
+                    Fragment::TypeExpression(ast2::TypeExpression::Primitive(
+                        ast2::TypePrimitive::Nil
                     ))
                 ),
                 (
+                    NodeId(12),
+                    Fragment::Expression(ast2::Expression::Primitive(ast2::Primitive::Nil))
+                ),
+                (
                     NodeId(13),
-                    capture::Fragment::Declaration(ast2::Declaration::Function {
+                    Fragment::Declaration(ast2::Declaration::Function {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("my_function"), mock_range()),
@@ -301,17 +379,19 @@ mod tests {
                 ),
                 (
                     NodeId(14),
-                    capture::Fragment::TypeExpression(ast2::TypeExpression::Float)
-                ),
-                (
-                    NodeId(15),
-                    capture::Fragment::Expression(ast2::Expression::Primitive(
-                        ast2::Primitive::Float(1.432, 4)
+                    Fragment::TypeExpression(ast2::TypeExpression::Primitive(
+                        ast2::TypePrimitive::Float
                     ))
                 ),
                 (
+                    NodeId(15),
+                    Fragment::Expression(ast2::Expression::Primitive(ast2::Primitive::Float(
+                        1.432, 4
+                    )))
+                ),
+                (
                     NodeId(16),
-                    capture::Fragment::Parameter(ast2::Parameter {
+                    Fragment::Parameter(ast2::Parameter {
                         name: str!("zap"),
                         value_type: Some(NodeId(14)),
                         default_value: Some(NodeId(15)),
@@ -319,13 +399,11 @@ mod tests {
                 ),
                 (
                     NodeId(17),
-                    capture::Fragment::Expression(ast2::Expression::Primitive(
-                        ast2::Primitive::Nil,
-                    ))
+                    Fragment::Expression(ast2::Expression::Primitive(ast2::Primitive::Nil))
                 ),
                 (
                     NodeId(18),
-                    capture::Fragment::Declaration(ast2::Declaration::View {
+                    Fragment::Declaration(ast2::Declaration::View {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("MyView"), mock_range()),
@@ -336,7 +414,7 @@ mod tests {
                 ),
                 (
                     NodeId(19),
-                    capture::Fragment::Import(ast2::Import {
+                    Fragment::Import(ast2::Import {
                         source: ast2::ImportSource::Local,
                         path: vec![str!("buzz")],
                         alias: Some(str!("Buzz")),
@@ -344,11 +422,13 @@ mod tests {
                 ),
                 (
                     NodeId(20),
-                    capture::Fragment::TypeExpression(ast2::TypeExpression::Nil)
+                    Fragment::TypeExpression(ast2::TypeExpression::Primitive(
+                        ast2::TypePrimitive::Nil
+                    ))
                 ),
                 (
                     NodeId(21),
-                    capture::Fragment::Declaration(ast2::Declaration::TypeAlias {
+                    Fragment::Declaration(ast2::Declaration::TypeAlias {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("NestedType"), mock_range()),
@@ -358,14 +438,14 @@ mod tests {
                 ),
                 (
                     NodeId(22),
-                    capture::Fragment::Module(ast2::Module {
+                    Fragment::Module(ast2::Module {
                         imports: vec![NodeId(19)],
                         declarations: vec![NodeId(21)],
                     })
                 ),
                 (
                     NodeId(23),
-                    capture::Fragment::Declaration(ast2::Declaration::Module {
+                    Fragment::Declaration(ast2::Declaration::Module {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
                             ast2::Binding::new(str!("my_module"), mock_range()),
@@ -375,7 +455,7 @@ mod tests {
                 ),
                 (
                     NodeId(24),
-                    capture::Fragment::Module(ast2::Module {
+                    Fragment::Module(ast2::Module {
                         imports: vec![NodeId(0)],
                         declarations: vec![
                             NodeId(2),
