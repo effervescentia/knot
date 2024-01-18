@@ -4,7 +4,6 @@ use super::{raw, Range};
 pub struct NodeId(pub usize);
 
 pub trait Visit {
-    type Context;
     type Expr;
     type Stmt;
     type Comp;
@@ -15,333 +14,301 @@ pub trait Visit {
     type Mod;
 
     fn expression(
-        &self,
+        self,
         x: super::Expression<Self::Expr, Self::Stmt, Self::Comp>,
         r: Range,
-        c: Self::Context,
-    ) -> (Self::Expr, Self::Context);
+    ) -> (Self::Expr, Self);
 
-    fn statement(
-        &self,
-        x: super::Statement<Self::Expr>,
-        r: Range,
-        c: Self::Context,
-    ) -> (Self::Stmt, Self::Context);
+    fn statement(self, x: super::Statement<Self::Expr>, r: Range) -> (Self::Stmt, Self);
 
-    fn component(
-        &self,
-        x: super::Component<Self::Expr, Self::Comp>,
-        r: Range,
-        c: Self::Context,
-    ) -> (Self::Comp, Self::Context);
+    fn component(self, x: super::Component<Self::Expr, Self::Comp>, r: Range)
+        -> (Self::Comp, Self);
 
     fn type_expression(
-        &self,
+        self,
         x: super::TypeExpression<Self::TExpr>,
         r: Range,
-        c: Self::Context,
-    ) -> (Self::TExpr, Self::Context);
+    ) -> (Self::TExpr, Self);
 
     fn parameter(
-        &self,
+        self,
         x: super::Parameter<Self::Expr, Self::TExpr>,
         r: Range,
-        c: Self::Context,
-    ) -> (Self::Param, Self::Context);
+    ) -> (Self::Param, Self);
 
     fn declaration(
-        &self,
+        self,
         x: super::Declaration<Self::Expr, Self::Param, Self::Mod, Self::TExpr>,
         r: Range,
-        c: Self::Context,
-    ) -> (Self::Decl, Self::Context);
+    ) -> (Self::Decl, Self);
 
-    fn import(&self, x: super::Import, r: Range, c: Self::Context) -> (Self::Imp, Self::Context);
+    fn import(self, x: super::Import, r: Range) -> (Self::Imp, Self);
 
-    fn module(
-        &self,
-        x: super::Module<Self::Imp, Self::Decl>,
-        r: Range,
-        c: Self::Context,
-    ) -> (Self::Mod, Self::Context);
+    fn module(self, x: super::Module<Self::Imp, Self::Decl>, r: Range) -> (Self::Mod, Self);
 }
 
-pub trait Walk<Context, Visitor>
+pub trait Walk<Visitor>
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output;
 
-    fn walk(self, visitor: &Visitor, context: Context) -> (Self::Output, Context);
+    fn walk(self, visitor: Visitor) -> (Self::Output, Visitor);
 }
 
-impl<Key, Target, Context, Visitor> Walk<Context, Visitor> for (Key, Target)
+impl<Key, Target, Visitor> Walk<Visitor> for (Key, Target)
 where
-    Target: Walk<Context, Visitor>,
-    Visitor: Visit<Context = Context>,
+    Target: Walk<Visitor>,
+    Visitor: Visit,
 {
     type Output = (Key, Target::Output);
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context) {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let (key, x) = self;
-        let (x, c) = x.walk(v, c);
+        let (x, v) = x.walk(v);
 
-        ((key, x), c)
+        ((key, x), v)
     }
 }
 
-impl<Target, Context, Visitor> Walk<Context, Visitor> for Option<Target>
+impl<Target, Visitor> Walk<Visitor> for Option<Target>
 where
-    Target: Walk<Context, Visitor>,
-    Visitor: Visit<Context = Context>,
+    Target: Walk<Visitor>,
+    Visitor: Visit,
 {
     type Output = Option<Target::Output>;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context) {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         if let Some(x) = self {
-            let (x, c) = x.walk(v, c);
-            (Some(x), c)
+            let (x, v) = x.walk(v);
+            (Some(x), v)
         } else {
-            (None, c)
+            (None, v)
         }
     }
 }
 
-impl<Target, Context, Visitor> Walk<Context, Visitor> for Vec<Target>
+impl<Target, Visitor> Walk<Visitor> for Vec<Target>
 where
-    Target: Walk<Context, Visitor>,
-    Visitor: Visit<Context = Context>,
+    Target: Walk<Visitor>,
+    Visitor: Visit,
 {
     type Output = Vec<Target::Output>;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context) {
-        self.into_iter().fold((vec![], c), |(mut acc, c), x| {
-            let (x, c) = x.walk(v, c);
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        self.into_iter().fold((vec![], v), |(mut acc, v), x| {
+            let (x, v) = x.walk(v);
             acc.push(x);
-            (acc, c)
+            (acc, v)
         })
     }
 }
 
-impl<Context, Visitor> Walk<Context, Visitor> for raw::Expression
+impl<Visitor> Walk<Visitor> for raw::Expression
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output = Visitor::Expr;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context)
-    where
-        Visitor: Visit<Context = Context>,
-    {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node { value, range } = self.0;
 
         match value {
-            super::Expression::Primitive(x) => {
-                v.expression(super::Expression::Primitive(x), range, c)
-            }
+            super::Expression::Primitive(x) => v.expression(super::Expression::Primitive(x), range),
 
             super::Expression::Identifier(x) => {
-                v.expression(super::Expression::Identifier(x), range, c)
+                v.expression(super::Expression::Identifier(x), range)
             }
 
             super::Expression::Group(x) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
-                v.expression(super::Expression::Group(Box::new(x)), range, c)
+                v.expression(super::Expression::Group(Box::new(x)), range)
             }
 
             super::Expression::Closure(xs) => {
-                let (xs, c) = xs.walk(v, c);
+                let (xs, v) = xs.walk(v);
 
-                v.expression(super::Expression::Closure(xs), range, c)
+                v.expression(super::Expression::Closure(xs), range)
             }
 
             super::Expression::UnaryOperation(op, x) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
-                v.expression(super::Expression::UnaryOperation(op, Box::new(x)), range, c)
+                v.expression(super::Expression::UnaryOperation(op, Box::new(x)), range)
             }
 
             super::Expression::BinaryOperation(op, l, r) => {
-                let (l, c) = l.walk(v, c);
-                let (r, c) = r.walk(v, c);
+                let (l, v) = l.walk(v);
+                let (r, v) = r.walk(v);
 
                 v.expression(
                     super::Expression::BinaryOperation(op, Box::new(l), Box::new(r)),
                     range,
-                    c,
                 )
             }
 
             super::Expression::PropertyAccess(x, property) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
                 v.expression(
                     super::Expression::PropertyAccess(Box::new(x), property),
                     range,
-                    c,
                 )
             }
 
             super::Expression::FunctionCall(x, arguments) => {
-                let (x, c) = x.walk(v, c);
-                let (arguments, c) = arguments.walk(v, c);
+                let (x, v) = x.walk(v);
+                let (arguments, v) = arguments.walk(v);
 
                 v.expression(
                     super::Expression::FunctionCall(Box::new(x), arguments),
                     range,
-                    c,
                 )
             }
 
             super::Expression::Component(x) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
-                v.expression(super::Expression::Component(Box::new(x)), range, c)
+                v.expression(super::Expression::Component(Box::new(x)), range)
             }
 
             super::Expression::Style(xs) => {
-                let (xs, c) = xs.walk(v, c);
+                let (xs, v) = xs.walk(v);
 
-                v.expression(super::Expression::Style(xs), range, c)
+                v.expression(super::Expression::Style(xs), range)
             }
         }
     }
 }
 
-impl<Context, Visitor> Walk<Context, Visitor> for raw::Statement
+impl<Visitor> Walk<Visitor> for raw::Statement
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output = Visitor::Stmt;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context)
-    where
-        Visitor: Visit<Context = Context>,
-    {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node { value, range } = self.0;
 
         match value {
             super::Statement::Expression(x) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
-                v.statement(super::Statement::Expression(x), range, c)
+                v.statement(super::Statement::Expression(x), range)
             }
 
             super::Statement::Variable(binding, x) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
-                v.statement(super::Statement::Variable(binding, x), range, c)
+                v.statement(super::Statement::Variable(binding, x), range)
             }
         }
     }
 }
 
-impl<Context, Visitor> Walk<Context, Visitor> for raw::Component
+impl<Visitor> Walk<Visitor> for raw::Component
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output = Visitor::Comp;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context)
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor)
     where
-        Visitor: Visit<Context = Context>,
+        Visitor: Visit,
     {
         let raw::Node { value, range } = self.0;
 
         match value {
-            super::Component::Text(x) => v.component(super::Component::Text(x), range, c),
+            super::Component::Text(x) => v.component(super::Component::Text(x), range),
 
             super::Component::Expression(x) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
-                v.component(super::Component::Expression(x), range, c)
+                v.component(super::Component::Expression(x), range)
             }
 
             super::Component::Fragment(xs) => {
-                let (xs, c) = xs.walk(v, c);
+                let (xs, v) = xs.walk(v);
 
-                v.component(super::Component::Fragment(xs), range, c)
+                v.component(super::Component::Fragment(xs), range)
             }
 
             super::Component::ClosedElement(tag, attributes) => {
-                let (attributes, c) = attributes.walk(v, c);
+                let (attributes, v) = attributes.walk(v);
 
-                v.component(super::Component::ClosedElement(tag, attributes), range, c)
+                v.component(super::Component::ClosedElement(tag, attributes), range)
             }
 
             super::Component::OpenElement(start_tag, attributes, children, end_tag) => {
-                let (attributes, c) = attributes.walk(v, c);
-                let (children, c) = children.walk(v, c);
+                let (attributes, v) = attributes.walk(v);
+                let (children, v) = children.walk(v);
 
                 v.component(
                     super::Component::OpenElement(start_tag, attributes, children, end_tag),
                     range,
-                    c,
                 )
             }
         }
     }
 }
 
-impl<Context, Visitor> Walk<Context, Visitor> for raw::TypeExpression
+impl<Visitor> Walk<Visitor> for raw::TypeExpression
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output = Visitor::TExpr;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context)
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor)
     where
-        Visitor: Visit<Context = Context>,
+        Visitor: Visit,
     {
         let raw::Node { value, range } = self.0;
 
         match value {
             super::TypeExpression::Primitive(x) => {
-                v.type_expression(super::TypeExpression::Primitive(x), range, c)
+                v.type_expression(super::TypeExpression::Primitive(x), range)
             }
 
             super::TypeExpression::Identifier(x) => {
-                v.type_expression(super::TypeExpression::Identifier(x), range, c)
+                v.type_expression(super::TypeExpression::Identifier(x), range)
             }
 
             super::TypeExpression::Group(x) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
-                v.type_expression(super::TypeExpression::Group(Box::new(x)), range, c)
+                v.type_expression(super::TypeExpression::Group(Box::new(x)), range)
             }
 
             super::TypeExpression::PropertyAccess(x, property) => {
-                let (x, c) = x.walk(v, c);
+                let (x, v) = x.walk(v);
 
                 v.type_expression(
                     super::TypeExpression::PropertyAccess(Box::new(x), property),
                     range,
-                    c,
                 )
             }
 
             super::TypeExpression::Function(parameters, x) => {
-                let (parameters, c) = parameters.walk(v, c);
-                let (x, c) = x.walk(v, c);
+                let (parameters, v) = parameters.walk(v);
+                let (x, v) = x.walk(v);
 
                 v.type_expression(
                     super::TypeExpression::Function(parameters, Box::new(x)),
                     range,
-                    c,
                 )
             }
         }
     }
 }
 
-impl<Context, Visitor> Walk<Context, Visitor> for raw::Parameter
+impl<Visitor> Walk<Visitor> for raw::Parameter
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output = Visitor::Param;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context) {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node {
             value:
                 super::Parameter {
@@ -351,8 +318,8 @@ where
                 },
             range,
         } = self.0;
-        let (value_type, c) = value_type.walk(v, c);
-        let (default_value, c) = default_value.walk(v, c);
+        let (value_type, v) = value_type.walk(v);
+        let (default_value, v) = default_value.walk(v);
 
         v.parameter(
             super::Parameter {
@@ -361,25 +328,24 @@ where
                 default_value,
             },
             range,
-            c,
         )
     }
 }
 
-impl<Context, Visitor> Walk<Context, Visitor> for raw::Declaration
+impl<Visitor> Walk<Visitor> for raw::Declaration
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output = Visitor::Decl;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context) {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node { value, range } = self.0;
 
         match value {
             super::Declaration::TypeAlias { storage, value } => {
-                let (value, c) = value.walk(v, c);
+                let (value, v) = value.walk(v);
 
-                v.declaration(super::Declaration::TypeAlias { storage, value }, range, c)
+                v.declaration(super::Declaration::TypeAlias { storage, value }, range)
             }
 
             super::Declaration::Constant {
@@ -387,8 +353,8 @@ where
                 value_type,
                 value,
             } => {
-                let (value_type, c) = value_type.walk(v, c);
-                let (value, c) = value.walk(v, c);
+                let (value_type, v) = value_type.walk(v);
+                let (value, v) = value.walk(v);
 
                 v.declaration(
                     super::Declaration::Constant {
@@ -397,18 +363,13 @@ where
                         value,
                     },
                     range,
-                    c,
                 )
             }
 
             super::Declaration::Enumerated { storage, variants } => {
-                let (variants, c) = variants.walk(v, c);
+                let (variants, v) = variants.walk(v);
 
-                v.declaration(
-                    super::Declaration::Enumerated { storage, variants },
-                    range,
-                    c,
-                )
+                v.declaration(super::Declaration::Enumerated { storage, variants }, range)
             }
 
             super::Declaration::Function {
@@ -417,9 +378,9 @@ where
                 body_type,
                 body,
             } => {
-                let (parameters, c) = parameters.walk(v, c);
-                let (body_type, c) = body_type.walk(v, c);
-                let (body, c) = body.walk(v, c);
+                let (parameters, v) = parameters.walk(v);
+                let (body_type, v) = body_type.walk(v);
+                let (body, v) = body.walk(v);
 
                 v.declaration(
                     super::Declaration::Function {
@@ -429,7 +390,6 @@ where
                         body,
                     },
                     range,
-                    c,
                 )
             }
 
@@ -438,8 +398,8 @@ where
                 parameters,
                 body,
             } => {
-                let (parameters, c) = parameters.walk(v, c);
-                let (body, c) = body.walk(v, c);
+                let (parameters, v) = parameters.walk(v);
+                let (body, v) = body.walk(v);
 
                 v.declaration(
                     super::Declaration::View {
@@ -448,26 +408,25 @@ where
                         body,
                     },
                     range,
-                    c,
                 )
             }
 
             super::Declaration::Module { storage, value } => {
-                let (value, c) = value.walk(v, c);
+                let (value, v) = value.walk(v);
 
-                v.declaration(super::Declaration::Module { storage, value }, range, c)
+                v.declaration(super::Declaration::Module { storage, value }, range)
             }
         }
     }
 }
 
-impl<Context, Visitor> Walk<Context, Visitor> for raw::Import
+impl<Visitor> Walk<Visitor> for raw::Import
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output = Visitor::Imp;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context) {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node {
             value:
                 super::Import {
@@ -485,18 +444,17 @@ where
                 alias,
             },
             range,
-            c,
         )
     }
 }
 
-impl<Context, Visitor> Walk<Context, Visitor> for raw::Module
+impl<Visitor> Walk<Visitor> for raw::Module
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: Visit,
 {
     type Output = Visitor::Mod;
 
-    fn walk(self, v: &Visitor, c: Context) -> (Self::Output, Context) {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let raw::Node {
             value:
                 super::Module {
@@ -505,8 +463,8 @@ where
                 },
             range,
         } = self.0;
-        let (imports, c) = imports.walk(v, c);
-        let (declarations, c) = declarations.walk(v, c);
+        let (imports, v) = imports.walk(v);
+        let (declarations, v) = declarations.walk(v);
 
         v.module(
             super::Module {
@@ -514,7 +472,6 @@ where
                 declarations,
             },
             range,
-            c,
         )
     }
 }

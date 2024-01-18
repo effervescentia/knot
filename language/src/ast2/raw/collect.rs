@@ -35,11 +35,26 @@ impl Context {
     }
 }
 
-struct CollectVisitor;
+#[derive(Default)]
+struct CollectVisitor {
+    next_id: usize,
+    fragments: Vec<(NodeId, Fragment)>,
+}
+
+impl CollectVisitor {
+    pub fn add(mut self, fragment: Fragment) -> (NodeId, Self) {
+        let id = NodeId(self.next_id);
+        self.next_id += 1;
+        self.fragments.push((id, fragment));
+        (id, self)
+    }
+
+    pub fn into_fragments(self) -> Vec<(NodeId, Fragment)> {
+        self.fragments
+    }
+}
 
 impl Visit for CollectVisitor {
-    type Context = Context;
-
     type Expr = NodeId;
 
     type Stmt = NodeId;
@@ -57,70 +72,51 @@ impl Visit for CollectVisitor {
     type Mod = NodeId;
 
     fn expression(
-        &self,
+        self,
         x: ast2::Expression<Self::Expr, Self::Stmt, Self::Comp>,
         _: Range,
-        c: Self::Context,
-    ) -> (Self::Expr, Self::Context) {
-        c.add(Fragment::Expression(x))
+    ) -> (Self::Expr, Self) {
+        self.add(Fragment::Expression(x))
     }
 
-    fn statement(
-        &self,
-        x: ast2::Statement<Self::Expr>,
-        _: Range,
-        c: Self::Context,
-    ) -> (Self::Stmt, Self::Context) {
-        c.add(Fragment::Statement(x))
+    fn statement(self, x: ast2::Statement<Self::Expr>, _: Range) -> (Self::Stmt, Self) {
+        self.add(Fragment::Statement(x))
     }
 
-    fn component(
-        &self,
-        x: ast2::Component<Self::Expr, Self::Comp>,
-        _: Range,
-        c: Self::Context,
-    ) -> (Self::Comp, Self::Context) {
-        c.add(Fragment::Component(x))
+    fn component(self, x: ast2::Component<Self::Expr, Self::Comp>, _: Range) -> (Self::Comp, Self) {
+        self.add(Fragment::Component(x))
     }
 
     fn type_expression(
-        &self,
+        self,
         x: ast2::TypeExpression<Self::TExpr>,
         _: Range,
-        c: Self::Context,
-    ) -> (Self::TExpr, Self::Context) {
-        c.add(Fragment::TypeExpression(x))
+    ) -> (Self::TExpr, Self) {
+        self.add(Fragment::TypeExpression(x))
     }
 
     fn parameter(
-        &self,
+        self,
         x: ast2::Parameter<Self::Expr, Self::TExpr>,
         _: Range,
-        c: Self::Context,
-    ) -> (Self::Param, Self::Context) {
-        c.add(Fragment::Parameter(x))
+    ) -> (Self::Param, Self) {
+        self.add(Fragment::Parameter(x))
     }
 
     fn declaration(
-        &self,
+        self,
         x: ast2::Declaration<Self::Expr, Self::Param, Self::Mod, Self::TExpr>,
         _: Range,
-        c: Self::Context,
-    ) -> (Self::Decl, Self::Context) {
-        c.add(Fragment::Declaration(x))
+    ) -> (Self::Decl, Self) {
+        self.add(Fragment::Declaration(x))
     }
 
-    fn import(&self, x: ast2::Import, _: Range, c: Self::Context) -> (Self::Imp, Self::Context) {
-        c.add(Fragment::Import(x))
+    fn import(self, x: ast2::Import, _: Range) -> (Self::Imp, Self) {
+        self.add(Fragment::Import(x))
     }
 
-    fn module(
-        &self,
-        x: ast2::Module<Self::Imp, Self::Decl>,
-        _: Range,
-        c: Self::Context,
-    ) -> (Self::Mod, Self::Context) {
-        c.add(Fragment::Module(x))
+    fn module(self, x: ast2::Module<Self::Imp, Self::Decl>, _: Range) -> (Self::Mod, Self) {
+        self.add(Fragment::Module(x))
     }
 }
 
@@ -128,10 +124,7 @@ impl super::Program {
     fn collect(self) -> Vec<(NodeId, Fragment)> {
         let ast2::Program(module) = self.0.value;
 
-        module
-            .walk(&CollectVisitor, Context::default())
-            .1
-            .into_fragments()
+        module.walk(CollectVisitor::default()).1.into_fragments()
     }
 }
 
