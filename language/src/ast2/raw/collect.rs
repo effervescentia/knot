@@ -111,132 +111,12 @@ impl super::Program {
 #[cfg(test)]
 mod tests {
     use super::Fragment;
-    use crate::ast2::{
-        self,
-        raw::{self, Node},
-        walk::NodeId,
-        Range,
-    };
+    use crate::ast2::{self, raw::fixtures, walk::NodeId};
     use kore::{assert_eq, str};
-
-    const fn mock_range() -> Range {
-        Range::new((0, 0), (1, 1))
-    }
-
-    const fn mock_node<T>(value: T) -> Node<T> {
-        Node::new(value, mock_range())
-    }
 
     #[test]
     fn collect() {
-        let program = raw::Program(raw::Module(mock_node(ast2::Module {
-            imports: vec![raw::Import(mock_node(ast2::Import {
-                source: ast2::ImportSource::Local,
-                path: vec![str!("foo"), str!("bar"), str!("fizz")],
-                alias: None,
-            }))],
-            declarations: vec![
-                raw::Declaration(mock_node(ast2::Declaration::TypeAlias {
-                    storage: ast2::Storage::new(
-                        ast2::Visibility::Public,
-                        ast2::Binding::new(str!("MyType"), mock_range()),
-                    ),
-                    value: raw::TypeExpression(mock_node(ast2::TypeExpression::Primitive(
-                        ast2::TypePrimitive::Nil,
-                    ))),
-                })),
-                raw::Declaration(mock_node(ast2::Declaration::Constant {
-                    storage: ast2::Storage::new(
-                        ast2::Visibility::Public,
-                        ast2::Binding::new(str!("MY_CONSTANT"), mock_range()),
-                    ),
-                    value_type: Some(raw::TypeExpression(mock_node(
-                        ast2::TypeExpression::Primitive(ast2::TypePrimitive::Boolean),
-                    ))),
-                    value: raw::Expression(mock_node(ast2::Expression::Primitive(
-                        ast2::Primitive::Boolean(true),
-                    ))),
-                })),
-                raw::Declaration(mock_node(ast2::Declaration::Enumerated {
-                    storage: ast2::Storage::new(
-                        ast2::Visibility::Public,
-                        ast2::Binding::new(str!("MyEnum"), mock_range()),
-                    ),
-                    variants: vec![
-                        (str!("Empty"), vec![]),
-                        (
-                            str!("Number"),
-                            vec![raw::TypeExpression(mock_node(
-                                ast2::TypeExpression::Primitive(ast2::TypePrimitive::Integer),
-                            ))],
-                        ),
-                    ],
-                })),
-                raw::Declaration(mock_node(ast2::Declaration::Function {
-                    storage: ast2::Storage::new(
-                        ast2::Visibility::Public,
-                        ast2::Binding::new(str!("my_function"), mock_range()),
-                    ),
-                    parameters: vec![raw::Parameter(mock_node(ast2::Parameter {
-                        name: str!("zip"),
-                        value_type: Some(raw::TypeExpression(mock_node(
-                            ast2::TypeExpression::Primitive(ast2::TypePrimitive::String),
-                        ))),
-                        default_value: Some(raw::Expression(mock_node(
-                            ast2::Expression::Primitive(ast2::Primitive::String(str!("my string"))),
-                        ))),
-                    }))],
-                    body_type: Some(raw::TypeExpression(mock_node(
-                        ast2::TypeExpression::Primitive(ast2::TypePrimitive::Nil),
-                    ))),
-                    body: raw::Expression(mock_node(ast2::Expression::Primitive(
-                        ast2::Primitive::Nil,
-                    ))),
-                })),
-                raw::Declaration(mock_node(ast2::Declaration::View {
-                    storage: ast2::Storage::new(
-                        ast2::Visibility::Public,
-                        ast2::Binding::new(str!("MyView"), mock_range()),
-                    ),
-                    parameters: vec![raw::Parameter(mock_node(ast2::Parameter {
-                        name: str!("zap"),
-                        value_type: Some(raw::TypeExpression(mock_node(
-                            ast2::TypeExpression::Primitive(ast2::TypePrimitive::Float),
-                        ))),
-                        default_value: Some(raw::Expression(mock_node(
-                            ast2::Expression::Primitive(ast2::Primitive::Float(1.432, 4)),
-                        ))),
-                    }))],
-                    body: raw::Expression(mock_node(ast2::Expression::Primitive(
-                        ast2::Primitive::Nil,
-                    ))),
-                })),
-                raw::Declaration(mock_node(ast2::Declaration::Module {
-                    storage: ast2::Storage::new(
-                        ast2::Visibility::Public,
-                        ast2::Binding::new(str!("my_module"), mock_range()),
-                    ),
-                    value: raw::Module(mock_node(ast2::Module {
-                        imports: vec![raw::Import(mock_node(ast2::Import {
-                            source: ast2::ImportSource::Local,
-                            path: vec![str!("buzz")],
-                            alias: Some(str!("Buzz")),
-                        }))],
-                        declarations: vec![raw::Declaration(mock_node(
-                            ast2::Declaration::TypeAlias {
-                                storage: ast2::Storage::new(
-                                    ast2::Visibility::Public,
-                                    ast2::Binding::new(str!("NestedType"), mock_range()),
-                                ),
-                                value: raw::TypeExpression(mock_node(
-                                    ast2::TypeExpression::Primitive(ast2::TypePrimitive::Nil),
-                                )),
-                            },
-                        ))],
-                    })),
-                })),
-            ],
-        })));
+        let program = fixtures::raw_program();
 
         assert_eq!(
             program.collect(),
@@ -260,7 +140,7 @@ mod tests {
                     Fragment::Declaration(ast2::Declaration::TypeAlias {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
-                            ast2::Binding::new(str!("MyType"), mock_range()),
+                            ast2::Binding::new(str!("MyType"), fixtures::mock_range()),
                         ),
                         value: NodeId(1),
                     })
@@ -282,7 +162,7 @@ mod tests {
                     Fragment::Declaration(ast2::Declaration::Constant {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
-                            ast2::Binding::new(str!("MY_CONSTANT"), mock_range()),
+                            ast2::Binding::new(str!("MY_CONSTANT"), fixtures::mock_range()),
                         ),
                         value_type: Some(NodeId(3)),
                         value: NodeId(4),
@@ -299,7 +179,7 @@ mod tests {
                     Fragment::Declaration(ast2::Declaration::Enumerated {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
-                            ast2::Binding::new(str!("MyEnum"), mock_range()),
+                            ast2::Binding::new(str!("MyEnum"), fixtures::mock_range()),
                         ),
                         variants: vec![(str!("Empty"), vec![]), (str!("Number"), vec![NodeId(6)])],
                     })
@@ -339,7 +219,7 @@ mod tests {
                     Fragment::Declaration(ast2::Declaration::Function {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
-                            ast2::Binding::new(str!("my_function"), mock_range()),
+                            ast2::Binding::new(str!("my_function"), fixtures::mock_range()),
                         ),
                         parameters: vec![NodeId(10)],
                         body_type: Some(NodeId(11)),
@@ -375,7 +255,7 @@ mod tests {
                     Fragment::Declaration(ast2::Declaration::View {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
-                            ast2::Binding::new(str!("MyView"), mock_range()),
+                            ast2::Binding::new(str!("MyView"), fixtures::mock_range()),
                         ),
                         parameters: vec![NodeId(16)],
                         body: NodeId(17),
@@ -400,7 +280,7 @@ mod tests {
                     Fragment::Declaration(ast2::Declaration::TypeAlias {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
-                            ast2::Binding::new(str!("NestedType"), mock_range()),
+                            ast2::Binding::new(str!("NestedType"), fixtures::mock_range()),
                         ),
                         value: NodeId(20),
                     })
@@ -417,7 +297,7 @@ mod tests {
                     Fragment::Declaration(ast2::Declaration::Module {
                         storage: ast2::Storage::new(
                             ast2::Visibility::Public,
-                            ast2::Binding::new(str!("my_module"), mock_range()),
+                            ast2::Binding::new(str!("my_module"), fixtures::mock_range()),
                         ),
                         value: NodeId(22),
                     })

@@ -109,3 +109,331 @@ impl super::Program {
         typed::Program(result)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::ast2::{
+        self,
+        raw::fixtures,
+        typed::{self, Kind, TypeRef, TypeShape},
+        walk::NodeId,
+    };
+    use kore::{assert_eq, str};
+    use std::collections::HashMap;
+
+    const fn mock_node<V, T>(value: V, type_: T) -> typed::Node<V, T> {
+        typed::Node::new(value, type_, fixtures::mock_range())
+    }
+
+    #[test]
+    fn augment() {
+        let program = fixtures::raw_program();
+        let enum_type = TypeRef(TypeShape::Enumerated(vec![
+            (str!("Empty"), vec![]),
+            (str!("Number"), vec![&TypeRef(TypeShape::Integer)]),
+        ]));
+        let function_type = TypeRef(TypeShape::Function(
+            vec![&TypeRef(TypeShape::String)],
+            Box::new(&TypeRef(TypeShape::Nil)),
+        ));
+        let view_type = TypeRef(TypeShape::View(vec![&TypeRef(TypeShape::Float)]));
+        let module_type = TypeRef(TypeShape::Module(vec![(
+            str!("NestedType"),
+            Kind::Type,
+            &TypeRef(TypeShape::Nil),
+        )]));
+        let types = HashMap::from_iter(vec![
+            (
+                NodeId(0),
+                TypeRef(TypeShape::Module(vec![(
+                    str!("bar"),
+                    Kind::Value,
+                    &TypeRef(TypeShape::Boolean),
+                )])),
+            ),
+            (NodeId(1), TypeRef(TypeShape::Nil)),
+            (NodeId(2), TypeRef(TypeShape::Nil)),
+            (NodeId(3), TypeRef(TypeShape::Boolean)),
+            (NodeId(4), TypeRef(TypeShape::Boolean)),
+            (NodeId(5), TypeRef(TypeShape::Boolean)),
+            (NodeId(6), TypeRef(TypeShape::Integer)),
+            (
+                NodeId(7),
+                TypeRef(TypeShape::Enumerated(vec![
+                    (str!("Empty"), vec![]),
+                    (str!("Number"), vec![&TypeRef(TypeShape::Integer)]),
+                ])),
+            ),
+            (NodeId(8), TypeRef(TypeShape::String)),
+            (NodeId(9), TypeRef(TypeShape::String)),
+            (NodeId(10), TypeRef(TypeShape::String)),
+            (NodeId(11), TypeRef(TypeShape::Nil)),
+            (NodeId(12), TypeRef(TypeShape::Nil)),
+            (
+                NodeId(13),
+                TypeRef(TypeShape::Function(
+                    vec![&TypeRef(TypeShape::String)],
+                    Box::new(&TypeRef(TypeShape::Nil)),
+                )),
+            ),
+            (NodeId(14), TypeRef(TypeShape::Float)),
+            (NodeId(15), TypeRef(TypeShape::Float)),
+            (NodeId(16), TypeRef(TypeShape::Float)),
+            (NodeId(17), TypeRef(TypeShape::Nil)),
+            (
+                NodeId(18),
+                TypeRef(TypeShape::View(vec![&TypeRef(TypeShape::Float)])),
+            ),
+            (
+                NodeId(19),
+                TypeRef(TypeShape::Module(vec![(
+                    str!("zip"),
+                    Kind::Type,
+                    &TypeRef(TypeShape::String),
+                )])),
+            ),
+            (NodeId(20), TypeRef(TypeShape::Nil)),
+            (NodeId(21), TypeRef(TypeShape::Nil)),
+            (
+                NodeId(22),
+                TypeRef(TypeShape::Module(vec![(
+                    str!("NestedType"),
+                    Kind::Type,
+                    &TypeRef(TypeShape::Nil),
+                )])),
+            ),
+            (
+                NodeId(23),
+                TypeRef(TypeShape::Module(vec![(
+                    str!("NestedType"),
+                    Kind::Type,
+                    &TypeRef(TypeShape::Nil),
+                )])),
+            ),
+            (
+                NodeId(24),
+                TypeRef(TypeShape::Module(vec![
+                    (str!("MyType"), Kind::Type, &TypeRef(TypeShape::Nil)),
+                    (
+                        str!("MY_CONSTANT"),
+                        Kind::Value,
+                        &TypeRef(TypeShape::Boolean),
+                    ),
+                    (str!("MyEnum"), Kind::Value, &enum_type),
+                    (str!("my_function"), Kind::Value, &function_type),
+                    (str!("MyView"), Kind::Value, &view_type),
+                    (str!("my_module"), Kind::Mixed, &module_type),
+                ])),
+            ),
+        ]);
+
+        assert_eq!(
+            program.augment(types),
+            typed::Program(typed::Module(mock_node(
+                ast2::Module {
+                    imports: vec![typed::Import(mock_node(
+                        ast2::Import {
+                            source: ast2::ImportSource::Local,
+                            path: vec![str!("foo"), str!("bar"), str!("fizz")],
+                            alias: None,
+                        },
+                        TypeRef(TypeShape::Module(vec![(
+                            str!("bar"),
+                            Kind::Value,
+                            &TypeRef(TypeShape::Boolean)
+                        )]))
+                    ))],
+                    declarations: vec![
+                        typed::Declaration(mock_node(
+                            ast2::Declaration::TypeAlias {
+                                storage: ast2::Storage::new(
+                                    ast2::Visibility::Public,
+                                    ast2::Binding::new(str!("MyType"), fixtures::mock_range()),
+                                ),
+                                value: typed::TypeExpression(mock_node(
+                                    ast2::TypeExpression::Primitive(ast2::TypePrimitive::Nil),
+                                    TypeRef(TypeShape::Nil)
+                                )),
+                            },
+                            TypeRef(TypeShape::Nil)
+                        )),
+                        typed::Declaration(mock_node(
+                            ast2::Declaration::Constant {
+                                storage: ast2::Storage::new(
+                                    ast2::Visibility::Public,
+                                    ast2::Binding::new(str!("MY_CONSTANT"), fixtures::mock_range()),
+                                ),
+                                value_type: Some(typed::TypeExpression(mock_node(
+                                    ast2::TypeExpression::Primitive(ast2::TypePrimitive::Boolean),
+                                    TypeRef(TypeShape::Boolean)
+                                ))),
+                                value: typed::Expression(mock_node(
+                                    ast2::Expression::Primitive(ast2::Primitive::Boolean(true)),
+                                    TypeRef(TypeShape::Boolean)
+                                )),
+                            },
+                            TypeRef(TypeShape::Boolean)
+                        )),
+                        typed::Declaration(mock_node(
+                            ast2::Declaration::Enumerated {
+                                storage: ast2::Storage::new(
+                                    ast2::Visibility::Public,
+                                    ast2::Binding::new(str!("MyEnum"), fixtures::mock_range()),
+                                ),
+                                variants: vec![
+                                    (str!("Empty"), vec![]),
+                                    (
+                                        str!("Number"),
+                                        vec![typed::TypeExpression(mock_node(
+                                            ast2::TypeExpression::Primitive(
+                                                ast2::TypePrimitive::Integer
+                                            ),
+                                            TypeRef(TypeShape::Integer)
+                                        ))],
+                                    ),
+                                ],
+                            },
+                            TypeRef(TypeShape::Enumerated(vec![
+                                (str!("Empty"), vec![]),
+                                (str!("Number"), vec![&TypeRef(TypeShape::Integer)]),
+                            ]))
+                        )),
+                        typed::Declaration(mock_node(
+                            ast2::Declaration::Function {
+                                storage: ast2::Storage::new(
+                                    ast2::Visibility::Public,
+                                    ast2::Binding::new(str!("my_function"), fixtures::mock_range()),
+                                ),
+                                parameters: vec![typed::Parameter(mock_node(
+                                    ast2::Parameter {
+                                        name: str!("zip"),
+                                        value_type: Some(typed::TypeExpression(mock_node(
+                                            ast2::TypeExpression::Primitive(
+                                                ast2::TypePrimitive::String
+                                            ),
+                                            TypeRef(TypeShape::String)
+                                        ))),
+                                        default_value: Some(typed::Expression(mock_node(
+                                            ast2::Expression::Primitive(ast2::Primitive::String(
+                                                str!("my string")
+                                            )),
+                                            TypeRef(TypeShape::String)
+                                        ))),
+                                    },
+                                    TypeRef(TypeShape::String)
+                                ))],
+                                body_type: Some(typed::TypeExpression(mock_node(
+                                    ast2::TypeExpression::Primitive(ast2::TypePrimitive::Nil),
+                                    TypeRef(TypeShape::Nil)
+                                ))),
+                                body: typed::Expression(mock_node(
+                                    ast2::Expression::Primitive(ast2::Primitive::Nil),
+                                    TypeRef(TypeShape::Nil)
+                                )),
+                            },
+                            TypeRef(TypeShape::Function(
+                                vec![&TypeRef(TypeShape::String)],
+                                Box::new(&TypeRef(TypeShape::Nil))
+                            ))
+                        )),
+                        typed::Declaration(mock_node(
+                            ast2::Declaration::View {
+                                storage: ast2::Storage::new(
+                                    ast2::Visibility::Public,
+                                    ast2::Binding::new(str!("MyView"), fixtures::mock_range()),
+                                ),
+                                parameters: vec![typed::Parameter(mock_node(
+                                    ast2::Parameter {
+                                        name: str!("zap"),
+                                        value_type: Some(typed::TypeExpression(mock_node(
+                                            ast2::TypeExpression::Primitive(
+                                                ast2::TypePrimitive::Float
+                                            ),
+                                            TypeRef(TypeShape::Float)
+                                        ))),
+                                        default_value: Some(typed::Expression(mock_node(
+                                            ast2::Expression::Primitive(ast2::Primitive::Float(
+                                                1.432, 4
+                                            )),
+                                            TypeRef(TypeShape::Float)
+                                        ))),
+                                    },
+                                    TypeRef(TypeShape::Float)
+                                ))],
+                                body: typed::Expression(mock_node(
+                                    ast2::Expression::Primitive(ast2::Primitive::Nil),
+                                    TypeRef(TypeShape::Nil)
+                                )),
+                            },
+                            TypeRef(TypeShape::View(vec![&TypeRef(TypeShape::Float)]))
+                        )),
+                        typed::Declaration(mock_node(
+                            ast2::Declaration::Module {
+                                storage: ast2::Storage::new(
+                                    ast2::Visibility::Public,
+                                    ast2::Binding::new(str!("my_module"), fixtures::mock_range()),
+                                ),
+                                value: typed::Module(mock_node(
+                                    ast2::Module {
+                                        imports: vec![typed::Import(mock_node(
+                                            ast2::Import {
+                                                source: ast2::ImportSource::Local,
+                                                path: vec![str!("buzz")],
+                                                alias: Some(str!("Buzz")),
+                                            },
+                                            TypeRef(TypeShape::Module(vec![(
+                                                str!("zip"),
+                                                Kind::Type,
+                                                &TypeRef(TypeShape::String)
+                                            )]))
+                                        ))],
+                                        declarations: vec![typed::Declaration(mock_node(
+                                            ast2::Declaration::TypeAlias {
+                                                storage: ast2::Storage::new(
+                                                    ast2::Visibility::Public,
+                                                    ast2::Binding::new(
+                                                        str!("NestedType"),
+                                                        fixtures::mock_range()
+                                                    ),
+                                                ),
+                                                value: typed::TypeExpression(mock_node(
+                                                    ast2::TypeExpression::Primitive(
+                                                        ast2::TypePrimitive::Nil
+                                                    ),
+                                                    TypeRef(TypeShape::Nil)
+                                                )),
+                                            },
+                                            TypeRef(TypeShape::Nil)
+                                        ))],
+                                    },
+                                    TypeRef(TypeShape::Module(vec![(
+                                        str!("NestedType"),
+                                        Kind::Type,
+                                        &TypeRef(TypeShape::Nil)
+                                    )]))
+                                )),
+                            },
+                            TypeRef(TypeShape::Module(vec![(
+                                str!("NestedType"),
+                                Kind::Type,
+                                &TypeRef(TypeShape::Nil)
+                            )]))
+                        )),
+                    ],
+                },
+                TypeRef(TypeShape::Module(vec![
+                    (str!("MyType"), Kind::Type, &TypeRef(TypeShape::Nil)),
+                    (
+                        str!("MY_CONSTANT"),
+                        Kind::Value,
+                        &TypeRef(TypeShape::Boolean),
+                    ),
+                    (str!("MyEnum"), Kind::Value, &enum_type),
+                    (str!("my_function"), Kind::Value, &function_type),
+                    (str!("MyView"), Kind::Value, &view_type),
+                    (str!("my_module"), Kind::Mixed, &module_type),
+                ]))
+            )))
+        );
+    }
+}

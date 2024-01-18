@@ -1,5 +1,7 @@
 mod augment;
 mod collect;
+#[cfg(test)]
+mod fixtures;
 
 pub struct Node<Value> {
     pub value: Value,

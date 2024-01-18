@@ -2,7 +2,7 @@ mod raw;
 mod typed;
 mod walk;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Range {
     start: (usize, usize),
     end: (usize, usize),
@@ -14,7 +14,7 @@ impl Range {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Binding {
     name: String,
     range: Range,
@@ -26,7 +26,7 @@ impl Binding {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum UnaryOperator {
     Not,
 
@@ -34,7 +34,7 @@ pub enum UnaryOperator {
     Absolute,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum BinaryOperator {
     And,
     Or,
@@ -85,13 +85,13 @@ pub enum Expression<Expr, Stmt, Comp> {
     Style(Vec<(String, Expr)>),
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Statement<Expr> {
     Expression(Expr),
     Variable(Binding, Expr),
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Component<Expr, Comp> {
     Fragment(Vec<Comp>),
     OpenElement(String, Vec<(String, Option<Expr>)>, Vec<Comp>, String),
@@ -100,13 +100,13 @@ pub enum Component<Expr, Comp> {
     Text(String),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Visibility {
     Public,
     Private,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Storage {
     visibility: Visibility,
     binding: Binding,
@@ -121,14 +121,14 @@ impl Storage {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Parameter<Expr, TExpr> {
     name: String,
     value_type: Option<TExpr>,
     default_value: Option<Expr>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Declaration<Expr, Param, Mod, TExpr> {
     TypeAlias {
         storage: Storage,
@@ -160,7 +160,7 @@ pub enum Declaration<Expr, Param, Mod, TExpr> {
     },
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum TypePrimitive {
     Nil,
     Boolean,
@@ -171,7 +171,7 @@ pub enum TypePrimitive {
     Component,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum TypeExpression<TExpr> {
     Primitive(TypePrimitive),
     Identifier(String),
@@ -180,7 +180,7 @@ pub enum TypeExpression<TExpr> {
     Function(Vec<TExpr>, Box<TExpr>),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ImportSource {
     Root,
     Local,
@@ -188,14 +188,14 @@ pub enum ImportSource {
     Scoped { scope: String, name: String },
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Import {
     source: ImportSource,
     path: Vec<String>,
     alias: Option<String>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Module<Imp, Decl> {
     imports: Vec<Imp>,
     declarations: Vec<Decl>,
