@@ -1,56 +1,55 @@
-use crate::ast::{AstNode, ImportNode, ImportSource, ModuleNode};
+use crate::ast;
 use kore::{
     format::{SeparateEach, TerminateEach},
     str,
 };
 use std::fmt::{Display, Formatter};
 
-impl<R, C> Display for ModuleNode<R, C>
+impl<Import, Declaration> Display for ast::Module<Import, Declaration>
 where
-    R: Copy,
+    Import: Display,
+    Declaration: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,
             "{imports}{spacer}{declarations}",
-            imports = TerminateEach(";\n", &self.0.imports),
-            spacer = if self.0.is_empty() { "" } else { "\n" },
-            declarations = TerminateEach("\n", &self.0.declarations)
+            imports = TerminateEach(";\n", &self.imports),
+            spacer = if self.is_empty() { "" } else { "\n" },
+            declarations = TerminateEach("\n", &self.declarations)
         )
     }
 }
 
-impl<R, C> Display for ImportNode<R, C>
-where
-    R: Copy,
-{
+impl Display for ast::Import {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,
             "use {source}/{path}",
-            source = match &self.node().value().source {
-                ImportSource::Root => str!("@"),
-                ImportSource::Local => str!("."),
-                ImportSource::Named(name) => name.clone(),
-                ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
+            source = match &self.source {
+                ast::ImportSource::Root => str!("@"),
+                ast::ImportSource::Local => str!("."),
+                ast::ImportSource::Named(name) => name.clone(),
+                ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
             },
-            path = SeparateEach("/", &self.node().value().path)
+            path = SeparateEach("/", &self.path)
         )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{Import, ImportSource, Module, TypeExpression},
-        test::fixture as f,
-    };
+    use crate::ast;
     use kore::str;
 
     #[test]
     fn empty() {
         assert_eq!(
-            f::n::d(f::a::module("foo", f::n::m(Module::new(vec![], vec![])))).to_string(),
+            ast::shape::Declaration(ast::Declaration::module(
+                ast::Storage::public(str!("foo")),
+                ast::shape::Module(ast::Module::new(vec![], vec![]))
+            ))
+            .to_string(),
             "module foo {}"
         );
     }
@@ -58,9 +57,9 @@ mod tests {
     #[test]
     fn imports() {
         assert_eq!(
-            f::n::m(Module::new(
-                vec![f::n::i(Import::new(
-                    ImportSource::Root,
+            ast::shape::Module(ast::Module::new(
+                vec![ast::shape::Import(ast::Import::new(
+                    ast::ImportSource::Root,
                     vec![str!("bar"), str!("fizz")],
                     None
                 ))],
@@ -75,9 +74,14 @@ mod tests {
     #[test]
     fn declarations() {
         assert_eq!(
-            f::n::m(Module::new(
+            ast::shape::Module(ast::Module::new(
                 vec![],
-                vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
+                vec![ast::shape::Declaration(ast::Declaration::type_alias(
+                    ast::Storage::public(str!("bar")),
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Nil
+                    ))
+                ))]
             ))
             .to_string(),
             "type bar = nil;
@@ -88,13 +92,18 @@ mod tests {
     #[test]
     fn imports_and_declarations() {
         assert_eq!(
-            f::n::m(Module::new(
-                vec![f::n::i(Import::new(
-                    ImportSource::Root,
+            ast::shape::Module(ast::Module::new(
+                vec![ast::shape::Import(ast::Import::new(
+                    ast::ImportSource::Root,
                     vec![str!("bar"), str!("fizz")],
                     None
                 ))],
-                vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
+                vec![ast::shape::Declaration(ast::Declaration::type_alias(
+                    ast::Storage::public(str!("bar")),
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Nil
+                    ))
+                ))]
             ))
             .to_string(),
             "use @/bar/fizz;

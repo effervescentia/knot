@@ -1,27 +1,27 @@
+use crate::ast;
 use combine::{
     attempt, between, choice, many, many1, none_of, parser::char as p, token, value, Parser, Stream,
 };
 use kore::invariant;
-use lang::ast::Primitive;
 
-fn nil<T>() -> impl Parser<T, Output = Primitive>
+fn nil<T>() -> impl Parser<T, Output = ast::Primitive>
 where
     T: Stream<Token = char>,
 {
-    p::string("nil").with(value(Primitive::Nil))
+    p::string("nil").with(value(ast::Primitive::Nil))
 }
 
-fn boolean<T>() -> impl Parser<T, Output = Primitive>
+fn boolean<T>() -> impl Parser<T, Output = ast::Primitive>
 where
     T: Stream<Token = char>,
 {
     p::string("true")
         .with(value(true))
         .or(p::string("false").with(value(false)))
-        .map(Primitive::Boolean)
+        .map(ast::Primitive::Boolean)
 }
 
-fn integer<T>() -> impl Parser<T, Output = Primitive>
+fn integer<T>() -> impl Parser<T, Output = ast::Primitive>
 where
     T: Stream<Token = char>,
 {
@@ -31,10 +31,10 @@ where
                 .parse::<i64>()
                 .unwrap_or_else(|_| invariant!("should be able to parse as a valid 64-bit float"))
         })
-        .map(Primitive::Integer)
+        .map(ast::Primitive::Integer)
 }
 
-fn float<T>() -> impl Parser<T, Output = Primitive>
+fn float<T>() -> impl Parser<T, Output = ast::Primitive>
 where
     T: Stream<Token = char>,
 {
@@ -43,7 +43,7 @@ where
 
     attempt((integer, token('.'), fraction)).map(|(integer, _, fraction)| {
         if fraction.is_empty() {
-            Primitive::Float(
+            ast::Primitive::Float(
                 integer.parse::<f64>().unwrap_or_else(|_| {
                     invariant!("should be able to parse as a valid 64-bit float")
                 }),
@@ -52,7 +52,7 @@ where
         } else {
             let float = format!("{}.{}", integer, fraction);
 
-            Primitive::Float(
+            ast::Primitive::Float(
                 float.parse::<f64>().unwrap_or_else(|_| {
                     invariant!("should be able to parse as a valid 64-bit float")
                 }),
@@ -62,14 +62,14 @@ where
     })
 }
 
-fn string<T>() -> impl Parser<T, Output = Primitive>
+fn string<T>() -> impl Parser<T, Output = ast::Primitive>
 where
     T: Stream<Token = char>,
 {
-    between(token('"'), token('"'), many(none_of(vec!['"', '\\']))).map(Primitive::String)
+    between(token('"'), token('"'), many(none_of(vec!['"', '\\']))).map(ast::Primitive::String)
 }
 
-pub fn primitive<T>() -> impl Parser<T, Output = Primitive>
+pub fn primitive<T>() -> impl Parser<T, Output = ast::Primitive>
 where
     T: Stream<Token = char>,
 {
@@ -78,42 +78,49 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{primitive, Primitive};
+    use super::primitive;
+    use crate::ast;
     use combine::{eof, error::StringStreamError, Parser};
     use kore::str;
 
-    fn parse(s: &str) -> Result<(Primitive, &str), StringStreamError> {
+    fn parse(s: &str) -> Result<(ast::Primitive, &str), StringStreamError> {
         primitive().skip(eof()).parse(s)
     }
 
     #[test]
     fn nil() {
-        assert_eq!(parse("nil").unwrap().0, Primitive::Nil);
+        assert_eq!(parse("nil").unwrap().0, ast::Primitive::Nil);
     }
 
     #[test]
     fn boolean_true() {
-        assert_eq!(parse("true").unwrap().0, Primitive::Boolean(true));
+        assert_eq!(parse("true").unwrap().0, ast::Primitive::Boolean(true));
     }
 
     #[test]
     fn boolean_false() {
-        assert_eq!(parse("false").unwrap().0, Primitive::Boolean(false));
+        assert_eq!(parse("false").unwrap().0, ast::Primitive::Boolean(false));
     }
 
     #[test]
     fn integer() {
-        assert_eq!(parse("0").unwrap().0, Primitive::Integer(0));
-        assert_eq!(parse("123").unwrap().0, Primitive::Integer(123));
+        assert_eq!(parse("0").unwrap().0, ast::Primitive::Integer(0));
+        assert_eq!(parse("123").unwrap().0, ast::Primitive::Integer(123));
     }
 
     #[test]
     fn float() {
-        assert_eq!(parse("123.456").unwrap().0, Primitive::Float(123.456, 3));
+        assert_eq!(
+            parse("123.456").unwrap().0,
+            ast::Primitive::Float(123.456, 3)
+        );
     }
 
     #[test]
     fn string() {
-        assert_eq!(parse("\"foo\"").unwrap().0, Primitive::String(str!("foo")));
+        assert_eq!(
+            parse("\"foo\"").unwrap().0,
+            ast::Primitive::String(str!("foo"))
+        );
     }
 }

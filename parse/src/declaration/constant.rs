@@ -1,15 +1,14 @@
 use super::storage;
 use crate::{
-    expression, Position, Range,
+    ast, expression,
     {matcher as m, types::typedef},
 };
 use combine::{Parser, Stream};
-use lang::ast::{AstNode, Declaration, DeclarationNode};
 
-pub fn constant<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
+pub fn constant<T>() -> impl Parser<T, Output = ast::raw::Declaration>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     m::terminated((
         storage::storage("const"),
@@ -17,15 +16,11 @@ where
         m::symbol('='),
         expression::expression(),
     ))
-    .map(|((name, start), value_type, _, value)| {
-        let range = &start + value.node().range();
+    .map(|((storage, start), value_type, _, value)| {
+        let range = &start + value.0.range();
 
-        DeclarationNode::raw(
-            Declaration::Constant {
-                name,
-                value_type,
-                value,
-            },
+        ast::raw::Declaration::new(
+            ast::Declaration::constant(storage, value_type, value),
             range,
         )
     })

@@ -1,7 +1,6 @@
 use super::{parameter, storage};
-use crate::{expression, matcher as m, Position, Range};
+use crate::{ast, expression, matcher as m};
 use combine::{between, optional, sep_end_by, Parser, Stream};
-use lang::ast::{AstNode, Declaration, DeclarationNode};
 
 // view foo -> nil;
 // view foo -> {};
@@ -12,10 +11,10 @@ use lang::ast::{AstNode, Declaration, DeclarationNode};
 // view foo(props) -> nil;
 // view foo({a, b: nil, c = 123}) -> nil;
 
-pub fn view<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
+pub fn view<T>() -> impl Parser<T, Output = ast::raw::Declaration>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     m::terminated((
         storage::storage("view"),
@@ -27,14 +26,10 @@ where
         m::glyph("->"),
         expression::expression(),
     ))
-    .map(|((name, start), attributes, _, body)| {
-        let range = &start + body.node().range();
-        DeclarationNode::raw(
-            Declaration::View {
-                name,
-                parameters: attributes.unwrap_or_default(),
-                body,
-            },
+    .map(|((storage, start), attributes, _, body)| {
+        let range = &start + body.0.range();
+        ast::raw::Declaration::new(
+            ast::Declaration::view(storage, attributes.unwrap_or_default(), body),
             range,
         )
     })

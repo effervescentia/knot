@@ -3,24 +3,24 @@ use crate::{
     Options,
 };
 use kore::invariant;
-use lang::ast::{self, ExpressionShape, KSXShape, Primitive};
+use lang::ast;
 
 #[allow(clippy::multiple_inherent_impl)]
 impl Expression {
-    pub fn from_expression(value: &ExpressionShape, opts: &Options) -> Self {
+    pub fn from_expression(value: &ast::shape::Expression, opts: &Options) -> Self {
         match &value.0 {
             ast::Expression::Primitive(x) => match x {
-                Primitive::Nil => Self::Null,
+                ast::Primitive::Nil => Self::Null,
 
-                Primitive::Boolean(x) => Self::Boolean(*x),
+                ast::Primitive::Boolean(x) => Self::Boolean(*x),
 
-                Primitive::Integer(x) => Self::Number(format!("{x}")),
+                ast::Primitive::Integer(x) => Self::Number(format!("{x}")),
 
-                Primitive::Float(x, precision) => {
+                ast::Primitive::Float(x, precision) => {
                     Self::Number(format!("{x:.0$}", *precision as usize))
                 }
 
-                Primitive::String(x) => Self::String(x.clone()),
+                ast::Primitive::String(x) => Self::String(x.clone()),
             },
 
             ast::Expression::Identifier(x) => Self::Identifier(x.clone()),
@@ -90,7 +90,7 @@ impl Expression {
                 }
             }
 
-            ast::Expression::DotAccess(lhs, rhs) => {
+            ast::Expression::PropertyAccess(lhs, rhs) => {
                 Self::DotAccess(Box::new(Self::from_expression(lhs, opts)), rhs.clone())
             }
 
@@ -111,11 +111,11 @@ impl Expression {
                 )],
             ),
 
-            ast::Expression::KSX(x) => Self::from_ksx(x, opts),
+            ast::Expression::Component(x) => Self::from_component(x, opts),
         }
     }
 
-    pub fn from_ksx(value: &KSXShape, opts: &Options) -> Self {
+    pub fn from_component(value: &ast::shape::Component, opts: &Options) -> Self {
         fn element_name(name: String) -> Expression {
             let first_char = name
                 .chars()
@@ -130,16 +130,16 @@ impl Expression {
         }
 
         match &value.0 {
-            ast::KSX::Text(x) => Self::String(x.clone()),
+            ast::Component::Text(x) => Self::String(x.clone()),
 
-            ast::KSX::Inline(x) => Self::from_expression(x, opts),
+            ast::Component::Expression(x) => Self::from_expression(x, opts),
 
-            ast::KSX::Fragment(xs) => Self::FunctionCall(
+            ast::Component::Fragment(xs) => Self::FunctionCall(
                 Box::new(Self::plugin("ksx", "createFragment")),
-                xs.iter().map(|x| Self::from_ksx(x, opts)).collect(),
+                xs.iter().map(|x| Self::from_component(x, opts)).collect(),
             ),
 
-            ast::KSX::ClosedElement(tag, attributes) => {
+            ast::Component::ClosedElement(tag, attributes) => {
                 let name_arg = element_name(tag.clone());
 
                 Self::FunctionCall(
@@ -152,7 +152,12 @@ impl Expression {
                 )
             }
 
-            ast::KSX::OpenElement(start_tag, attributes, children, ..) => {
+            ast::Component::OpenElement {
+                start_tag,
+                attributes,
+                children,
+                ..
+            } => {
                 let name_arg = element_name(start_tag.clone());
 
                 Self::FunctionCall(
@@ -162,7 +167,10 @@ impl Expression {
                     } else {
                         [
                             vec![name_arg, Self::from_attributes(attributes, opts)],
-                            children.iter().map(|x| Self::from_ksx(x, opts)).collect(),
+                            children
+                                .iter()
+                                .map(|x| Self::from_component(x, opts))
+                                .collect(),
                         ]
                         .concat()
                     },
@@ -172,7 +180,7 @@ impl Expression {
     }
 
     pub fn from_attributes(
-        xs: &Vec<(String, Option<ast::ExpressionShape>)>,
+        xs: &Vec<(String, Option<ast::shape::Expression>)>,
         opts: &Options,
     ) -> Self {
         if xs.is_empty() {
@@ -216,7 +224,7 @@ mod tests {
         fn primitive_nil() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil)),
+                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
                     &OPTIONS
                 ),
                 Expression::Null
@@ -227,7 +235,7 @@ mod tests {
         fn primitive_boolean() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Boolean(
+                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Boolean(
                         true
                     ))),
                     &OPTIONS
@@ -236,7 +244,7 @@ mod tests {
             );
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Boolean(
+                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Boolean(
                         false
                     ))),
                     &OPTIONS
@@ -249,7 +257,9 @@ mod tests {
         fn primitive_integer() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Integer(123))),
+                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Integer(
+                        123
+                    ))),
                     &OPTIONS
                 ),
                 Expression::Number(str!("123"))
@@ -260,7 +270,7 @@ mod tests {
         fn primitive_float() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Float(
+                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Float(
                         45.67, 2
                     ))),
                     &OPTIONS
@@ -273,7 +283,7 @@ mod tests {
         fn primitive_string() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::String(
+                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::String(
                         str!("foo")
                     ))),
                     &OPTIONS
@@ -286,7 +296,7 @@ mod tests {
         fn identifier() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Identifier(str!("foo"))),
+                    &ast::shape::Expression(ast::Expression::Identifier(str!("foo"))),
                     &OPTIONS
                 ),
                 Expression::Identifier(str!("foo"))
@@ -297,9 +307,9 @@ mod tests {
         fn group() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Group(Box::new(ast::ExpressionShape(
-                        ast::Expression::Primitive(ast::Primitive::Nil)
-                    )))),
+                    &ast::shape::Expression(ast::Expression::Group(Box::new(
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                    ))),
                     &OPTIONS
                 ),
                 Expression::Group(Box::new(Expression::Null))
@@ -310,7 +320,7 @@ mod tests {
         fn empty_closure() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Closure(vec![])),
+                    &ast::shape::Expression(ast::Expression::Closure(vec![])),
                     &OPTIONS
                 ),
                 Expression::Null
@@ -321,12 +331,12 @@ mod tests {
         fn closure_with_last_expression() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Closure(vec![
-                        ast::StatementShape(ast::Statement::Variable(
+                    &ast::shape::Expression(ast::Expression::Closure(vec![
+                        ast::shape::Statement(ast::Statement::Variable(
                             str!("foo"),
-                            ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                         )),
-                        ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
+                        ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
                             ast::Expression::Primitive(ast::Primitive::Boolean(true))
                         )))
                     ])),
@@ -343,13 +353,13 @@ mod tests {
         fn closure_with_last_variable() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Closure(vec![
-                        ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
+                    &ast::shape::Expression(ast::Expression::Closure(vec![
+                        ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
                             ast::Expression::Primitive(ast::Primitive::Boolean(true))
                         ))),
-                        ast::StatementShape(ast::Statement::Variable(
+                        ast::shape::Statement(ast::Statement::Variable(
                             str!("foo"),
-                            ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                         ))
                     ])),
                     &OPTIONS
@@ -366,9 +376,9 @@ mod tests {
         fn unary_operation() {
             let operation = |op| {
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::UnaryOperation(
+                    &ast::shape::Expression(ast::Expression::UnaryOperation(
                         op,
-                        Box::new(ast::ExpressionShape(ast::Expression::Primitive(
+                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
                             ast::Primitive::Nil,
                         ))),
                     )),
@@ -390,9 +400,9 @@ mod tests {
         fn unary_absolute_operation() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::UnaryOperation(
+                    &ast::shape::Expression(ast::Expression::UnaryOperation(
                         ast::UnaryOperator::Absolute,
-                        Box::new(ast::ExpressionShape(ast::Expression::Primitive(
+                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
                             ast::Primitive::Nil
                         )))
                     )),
@@ -409,12 +419,12 @@ mod tests {
         fn binary_operation() {
             let knot_operation = |op| {
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::BinaryOperation(
+                    &ast::shape::Expression(ast::Expression::BinaryOperation(
                         op,
-                        Box::new(ast::ExpressionShape(ast::Expression::Identifier(str!(
+                        Box::new(ast::shape::Expression(ast::Expression::Identifier(str!(
                             "lhs"
                         )))),
-                        Box::new(ast::ExpressionShape(ast::Expression::Identifier(str!(
+                        Box::new(ast::shape::Expression(ast::Expression::Identifier(str!(
                             "rhs"
                         )))),
                     )),
@@ -477,12 +487,12 @@ mod tests {
         fn binary_exponent_operation() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::BinaryOperation(
+                    &ast::shape::Expression(ast::Expression::BinaryOperation(
                         ast::BinaryOperator::Exponent,
-                        Box::new(ast::ExpressionShape(ast::Expression::Primitive(
+                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
                             ast::Primitive::Nil
                         ))),
-                        Box::new(ast::ExpressionShape(ast::Expression::Primitive(
+                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
                             ast::Primitive::Nil
                         )))
                     )),
@@ -499,8 +509,8 @@ mod tests {
         fn dot_access() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::DotAccess(
-                        Box::new(ast::ExpressionShape(ast::Expression::Primitive(
+                    &ast::shape::Expression(ast::Expression::PropertyAccess(
+                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
                             ast::Primitive::Nil
                         ))),
                         str!("foo")
@@ -515,11 +525,11 @@ mod tests {
         fn function_call() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::FunctionCall(
-                        Box::new(ast::ExpressionShape(ast::Expression::Primitive(
+                    &ast::shape::Expression(ast::Expression::FunctionCall(
+                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
                             ast::Primitive::Nil
                         ))),
-                        vec![ast::ExpressionShape(ast::Expression::Primitive(
+                        vec![ast::shape::Expression(ast::Expression::Primitive(
                             ast::Primitive::Nil
                         ))]
                     )),
@@ -533,9 +543,9 @@ mod tests {
         fn style() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::Style(vec![(
+                    &ast::shape::Expression(ast::Expression::Style(vec![(
                         str!("foo"),
-                        ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     )])),
                     &OPTIONS
                 ),
@@ -557,9 +567,9 @@ mod tests {
         fn ksx() {
             assert_eq!(
                 Expression::from_expression(
-                    &ast::ExpressionShape(ast::Expression::KSX(Box::new(ast::KSXShape(
-                        ast::KSX::ClosedElement(str!("Foo"), vec![])
-                    )))),
+                    &ast::shape::Expression(ast::Expression::Component(Box::new(
+                        ast::shape::Component(ast::Component::ClosedElement(str!("Foo"), vec![]))
+                    ))),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
@@ -583,7 +593,10 @@ mod tests {
         #[test]
         fn text() {
             assert_eq!(
-                Expression::from_ksx(&ast::KSXShape(ast::KSX::Text(str!("foo"))), &OPTIONS),
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::Text(str!("foo"))),
+                    &OPTIONS
+                ),
                 Expression::String(str!("foo"))
             );
         }
@@ -591,8 +604,8 @@ mod tests {
         #[test]
         fn inline() {
             assert_eq!(
-                Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::Inline(ast::ExpressionShape(
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::Expression(ast::shape::Expression(
                         ast::Expression::Primitive(ast::Primitive::Nil)
                     ))),
                     &OPTIONS
@@ -604,10 +617,10 @@ mod tests {
         #[test]
         fn fragment() {
             assert_eq!(
-                Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::Fragment(vec![
-                        ast::KSXShape(ast::KSX::Text(str!("foo"))),
-                        ast::KSXShape(ast::KSX::Text(str!("bar"))),
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::Fragment(vec![
+                        ast::shape::Component(ast::Component::Text(str!("foo"))),
+                        ast::shape::Component(ast::Component::Text(str!("bar"))),
                     ])),
                     &OPTIONS
                 ),
@@ -631,7 +644,10 @@ mod tests {
         #[test]
         fn empty_fragment() {
             assert_eq!(
-                Expression::from_ksx(&ast::KSXShape(ast::KSX::Fragment(vec![])), &OPTIONS),
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::Fragment(vec![])),
+                    &OPTIONS
+                ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
@@ -649,14 +665,14 @@ mod tests {
         #[test]
         fn closed_element() {
             assert_eq!(
-                Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::ClosedElement(
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::ClosedElement(
                         str!("Foo"),
                         vec![
                             (str!("bar"), None),
                             (
                                 str!("fizz"),
-                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                Some(ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Nil
                                 )))
                             ),
@@ -687,8 +703,8 @@ mod tests {
         #[test]
         fn closed_element_no_attributes() {
             assert_eq!(
-                Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::ClosedElement(str!("Foo"), vec![])),
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::ClosedElement(str!("Foo"), vec![])),
                     &OPTIONS
                 ),
                 Expression::FunctionCall(
@@ -708,21 +724,21 @@ mod tests {
         #[test]
         fn open_element() {
             assert_eq!(
-                Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::OpenElement(
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::open_element(
                         str!("Foo"),
                         vec![
                             (str!("bar"), None),
                             (
                                 str!("fizz"),
-                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                Some(ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Nil
                                 )))
                             ),
                         ],
                         vec![
-                            ast::KSXShape(ast::KSX::Text(str!("foo"))),
-                            ast::KSXShape(ast::KSX::Text(str!("bar"))),
+                            ast::shape::Component(ast::Component::Text(str!("foo"))),
+                            ast::shape::Component(ast::Component::Text(str!("bar"))),
                         ],
                         str!("Foo"),
                     )),
@@ -753,13 +769,13 @@ mod tests {
         #[test]
         fn open_element_no_attributes() {
             assert_eq!(
-                Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::OpenElement(
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::open_element(
                         str!("Foo"),
                         vec![],
                         vec![
-                            ast::KSXShape(ast::KSX::Text(str!("foo"))),
-                            ast::KSXShape(ast::KSX::Text(str!("bar"))),
+                            ast::shape::Component(ast::Component::Text(str!("foo"))),
+                            ast::shape::Component(ast::Component::Text(str!("bar"))),
                         ],
                         str!("Foo"),
                     )),
@@ -787,14 +803,14 @@ mod tests {
         #[test]
         fn open_element_no_children() {
             assert_eq!(
-                Expression::from_ksx(
-                    &ast::KSXShape(ast::KSX::OpenElement(
+                Expression::from_component(
+                    &ast::shape::Component(ast::Component::open_element(
                         str!("Foo"),
                         vec![
                             (str!("bar"), None),
                             (
                                 str!("fizz"),
-                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                Some(ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Nil
                                 )))
                             ),

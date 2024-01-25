@@ -1,45 +1,51 @@
 use super::{Parameters, Typedef};
-use crate::ast::{
-    storage::{Storage, Visibility},
-    AstNode, Declaration, DeclarationNode,
-};
+use crate::ast;
 use kore::format::{indented, Block, Indented};
 use std::fmt::{Display, Formatter, Write};
 
-impl<R, C> Display for DeclarationNode<R, C>
+impl<Binding, Expression, TypeExpression, Parameter, Module> Display
+    for ast::Declaration<Binding, Expression, TypeExpression, Parameter, Module>
 where
-    R: Copy,
+    Binding: Display,
+    Expression: Display,
+    TypeExpression: Display,
+    Parameter: Display,
+    Module: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self.node().value() {
-            Declaration::TypeAlias { name, value } => {
-                write!(f, "{binding} = {value};", binding = Binding("type", name))
+        match self {
+            Self::TypeAlias { storage, value } => {
+                write!(
+                    f,
+                    "{binding} = {value};",
+                    binding = Storage("type", storage)
+                )
             }
 
-            Declaration::Enumerated { name, variants } => {
+            Self::Enumerated { storage, variants } => {
                 write!(
                     f,
                     "{binding} ={variants};",
-                    binding = Binding("enum", name),
+                    binding = Storage("enum", storage),
                     variants = Variants(variants)
                 )
             }
 
-            Declaration::Constant {
-                name,
+            Self::Constant {
+                storage,
                 value_type,
                 value,
             } => {
                 write!(
                     f,
                     "{binding}{typedef} = {value};",
-                    binding = Binding("const", name),
+                    binding = Storage("const", storage),
                     typedef = Typedef(value_type)
                 )
             }
 
-            Declaration::Function {
-                name,
+            Self::Function {
+                storage,
                 parameters,
                 body_type,
                 body,
@@ -48,29 +54,29 @@ where
                     f,
                     "{binding}{parameters}{typedef} -> {body};",
                     parameters = Parameters(parameters),
-                    binding = Binding("func", name),
+                    binding = Storage("func", storage),
                     typedef = Typedef(body_type)
                 )
             }
 
-            Declaration::View {
-                name,
+            Self::View {
+                storage,
                 parameters,
                 body,
             } => {
                 write!(
                     f,
                     "{binding}{parameters} -> {body};",
-                    binding = Binding("view", name),
+                    binding = Storage("view", storage),
                     parameters = Parameters(parameters)
                 )
             }
 
-            Declaration::Module { name, value } => {
+            Self::Module { storage, value } => {
                 write!(
                     f,
                     "{binding} {{{module}}}",
-                    binding = Binding("module", name),
+                    binding = Storage("module", storage),
                     module = Indented(Block(value))
                 )
             }
@@ -78,16 +84,25 @@ where
     }
 }
 
-struct Binding<'a>(&'a str, &'a Storage);
+struct Storage<'a, Binding>(&'a str, &'a ast::Storage<Binding>);
 
-impl<'a> Display for Binding<'a> {
+impl<'a, Binding> Display for Storage<'a, Binding>
+where
+    Binding: Display,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        let Self(keyword, Storage(visibility, name)) = self;
+        let Self(
+            keyword,
+            ast::Storage {
+                visibility,
+                binding,
+            },
+        ) = self;
 
         write!(
             f,
-            "{visibility}{keyword} {name}",
-            visibility = if visibility == &Visibility::Private {
+            "{visibility}{keyword} {binding}",
+            visibility = if visibility == &ast::Visibility::Private {
                 "priv "
             } else {
                 ""
@@ -117,16 +132,17 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{Expression, Module, Parameter, Primitive, TypeExpression},
-        test::fixture as f,
-    };
+    use crate::ast;
     use kore::str;
 
     #[test]
     fn type_alias() {
         assert_eq!(
-            f::n::d(f::a::type_("foo", f::n::tx(TypeExpression::Nil))).to_string(),
+            ast::shape::Declaration(ast::Declaration::type_alias(
+                ast::Storage::public(str!("foo")),
+                ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil))
+            ))
+            .to_string(),
             "type foo = nil;"
         );
     }
@@ -134,11 +150,16 @@ mod tests {
     #[test]
     fn enumerated() {
         assert_eq!(
-            f::n::d(f::a::enum_(
-                "foo",
+            ast::shape::Declaration(ast::Declaration::enumerated(
+                ast::Storage::public(str!("foo")),
                 vec![
                     (str!("fizz"), vec![]),
-                    (str!("buzz"), vec![f::n::tx(TypeExpression::Nil)]),
+                    (
+                        str!("buzz"),
+                        vec![ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Nil
+                        ))]
+                    ),
                 ]
             ))
             .to_string(),
@@ -151,10 +172,10 @@ mod tests {
     #[test]
     fn constant_no_typedef() {
         assert_eq!(
-            f::n::d(f::a::const_(
-                "foo",
+            ast::shape::Declaration(ast::Declaration::constant(
+                ast::Storage::public(str!("foo")),
                 None,
-                f::n::x(Expression::Primitive(Primitive::Nil))
+                ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
             "const foo = nil;"
@@ -164,10 +185,12 @@ mod tests {
     #[test]
     fn constant_with_typedef() {
         assert_eq!(
-            f::n::d(f::a::const_(
-                "foo",
-                Some(f::n::tx(TypeExpression::Nil)),
-                f::n::x(Expression::Primitive(Primitive::Nil))
+            ast::shape::Declaration(ast::Declaration::constant(
+                ast::Storage::public(str!("foo")),
+                Some(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                    ast::TypePrimitive::Nil
+                ))),
+                ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
             "const foo: nil = nil;"
@@ -177,11 +200,11 @@ mod tests {
     #[test]
     fn function_no_parameters() {
         assert_eq!(
-            f::n::d(f::a::func_(
-                "foo",
+            ast::shape::Declaration(ast::Declaration::function(
+                ast::Storage::public(str!("foo")),
                 vec![],
                 None,
-                f::n::x(Expression::Primitive(Primitive::Nil))
+                ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
             "func foo -> nil;"
@@ -191,11 +214,15 @@ mod tests {
     #[test]
     fn function_with_parameters() {
         assert_eq!(
-            f::n::d(f::a::func_(
-                "foo",
-                vec![f::n::p(Parameter::new(str!("bar"), None, None))],
+            ast::shape::Declaration(ast::Declaration::function(
+                ast::Storage::public(str!("foo")),
+                vec![ast::shape::Parameter(ast::Parameter::new(
+                    str!("bar"),
+                    None,
+                    None
+                ))],
                 None,
-                f::n::x(Expression::Primitive(Primitive::Nil))
+                ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
             "func foo(bar) -> nil;"
@@ -205,11 +232,13 @@ mod tests {
     #[test]
     fn function_with_return_type() {
         assert_eq!(
-            f::n::d(f::a::func_(
-                "foo",
+            ast::shape::Declaration(ast::Declaration::function(
+                ast::Storage::public(str!("foo")),
                 vec![],
-                Some(f::n::tx(TypeExpression::Nil)),
-                f::n::x(Expression::Primitive(Primitive::Nil))
+                Some(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                    ast::TypePrimitive::Nil
+                ))),
+                ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
             "func foo: nil -> nil;"
@@ -219,10 +248,10 @@ mod tests {
     #[test]
     fn view_no_parameters() {
         assert_eq!(
-            f::n::d(f::a::view(
-                "foo",
+            ast::shape::Declaration(ast::Declaration::view(
+                ast::Storage::public(str!("foo")),
                 vec![],
-                f::n::x(Expression::Primitive(Primitive::Nil))
+                ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
             "view foo -> nil;"
@@ -232,10 +261,14 @@ mod tests {
     #[test]
     fn view_with_parameters() {
         assert_eq!(
-            f::n::d(f::a::view(
-                "foo",
-                vec![f::n::p(Parameter::new(str!("bar"), None, None)),],
-                f::n::x(Expression::Primitive(Primitive::Nil))
+            ast::shape::Declaration(ast::Declaration::view(
+                ast::Storage::public(str!("foo")),
+                vec![ast::shape::Parameter(ast::Parameter::new(
+                    str!("bar"),
+                    None,
+                    None
+                )),],
+                ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
             "view foo(bar) -> nil;"
@@ -245,7 +278,11 @@ mod tests {
     #[test]
     fn empty_module() {
         assert_eq!(
-            f::n::d(f::a::module("foo", f::n::m(Module::new(vec![], vec![])))).to_string(),
+            ast::shape::Declaration(ast::Declaration::module(
+                ast::Storage::public(str!("foo")),
+                ast::shape::Module(ast::Module::new(vec![], vec![]))
+            ))
+            .to_string(),
             "module foo {}"
         );
     }
@@ -253,11 +290,16 @@ mod tests {
     #[test]
     fn module_with_entries() {
         assert_eq!(
-            f::n::d(f::a::module(
-                "foo",
-                f::n::m(Module::new(
+            ast::shape::Declaration(ast::Declaration::module(
+                ast::Storage::public(str!("foo")),
+                ast::shape::Module(ast::Module::new(
                     vec![],
-                    vec![f::n::d(f::a::type_("bar", f::n::tx(TypeExpression::Nil)))]
+                    vec![ast::shape::Declaration(ast::Declaration::type_alias(
+                        ast::Storage::public(str!("bar")),
+                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Nil
+                        ))
+                    ))]
                 ))
             ))
             .to_string(),

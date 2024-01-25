@@ -1,28 +1,30 @@
-use crate::{expression, matcher as m, types::typedef, Position, Range};
+use crate::{ast, expression, matcher as m, types::typedef};
 use combine::{optional, Parser, Stream};
-use lang::ast::{AstNode, Parameter, ParameterNode};
 
-pub fn parameter<T>() -> impl Parser<T, Output = ParameterNode<Range, ()>>
+pub fn parameter<T>() -> impl Parser<T, Output = ast::raw::Parameter>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     (
-        m::standard_identifier(),
+        m::binding(),
         typedef::typedef(),
         optional(m::symbol('=').with(expression::expression())),
     )
-        .map(|((name, start), value_type, default_value)| {
-            let mut range = start;
+        .map(|(binding, value_type, default_value)| {
+            let mut range = *binding.0.range();
 
             if let Some(x) = &value_type {
-                range = &range + x.node().range();
+                range = &range + x.0.range();
             }
 
             if let Some(x) = &default_value {
-                range = &range + x.node().range();
+                range = &range + x.0.range();
             }
 
-            ParameterNode::raw(Parameter::new(name, value_type, default_value), range)
+            ast::raw::Parameter::new(
+                ast::Parameter::new(binding, value_type, default_value),
+                range,
+            )
         })
 }

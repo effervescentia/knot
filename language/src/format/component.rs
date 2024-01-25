@@ -1,26 +1,48 @@
-use crate::ast::{AstNode, KSXNode, KSX};
+use crate::ast;
 use kore::format::indented;
 use std::fmt::{Display, Formatter, Write};
 
-impl<R, C> Display for KSXNode<R, C>
+pub trait IsInline {
+    fn is_inline(&self) -> bool;
+}
+
+impl<Component_, Expression> IsInline for ast::Component<Component_, Expression> {
+    fn is_inline(&self) -> bool {
+        matches!(self, Self::Text(_) | Self::Expression(_))
+    }
+}
+
+impl IsInline for ast::shape::Component {
+    fn is_inline(&self) -> bool {
+        self.0.is_inline()
+    }
+}
+
+impl<Component, Expression> Display for ast::Component<Component, Expression>
 where
-    R: Copy,
+    Component: Display + IsInline,
+    Expression: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self.node().value() {
-            KSX::Text(x) => write!(f, "{x}"),
+        match self {
+            Self::Text(x) => write!(f, "{x}"),
 
-            KSX::Inline(x) => write!(f, "{{{x}}}"),
+            Self::Expression(x) => write!(f, "{{{x}}}"),
 
-            KSX::Fragment(children) => write!(f, "<>{children}</>", children = Children(children)),
+            Self::Fragment(children) => write!(f, "<>{children}</>", children = Children(children)),
 
-            KSX::ClosedElement(tag, attributes) => write!(
+            Self::ClosedElement(tag, attributes) => write!(
                 f,
                 "<{tag}{attributes} />",
                 attributes = Attributes(attributes)
             ),
 
-            KSX::OpenElement(start_tag, attributes, children, end_tag) => {
+            Self::OpenElement {
+                start_tag,
+                attributes,
+                children,
+                end_tag,
+            } => {
                 write!(
                     f,
                     "<{start_tag}{attributes}>{children}</{end_tag}>",
@@ -56,26 +78,17 @@ where
     }
 }
 
-impl<R, C> KSXNode<R, C>
-where
-    R: Copy,
-{
-    pub fn is_inline(&self) -> bool {
-        matches!(self.node().value(), KSX::Text(_) | KSX::Inline(_))
-    }
-}
+struct Children<'a, Component>(&'a Vec<Component>);
 
-struct Children<'a, R, C>(&'a Vec<KSXNode<R, C>>);
-
-impl<'a, R, C> Display for Children<'a, R, C>
+impl<'a, Component> Display for Children<'a, Component>
 where
-    R: Copy,
+    Component: Display + IsInline,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        fn format<R, C, F>(xs: &Vec<KSXNode<R, C>>, mut f: F, all_inline: bool) -> std::fmt::Result
+        fn format<Comp, F>(xs: &Vec<Comp>, mut f: F, all_inline: bool) -> std::fmt::Result
         where
+            Comp: Display + IsInline,
             F: Write,
-            R: Copy,
         {
             if all_inline {
                 for x in xs {
@@ -104,7 +117,7 @@ where
             Ok(())
         }
 
-        if self.0.iter().all(KSXNode::is_inline) {
+        if self.0.iter().all(IsInline::is_inline) {
             format(self.0, f, true)
         } else {
             format(self.0, indented(f), false)
@@ -114,34 +127,43 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{Expression, Primitive, KSX},
-        test::fixture as f,
-    };
+    use crate::ast;
     use kore::str;
 
     #[test]
     fn text() {
-        assert_eq!(f::n::kx(KSX::Text(str!("foo"))).to_string(), "foo");
+        assert_eq!(
+            ast::shape::Component(ast::Component::Text(str!("foo"))).to_string(),
+            "foo"
+        );
     }
 
     #[test]
     fn inline_expression() {
         assert_eq!(
-            f::n::kx(KSX::Inline(f::n::x(Expression::Primitive(Primitive::Nil)))).to_string(),
+            ast::shape::Component(ast::Component::Expression(ast::shape::Expression(
+                ast::Expression::Primitive(ast::Primitive::Nil)
+            )))
+            .to_string(),
             "{nil}"
         );
     }
 
     #[test]
     fn empty_fragment() {
-        assert_eq!(f::n::kx(KSX::Fragment(vec![])).to_string(), "<></>");
+        assert_eq!(
+            ast::shape::Component(ast::Component::Fragment(vec![])).to_string(),
+            "<></>"
+        );
     }
 
     #[test]
     fn fragment_with_children() {
         assert_eq!(
-            f::n::kx(KSX::Fragment(vec![f::n::kx(KSX::Text(str!("foo")))])).to_string(),
+            ast::shape::Component(ast::Component::Fragment(vec![ast::shape::Component(
+                ast::Component::Text(str!("foo"))
+            )]))
+            .to_string(),
             "<>foo</>"
         );
     }
@@ -149,7 +171,7 @@ mod tests {
     #[test]
     fn closed_element_no_attributes() {
         assert_eq!(
-            f::n::kx(KSX::ClosedElement(str!("foo"), vec![])).to_string(),
+            ast::shape::Component(ast::Component::ClosedElement(str!("foo"), vec![])).to_string(),
             "<foo />"
         );
     }
@@ -157,13 +179,15 @@ mod tests {
     #[test]
     fn closed_element_with_attributes() {
         assert_eq!(
-            f::n::kx(KSX::ClosedElement(
+            ast::shape::Component(ast::Component::ClosedElement(
                 str!("foo"),
                 vec![
                     (str!("fizz"), None),
                     (
                         str!("buzz"),
-                        Some(f::n::x(Expression::Primitive(Primitive::Nil)))
+                        Some(ast::shape::Expression(ast::Expression::Primitive(
+                            ast::Primitive::Nil
+                        )))
                     ),
                 ]
             ))
@@ -175,7 +199,13 @@ mod tests {
     #[test]
     fn empty_open_element() {
         assert_eq!(
-            f::n::kx(KSX::OpenElement(str!("foo"), vec![], vec![], str!("foo"))).to_string(),
+            ast::shape::Component(ast::Component::open_element(
+                str!("foo"),
+                vec![],
+                vec![],
+                str!("foo")
+            ))
+            .to_string(),
             "<foo></foo>"
         );
     }
@@ -183,13 +213,15 @@ mod tests {
     #[test]
     fn open_element_with_attributes() {
         assert_eq!(
-            f::n::kx(KSX::OpenElement(
+            ast::shape::Component(ast::Component::open_element(
                 str!("foo"),
                 vec![
                     (str!("fizz"), None),
                     (
                         str!("buzz"),
-                        Some(f::n::x(Expression::Primitive(Primitive::Nil)))
+                        Some(ast::shape::Expression(ast::Expression::Primitive(
+                            ast::Primitive::Nil
+                        )))
                     ),
                 ],
                 vec![],
@@ -203,10 +235,10 @@ mod tests {
     #[test]
     fn open_element_with_children() {
         assert_eq!(
-            f::n::kx(KSX::OpenElement(
+            ast::shape::Component(ast::Component::open_element(
                 str!("foo"),
                 vec![],
-                vec![f::n::kx(KSX::Text(str!("bar")))],
+                vec![ast::shape::Component(ast::Component::Text(str!("bar")))],
                 str!("foo"),
             ))
             .to_string(),
@@ -217,10 +249,13 @@ mod tests {
     #[test]
     fn element_children() {
         assert_eq!(
-            f::n::kx(KSX::OpenElement(
+            ast::shape::Component(ast::Component::open_element(
                 str!("foo"),
                 vec![],
-                vec![f::n::kx(KSX::ClosedElement(str!("bar"), vec![],))],
+                vec![ast::shape::Component(ast::Component::ClosedElement(
+                    str!("bar"),
+                    vec![],
+                ))],
                 str!("foo"),
             ))
             .to_string(),
@@ -233,19 +268,25 @@ mod tests {
     #[test]
     fn mixed_children() {
         assert_eq!(
-            f::n::kx(KSX::OpenElement(
+            ast::shape::Component(ast::Component::open_element(
                 str!("foo"),
                 vec![],
                 vec![
-                    f::n::kx(KSX::Text(str!("hello "))),
-                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(str!("name"))))),
-                    f::n::kx(KSX::Text(str!(", how are you doing?"))),
-                    f::n::kx(KSX::ClosedElement(str!("Overview"), vec![],)),
-                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(str!("left"))))),
-                    f::n::kx(KSX::Text(str!(" or "))),
-                    f::n::kx(KSX::Inline(f::n::x(Expression::Identifier(str!("right"))))),
-                    f::n::kx(KSX::ClosedElement(str!("Summary"), vec![],)),
-                    f::n::kx(KSX::Text(str!("that's all folks!"))),
+                    ast::shape::Component(ast::Component::Text(str!("hello "))),
+                    ast::shape::Component(ast::Component::Expression(ast::shape::Expression(
+                        ast::Expression::Identifier(str!("name"))
+                    ))),
+                    ast::shape::Component(ast::Component::Text(str!(", how are you doing?"))),
+                    ast::shape::Component(ast::Component::ClosedElement(str!("Overview"), vec![],)),
+                    ast::shape::Component(ast::Component::Expression(ast::shape::Expression(
+                        ast::Expression::Identifier(str!("left"))
+                    ))),
+                    ast::shape::Component(ast::Component::Text(str!(" or "))),
+                    ast::shape::Component(ast::Component::Expression(ast::shape::Expression(
+                        ast::Expression::Identifier(str!("right"))
+                    ))),
+                    ast::shape::Component(ast::Component::ClosedElement(str!("Summary"), vec![],)),
+                    ast::shape::Component(ast::Component::Text(str!("that's all folks!"))),
                 ],
                 str!("foo"),
             ))

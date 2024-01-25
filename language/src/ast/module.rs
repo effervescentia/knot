@@ -1,64 +1,103 @@
-use super::{DeclarationNode, ImportNode};
-use crate::Identity;
 use std::fmt::Debug;
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct Module<I, D> {
-    pub imports: Vec<I>,
-    pub declarations: Vec<D>,
+use super::walk;
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum ImportSource {
+    Root,
+    Local,
+    Named(String),
+    Scoped { scope: String, name: String },
 }
 
-impl<I, D> Module<I, D> {
-    pub fn new(imports: Vec<I>, declarations: Vec<D>) -> Self {
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Import {
+    pub source: ImportSource,
+    pub path: Vec<String>,
+    pub alias: Option<String>,
+}
+
+impl Import {
+    pub fn new(source: ImportSource, path: Vec<String>, alias: Option<String>) -> Self {
+        Self {
+            source,
+            path,
+            alias,
+        }
+    }
+}
+
+impl<Visitor> walk::Walk<Visitor> for walk::Span<Import>
+where
+    Visitor: walk::Visit,
+{
+    type Output = Visitor::Import;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        let Self(
+            super::Import {
+                source,
+                path,
+                alias,
+            },
+            range,
+        ) = self;
+
+        v.import(
+            super::Import {
+                source,
+                path,
+                alias,
+            },
+            range,
+        )
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Module<Import, Declaration> {
+    pub imports: Vec<Import>,
+    pub declarations: Vec<Declaration>,
+}
+
+impl<Import, Declaration> Module<Import, Declaration> {
+    pub fn new(imports: Vec<Import>, declarations: Vec<Declaration>) -> Self {
         Self {
             imports,
             declarations,
         }
     }
 
-    pub fn map<I2, D2>(&self, fi: &impl Fn(&I) -> I2, fd: &impl Fn(&D) -> D2) -> Module<I2, D2> {
-        Module {
-            imports: self.imports.iter().map(fi).collect(),
-            declarations: self.declarations.iter().map(fd).collect(),
-        }
-    }
-
     pub fn is_empty(&self) -> bool {
-        self.imports.is_empty() || self.declarations.is_empty()
+        self.imports.is_empty() && self.declarations.is_empty()
     }
 }
 
-pub type ModuleNodeValue<R, C> = Module<ImportNode<R, C>, DeclarationNode<R, C>>;
-
-#[derive(Debug, PartialEq)]
-pub struct ModuleNode<R, C>(pub ModuleNodeValue<R, C>, pub C);
-
-impl<R, C> ModuleNode<R, C> {
-    pub const fn context(&self) -> &C {
-        &self.1
-    }
-
-    pub fn map<C2>(
-        &self,
-        f: impl Fn(&ModuleNodeValue<R, C>, &C) -> (ModuleNodeValue<R, C2>, C2),
-    ) -> ModuleNode<R, C2> {
-        let (value, ctx) = f(&self.0, &self.1);
-
-        ModuleNode(value, ctx)
-    }
-}
-
-impl<R> ModuleNode<R, ()> {
-    pub const fn raw(x: ModuleNodeValue<R, ()>) -> Self {
-        Self(x, ())
-    }
-}
-
-impl<R, T> ModuleNode<R, T>
+impl<Visitor, Import, Declaration> walk::Walk<Visitor> for walk::Span<Module<Import, Declaration>>
 where
-    T: Identity<usize>,
+    Visitor: walk::Visit,
+    Import: walk::Walk<Visitor, Output = Visitor::Import>,
+    Declaration: walk::Walk<Visitor, Output = Visitor::Declaration>,
 {
-    pub fn id(&self) -> &usize {
-        self.1.id()
+    type Output = Visitor::Module;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        let Self(
+            super::Module {
+                imports,
+                declarations,
+            },
+            range,
+        ) = self;
+        let (imports, v) = imports.walk(v);
+        let (declarations, v) = declarations.walk(v);
+
+        v.module(
+            super::Module {
+                imports,
+                declarations,
+            },
+            range,
+        )
     }
 }

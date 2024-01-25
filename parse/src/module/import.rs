@@ -1,6 +1,5 @@
-use crate::{matcher as m, Position, Range};
+use crate::{ast, matcher as m};
 use combine::{choice, many1, not_followed_by, optional, parser::char as p, value, Parser, Stream};
-use lang::ast::{AstNode, Import, ImportNode, ImportSource};
 
 // use @/x;
 // use @/x as xx;
@@ -11,25 +10,25 @@ use lang::ast::{AstNode, Import, ImportNode, ImportSource};
 // use @scope/external/z;
 // use @scope/external/z as zz;
 
-fn import_source<T>() -> impl Parser<T, Output = ImportSource>
+fn import_source<T>() -> impl Parser<T, Output = ast::ImportSource>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     choice((
         m::symbol('@')
             .skip(not_followed_by(p::alpha_num().or(p::char('_'))))
-            .with(value(ImportSource::Root)),
-        m::symbol('.').with(value(ImportSource::Local)),
+            .with(value(ast::ImportSource::Root)),
+        m::symbol('.').with(value(ast::ImportSource::Local)),
         choice((m::identifier(p::char('@')), m::standard_identifier()))
-            .map(|(x, _)| ImportSource::Named(x)),
+            .map(|(x, _)| ast::ImportSource::Named(x)),
     ))
 }
 
 fn import_path<T>() -> impl Parser<T, Output = Vec<String>>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     many1(
         m::symbol('/')
@@ -41,7 +40,7 @@ where
 fn import_alias<T>() -> impl Parser<T, Output = Option<String>>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     optional(
         m::keyword("as")
@@ -50,10 +49,10 @@ where
     )
 }
 
-pub fn import<T>() -> impl Parser<T, Output = ImportNode<Range, ()>>
+pub fn import<T>() -> impl Parser<T, Output = ast::raw::Import>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     m::terminated((
         m::keyword("use"),
@@ -62,8 +61,8 @@ where
         import_alias(),
     ))
     .map(|((_, start), source, path, alias)| {
-        ImportNode::<Range, ()>::raw(
-            Import {
+        ast::raw::Import::new(
+            ast::Import {
                 source,
                 path,
                 alias,
@@ -75,13 +74,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{Import, ImportSource};
-    use crate::{test::fixture as f, Range};
+    use crate::ast;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::str;
-    use lang::ast::ImportNode;
+    use lang::Range;
 
-    fn parse(s: &str) -> crate::Result<ImportNode<Range, ()>> {
+    fn parse(s: &str) -> crate::Result<ast::raw::Import> {
         super::import().skip(eof()).easy_parse(Stream::new(s))
     }
 
@@ -89,9 +87,9 @@ mod tests {
     fn import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            f::n::ir(
-                Import::new(ImportSource::Root, vec![str!("foo")], None),
-                ((1, 1), (1, 3))
+            ast::raw::Import::new(
+                ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
+                Range::new((1, 1), (1, 3))
             )
         );
     }
@@ -100,13 +98,13 @@ mod tests {
     fn import_nested() {
         assert_eq!(
             parse("use @/foo/bar/fizz;").unwrap().0,
-            f::n::ir(
-                Import::new(
-                    ImportSource::Root,
+            ast::raw::Import::new(
+                ast::Import::new(
+                    ast::ImportSource::Root,
                     vec![str!("foo"), str!("bar"), str!("fizz")],
                     None
                 ),
-                ((1, 1), (1, 3))
+                Range::new((1, 1), (1, 3))
             )
         );
     }
@@ -115,9 +113,9 @@ mod tests {
     fn import_named_no_alias() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            f::n::ir(
-                Import::new(ImportSource::Root, vec![str!("foo")], None),
-                ((1, 1), (1, 3))
+            ast::raw::Import::new(
+                ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
+                Range::new((1, 1), (1, 3))
             )
         );
     }
@@ -126,13 +124,13 @@ mod tests {
     fn import_named_with_alias() {
         assert_eq!(
             parse("use @/foo/fizz as buzz;").unwrap().0,
-            f::n::ir(
-                Import::new(
-                    ImportSource::Root,
+            ast::raw::Import::new(
+                ast::Import::new(
+                    ast::ImportSource::Root,
                     vec![str!("foo"), str!("fizz")],
                     Some(str!("buzz"))
                 ),
-                ((1, 1), (1, 3))
+                Range::new((1, 1), (1, 3))
             )
         );
     }

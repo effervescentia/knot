@@ -1,7 +1,7 @@
-mod common;
+pub mod ast;
+mod component;
 mod declaration;
 mod expression;
-mod ksx;
 mod matcher;
 mod module;
 mod statement;
@@ -16,22 +16,24 @@ use combine::{
     stream::position::{SourcePosition, Stream},
     EasyParser, Parser,
 };
-pub use common::{position::Position, range::Range};
-use lang::{ast::ModuleNode, Program};
+use matcher as m;
 
 pub type Result<'a, T> = std::result::Result<
     (T, Stream<&'a str, SourcePosition>),
     Errors<char, &'a str, SourcePosition>,
 >;
 
-fn program<T>() -> impl Parser<T, Output = ModuleNode<Range, ()>>
+fn program<T>() -> impl Parser<T, Output = ast::raw::Program>
 where
     T: combine::Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
-    spaces().with(module::module()).skip(eof())
+    spaces()
+        .with(module::module())
+        .map(ast::raw::Program)
+        .skip(eof())
 }
 
-pub fn parse(input: &str) -> Result<Program<Range, ()>> {
-    program().map(Program).easy_parse(Stream::new(input))
+pub fn parse(input: &str) -> Result<ast::raw::Program> {
+    program().easy_parse(Stream::new(input))
 }

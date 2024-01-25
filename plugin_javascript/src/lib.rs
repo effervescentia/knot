@@ -4,7 +4,7 @@ mod transform;
 
 pub use javascript::JavaScript;
 use kore::{str, Generator};
-use lang::ast::ProgramShape;
+use lang::ast;
 use std::path::{Path, PathBuf};
 
 // TODO: move these to a common library to be re-used across generators
@@ -45,7 +45,7 @@ impl JavaScriptGenerator {
 }
 
 impl Generator for JavaScriptGenerator {
-    type Input = ProgramShape;
+    type Input = ast::shape::Module;
     type Output = JavaScript;
 
     fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output) {
@@ -61,7 +61,7 @@ impl Generator for JavaScriptGenerator {
             path.with_extension("js"),
             JavaScript::from_module(
                 &path_to_root,
-                &input.0,
+                &input,
                 &Options {
                     mode: Mode::Prod,
                     module: self.0,

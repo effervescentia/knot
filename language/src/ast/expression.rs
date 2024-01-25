@@ -1,5 +1,4 @@
-use super::{AstNode, BinaryOperator, KSXNode, StatementNode, UnaryOperator};
-use crate::Node;
+use super::{walk, BinaryOperator, UnaryOperator};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -12,73 +11,135 @@ pub enum Primitive {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Expression<E, S, K> {
+pub enum Expression<Expression_, Statement, Component> {
     Primitive(Primitive),
     Identifier(String),
-    Group(Box<E>),
-    Closure(Vec<S>),
-    UnaryOperation(UnaryOperator, Box<E>),
-    BinaryOperation(BinaryOperator, Box<E>, Box<E>),
-    DotAccess(Box<E>, String),
-    FunctionCall(Box<E>, Vec<E>),
-    Style(Vec<(String, E)>),
-    KSX(Box<K>),
+
+    /* containers */
+    Group(Box<Expression_>),
+    Closure(Vec<Statement>),
+
+    /* operations */
+    UnaryOperation(UnaryOperator, Box<Expression_>),
+    BinaryOperation(BinaryOperator, Box<Expression_>, Box<Expression_>),
+    PropertyAccess(Box<Expression_>, String),
+    FunctionCall(Box<Expression_>, Vec<Expression_>),
+
+    /* domain syntax */
+    Style(Vec<(String, Expression_)>),
+    Component(Box<Component>),
 }
 
-impl<E, S, K> Expression<E, S, K> {
-    pub fn map<E2, S2, K2>(
-        &self,
-        fe: &mut impl FnMut(&E) -> E2,
-        fs: &mut impl FnMut(&S) -> S2,
-        fk: &mut impl FnMut(&K) -> K2,
-    ) -> Expression<E2, S2, K2> {
-        match self {
-            Self::Primitive(x) => Expression::Primitive(x.clone()),
+impl<Visitor, Expression_, Statement, Component> walk::Walk<Visitor>
+    for walk::Span<Expression<Expression_, Statement, Component>>
+where
+    Visitor: walk::Visit,
+    Expression_: walk::Walk<Visitor, Output = Visitor::Expression>,
+    Statement: walk::Walk<Visitor, Output = Visitor::Statement>,
+    Component: walk::Walk<Visitor, Output = Visitor::Component>,
+{
+    type Output = Visitor::Expression;
 
-            Self::Identifier(x) => Expression::Identifier(x.clone()),
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        let Self(value, range) = self;
 
-            Self::Group(x) => Expression::Group(Box::new(fe(x))),
+        match value {
+            super::Expression::Primitive(x) => v.expression(super::Expression::Primitive(x), range),
 
-            Self::Closure(xs) => Expression::Closure(xs.iter().map(fs).collect()),
-
-            Self::UnaryOperation(op, x) => Expression::UnaryOperation(*op, Box::new(fe(x))),
-
-            Self::BinaryOperation(op, lhs, rhs) => {
-                Expression::BinaryOperation(*op, Box::new(fe(lhs)), Box::new(fe(rhs)))
+            super::Expression::Identifier(x) => {
+                v.expression(super::Expression::Identifier(x), range)
             }
 
-            Self::DotAccess(lhs, rhs) => Expression::DotAccess(Box::new(fe(lhs)), rhs.clone()),
+            super::Expression::Group(x) => {
+                let (x, v) = x.walk(v);
 
-            Self::FunctionCall(lhs, arguments) => {
-                Expression::FunctionCall(Box::new(fe(lhs)), arguments.iter().map(fe).collect())
+                v.expression(super::Expression::Group(Box::new(x)), range)
             }
 
-            Self::Style(xs) => Expression::Style(
-                xs.iter()
-                    .map(|(key, value)| (key.clone(), fe(value)))
-                    .collect(),
-            ),
+            super::Expression::Closure(xs) => {
+                let (xs, v) = xs.walk(v);
 
-            Self::KSX(x) => Expression::KSX(Box::new(fk(x))),
+                v.expression(super::Expression::Closure(xs), range)
+            }
+
+            super::Expression::UnaryOperation(op, x) => {
+                let (x, v) = x.walk(v);
+
+                v.expression(super::Expression::UnaryOperation(op, Box::new(x)), range)
+            }
+
+            super::Expression::BinaryOperation(op, l, r) => {
+                let (l, v) = l.walk(v);
+                let (r, v) = r.walk(v);
+
+                v.expression(
+                    super::Expression::BinaryOperation(op, Box::new(l), Box::new(r)),
+                    range,
+                )
+            }
+
+            super::Expression::PropertyAccess(x, property) => {
+                let (x, v) = x.walk(v);
+
+                v.expression(
+                    super::Expression::PropertyAccess(Box::new(x), property),
+                    range,
+                )
+            }
+
+            super::Expression::FunctionCall(x, arguments) => {
+                let (x, v) = x.walk(v);
+                let (arguments, v) = arguments.walk(v);
+
+                v.expression(
+                    super::Expression::FunctionCall(Box::new(x), arguments),
+                    range,
+                )
+            }
+
+            super::Expression::Component(x) => {
+                let (x, v) = x.walk(v);
+
+                v.expression(super::Expression::Component(Box::new(x)), range)
+            }
+
+            super::Expression::Style(xs) => {
+                let (xs, v) = xs.walk(v);
+
+                v.expression(super::Expression::Style(xs), range)
+            }
         }
     }
 }
 
-pub type ExpressionNodeValue<R, C> =
-    Expression<ExpressionNode<R, C>, StatementNode<R, C>, KSXNode<R, C>>;
+#[derive(Clone, Debug, PartialEq)]
+pub enum Statement<Expression> {
+    Expression(Expression),
+    Variable(String, Expression),
+}
 
-#[derive(Debug, PartialEq)]
-pub struct ExpressionNode<R, C>(pub Node<ExpressionNodeValue<R, C>, R, C>);
-
-impl<R, C> AstNode<ExpressionNodeValue<R, C>, R, C> for ExpressionNode<R, C>
+impl<Visitor, Expression> walk::Walk<Visitor> for walk::Span<Statement<Expression>>
 where
-    R: Copy,
+    Visitor: walk::Visit,
+    Expression: walk::Walk<Visitor, Output = Visitor::Expression>,
 {
-    fn new(value: ExpressionNodeValue<R, C>, range: R, ctx: C) -> Self {
-        Self(Node(value, range, ctx))
-    }
+    type Output = Visitor::Statement;
 
-    fn node(&self) -> &Node<ExpressionNodeValue<R, C>, R, C> {
-        &self.0
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        let Self(value, range) = self;
+
+        match value {
+            super::Statement::Expression(x) => {
+                let (x, v) = x.walk(v);
+
+                v.statement(super::Statement::Expression(x), range)
+            }
+
+            super::Statement::Variable(binding, x) => {
+                let (x, v) = x.walk(v);
+
+                v.statement(super::Statement::Variable(binding, x), range)
+            }
+        }
     }
 }

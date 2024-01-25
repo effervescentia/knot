@@ -1,98 +1,94 @@
-use crate::{matcher as m, Position, Range};
+use crate::{ast, matcher as m};
 use combine::{chainl1, chainr1, choice, Parser, Stream};
-use lang::ast::{AstNode, BinaryOperator, Expression, ExpressionNode};
 
 fn binary_operation<U>(
-    o: BinaryOperator,
-) -> impl FnMut(
-    U,
-) -> Box<
-    dyn Fn(ExpressionNode<Range, ()>, ExpressionNode<Range, ()>) -> ExpressionNode<Range, ()>,
-> {
+    o: ast::BinaryOperator,
+) -> impl FnMut(U) -> Box<dyn Fn(ast::raw::Expression, ast::raw::Expression) -> ast::raw::Expression>
+{
     move |_| {
         Box::new(move |lhs, rhs| {
-            let range = lhs.node().range() + rhs.node().range();
+            let range = lhs.0.range() + rhs.0.range();
 
-            ExpressionNode::raw(
-                Expression::BinaryOperation(o, Box::new(lhs), Box::new(rhs)),
+            ast::raw::Expression::new(
+                ast::Expression::BinaryOperation(o, Box::new(lhs), Box::new(rhs)),
                 range,
             )
         })
     }
 }
 
-pub fn logical<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
+pub fn logical<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Expression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::Expression>,
 {
     let and = || {
         chainl1(
             parser,
-            m::glyph("&&").map(binary_operation(BinaryOperator::And)),
+            m::glyph("&&").map(binary_operation(ast::BinaryOperator::And)),
         )
     };
     let or = || {
         chainl1(
             and(),
-            m::glyph("||").map(binary_operation(BinaryOperator::Or)),
+            m::glyph("||").map(binary_operation(ast::BinaryOperator::Or)),
         )
     };
 
     or()
 }
 
-pub fn comparative<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
+pub fn comparative<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Expression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::Expression>,
 {
     chainl1(
         parser,
         choice((
-            m::glyph("==").map(binary_operation(BinaryOperator::Equal)),
-            m::glyph("!=").map(binary_operation(BinaryOperator::NotEqual)),
+            m::glyph("==").map(binary_operation(ast::BinaryOperator::Equal)),
+            m::glyph("!=").map(binary_operation(ast::BinaryOperator::NotEqual)),
         )),
     )
 }
 
-pub fn relational<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
+pub fn relational<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Expression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::Expression>,
 {
     chainl1(
         parser,
         choice((
-            m::glyph("<=").map(binary_operation(BinaryOperator::LessThanOrEqual)),
-            m::symbol('<').map(binary_operation(BinaryOperator::LessThan)),
-            m::glyph(">=").map(binary_operation(BinaryOperator::GreaterThanOrEqual)),
-            m::symbol('>').map(binary_operation(BinaryOperator::GreaterThan)),
+            m::glyph("<=").map(binary_operation(ast::BinaryOperator::LessThanOrEqual)),
+            m::symbol('<').map(binary_operation(ast::BinaryOperator::LessThan)),
+            m::glyph(">=").map(binary_operation(ast::BinaryOperator::GreaterThanOrEqual)),
+            m::symbol('>').map(binary_operation(ast::BinaryOperator::GreaterThan)),
         )),
     )
 }
 
-pub fn arithmetic<T, P>(parser: P) -> impl Parser<T, Output = ExpressionNode<Range, ()>>
+pub fn arithmetic<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Expression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::Expression>,
 {
     let exponent = || {
         chainr1(
             parser,
-            m::symbol('^').map(binary_operation(BinaryOperator::Exponent)),
+            m::symbol('^').map(binary_operation(ast::BinaryOperator::Exponent)),
         )
     };
     let multiply_or_divide = || {
         chainl1(
             exponent(),
             choice((
-                m::symbol('*').map(binary_operation(BinaryOperator::Multiply)),
-                m::symbol('/').map(binary_operation(BinaryOperator::Divide)),
+                m::symbol('*').map(binary_operation(ast::BinaryOperator::Multiply)),
+                m::symbol('/').map(binary_operation(ast::BinaryOperator::Divide)),
             )),
         )
     };
@@ -100,8 +96,8 @@ where
         chainl1(
             multiply_or_divide(),
             choice((
-                m::symbol('+').map(binary_operation(BinaryOperator::Add)),
-                m::symbol('-').map(binary_operation(BinaryOperator::Subtract)),
+                m::symbol('+').map(binary_operation(ast::BinaryOperator::Add)),
+                m::symbol('-').map(binary_operation(ast::BinaryOperator::Subtract)),
             )),
         )
     };

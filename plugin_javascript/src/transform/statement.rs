@@ -3,11 +3,15 @@ use crate::{
     Options,
 };
 use kore::{invariant, str};
-use lang::ast::{self, storage::Storage};
+use lang::ast;
 
 #[allow(clippy::multiple_inherent_impl)]
 impl Statement {
-    pub fn from_statement(value: &ast::StatementShape, is_last: bool, opts: &Options) -> Vec<Self> {
+    pub fn from_statement(
+        value: &ast::shape::Statement,
+        is_last: bool,
+        opts: &Options,
+    ) -> Vec<Self> {
         match &value.0 {
             ast::Statement::Expression(x) => {
                 if is_last {
@@ -35,7 +39,7 @@ impl Statement {
 
     pub fn from_declaration(
         path_to_root: &str,
-        value: &ast::DeclarationShape,
+        value: &ast::shape::Declaration,
         opts: &Options,
     ) -> Vec<Self> {
         fn parameter_name(suffix: &String) -> String {
@@ -46,10 +50,10 @@ impl Statement {
             ast::Declaration::TypeAlias { .. } => vec![],
 
             ast::Declaration::Enumerated {
-                name: Storage(_, name),
+                storage: ast::Storage { binding, .. },
                 variants,
             } => vec![Self::Variable(
-                name.clone(),
+                binding.clone(),
                 Expression::Object(
                     variants
                         .iter()
@@ -62,7 +66,7 @@ impl Statement {
 
                             let results = [
                                 vec![Expression::DotAccess(
-                                    Box::new(Expression::Identifier(name.clone())),
+                                    Box::new(Expression::Identifier(binding.clone())),
                                     variant_name.clone(),
                                 )],
                                 parameters
@@ -86,22 +90,22 @@ impl Statement {
             )],
 
             ast::Declaration::Constant {
-                name: Storage(_, name),
+                storage: ast::Storage { binding, .. },
                 value,
                 ..
             } => vec![Self::Variable(
-                name.clone(),
+                binding.clone(),
                 Expression::from_expression(value, opts),
             )],
 
             ast::Declaration::Function {
-                name: Storage(_, name),
+                storage: ast::Storage { binding, .. },
                 parameters,
                 body,
                 ..
             }
             | ast::Declaration::View {
-                name: Storage(_, name),
+                storage: ast::Storage { binding, .. },
                 parameters,
                 body,
                 ..
@@ -112,7 +116,7 @@ impl Statement {
                         .filter_map(|x| {
                             x.0.default_value.as_ref().map(|default| {
                                 Self::Assignment(
-                                    Expression::Identifier(x.0.name.clone()),
+                                    Expression::Identifier(x.0.binding.clone()),
                                     Expression::FunctionCall(
                                         Box::new(Expression::FunctionCall(
                                             Box::new(Expression::Identifier(str!(
@@ -125,7 +129,7 @@ impl Statement {
                                             ],
                                         )),
                                         vec![
-                                            Expression::Identifier(x.0.name.clone()),
+                                            Expression::Identifier(x.0.binding.clone()),
                                             Expression::from_expression(default, opts),
                                         ],
                                     ),
@@ -142,14 +146,14 @@ impl Statement {
                 .concat();
 
                 vec![Self::Expression(Expression::Function(
-                    Some(name.clone()),
-                    parameters.iter().map(|x| x.0.name.clone()).collect(),
+                    Some(binding.clone()),
+                    parameters.iter().map(|x| x.0.binding.clone()).collect(),
                     statements,
                 ))]
             }
 
             ast::Declaration::Module {
-                name: Storage(_, name),
+                storage: ast::Storage { binding, .. },
                 value,
             } => {
                 let statements = [
@@ -162,8 +166,8 @@ impl Statement {
                             .filter_map(|x| {
                                 x.0.is_public().then(|| {
                                     (
-                                        x.0.name().clone(),
-                                        Expression::Identifier(x.0.name().clone()),
+                                        x.0.binding().clone(),
+                                        Expression::Identifier(x.0.binding().clone()),
                                     )
                                 })
                             })
@@ -173,7 +177,7 @@ impl Statement {
                 .concat();
 
                 vec![Self::Variable(
-                    name.clone(),
+                    binding.clone(),
                     Expression::Closure(statements),
                 )]
             }
@@ -183,11 +187,11 @@ impl Statement {
     // TODO: make this return a single value instead of an array
     pub fn from_import(
         path_to_root: &str,
-        ast::ImportShape(ast::Import {
+        ast::shape::Import(ast::Import {
             source,
             path,
             alias,
-        }): &ast::ImportShape,
+        }): &ast::shape::Import,
         opts: &Options,
     ) -> Vec<Self> {
         let module_name = path.last().unwrap_or_else(|| {
@@ -210,7 +214,11 @@ impl Statement {
         )]
     }
 
-    pub fn from_module(path_to_root: &str, value: &ast::ModuleShape, opts: &Options) -> Vec<Self> {
+    pub fn from_module(
+        path_to_root: &str,
+        value: &ast::shape::Module,
+        opts: &Options,
+    ) -> Vec<Self> {
         let ast::Module {
             ref imports,
             ref declarations,
@@ -249,7 +257,7 @@ mod tests {
         fn expression() {
             assert_eq!(
                 Statement::from_statement(
-                    &ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
+                    &ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
                         ast::Expression::Primitive(ast::Primitive::Nil)
                     ))),
                     false,
@@ -263,7 +271,7 @@ mod tests {
         fn last_expression() {
             assert_eq!(
                 Statement::from_statement(
-                    &ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
+                    &ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
                         ast::Expression::Primitive(ast::Primitive::Nil)
                     ))),
                     true,
@@ -277,9 +285,9 @@ mod tests {
         fn variable() {
             assert_eq!(
                 Statement::from_statement(
-                    &ast::StatementShape(ast::Statement::Variable(
+                    &ast::shape::Statement(ast::Statement::Variable(
                         str!("foo"),
-                        ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     )),
                     false,
                     &OPTIONS
@@ -292,9 +300,9 @@ mod tests {
         fn last_variable() {
             assert_eq!(
                 Statement::from_statement(
-                    &ast::StatementShape(ast::Statement::Variable(
+                    &ast::shape::Statement(ast::Statement::Variable(
                         str!("foo"),
-                        ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     )),
                     true,
                     &OPTIONS
@@ -309,19 +317,18 @@ mod tests {
 
     mod declaration {
         use super::*;
-        use lang::ast::{
-            storage::{Storage, Visibility},
-            Module, Parameter,
-        };
+        use lang::ast;
 
         #[test]
         fn type_alias() {
             assert_eq!(
                 Statement::from_declaration(
                     ".",
-                    &ast::DeclarationShape(ast::Declaration::TypeAlias {
-                        name: Storage(Visibility::Public, str!("foo")),
-                        value: ast::TypeExpressionShape(ast::TypeExpression::Nil)
+                    &ast::shape::Declaration(ast::Declaration::TypeAlias {
+                        storage: ast::Storage::public(str!("foo")),
+                        value: ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Nil
+                        ))
                     }),
                     &OPTIONS
                 ),
@@ -334,12 +341,14 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     ".",
-                    &ast::DeclarationShape(ast::Declaration::Enumerated {
-                        name: Storage(Visibility::Public, str!("foo")),
+                    &ast::shape::Declaration(ast::Declaration::Enumerated {
+                        storage: ast::Storage::public(str!("foo")),
                         variants: vec![
                             (
                                 str!("Bar"),
-                                vec![ast::TypeExpressionShape(ast::TypeExpression::Nil),]
+                                vec![ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                                    ast::TypePrimitive::Nil
+                                )),]
                             ),
                             (str!("Fizz"), vec![])
                         ]
@@ -386,10 +395,10 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     ".",
-                    &ast::DeclarationShape(ast::Declaration::Constant {
-                        name: Storage(Visibility::Public, str!("foo")),
+                    &ast::shape::Declaration(ast::Declaration::Constant {
+                        storage: ast::Storage::public(str!("foo")),
                         value_type: None,
-                        value: ast::ExpressionShape(ast::Expression::Primitive(
+                        value: ast::shape::Expression(ast::Expression::Primitive(
                             ast::Primitive::Nil
                         ))
                     }),
@@ -404,20 +413,22 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     ".",
-                    &ast::DeclarationShape(ast::Declaration::Function {
-                        name: Storage(Visibility::Public, str!("foo")),
+                    &ast::shape::Declaration(ast::Declaration::Function {
+                        storage: ast::Storage::public(str!("foo")),
                         parameters: vec![
-                            ast::ParameterShape(Parameter::new(str!("bar"), None, None)),
-                            ast::ParameterShape(Parameter::new(
+                            ast::shape::Parameter(ast::Parameter::new(str!("bar"), None, None)),
+                            ast::shape::Parameter(ast::Parameter::new(
                                 str!("fizz"),
                                 None,
-                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                Some(ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Boolean(true)
                                 )))
                             )),
                         ],
                         body_type: None,
-                        body: ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                        body: ast::shape::Expression(ast::Expression::Primitive(
+                            ast::Primitive::Nil
+                        ))
                     }),
                     &OPTIONS
                 ),
@@ -453,20 +464,20 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     ".",
-                    &ast::DeclarationShape(ast::Declaration::Function {
-                        name: Storage(Visibility::Public, str!("foo")),
+                    &ast::shape::Declaration(ast::Declaration::Function {
+                        storage: ast::Storage::public(str!("foo")),
                         parameters: vec![],
                         body_type: None,
-                        body: ast::ExpressionShape(ast::Expression::Closure(vec![
-                            ast::StatementShape(ast::Statement::Variable(
+                        body: ast::shape::Expression(ast::Expression::Closure(vec![
+                            ast::shape::Statement(ast::Statement::Variable(
                                 str!("bar"),
-                                ast::ExpressionShape(ast::Expression::Primitive(
+                                ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Nil
                                 ))
                             )),
-                            ast::StatementShape(ast::Statement::Expression(ast::ExpressionShape(
-                                ast::Expression::Identifier(str!("bar"))
-                            )))
+                            ast::shape::Statement(ast::Statement::Expression(
+                                ast::shape::Expression(ast::Expression::Identifier(str!("bar")))
+                            ))
                         ]))
                     }),
                     &OPTIONS
@@ -487,19 +498,21 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     ".",
-                    &ast::DeclarationShape(ast::Declaration::View {
-                        name: Storage(Visibility::Public, str!("foo")),
+                    &ast::shape::Declaration(ast::Declaration::View {
+                        storage: ast::Storage::public(str!("foo")),
                         parameters: vec![
-                            ast::ParameterShape(Parameter::new(str!("bar"), None, None)),
-                            ast::ParameterShape(Parameter::new(
+                            ast::shape::Parameter(ast::Parameter::new(str!("bar"), None, None)),
+                            ast::shape::Parameter(ast::Parameter::new(
                                 str!("fizz"),
                                 None,
-                                Some(ast::ExpressionShape(ast::Expression::Primitive(
+                                Some(ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Boolean(true)
                                 )))
                             )),
                         ],
-                        body: ast::ExpressionShape(ast::Expression::Primitive(ast::Primitive::Nil))
+                        body: ast::shape::Expression(ast::Expression::Primitive(
+                            ast::Primitive::Nil
+                        ))
                     }),
                     &OPTIONS
                 ),
@@ -535,22 +548,22 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     ".",
-                    &ast::DeclarationShape(ast::Declaration::Module {
-                        name: Storage(Visibility::Public, str!("foo")),
-                        value: ast::ModuleShape(Module {
+                    &ast::shape::Declaration(ast::Declaration::Module {
+                        storage: ast::Storage::public(str!("foo")),
+                        value: ast::shape::Module(ast::Module {
                             imports: vec![],
                             declarations: vec![
-                                ast::DeclarationShape(ast::Declaration::Constant {
-                                    name: Storage(Visibility::Public, str!("bar")),
+                                ast::shape::Declaration(ast::Declaration::Constant {
+                                    storage: ast::Storage::public(str!("bar")),
                                     value_type: None,
-                                    value: ast::ExpressionShape(ast::Expression::Primitive(
+                                    value: ast::shape::Expression(ast::Expression::Primitive(
                                         ast::Primitive::Nil
                                     ))
                                 }),
-                                ast::DeclarationShape(ast::Declaration::Constant {
-                                    name: Storage(Visibility::Private, str!("fizz")),
+                                ast::shape::Declaration(ast::Declaration::Constant {
+                                    storage: ast::Storage::public(str!("fizz")),
                                     value_type: None,
-                                    value: ast::ExpressionShape(ast::Expression::Primitive(
+                                    value: ast::shape::Expression(ast::Expression::Primitive(
                                         ast::Primitive::Nil
                                     ))
                                 })
