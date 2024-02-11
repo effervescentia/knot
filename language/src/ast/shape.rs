@@ -150,8 +150,8 @@ impl walk::Visit for Visitor {
 
 impl<Import, Declaration> walk::Span<super::Module<Import, Declaration>>
 where
-    Import: walk::Walk<Visitor, Output = <Visitor as walk::Visit>::Import>,
-    Declaration: walk::Walk<Visitor, Output = <Visitor as walk::Visit>::Declaration>,
+    Import: Walk<Visitor, Output = <Visitor as walk::Visit>::Import>,
+    Declaration: Walk<Visitor, Output = <Visitor as walk::Visit>::Declaration>,
 {
     pub fn to_shape(self) -> Module {
         self.walk(Visitor).0

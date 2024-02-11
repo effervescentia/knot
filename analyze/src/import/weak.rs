@@ -1,11 +1,8 @@
-use crate::{
-    infer::weak::{ToWeak, Weak, WeakRef},
-    RefKind,
-};
-use lang::ast::Import;
+use crate::infer::weak::{ToWeak, Weak, WeakRef};
+use lang::{ast, types};
 
-impl ToWeak for Import {
+impl ToWeak for ast::Import {
     fn to_weak(&self) -> WeakRef {
-        (RefKind::Mixed, Weak::Infer)
+        (types::RefKind::Mixed, Weak::Infer)
     }
 }

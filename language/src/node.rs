@@ -1,5 +1,5 @@
 use crate::{
-    ast::walk::{Span, ToSpan},
+    ast::walk::{IntoSpan, Span},
     Range,
 };
 use std::fmt::{Debug, Display, Formatter};
@@ -39,8 +39,8 @@ impl<Value> Node<Value, ()> {
     }
 }
 
-impl<Value, Meta> ToSpan<Value> for Node<Value, Meta> {
-    fn to_span(self) -> Span<Value> {
+impl<Value, Meta> IntoSpan<Value> for Node<Value, Meta> {
+    fn into_span(self) -> Span<Value> {
         Span(self.0, self.1)
     }
 }

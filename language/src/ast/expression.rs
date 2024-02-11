@@ -115,6 +115,7 @@ where
 #[derive(Clone, Debug, PartialEq)]
 pub enum Statement<Expression> {
     Expression(Expression),
+    // TODO: change this String to Binding
     Variable(String, Expression),
 }
 

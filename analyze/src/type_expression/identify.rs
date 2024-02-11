@@ -68,9 +68,9 @@ mod tests {
         let scope = &mut scope_ctx(file);
 
         assert_eq!(
-            TypeExpression::DotAccess(Box::new(f::n::tx(TypeExpression::Nil)), str!("foo"),)
+            TypeExpression::PropertyAccess(Box::new(f::n::tx(TypeExpression::Nil)), str!("foo"),)
                 .identify(scope),
-            TypeExpression::DotAccess(
+            TypeExpression::PropertyAccess(
                 Box::new(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
                 str!("foo"),
             )

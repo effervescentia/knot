@@ -51,12 +51,12 @@ mod tests {
     #[test]
     fn dot_access() {
         assert_eq!(
-            TypeExpression::DotAccess(
+            TypeExpression::PropertyAccess(
                 Box::new(f::n::txc(TypeExpression::Nil, NodeContext::new(0, vec![0]))),
                 str!("foo"),
             )
             .to_fragment(),
-            Fragment::TypeExpression(TypeExpression::DotAccess(Box::new(0), str!("foo"),))
+            Fragment::TypeExpression(TypeExpression::PropertyAccess(Box::new(0), str!("foo"),))
         );
     }
 

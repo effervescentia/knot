@@ -1,6 +1,8 @@
 pub use lang::ast::*;
 
 pub mod raw {
+    use std::fmt::{Debug, Display, Formatter};
+
     use lang::{Node, Range};
 
     type Raw<T> = Node<T, ()>;
@@ -97,4 +99,10 @@ pub mod raw {
     }
 
     pub struct Program(pub Module);
+
+    impl Display for Program {
+        fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+            self.0.fmt(f)
+        }
+    }
 }

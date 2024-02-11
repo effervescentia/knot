@@ -1,39 +1,41 @@
-use super::{RefKind, Type, Weak};
-use crate::infer::weak::{ToWeak, WeakRef};
-use lang::ast::Statement;
+use crate::infer::weak::{ToWeak, Weak, WeakRef};
+use lang::{
+    ast::{self, walk},
+    types,
+};
 
-impl ToWeak for Statement<usize> {
+impl ToWeak for ast::Statement<walk::NodeId> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Self::Expression(id) => (RefKind::Value, Weak::Inherit(*id)),
+            Self::Expression(id) => (types::RefKind::Value, Weak::Inherit(*id)),
 
-            Self::Variable(..) => (RefKind::Value, Weak::Type(Type::Nil)),
+            Self::Variable(..) => (types::RefKind::Value, Weak::Type(types::Type::Nil)),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        infer::weak::{ToWeak, Weak},
-        RefKind, Type,
-    };
+    use crate::infer::weak::{ToWeak, Weak};
     use kore::str;
-    use lang::ast::Statement;
+    use lang::{
+        ast::{self, walk::NodeId},
+        types,
+    };
 
     #[test]
     fn expression() {
         assert_eq!(
-            Statement::Expression(0).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Statement::Expression(NodeId(0)).to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn variable() {
         assert_eq!(
-            Statement::Variable(str!("foo"), 0).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Nil))
+            ast::Statement::Variable(str!("foo"), NodeId(0)).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Nil))
         );
     }
 }

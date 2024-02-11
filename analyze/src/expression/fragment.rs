@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn dot_access() {
         assert_eq!(
-            Expression::DotAccess(
+            Expression::PropertyAccess(
                 Box::new(f::n::xc(
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(0, vec![0])
@@ -140,7 +140,7 @@ mod tests {
                 str!("foo"),
             )
             .to_fragment(),
-            Fragment::Expression(Expression::DotAccess(Box::new(0), str!("foo")))
+            Fragment::Expression(Expression::PropertyAccess(Box::new(0), str!("foo")))
         );
     }
 
@@ -195,12 +195,12 @@ mod tests {
     #[test]
     fn ksx() {
         assert_eq!(
-            Expression::KSX(Box::new(f::n::kxc(
+            Expression::Component(Box::new(f::n::kxc(
                 KSX::Text(str!("foo")),
                 NodeContext::new(0, vec![0])
             )))
             .to_fragment(),
-            Fragment::Expression(Expression::KSX(Box::new(0)))
+            Fragment::Expression(Expression::Component(Box::new(0)))
         );
     }
 }

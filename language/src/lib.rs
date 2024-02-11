@@ -4,8 +4,11 @@ pub mod format;
 mod interface;
 mod node;
 mod range;
-mod types;
+#[cfg(test)]
+mod test;
+pub mod types;
 
+pub use interface::{ModuleReference, ModuleScope};
 pub use node::Node;
 pub use range::{Point, Range};
 

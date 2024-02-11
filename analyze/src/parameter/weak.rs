@@ -1,13 +1,13 @@
-use crate::{
-    infer::weak::{ToWeak, Weak, WeakRef},
-    RefKind,
+use crate::infer::weak::{ToWeak, Weak, WeakRef};
+use lang::{
+    ast::{self, walk},
+    types,
 };
-use lang::ast::Parameter;
 
-impl ToWeak for Parameter<usize, usize> {
+impl ToWeak for ast::Parameter<String, walk::NodeId, walk::NodeId> {
     fn to_weak(&self) -> WeakRef {
         (
-            RefKind::Value,
+            types::RefKind::Value,
             match self {
                 Self {
                     value_type: Some(x),
@@ -26,42 +26,42 @@ impl ToWeak for Parameter<usize, usize> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        infer::weak::{ToWeak, Weak},
-        RefKind,
-    };
+    use crate::infer::weak::{ToWeak, Weak};
     use kore::str;
-    use lang::ast::Parameter;
+    use lang::{
+        ast::{self, walk::NodeId},
+        types,
+    };
 
     #[test]
     fn unknown_parameter() {
         assert_eq!(
-            Parameter::new(str!("foo"), None, None).to_weak(),
-            (RefKind::Value, Weak::Infer)
+            ast::Parameter::new(str!("foo"), None, None).to_weak(),
+            (types::RefKind::Value, Weak::Infer)
         );
     }
 
     #[test]
     fn typedef_parameter() {
         assert_eq!(
-            Parameter::new(str!("foo"), Some(0), None).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Parameter::new(str!("foo"), Some(NodeId(0)), None).to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn default_parameter() {
         assert_eq!(
-            Parameter::new(str!("foo"), None, Some(0)).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Parameter::new(str!("foo"), None, Some(NodeId(0))).to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn typedef_and_default_parameter() {
         assert_eq!(
-            Parameter::new(str!("foo"), Some(0), Some(1)).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Parameter::new(str!("foo"), Some(NodeId(0)), Some(NodeId(1))).to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 }

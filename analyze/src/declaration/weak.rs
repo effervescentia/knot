@@ -1,22 +1,27 @@
-use crate::{
-    infer::weak::{ToWeak, Weak, WeakRef},
-    RefKind, Type,
+use crate::infer::weak::{ToWeak, Weak, WeakRef};
+use lang::{
+    ast::{self, walk},
+    types,
 };
-use lang::ast::Declaration;
 
-impl ToWeak for Declaration<usize, usize, usize, usize> {
+impl ToWeak for ast::Declaration<String, walk::NodeId, walk::NodeId, walk::NodeId, walk::NodeId> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Self::TypeAlias { value, .. } => (RefKind::Type, Weak::Inherit(*value)),
+            Self::TypeAlias { value, .. } => (types::RefKind::Type, Weak::Inherit(*value)),
 
             Self::Enumerated { variants, .. } => (
-                RefKind::Mixed,
-                Weak::Type(Type::Enumerated(variants.clone())),
+                types::RefKind::Mixed,
+                Weak::Type(types::Type::Enumerated(types::Enumerated::Declaration(
+                    variants.clone(),
+                ))),
             ),
 
             Self::Constant {
                 value_type, value, ..
-            } => (RefKind::Value, Weak::Inherit(value_type.unwrap_or(*value))),
+            } => (
+                types::RefKind::Value,
+                Weak::Inherit(value_type.unwrap_or(*value)),
+            ),
 
             Self::Function {
                 parameters,
@@ -24,46 +29,53 @@ impl ToWeak for Declaration<usize, usize, usize, usize> {
                 body,
                 ..
             } => (
-                RefKind::Value,
-                Weak::Type(Type::Function(
+                types::RefKind::Value,
+                Weak::Type(types::Type::Function(
                     parameters.clone(),
                     body_type.unwrap_or(*body),
                 )),
             ),
 
-            Self::View { parameters, .. } => {
-                (RefKind::Value, Weak::Type(Type::View(parameters.clone())))
-            }
+            Self::View { parameters, .. } => (
+                types::RefKind::Value,
+                Weak::Type(types::Type::View(parameters.clone())),
+            ),
 
-            Self::Module { value, .. } => (RefKind::Mixed, Weak::Inherit(*value)),
+            Self::Module { value, .. } => (types::RefKind::Mixed, Weak::Inherit(*value)),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        infer::weak::{ToWeak, Weak},
-        RefKind, Type,
-    };
+    use crate::infer::weak::{ToWeak, Weak};
     use kore::str;
-    use lang::test::fixture as f;
+    use lang::{
+        ast::{self, walk::NodeId},
+        types,
+    };
 
     #[test]
     fn type_alias() {
         assert_eq!(
-            f::a::type_("Foo", 0).to_weak(),
-            (RefKind::Type, Weak::Inherit(0))
+            ast::Declaration::type_alias(ast::Storage::public(str!("Foo")), NodeId(0)).to_weak(),
+            (types::RefKind::Type, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn enumerated() {
         assert_eq!(
-            f::a::enum_("Foo", vec![(str!("Bar"), vec![0, 1, 2])]).to_weak(),
+            ast::Declaration::enumerated(
+                ast::Storage::public(str!("Foo")),
+                vec![(str!("Bar"), vec![NodeId(0), NodeId(1), NodeId(2)])]
+            )
+            .to_weak(),
             (
-                RefKind::Mixed,
-                Weak::Type(Type::Enumerated(vec![(str!("Bar"), vec![0, 1, 2])]))
+                types::RefKind::Mixed,
+                Weak::Type(types::Type::Enumerated(types::Enumerated::Declaration(
+                    vec![(str!("Bar"), vec![NodeId(0), NodeId(1), NodeId(2)])]
+                )))
             )
         );
     }
@@ -71,48 +83,80 @@ mod tests {
     #[test]
     fn constant() {
         assert_eq!(
-            f::a::const_("FOO", None, 0).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Declaration::constant(ast::Storage::public(str!("FOO")), None, NodeId(0))
+                .to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn constant_with_type() {
         assert_eq!(
-            f::a::const_("FOO", Some(0), 1).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Declaration::constant(
+                ast::Storage::public(str!("FOO")),
+                Some(NodeId(0)),
+                NodeId(1)
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn function() {
         assert_eq!(
-            f::a::func_("foo", vec![0, 1], None, 2).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Function(vec![0, 1], 2)))
+            ast::Declaration::function(
+                ast::Storage::public(str!("foo")),
+                vec![NodeId(0), NodeId(1)],
+                None,
+                NodeId(2)
+            )
+            .to_weak(),
+            (
+                types::RefKind::Value,
+                Weak::Type(types::Type::Function(vec![NodeId(0), NodeId(1)], NodeId(2)))
+            )
         );
     }
 
     #[test]
     fn function_with_typedef() {
         assert_eq!(
-            f::a::func_("foo", vec![0, 1], Some(2), 3).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Function(vec![0, 1], 2)))
+            ast::Declaration::function(
+                ast::Storage::public(str!("foo")),
+                vec![NodeId(0), NodeId(1)],
+                Some(NodeId(2)),
+                NodeId(3)
+            )
+            .to_weak(),
+            (
+                types::RefKind::Value,
+                Weak::Type(types::Type::Function(vec![NodeId(0), NodeId(1)], NodeId(2)))
+            )
         );
     }
 
     #[test]
     fn view() {
         assert_eq!(
-            f::a::view("Foo", vec![0, 1], 2).to_weak(),
-            (RefKind::Value, Weak::Type(Type::View(vec![0, 1])))
+            ast::Declaration::view(
+                ast::Storage::public(str!("Foo")),
+                vec![NodeId(0), NodeId(1)],
+                NodeId(2)
+            )
+            .to_weak(),
+            (
+                types::RefKind::Value,
+                Weak::Type(types::Type::View(vec![NodeId(0), NodeId(1)]))
+            )
         );
     }
 
     #[test]
     fn module() {
         assert_eq!(
-            f::a::module("foo", 0).to_weak(),
-            (RefKind::Mixed, Weak::Inherit(0))
+            ast::Declaration::module(ast::Storage::public(str!("foo")), NodeId(0)).to_weak(),
+            (types::RefKind::Mixed, Weak::Inherit(NodeId(0)))
         );
     }
 }

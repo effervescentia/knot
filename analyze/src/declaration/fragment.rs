@@ -1,5 +1,5 @@
 use crate::{context::NodeContext, fragment::Fragment, register::ToFragment};
-use lang::ast::{AstNode, DeclarationNodeValue};
+use lang::ast;
 
 impl<R> ToFragment for DeclarationNodeValue<R, NodeContext>
 where

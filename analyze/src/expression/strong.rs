@@ -1,8 +1,8 @@
 use crate::{
-    context::{NodeContext, StrongContext},
+    context::StrongContext,
     infer::strong::{Strong, ToStrong},
 };
-use lang::ast::{AstNode, ExpressionNode};
+use lang::ast;
 
 impl<R> ToStrong<ExpressionNode<R, Strong>> for ExpressionNode<R, NodeContext>
 where

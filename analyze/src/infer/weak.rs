@@ -1,30 +1,51 @@
-use crate::{
-    context::{FileContext, WeakContext},
-    RefKind, Type,
+use crate::context::WeakContext;
+use lang::{
+    ast::{explode, walk},
+    types,
 };
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Weak {
     Infer,
-    Type(Type<usize>),
-    Inherit(usize),
+    Type(types::Type<walk::NodeId>),
+    Inherit(walk::NodeId),
 }
 
-pub type WeakRef = (RefKind, Weak);
+pub type WeakRef = (types::RefKind, Weak);
 
 pub trait ToWeak {
     fn to_weak(&self) -> WeakRef;
 }
 
-pub fn infer_types(file_ctx: FileContext) -> WeakContext {
-    let mut ctx = WeakContext::new(file_ctx.fragments);
+impl ToWeak for explode::Fragment {
+    fn to_weak(&self) -> WeakRef {
+        match self {
+            Self::Expression(x) => x.to_weak(),
+            Self::Statement(x) => x.to_weak(),
+            Self::Component(x) => x.to_weak(),
+            Self::Parameter(x) => x.to_weak(),
+            Self::TypeExpression(x) => x.to_weak(),
+            Self::Declaration(x) => x.to_weak(),
+            Self::Import(x) => x.to_weak(),
+            Self::Module(x) => x.to_weak(),
+        }
+    }
+}
 
-    ctx.fragments.0.iter().for_each(|(id, (scope, x))| {
+pub fn infer_types(fragments: explode::FragmentMap) -> WeakContext {
+    let mut ctx = WeakContext::new(fragments);
+
+    ctx.program.fragments.0.iter().for_each(|(id, (scope, x))| {
         ctx.refs.insert(*id, x.to_weak());
 
         if let Ok(bindings) = x.to_binding() {
             for name in bindings {
-                let entry = ctx.bindings.0.entry((scope.clone(), name)).or_default();
+                let entry = ctx
+                    .program
+                    .bindings
+                    .0
+                    .entry((scope.clone(), name))
+                    .or_default();
 
                 entry.insert(*id);
             }
@@ -37,99 +58,135 @@ pub fn infer_types(file_ctx: FileContext) -> WeakContext {
 #[cfg(test)]
 mod tests {
     use super::Weak;
-    use crate::{fragment::Fragment, test::fixture::file_ctx_from, RefKind, Type};
     use kore::str;
     use lang::{
-        ast::{Expression, Primitive, Statement},
-        test::fixture as f,
+        ast::{
+            self,
+            explode::{self, FragmentMap, ScopeId},
+            walk::NodeId,
+        },
+        types,
     };
     use std::collections::{BTreeSet, HashMap};
 
     #[test]
     fn infer_types() {
-        let file_ctx = file_ctx_from(vec![(
-            1,
-            (vec![0], Fragment::Declaration(f::a::type_("MyType", 0))),
+        let file_ctx = FragmentMap::from_iter(vec![(
+            NodeId(1),
+            (
+                ScopeId(vec![0]),
+                explode::Fragment::Declaration(ast::Declaration::type_alias(
+                    ast::Storage::public(str!("MyType")),
+                    NodeId(0),
+                )),
+            ),
         )]);
 
         let result = super::infer_types(file_ctx);
 
         assert_eq!(
             result.refs,
-            HashMap::from_iter(vec![(1, (RefKind::Type, Weak::Inherit(0)))])
+            HashMap::from_iter(vec![(
+                NodeId(1),
+                (types::RefKind::Type, Weak::Inherit(NodeId(0)))
+            )])
         );
 
         assert_eq!(
-            result.bindings.0,
+            result.program.bindings.0,
             HashMap::from_iter(vec![(
-                (vec![0], str!("MyType")),
-                (BTreeSet::from_iter(vec![1]))
+                (ScopeId(vec![0]), str!("MyType")),
+                (BTreeSet::from_iter(vec![NodeId(1)]))
             )])
         );
     }
 
     #[test]
     fn type_inheritance() {
-        let file_ctx = file_ctx_from(vec![
+        let file_ctx = FragmentMap::from_iter(vec![
             (
-                0,
+                NodeId(0),
                 (
-                    vec![0, 1],
-                    Fragment::Expression(Expression::Primitive(Primitive::Nil)),
+                    ScopeId(vec![0, 1]),
+                    explode::Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
                 ),
             ),
             (
-                1,
-                (vec![0], Fragment::Declaration(f::a::const_("FOO", None, 0))),
-            ),
-            (
-                2,
+                NodeId(1),
                 (
-                    vec![0, 2],
-                    Fragment::Expression(Expression::Identifier(str!("FOO"))),
+                    ScopeId(vec![0]),
+                    explode::Fragment::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("FOO")),
+                        None,
+                        NodeId(0),
+                    )),
                 ),
             ),
             (
-                3,
-                (vec![0], Fragment::Declaration(f::a::const_("BAR", None, 2))),
-            ),
-            (
-                4,
+                NodeId(2),
                 (
-                    vec![0, 3, 4],
-                    Fragment::Expression(Expression::Identifier(str!("BAR"))),
+                    ScopeId(vec![0, 2]),
+                    explode::Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
                 ),
             ),
             (
-                5,
+                NodeId(3),
                 (
-                    vec![0, 3, 4],
-                    Fragment::Statement(Statement::Variable(str!("fizz"), 4)),
+                    ScopeId(vec![0]),
+                    explode::Fragment::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("BAR")),
+                        None,
+                        NodeId(2),
+                    )),
                 ),
             ),
             (
-                6,
+                NodeId(4),
                 (
-                    vec![0, 3, 4],
-                    Fragment::Expression(Expression::Identifier(str!("fizz"))),
+                    ScopeId(vec![0, 3, 4]),
+                    explode::Fragment::Expression(ast::Expression::Identifier(str!("BAR"))),
                 ),
             ),
             (
-                7,
-                (vec![0, 3, 4], Fragment::Statement(Statement::Expression(6))),
-            ),
-            (
-                8,
+                NodeId(5),
                 (
-                    vec![0, 3],
-                    Fragment::Expression(Expression::Closure(vec![3, 7])),
+                    ScopeId(vec![0, 3, 4]),
+                    explode::Fragment::Statement(ast::Statement::Variable(str!("fizz"), NodeId(4))),
                 ),
             ),
             (
-                9,
+                NodeId(6),
                 (
-                    vec![0],
-                    Fragment::Declaration(f::a::const_("BUZZ", None, 8)),
+                    ScopeId(vec![0, 3, 4]),
+                    explode::Fragment::Expression(ast::Expression::Identifier(str!("fizz"))),
+                ),
+            ),
+            (
+                NodeId(7),
+                (
+                    ScopeId(vec![0, 3, 4]),
+                    explode::Fragment::Statement(ast::Statement::Expression(NodeId(6))),
+                ),
+            ),
+            (
+                NodeId(8),
+                (
+                    ScopeId(vec![0, 3]),
+                    explode::Fragment::Expression(ast::Expression::Closure(vec![
+                        NodeId(3),
+                        NodeId(7),
+                    ])),
+                ),
+            ),
+            (
+                NodeId(9),
+                (
+                    ScopeId(vec![0]),
+                    explode::Fragment::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("BUZZ")),
+                        None,
+                        NodeId(8),
+                    )),
                 ),
             ),
         ]);
@@ -139,43 +196,70 @@ mod tests {
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
-                (0, (RefKind::Value, Weak::Type(Type::Nil))),
-                (1, (RefKind::Value, Weak::Inherit(0))),
-                (2, (RefKind::Value, Weak::Infer)),
-                (3, (RefKind::Value, Weak::Inherit(2))),
-                (4, (RefKind::Value, Weak::Infer)),
-                (5, (RefKind::Value, Weak::Type(Type::Nil))),
-                (6, (RefKind::Value, Weak::Infer)),
-                (7, (RefKind::Value, Weak::Inherit(6))),
-                (8, (RefKind::Value, Weak::Inherit(7))),
-                (9, (RefKind::Value, Weak::Inherit(8))),
+                (
+                    NodeId(0),
+                    (types::RefKind::Value, Weak::Type(types::Type::Nil))
+                ),
+                (NodeId(1), (types::RefKind::Value, Weak::Inherit(NodeId(0)))),
+                (NodeId(2), (types::RefKind::Value, Weak::Infer)),
+                (NodeId(3), (types::RefKind::Value, Weak::Inherit(NodeId(2)))),
+                (NodeId(4), (types::RefKind::Value, Weak::Infer)),
+                (
+                    NodeId(5),
+                    (types::RefKind::Value, Weak::Type(types::Type::Nil))
+                ),
+                (NodeId(6), (types::RefKind::Value, Weak::Infer)),
+                (NodeId(7), (types::RefKind::Value, Weak::Inherit(NodeId(6)))),
+                (NodeId(8), (types::RefKind::Value, Weak::Inherit(NodeId(7)))),
+                (NodeId(9), (types::RefKind::Value, Weak::Inherit(NodeId(8)))),
             ])
         );
 
         assert_eq!(
-            result.bindings.0,
+            result.program.bindings.0,
             HashMap::from_iter(vec![
-                ((vec![0], str!("FOO")), (BTreeSet::from_iter(vec![1]))),
-                ((vec![0], str!("BAR")), (BTreeSet::from_iter(vec![3]))),
                 (
-                    (vec![0, 3, 4], str!("fizz")),
-                    (BTreeSet::from_iter(vec![5]))
+                    (ScopeId(vec![0]), str!("FOO")),
+                    (BTreeSet::from_iter(vec![NodeId(1)]))
                 ),
-                ((vec![0], str!("BUZZ")), (BTreeSet::from_iter(vec![9])))
+                (
+                    (ScopeId(vec![0]), str!("BAR")),
+                    (BTreeSet::from_iter(vec![NodeId(3)]))
+                ),
+                (
+                    (ScopeId(vec![0, 3, 4]), str!("fizz")),
+                    (BTreeSet::from_iter(vec![NodeId(5)]))
+                ),
+                (
+                    (ScopeId(vec![0]), str!("BUZZ")),
+                    (BTreeSet::from_iter(vec![NodeId(9)]))
+                )
             ])
         );
     }
 
     #[test]
     fn duplicate_bindings() {
-        let file_ctx = file_ctx_from(vec![
+        let file_ctx = FragmentMap::from_iter(vec![
             (
-                1,
-                (vec![0], Fragment::Declaration(f::a::type_("MyType", 0))),
+                NodeId(1),
+                (
+                    ScopeId(vec![0]),
+                    explode::Fragment::Declaration(ast::Declaration::type_alias(
+                        ast::Storage::public(str!("MyType")),
+                        NodeId(0),
+                    )),
+                ),
             ),
             (
-                3,
-                (vec![0], Fragment::Declaration(f::a::type_("MyType", 2))),
+                NodeId(3),
+                (
+                    ScopeId(vec![0]),
+                    explode::Fragment::Declaration(ast::Declaration::type_alias(
+                        ast::Storage::public(str!("MyType")),
+                        NodeId(2),
+                    )),
+                ),
             ),
         ]);
 
@@ -184,16 +268,16 @@ mod tests {
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
-                (1, (RefKind::Type, Weak::Inherit(0))),
-                (3, (RefKind::Type, Weak::Inherit(2))),
+                (NodeId(1), (types::RefKind::Type, Weak::Inherit(NodeId(0)))),
+                (NodeId(3), (types::RefKind::Type, Weak::Inherit(NodeId(2)))),
             ])
         );
 
         assert_eq!(
-            result.bindings.0,
+            result.program.bindings.0,
             HashMap::from_iter(vec![(
-                (vec![0], str!("MyType")),
-                BTreeSet::from_iter(vec![1, 3])
+                (ScopeId(vec![0]), str!("MyType")),
+                BTreeSet::from_iter(vec![NodeId(1), NodeId(3)])
             )])
         );
     }

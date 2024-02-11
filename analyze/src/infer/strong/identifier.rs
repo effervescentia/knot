@@ -1,17 +1,20 @@
 use crate::{
     context::StrongContext,
     infer::strong::{SemanticError, Strong},
-    RefKind,
+};
+use lang::{
+    ast::{explode, walk},
+    types,
 };
 
 pub fn infer(
-    scope: &[usize],
-    id: &usize,
+    scope: &explode::ScopeId,
+    id: &walk::NodeId,
     name: &str,
-    kind: &RefKind,
+    kind: &types::RefKind,
     ctx: &StrongContext,
 ) -> Option<Strong> {
-    match ctx.bindings.resolve(scope, name, *id) {
+    match ctx.program.bindings.resolve(scope, name, *id) {
         Some(inherit_id) => ctx.as_strong(&inherit_id, kind).cloned(),
 
         None => Some(Err(SemanticError::NotFound(name.to_owned()))),
@@ -24,17 +27,19 @@ mod tests {
         context::StrongContext,
         infer::strong::{SemanticError, Strong},
         test::fixture::strong_ctx_from,
-        types::Type,
-        RefKind,
     };
     use kore::str;
+    use lang::{
+        ast::{explode::ScopeId, walk::NodeId},
+        types,
+    };
     use std::collections::BTreeSet;
 
     fn infer(
         scope: &[usize],
         id: usize,
         name: &str,
-        kind: RefKind,
+        kind: types::RefKind,
         ctx: &StrongContext,
     ) -> Option<Strong> {
         super::infer(scope, &id, name, &kind, ctx)
@@ -45,7 +50,7 @@ mod tests {
         let ctx = strong_ctx_from(vec![], vec![], vec![]);
 
         assert_eq!(
-            infer(&[0], 0, "foo", RefKind::Value, &ctx),
+            infer(&[0], 0, "foo", types::RefKind::Value, &ctx),
             Some(Err(SemanticError::NotFound(str!("foo"))))
         );
     }
@@ -55,22 +60,28 @@ mod tests {
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Boolean))),
-                (1, (RefKind::Type, Ok(Type::Integer))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (NodeId(1), (types::RefKind::Type, Ok(types::Type::Integer))),
             ],
             vec![
-                ((vec![0], str!("foo")), BTreeSet::from_iter(vec![0])),
-                ((vec![0], str!("bar")), BTreeSet::from_iter(vec![1])),
+                (
+                    (ScopeId(vec![0]), str!("foo")),
+                    BTreeSet::from_iter(vec![NodeId(0)]),
+                ),
+                (
+                    (ScopeId(vec![0]), str!("bar")),
+                    BTreeSet::from_iter(vec![NodeId(1)]),
+                ),
             ],
         );
 
         assert_eq!(
-            infer(&[0], 2, "foo", RefKind::Value, &ctx),
-            Some(Ok(Type::Boolean))
+            infer(&[0], 2, "foo", types::RefKind::Value, &ctx),
+            Some(Ok(types::Type::Boolean))
         );
         assert_eq!(
-            infer(&[0], 2, "bar", RefKind::Type, &ctx),
-            Some(Ok(Type::Integer))
+            infer(&[0], 2, "bar", types::RefKind::Type, &ctx),
+            Some(Ok(types::Type::Integer))
         );
     }
 }

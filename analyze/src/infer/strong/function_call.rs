@@ -1,15 +1,14 @@
-use std::cmp::Ordering;
-
 use crate::{
     context::StrongContext,
     infer::strong::{SemanticError, Strong},
-    RefKind, Type,
 };
+use lang::{ast::walk, types};
+use std::cmp::Ordering;
 
-pub fn infer(lhs: usize, arguments: &[usize], ctx: &StrongContext) -> Option<Strong> {
-    let kind = RefKind::Value;
+pub fn infer(lhs: walk::NodeId, arguments: &[walk::NodeId], ctx: &StrongContext) -> Option<Strong> {
+    let kind = types::RefKind::Value;
 
-    let resolve_all_types = |xs: &[usize]| {
+    let resolve_all_types = |xs: &[walk::NodeId]| {
         xs.iter()
             .map(|id| match ctx.as_strong(id, &kind) {
                 Some(Ok(x)) => Some((x.clone(), *id)),
@@ -20,7 +19,9 @@ pub fn infer(lhs: usize, arguments: &[usize], ctx: &StrongContext) -> Option<Str
     };
 
     let resolve_arguments =
-        |typ, parameters: Vec<(Type<usize>, usize)>, arguments: Vec<(Type<usize>, usize)>| {
+        |typ,
+         parameters: Vec<(types::Type<usize>, walk::NodeId)>,
+         arguments: Vec<(types::Type<usize>, walk::NodeId)>| {
             match arguments.len().cmp(&parameters.len()) {
                 Ordering::Less => Err(SemanticError::MissingArguments(
                     (typ, lhs),
@@ -50,7 +51,7 @@ pub fn infer(lhs: usize, arguments: &[usize], ctx: &StrongContext) -> Option<Str
         };
 
     match ctx.as_strong(&lhs, &kind)? {
-        Ok(x @ Type::Function(parameters, result)) => {
+        Ok(x @ types::Type::Function(parameters, result)) => {
             match (
                 resolve_all_types(parameters),
                 resolve_all_types(arguments),
@@ -79,13 +80,15 @@ pub fn infer(lhs: usize, arguments: &[usize], ctx: &StrongContext) -> Option<Str
             }
         }
 
-        Ok(x @ Type::EnumeratedVariant(parameters, result)) => {
+        Ok(x @ types::Type::Enumerated(types::Enumerated::Variant(parameters, result))) => {
             match (resolve_all_types(parameters), resolve_all_types(arguments)) {
                 (Some(typed_parameters), Some(typed_arguments)) => {
                     match resolve_arguments(x.clone(), typed_parameters, typed_arguments) {
                         Ok(mismatched) => {
                             if mismatched.is_empty() {
-                                Some(Ok(Type::EnumeratedInstance(*result)))
+                                Some(Ok(types::Type::Enumerated(types::Enumerated::Instance(
+                                    *result,
+                                ))))
                             } else {
                                 Some(Err(SemanticError::InvalidArguments(
                                     (x.clone(), lhs),
@@ -114,12 +117,15 @@ mod tests {
         context::StrongContext,
         infer::strong::{SemanticError, Strong},
         test::fixture::strong_ctx_from,
-        types::Type,
-        RefKind,
     };
+    use lang::{ast::walk::NodeId, types};
 
     fn infer(lhs: usize, arguments: &[usize], ctx: &StrongContext) -> Option<Strong> {
-        super::infer(lhs, arguments, ctx)
+        super::infer(
+            NodeId(lhs),
+            &arguments.iter().map(|x| NodeId(*x)).collect::<Vec<_>>(),
+            ctx,
+        )
     }
 
     #[test]
@@ -134,27 +140,33 @@ mod tests {
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Boolean))),
-                (2, (RefKind::Value, Ok(Type::Integer))),
-                (3, (RefKind::Value, Ok(Type::Function(vec![0, 1], 2)))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
+                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
+                (
+                    NodeId(3),
+                    (
+                        types::RefKind::Value,
+                        Ok(types::Type::Function(vec![0, 1], 2)),
+                    ),
+                ),
             ],
             vec![],
         );
 
-        assert_eq!(infer(3, &[0, 1], &ctx), Some(Ok(Type::Integer)));
+        assert_eq!(infer(3, &[0, 1], &ctx), Some(Ok(types::Type::Integer)));
     }
 
     #[test]
     fn function_invalid_arguments() {
-        let func_type = || Type::Function(vec![0, 1], 2);
+        let func_type = || types::Type::Function(vec![0, 1], 2);
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Boolean))),
-                (2, (RefKind::Value, Ok(Type::Integer))),
-                (3, (RefKind::Value, Ok(func_type()))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
+                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
+                (NodeId(3), (types::RefKind::Value, Ok(func_type()))),
             ],
             vec![],
         );
@@ -162,29 +174,35 @@ mod tests {
         assert_eq!(
             infer(3, &[0, 2], &ctx),
             Some(Err(SemanticError::InvalidArguments(
-                (func_type(), 3),
-                vec![((Type::Boolean, 1), (Type::Integer, 2))]
+                (func_type(), NodeId(3)),
+                vec![(
+                    (types::Type::Boolean, NodeId(1)),
+                    (types::Type::Integer, NodeId(2))
+                )]
             )))
         );
         assert_eq!(
             infer(3, &[2, 1], &ctx),
             Some(Err(SemanticError::InvalidArguments(
-                (func_type(), 3),
-                vec![((Type::Nil, 0), (Type::Integer, 2))]
+                (func_type(), NodeId(3)),
+                vec![(
+                    (types::Type::Nil, NodeId(0)),
+                    (types::Type::Integer, NodeId(2))
+                )]
             )))
         );
     }
 
     #[test]
     fn function_missing_arguments() {
-        let func_type = || Type::Function(vec![0, 1], 2);
+        let func_type = || types::Type::Function(vec![0, 1], 2);
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Boolean))),
-                (2, (RefKind::Value, Ok(Type::Integer))),
-                (3, (RefKind::Value, Ok(func_type()))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
+                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
+                (NodeId(3), (types::RefKind::Value, Ok(func_type()))),
             ],
             vec![],
         );
@@ -192,22 +210,25 @@ mod tests {
         assert_eq!(
             infer(3, &[], &ctx),
             Some(Err(SemanticError::MissingArguments(
-                (func_type(), 3),
-                vec![(Type::Nil, 0), (Type::Boolean, 1)]
+                (func_type(), NodeId(3)),
+                vec![
+                    (types::Type::Nil, NodeId(0)),
+                    (types::Type::Boolean, NodeId(1))
+                ]
             )))
         );
     }
 
     #[test]
     fn function_unexpected_arguments() {
-        let func_type = || Type::Function(vec![], 2);
+        let func_type = || types::Type::Function(vec![], 2);
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Boolean))),
-                (2, (RefKind::Value, Ok(Type::Integer))),
-                (3, (RefKind::Value, Ok(func_type()))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
+                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
+                (NodeId(3), (types::RefKind::Value, Ok(func_type()))),
             ],
             vec![],
         );
@@ -215,8 +236,11 @@ mod tests {
         assert_eq!(
             infer(3, &[0, 1], &ctx),
             Some(Err(SemanticError::UnexpectedArguments(
-                (func_type(), 3),
-                vec![(Type::Nil, 0), (Type::Boolean, 1)]
+                (func_type(), NodeId(3)),
+                vec![
+                    (types::Type::Nil, NodeId(0)),
+                    (types::Type::Boolean, NodeId(1))
+                ]
             )))
         );
     }
@@ -226,11 +250,17 @@ mod tests {
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Boolean))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
+                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
                 (
-                    2,
-                    (RefKind::Value, Ok(Type::EnumeratedVariant(vec![0, 1], 3))),
+                    NodeId(2),
+                    (
+                        types::RefKind::Value,
+                        Ok(types::Type::Enumerated(types::Enumerated::Variant(
+                            vec![0, 1],
+                            3,
+                        ))),
+                    ),
                 ),
             ],
             vec![],
@@ -238,20 +268,20 @@ mod tests {
 
         assert_eq!(
             infer(2, &[0, 1], &ctx),
-            Some(Ok(Type::EnumeratedInstance(3)))
+            Some(Ok(types::Type::Enumerated(types::Enumerated::Instance(3))))
         );
     }
 
     #[test]
     fn enumerated_variant_invalid_arguments() {
-        let variant_type = || Type::EnumeratedVariant(vec![0, 1], 2);
+        let variant_type = || types::Type::Enumerated(types::Enumerated::Variant(vec![0, 1], 2));
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Boolean))),
-                (2, (RefKind::Value, Ok(Type::Integer))),
-                (3, (RefKind::Value, Ok(variant_type()))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
+                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
+                (NodeId(3), (types::RefKind::Value, Ok(variant_type()))),
             ],
             vec![],
         );
@@ -259,29 +289,35 @@ mod tests {
         assert_eq!(
             infer(3, &[0, 2], &ctx),
             Some(Err(SemanticError::InvalidArguments(
-                (variant_type(), 3),
-                vec![((Type::Boolean, 1), (Type::Integer, 2))]
+                (variant_type(), NodeId(3)),
+                vec![(
+                    (types::Type::Boolean, NodeId(1)),
+                    (types::Type::Integer, NodeId(2))
+                )]
             )))
         );
         assert_eq!(
             infer(3, &[2, 1], &ctx),
             Some(Err(SemanticError::InvalidArguments(
-                (variant_type(), 3),
-                vec![((Type::Nil, 0), (Type::Integer, 2))]
+                (variant_type(), NodeId(3)),
+                vec![(
+                    (types::Type::Nil, NodeId(0)),
+                    (types::Type::Integer, NodeId(2))
+                )]
             )))
         );
     }
 
     #[test]
     fn enumerated_variant_missing_arguments() {
-        let variant_type = || Type::EnumeratedVariant(vec![0, 1], 2);
+        let variant_type = || types::Type::Enumerated(types::Enumerated::Variant(vec![0, 1], 2));
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Boolean))),
-                (2, (RefKind::Value, Ok(Type::Integer))),
-                (3, (RefKind::Value, Ok(variant_type()))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
+                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
+                (NodeId(3), (types::RefKind::Value, Ok(variant_type()))),
             ],
             vec![],
         );
@@ -289,22 +325,25 @@ mod tests {
         assert_eq!(
             infer(3, &[], &ctx),
             Some(Err(SemanticError::MissingArguments(
-                (variant_type(), 3),
-                vec![(Type::Nil, 0), (Type::Boolean, 1)]
+                (variant_type(), NodeId(3)),
+                vec![
+                    (types::Type::Nil, NodeId(0)),
+                    (types::Type::Boolean, NodeId(1))
+                ]
             )))
         );
     }
 
     #[test]
     fn enumerated_variant_unexpected_arguments() {
-        let enum_type = || Type::EnumeratedVariant(vec![], 2);
+        let enum_type = || types::Type::Enumerated(types::Enumerated::Variant(vec![], 2));
         let ctx = strong_ctx_from(
             vec![],
             vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Boolean))),
-                (2, (RefKind::Value, Ok(Type::Integer))),
-                (3, (RefKind::Value, Ok(enum_type()))),
+                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
+                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
+                (NodeId(3), (types::RefKind::Value, Ok(enum_type()))),
             ],
             vec![],
         );
@@ -312,19 +351,26 @@ mod tests {
         assert_eq!(
             infer(3, &[0, 1], &ctx),
             Some(Err(SemanticError::UnexpectedArguments(
-                (enum_type(), 3),
-                vec![(Type::Nil, 0), (Type::Boolean, 1)]
+                (enum_type(), NodeId(3)),
+                vec![
+                    (types::Type::Nil, NodeId(0)),
+                    (types::Type::Boolean, NodeId(1))
+                ]
             )))
         );
     }
 
     #[test]
     fn not_callable() {
-        let ctx = strong_ctx_from(vec![], vec![(0, (RefKind::Value, Ok(Type::Nil)))], vec![]);
+        let ctx = strong_ctx_from(
+            vec![],
+            vec![(NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil)))],
+            vec![],
+        );
 
         assert_eq!(
             infer(0, &[0, 1], &ctx),
-            Some(Err(SemanticError::NotCallable(Type::Nil, 0)))
+            Some(Err(SemanticError::NotCallable(types::Type::Nil, NodeId(0))))
         );
     }
 
@@ -333,15 +379,18 @@ mod tests {
         let ctx = strong_ctx_from(
             vec![],
             vec![(
-                0,
-                (RefKind::Value, Err(SemanticError::NotInferrable(vec![]))),
+                NodeId(0),
+                (
+                    types::RefKind::Value,
+                    Err(SemanticError::NotInferrable(vec![])),
+                ),
             )],
             vec![],
         );
 
         assert_eq!(
             infer(0, &[0, 1], &ctx),
-            Some(Err(SemanticError::NotInferrable(vec![0])))
+            Some(Err(SemanticError::NotInferrable(vec![NodeId(0)])))
         );
     }
 }

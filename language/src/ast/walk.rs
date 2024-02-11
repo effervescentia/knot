@@ -1,12 +1,18 @@
 use crate::Range;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NodeId(pub usize);
 
 pub struct Span<Value>(pub Value, pub Range);
 
-pub trait ToSpan<Value> {
-    fn to_span(self) -> Span<Value>;
+pub trait IntoSpan<Value> {
+    fn into_span(self) -> Span<Value>;
+}
+
+impl<Value> IntoSpan<Value> for Span<Value> {
+    fn into_span(self) -> Self {
+        self
+    }
 }
 
 pub trait Visit {
@@ -48,6 +54,7 @@ pub trait Visit {
         r: Range,
     ) -> (Self::Parameter, Self);
 
+    #[allow(clippy::type_complexity)]
     fn declaration(
         self,
         x: super::Declaration<

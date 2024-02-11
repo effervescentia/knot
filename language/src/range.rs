@@ -17,6 +17,11 @@ impl Point {
 pub struct Range(pub Point, pub Point);
 
 impl Range {
+    /// invalid range for use in tests
+    pub const fn nil() -> Self {
+        Self::new((0, 0), (0, 0))
+    }
+
     pub const fn new(
         (start_row, start_column): (usize, usize),
         (end_row, end_column): (usize, usize),

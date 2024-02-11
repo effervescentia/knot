@@ -169,12 +169,12 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            Expression::DotAccess(
+            Expression::PropertyAccess(
                 Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
                 str!("foo"),
             )
             .identify(scope),
-            Expression::DotAccess(
+            Expression::PropertyAccess(
                 Box::new(f::n::xc(
                     Expression::Primitive(Primitive::Nil),
                     NodeContext::new(0, vec![0])
@@ -253,8 +253,8 @@ mod tests {
         let scope = &mut f::scope_ctx(file);
 
         assert_eq!(
-            Expression::KSX(Box::new(f::n::kx(KSX::Text(str!("foo"))))).identify(scope),
-            Expression::KSX(Box::new(f::n::kxc(
+            Expression::Component(Box::new(f::n::kx(KSX::Text(str!("foo"))))).identify(scope),
+            Expression::Component(Box::new(f::n::kxc(
                 KSX::Text(str!("foo")),
                 NodeContext::new(0, vec![0])
             )))

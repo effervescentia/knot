@@ -1,5 +1,6 @@
 mod component;
 mod declaration;
+pub mod explode;
 mod expression;
 mod module;
 mod operator;

@@ -1,308 +1,365 @@
-use crate::{
-    infer::weak::{ToWeak, Weak, WeakRef},
-    RefKind, Type,
+use crate::infer::weak::{ToWeak, Weak, WeakRef};
+use lang::{
+    ast::{self, walk},
+    types,
 };
-use lang::ast::{BinaryOperator, Expression, Primitive, UnaryOperator};
 
-impl ToWeak for Expression<usize, usize, usize> {
+impl ToWeak for ast::Expression<walk::NodeId, walk::NodeId, walk::NodeId> {
     fn to_weak(&self) -> WeakRef {
         match self {
             Self::Primitive(x) => (
-                RefKind::Value,
+                types::RefKind::Value,
                 Weak::Type(match x {
-                    Primitive::Nil => Type::Nil,
-                    Primitive::Boolean(..) => Type::Boolean,
-                    Primitive::Integer(..) => Type::Integer,
-                    Primitive::Float(..) => Type::Float,
-                    Primitive::String(..) => Type::String,
+                    ast::Primitive::Nil => types::Type::Nil,
+                    ast::Primitive::Boolean(..) => types::Type::Boolean,
+                    ast::Primitive::Integer(..) => types::Type::Integer,
+                    ast::Primitive::Float(..) => types::Type::Float,
+                    ast::Primitive::String(..) => types::Type::String,
                 }),
             ),
 
-            Self::Identifier(..) => (RefKind::Value, Weak::Infer),
+            Self::Identifier(..) => (types::RefKind::Value, Weak::Infer),
 
-            Self::Group(id) => (RefKind::Value, Weak::Inherit(**id)),
+            Self::Group(id) => (types::RefKind::Value, Weak::Inherit(**id)),
 
-            Self::Closure(xs) => (RefKind::Value, {
+            Self::Closure(xs) => (types::RefKind::Value, {
                 match xs.last() {
                     Some(id) => Weak::Inherit(*id),
-                    None => Weak::Type(Type::Nil),
+                    None => Weak::Type(types::Type::Nil),
                 }
             }),
 
             Self::UnaryOperation(op, id) => (
-                RefKind::Value,
+                types::RefKind::Value,
                 match op {
-                    UnaryOperator::Not => Weak::Type(Type::Boolean),
+                    ast::UnaryOperator::Not => Weak::Type(types::Type::Boolean),
 
                     _ => Weak::Inherit(**id),
                 },
             ),
 
             Self::BinaryOperation(op, ..) => (
-                RefKind::Value,
+                types::RefKind::Value,
                 match op {
-                    BinaryOperator::Equal
-                    | BinaryOperator::NotEqual
-                    | BinaryOperator::And
-                    | BinaryOperator::Or
-                    | BinaryOperator::LessThan
-                    | BinaryOperator::LessThanOrEqual
-                    | BinaryOperator::GreaterThan
-                    | BinaryOperator::GreaterThanOrEqual => Weak::Type(Type::Boolean),
+                    ast::BinaryOperator::Equal
+                    | ast::BinaryOperator::NotEqual
+                    | ast::BinaryOperator::And
+                    | ast::BinaryOperator::Or
+                    | ast::BinaryOperator::LessThan
+                    | ast::BinaryOperator::LessThanOrEqual
+                    | ast::BinaryOperator::GreaterThan
+                    | ast::BinaryOperator::GreaterThanOrEqual => Weak::Type(types::Type::Boolean),
 
-                    BinaryOperator::Divide | BinaryOperator::Exponent => Weak::Type(Type::Float),
-
-                    BinaryOperator::Add | BinaryOperator::Subtract | BinaryOperator::Multiply => {
-                        Weak::Infer
+                    ast::BinaryOperator::Divide | ast::BinaryOperator::Exponent => {
+                        Weak::Type(types::Type::Float)
                     }
+
+                    ast::BinaryOperator::Add
+                    | ast::BinaryOperator::Subtract
+                    | ast::BinaryOperator::Multiply => Weak::Infer,
                 },
             ),
 
-            Self::DotAccess(..) => (RefKind::Value, Weak::Infer),
+            Self::PropertyAccess(..) => (types::RefKind::Value, Weak::Infer),
 
-            Self::FunctionCall(..) => (RefKind::Value, Weak::Infer),
+            Self::FunctionCall(..) => (types::RefKind::Value, Weak::Infer),
 
-            Self::Style(..) => (RefKind::Value, Weak::Type(Type::Style)),
+            Self::Style(..) => (types::RefKind::Value, Weak::Type(types::Type::Style)),
 
-            Self::KSX(..) => (RefKind::Value, Weak::Type(Type::Element)),
+            Self::Component(..) => (types::RefKind::Value, Weak::Type(types::Type::Element)),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        infer::weak::{ToWeak, Weak},
-        RefKind, Type,
-    };
+    use crate::infer::weak::{ToWeak, Weak};
     use kore::str;
-    use lang::ast::{BinaryOperator, Expression, Primitive, UnaryOperator};
+    use lang::{
+        ast::{self, walk::NodeId},
+        types,
+    };
 
     #[test]
     fn primitive() {
         assert_eq!(
-            Expression::Primitive(Primitive::Nil).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Nil))
+            ast::Expression::Primitive(ast::Primitive::Nil).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Nil))
         );
         assert_eq!(
-            Expression::Primitive(Primitive::Boolean(true)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::Primitive(ast::Primitive::Boolean(true)).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
         assert_eq!(
-            Expression::Primitive(Primitive::Integer(123)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Integer))
+            ast::Expression::Primitive(ast::Primitive::Integer(123)).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Integer))
         );
         assert_eq!(
-            Expression::Primitive(Primitive::Float(123.45, 5)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Float))
+            ast::Expression::Primitive(ast::Primitive::Float(123.45, 5)).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Float))
         );
         assert_eq!(
-            Expression::Primitive(Primitive::String(str!("foo"))).to_weak(),
-            (RefKind::Value, Weak::Type(Type::String))
+            ast::Expression::Primitive(ast::Primitive::String(str!("foo"))).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::String))
         );
     }
 
     #[test]
     fn identifier() {
         assert_eq!(
-            Expression::Identifier(str!("foo")).to_weak(),
-            (RefKind::Value, Weak::Infer)
+            ast::Expression::Identifier(str!("foo")).to_weak(),
+            (types::RefKind::Value, Weak::Infer)
         );
     }
 
     #[test]
     fn group() {
         assert_eq!(
-            Expression::Group(Box::new(0)).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Expression::Group(Box::new(NodeId(0))).to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn closure() {
         assert_eq!(
-            Expression::Closure(vec![0, 1]).to_weak(),
-            (RefKind::Value, Weak::Inherit(1))
+            ast::Expression::Closure(vec![NodeId(0), NodeId(1)]).to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(1)))
         );
     }
 
     #[test]
     fn closure_empty() {
         assert_eq!(
-            Expression::Closure(vec![]).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Nil))
+            ast::Expression::Closure(vec![]).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Nil))
         );
     }
 
     #[test]
     fn unary_not() {
         assert_eq!(
-            Expression::UnaryOperation(UnaryOperator::Not, Box::new(0)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::UnaryOperation(ast::UnaryOperator::Not, Box::new(NodeId(0))).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn unary_absolute() {
         assert_eq!(
-            Expression::UnaryOperation(UnaryOperator::Absolute, Box::new(0)).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Expression::UnaryOperation(ast::UnaryOperator::Absolute, Box::new(NodeId(0)))
+                .to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn unary_negate() {
         assert_eq!(
-            Expression::UnaryOperation(UnaryOperator::Negate, Box::new(0)).to_weak(),
-            (RefKind::Value, Weak::Inherit(0))
+            ast::Expression::UnaryOperation(ast::UnaryOperator::Negate, Box::new(NodeId(0)))
+                .to_weak(),
+            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
         );
     }
 
     #[test]
     fn binary_equal() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::Equal, Box::new(0), Box::new(1)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Equal,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn binary_not_equal() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::NotEqual, Box::new(0), Box::new(1))
-                .to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::NotEqual,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn binary_and() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::And, Box::new(0), Box::new(1)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::And,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn binary_or() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::Or, Box::new(0), Box::new(1)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Or,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn binary_less_than() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::LessThan, Box::new(0), Box::new(1))
-                .to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::LessThan,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn binary_less_than_or_equal() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::LessThanOrEqual, Box::new(0), Box::new(1))
-                .to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::LessThanOrEqual,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn binary_greater_than() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::GreaterThan, Box::new(0), Box::new(1))
-                .to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::GreaterThan,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn binary_greater_than_or_equal() {
         assert_eq!(
-            Expression::BinaryOperation(
-                BinaryOperator::GreaterThanOrEqual,
-                Box::new(0),
-                Box::new(1)
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::GreaterThanOrEqual,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
             )
             .to_weak(),
-            (RefKind::Value, Weak::Type(Type::Boolean))
+            (types::RefKind::Value, Weak::Type(types::Type::Boolean))
         );
     }
 
     #[test]
     fn binary_divide() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::Divide, Box::new(0), Box::new(1)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Float))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Divide,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Float))
         );
     }
 
     #[test]
     fn binary_exponent() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::Exponent, Box::new(0), Box::new(1))
-                .to_weak(),
-            (RefKind::Value, Weak::Type(Type::Float))
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Exponent,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Float))
         );
     }
 
     #[test]
     fn binary_add() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::Add, Box::new(0), Box::new(1)).to_weak(),
-            (RefKind::Value, Weak::Infer)
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Add,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Infer)
         );
     }
 
     #[test]
     fn binary_subtract() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::Subtract, Box::new(0), Box::new(1))
-                .to_weak(),
-            (RefKind::Value, Weak::Infer)
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Subtract,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Infer)
         );
     }
 
     #[test]
     fn binary_multiply() {
         assert_eq!(
-            Expression::BinaryOperation(BinaryOperator::Multiply, Box::new(0), Box::new(1))
-                .to_weak(),
-            (RefKind::Value, Weak::Infer)
+            ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Multiply,
+                Box::new(NodeId(0)),
+                Box::new(NodeId(1))
+            )
+            .to_weak(),
+            (types::RefKind::Value, Weak::Infer)
         );
     }
 
     #[test]
     fn dot_access() {
         assert_eq!(
-            Expression::DotAccess(Box::new(0), str!("foo")).to_weak(),
-            (RefKind::Value, Weak::Infer)
+            ast::Expression::PropertyAccess(Box::new(NodeId(0)), str!("foo")).to_weak(),
+            (types::RefKind::Value, Weak::Infer)
         );
     }
 
     #[test]
     fn function_call() {
         assert_eq!(
-            Expression::FunctionCall(Box::new(0), vec![1]).to_weak(),
-            (RefKind::Value, Weak::Infer)
+            ast::Expression::FunctionCall(Box::new(NodeId(0)), vec![NodeId(1)]).to_weak(),
+            (types::RefKind::Value, Weak::Infer)
         );
     }
 
     #[test]
     fn style() {
         assert_eq!(
-            Expression::Style(vec![(str!("foo"), 0)]).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Style))
+            ast::Expression::Style(vec![(str!("foo"), NodeId(0))]).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Style))
         );
     }
 
     #[test]
     fn ksx() {
         assert_eq!(
-            Expression::KSX(Box::new(0)).to_weak(),
-            (RefKind::Value, Weak::Type(Type::Element))
+            ast::Expression::Component(Box::new(NodeId(0))).to_weak(),
+            (types::RefKind::Value, Weak::Type(types::Type::Element))
         );
     }
 }
