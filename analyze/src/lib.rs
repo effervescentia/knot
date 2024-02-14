@@ -1,23 +1,23 @@
 mod ast;
 mod context;
-mod declaration;
-mod expression;
+// mod declaration;
+// mod expression;
 // mod fragment;
-mod component;
-mod import;
+// mod component;
+// mod import;
 mod infer;
-mod module;
-mod parameter;
+// mod module;
+// mod parameter;
+mod weak;
 // mod register;
-mod statement;
+// mod statement;
 #[cfg(test)]
 mod test;
-mod type_expression;
+// mod type_expression;
 // mod types;
 
 use context::{NodeDescriptor, StrongContext, WeakContext};
 pub use infer::strong::Strong;
-use infer::weak::WeakRef;
 use lang::{
     ast::{explode, walk},
     ModuleReference,

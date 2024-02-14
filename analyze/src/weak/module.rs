@@ -1,47 +1,14 @@
-use super::infer::weak::{ToWeak, Weak, WeakRef};
-use lang::{
+use crate::{
     ast::{self, walk},
-    types,
+    weak::{ToWeak, Weak, WeakRef},
 };
+use lang::types;
 
-// impl<R> Identify<ModuleNodeValue<R, NodeContext>> for ModuleNodeValue<R, ()>
-// where
-//     R: Copy,
-// {
-//     fn identify(&self, ctx: &ScopeContext) -> ModuleNodeValue<R, NodeContext> {
-//         self.map(&|x| x.register(ctx), &|x| x.register(ctx))
-//     }
-// }
-
-// impl<R> ToFragment for ModuleNodeValue<R, NodeContext>
-// where
-//     R: Copy,
-// {
-//     fn to_fragment(&self) -> Fragment {
-//         Fragment::Module(self.map(&|x| *x.node().id(), &|x| *x.node().id()))
-//     }
-// }
-
-// impl<R> Register for ModuleNode<R, ()>
-// where
-//     R: Copy,
-// {
-//     type Node = ModuleNode<R, NodeContext>;
-//     type Value<C> = ModuleNodeValue<R, C>;
-
-//     fn register(&self, ctx: &ScopeContext) -> ModuleNode<R, NodeContext> {
-//         let value = self.0.identify(ctx);
-//         let id = ctx.add_fragment(&value);
-
-//         ModuleNode(value, id)
-//     }
-// }
-
-// impl ToWeak for ast::Module<walk::NodeId, walk::NodeId> {
-//     fn to_weak(&self) -> WeakRef {
-//         (types::RefKind::Mixed, Weak::Infer)
-//     }
-// }
+impl ToWeak for ast::Module<walk::NodeId, walk::NodeId> {
+    fn to_weak(&self) -> WeakRef {
+        (types::RefKind::Mixed, Weak::Infer)
+    }
+}
 
 // impl<R> ToStrong<ModuleNode<R, Strong>> for ModuleNode<R, NodeContext>
 // where

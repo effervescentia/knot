@@ -1,7 +1,5 @@
-use super::infer::{
-    strong::{Strong, StrongRef},
-    weak::{Weak, WeakRef},
-};
+use super::infer::strong::{Strong, StrongRef};
+use crate::weak::{Weak, WeakRef};
 use kore::invariant;
 use lang::{
     ast::{

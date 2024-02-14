@@ -1,8 +1,8 @@
-use crate::infer::weak::{ToWeak, Weak, WeakRef};
-use lang::{
+use crate::{
     ast::{self, walk},
-    types,
+    weak::{ToWeak, Weak, WeakRef},
 };
+use lang::types;
 
 impl ToWeak for ast::Statement<walk::NodeId> {
     fn to_weak(&self) -> WeakRef {
@@ -16,12 +16,12 @@ impl ToWeak for ast::Statement<walk::NodeId> {
 
 #[cfg(test)]
 mod tests {
-    use crate::infer::weak::{ToWeak, Weak};
-    use kore::str;
-    use lang::{
+    use crate::{
         ast::{self, walk::NodeId},
-        types,
+        weak::{ToWeak, Weak},
     };
+    use kore::str;
+    use lang::types;
 
     #[test]
     fn expression() {

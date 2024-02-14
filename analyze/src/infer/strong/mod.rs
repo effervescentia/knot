@@ -4,7 +4,7 @@ mod dot_access;
 // mod identifier;
 // mod module;
 
-use super::weak::{Weak, WeakRef};
+use crate::weak::{Weak, WeakRef};
 use crate::{
     ast::{self, typed::TypeRef},
     context::{NodeDescriptor, StrongContext, WeakContext},
