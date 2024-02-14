@@ -4,17 +4,15 @@ mod dot_access;
 // mod identifier;
 // mod module;
 
-use crate::weak::{Weak, WeakRef};
 use crate::{
     ast::{self, typed::TypeRef},
-    context::{NodeDescriptor, StrongContext, WeakContext},
+    context::NodeDescriptor,
+    strong::StrongResult,
+    weak::{Weak, WeakRef, WeakResult},
     ModuleTypeMap,
 };
 use kore::invariant;
-use lang::{
-    ast::{explode, walk},
-    types, ModuleReference,
-};
+use lang::{ast::walk, types, Fragment, FragmentMap, ModuleReference, NodeId};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -25,51 +23,45 @@ pub enum ExpectedType {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SemanticError {
-    NotInferrable(Vec<walk::NodeId>),
+    NotInferrable(Vec<NodeId>),
 
     NotFound(String),
 
-    IllegalValueAccess((types::Type<walk::NodeId>, walk::NodeId), String),
-    IllegalTypeAccess((types::Type<walk::NodeId>, walk::NodeId), String),
+    IllegalValueAccess((types::Type<NodeId>, NodeId), String),
+    IllegalTypeAccess((types::Type<NodeId>, NodeId), String),
 
-    ShapeMismatch(
-        (types::Type<walk::NodeId>, walk::NodeId),
-        (types::Type<walk::NodeId>, walk::NodeId),
-    ),
-    UnexpectedShape((types::Type<walk::NodeId>, walk::NodeId), ExpectedType),
+    ShapeMismatch((types::Type<NodeId>, NodeId), (types::Type<NodeId>, NodeId)),
+    UnexpectedShape((types::Type<NodeId>, NodeId), ExpectedType),
 
-    VariantNotFound((types::Type<walk::NodeId>, walk::NodeId), String),
+    VariantNotFound((types::Type<NodeId>, NodeId), String),
 
-    DeclarationNotFound((types::Type<walk::NodeId>, walk::NodeId), String),
+    DeclarationNotFound((types::Type<NodeId>, NodeId), String),
 
-    NotIndexable((types::Type<walk::NodeId>, walk::NodeId), String),
+    NotIndexable((types::Type<NodeId>, NodeId), String),
 
-    NotCallable(types::Type<walk::NodeId>, walk::NodeId),
+    NotCallable(types::Type<NodeId>, NodeId),
     MissingArguments(
-        (types::Type<walk::NodeId>, walk::NodeId),
-        Vec<(types::Type<walk::NodeId>, walk::NodeId)>,
+        (types::Type<NodeId>, NodeId),
+        Vec<(types::Type<NodeId>, NodeId)>,
     ),
     UnexpectedArguments(
-        (types::Type<walk::NodeId>, walk::NodeId),
-        Vec<(types::Type<walk::NodeId>, walk::NodeId)>,
+        (types::Type<NodeId>, NodeId),
+        Vec<(types::Type<NodeId>, NodeId)>,
     ),
     InvalidArguments(
-        (types::Type<walk::NodeId>, walk::NodeId),
+        (types::Type<NodeId>, NodeId),
         #[allow(clippy::type_complexity)]
-        Vec<(
-            (types::Type<walk::NodeId>, walk::NodeId),
-            (types::Type<walk::NodeId>, walk::NodeId),
-        )>,
+        Vec<((types::Type<NodeId>, NodeId), (types::Type<NodeId>, NodeId))>,
     ),
 }
 
-pub type Strong = Result<types::Type<walk::NodeId>, SemanticError>;
+pub type Strong = Result<types::Type<NodeId>, SemanticError>;
 
 pub type StrongRef = (types::RefKind, Strong);
 
 pub struct Visitor<'a> {
     next_id: usize,
-    strong: &'a StrongContext,
+    strong: &'a StrongResult,
 }
 
 impl<'a> Visitor<'a> {
@@ -83,7 +75,7 @@ impl<'a> Visitor<'a> {
         let id = self.next_id();
         self.strong
             .refs
-            .get(&walk::NodeId(id))
+            .get(&NodeId(id))
             .unwrap_or_else(|| invariant!("unable to find type reference"))
     }
 }
@@ -179,15 +171,15 @@ impl<'a> walk::Visit for Visitor<'a> {
 }
 
 pub trait ToStrong<R> {
-    fn to_strong(&self, ctx: &StrongContext) -> R;
+    fn to_strong(&self, ctx: &StrongResult) -> R;
 }
 
 trait ToDescriptors {
-    fn to_descriptors(&self, weak_refs: HashMap<walk::NodeId, WeakRef>) -> Vec<NodeDescriptor>;
+    fn to_descriptors(&self, weak_refs: HashMap<NodeId, WeakRef>) -> Vec<NodeDescriptor>;
 }
 
-impl ToDescriptors for explode::FragmentMap {
-    fn to_descriptors(&self, mut weak_refs: HashMap<walk::NodeId, WeakRef>) -> Vec<NodeDescriptor> {
+impl ToDescriptors for FragmentMap {
+    fn to_descriptors(&self, mut weak_refs: HashMap<NodeId, WeakRef>) -> Vec<NodeDescriptor> {
         self.0
             .iter()
             .filter_map(|(id, (scope, fragment))| match weak_refs.remove(id) {
@@ -207,12 +199,12 @@ impl ToDescriptors for explode::FragmentMap {
 fn partial_infer_types<'a>(
     module_reference: &ModuleReference,
     nodes: Vec<&'a NodeDescriptor>,
-    mut ctx: StrongContext,
+    mut ctx: StrongResult,
     modules: &ModuleTypeMap,
 ) -> (
     Vec<&'a NodeDescriptor>,
     Vec<(&'a NodeDescriptor, String)>,
-    StrongContext,
+    StrongResult,
 ) {
     let mut unhandled = vec![];
     let mut warnings = vec![];
@@ -230,11 +222,11 @@ fn partial_infer_types<'a>(
         NodeDescriptor {
             weak: Weak::Inherit(inherit_id),
             fragment:
-                explode::Fragment::Declaration(ast::Declaration::Constant {
+                Fragment::Declaration(ast::Declaration::Constant {
                     value_type: Some(_),
                     ..
                 })
-                | explode::Fragment::Parameter(ast::Parameter {
+                | Fragment::Parameter(ast::Parameter {
                     value_type: Some(_),
                     ..
                 }),
@@ -258,14 +250,14 @@ fn partial_infer_types<'a>(
         //     id,
         //     scope,
         //     kind: kind @ types::RefKind::Type,
-        //     fragment: explode::Fragment::TypeExpression(ast::TypeExpression::Identifier(name)),
+        //     fragment: Fragment::TypeExpression(ast::TypeExpression::Identifier(name)),
         //     weak: Weak::Infer,
         // }
         // | NodeDescriptor {
         //     id,
         //     scope,
         //     kind: kind @ types::RefKind::Value,
-        //     fragment: explode::Fragment::Expression(ast::Expression::Identifier(name)),
+        //     fragment: Fragment::Expression(ast::Expression::Identifier(name)),
         //     weak: Weak::Infer,
         // } => match identifier::infer(scope, id, name, kind, &ctx) {
         //     Some(x) => {
@@ -277,7 +269,7 @@ fn partial_infer_types<'a>(
         NodeDescriptor {
             id,
             kind: types::RefKind::Value,
-            fragment: explode::Fragment::Expression(ast::Expression::BinaryOperation(op, lhs, rhs)),
+            fragment: Fragment::Expression(ast::Expression::BinaryOperation(op, lhs, rhs)),
             weak: Weak::Infer,
             ..
         } => match binary_operation::infer(op, **lhs, **rhs, &ctx) {
@@ -291,15 +283,14 @@ fn partial_infer_types<'a>(
         NodeDescriptor {
             id,
             kind: kind @ types::RefKind::Type,
-            fragment:
-                explode::Fragment::TypeExpression(ast::TypeExpression::PropertyAccess(lhs, rhs)),
+            fragment: Fragment::TypeExpression(ast::TypeExpression::PropertyAccess(lhs, rhs)),
             weak: Weak::Infer,
             ..
         }
         | NodeDescriptor {
             id,
             kind: kind @ types::RefKind::Value,
-            fragment: explode::Fragment::Expression(ast::Expression::PropertyAccess(lhs, rhs)),
+            fragment: Fragment::Expression(ast::Expression::PropertyAccess(lhs, rhs)),
             weak: Weak::Infer,
             ..
         } => match dot_access::infer(**lhs, rhs.clone(), kind, &ctx) {
@@ -313,7 +304,7 @@ fn partial_infer_types<'a>(
         // NodeDescriptor {
         //     id,
         //     kind: types::RefKind::Value,
-        //     fragment: explode::Fragment::Expression(ast::Expression::FunctionCall(lhs, arguments)),
+        //     fragment: Fragment::Expression(ast::Expression::FunctionCall(lhs, arguments)),
         //     weak: Weak::Infer,
         //     ..
         // } => match function_call::infer(**lhs, arguments, &ctx) {
@@ -327,7 +318,7 @@ fn partial_infer_types<'a>(
         // NodeDescriptor {
         //     id,
         //     kind: kind @ types::RefKind::Mixed,
-        //     fragment: explode::Fragment::Module(ast::Module { declarations, .. }),
+        //     fragment: Fragment::Module(ast::Module { declarations, .. }),
         //     weak: Weak::Infer,
         //     ..
         // } => match module::infer(declarations, &ctx) {
@@ -340,7 +331,7 @@ fn partial_infer_types<'a>(
         NodeDescriptor {
             id,
             kind: kind @ types::RefKind::Mixed,
-            fragment: explode::Fragment::Import(import),
+            fragment: Fragment::Import(import),
             weak: Weak::Infer,
             ..
         } => {
@@ -360,7 +351,7 @@ fn partial_infer_types<'a>(
 
         NodeDescriptor {
             weak: Weak::Infer,
-            fragment: explode::Fragment::Parameter(_),
+            fragment: Fragment::Parameter(_),
             ..
         } => unimplemented!(),
 
@@ -375,14 +366,14 @@ fn partial_infer_types<'a>(
 pub fn infer_types(
     module_reference: &ModuleReference,
     modules: &ModuleTypeMap,
-    WeakContext {
+    WeakResult {
         program,
         refs: weak_refs,
-    }: WeakContext,
-) -> StrongContext {
+    }: WeakResult,
+) -> StrongResult {
     let nodes = program.fragments.to_descriptors(weak_refs);
     let mut unhandled = nodes.iter().collect::<Vec<_>>();
-    let mut ctx = StrongContext::new(program);
+    let mut ctx = StrongResult::new(program);
 
     while !unhandled.is_empty() {
         let unhandled_length = unhandled.len();
@@ -405,18 +396,12 @@ pub fn infer_types(
 #[cfg(test)]
 mod tests {
     use crate::{
-        context::{BindingMap, NodeDescriptor, ProgramContext, StrongContext},
-        infer::weak::Weak,
+        context::{BindingMap, NodeDescriptor, ProgramContext},
+        strong::StrongResult,
+        weak::Weak,
     };
     use kore::str;
-    use lang::{
-        ast::{
-            self,
-            explode::{self, FragmentMap, ScopeId},
-            walk::NodeId,
-        },
-        types, ModuleReference, ModuleScope,
-    };
+    use lang::{ast, types, Fragment, FragmentMap, ModuleReference, ModuleScope, NodeId, ScopeId};
     use std::collections::{BTreeSet, HashMap};
 
     fn mock_reference(name: &str) -> ModuleReference {
@@ -430,7 +415,7 @@ mod tests {
                 id: NodeId(0),
                 kind: types::RefKind::Type,
                 scope: ScopeId(vec![0, 1]),
-                fragment: explode::Fragment::TypeExpression(ast::TypeExpression::Primitive(
+                fragment: Fragment::TypeExpression(ast::TypeExpression::Primitive(
                     ast::TypePrimitive::Nil,
                 )),
                 weak: Weak::Type(types::Type::Nil),
@@ -439,7 +424,7 @@ mod tests {
                 id: NodeId(1),
                 kind: types::RefKind::Type,
                 scope: ScopeId(vec![0]),
-                fragment: explode::Fragment::Declaration(ast::Declaration::type_alias(
+                fragment: Fragment::Declaration(ast::Declaration::type_alias(
                     ast::Storage::public(str!("MyType")),
                     NodeId(0),
                 )),
@@ -455,7 +440,7 @@ mod tests {
         let (.., ctx) = super::partial_infer_types(
             &mock_reference("foo"),
             nodes.iter().collect(),
-            StrongContext::new(ProgramContext::new(FragmentMap::default(), bindings)),
+            StrongResult::new(ProgramContext::new(FragmentMap::default(), bindings)),
             &modules,
         );
 
@@ -475,16 +460,14 @@ mod tests {
                 id: NodeId(0),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0, 1]),
-                fragment: explode::Fragment::Expression(ast::Expression::Primitive(
-                    ast::Primitive::Nil,
-                )),
+                fragment: Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
                 weak: Weak::Type(types::Type::Nil),
             },
             NodeDescriptor {
                 id: NodeId(1),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0]),
-                fragment: explode::Fragment::Declaration(ast::Declaration::constant(
+                fragment: Fragment::Declaration(ast::Declaration::constant(
                     ast::Storage::public(str!("FOO")),
                     None,
                     NodeId(0),
@@ -495,14 +478,14 @@ mod tests {
                 id: NodeId(2),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0, 2]),
-                fragment: explode::Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
+                fragment: Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
                 weak: Weak::Type(types::Type::Nil),
             },
             NodeDescriptor {
                 id: NodeId(3),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0]),
-                fragment: explode::Fragment::Declaration(ast::Declaration::constant(
+                fragment: Fragment::Declaration(ast::Declaration::constant(
                     ast::Storage::public(str!("BAR")),
                     None,
                     NodeId(2),
@@ -525,7 +508,7 @@ mod tests {
         let (.., ctx) = super::partial_infer_types(
             &mock_reference("foo"),
             nodes.iter().collect(),
-            StrongContext::new(ProgramContext::new(FragmentMap::default(), bindings)),
+            StrongResult::new(ProgramContext::new(FragmentMap::default(), bindings)),
             &modules,
         );
 
@@ -547,16 +530,14 @@ mod tests {
                 id: NodeId(0),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0, 1]),
-                fragment: explode::Fragment::Expression(ast::Expression::Primitive(
-                    ast::Primitive::Nil,
-                )),
+                fragment: Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
                 weak: Weak::Type(types::Type::Nil),
             },
             NodeDescriptor {
                 id: NodeId(1),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0]),
-                fragment: explode::Fragment::Declaration(ast::Declaration::constant(
+                fragment: Fragment::Declaration(ast::Declaration::constant(
                     ast::Storage::public(str!("FOO")),
                     None,
                     NodeId(0),
@@ -567,38 +548,35 @@ mod tests {
                 id: NodeId(2),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0, 2, 3]),
-                fragment: explode::Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
+                fragment: Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
                 weak: Weak::Infer,
             },
             NodeDescriptor {
                 id: NodeId(3),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0, 2, 3]),
-                fragment: explode::Fragment::Statement(ast::Statement::Variable(
-                    str!("bar"),
-                    NodeId(2),
-                )),
+                fragment: Fragment::Statement(ast::Statement::Variable(str!("bar"), NodeId(2))),
                 weak: Weak::Inherit(NodeId(2)),
             },
             NodeDescriptor {
                 id: NodeId(4),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0, 2, 3]),
-                fragment: explode::Fragment::Expression(ast::Expression::Identifier(str!("bar"))),
+                fragment: Fragment::Expression(ast::Expression::Identifier(str!("bar"))),
                 weak: Weak::Infer,
             },
             NodeDescriptor {
                 id: NodeId(5),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0, 2, 3]),
-                fragment: explode::Fragment::Statement(ast::Statement::Expression(NodeId(4))),
+                fragment: Fragment::Statement(ast::Statement::Expression(NodeId(4))),
                 weak: Weak::Inherit(NodeId(4)),
             },
             NodeDescriptor {
                 id: NodeId(6),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0, 2]),
-                fragment: explode::Fragment::Expression(ast::Expression::Closure(vec![
+                fragment: Fragment::Expression(ast::Expression::Closure(vec![
                     NodeId(3),
                     NodeId(5),
                 ])),
@@ -608,7 +586,7 @@ mod tests {
                 id: NodeId(7),
                 kind: types::RefKind::Value,
                 scope: ScopeId(vec![0]),
-                fragment: explode::Fragment::Declaration(ast::Declaration::constant(
+                fragment: Fragment::Declaration(ast::Declaration::constant(
                     ast::Storage::public(str!("FIZZ")),
                     None,
                     NodeId(6),
@@ -635,10 +613,7 @@ mod tests {
         let (.., ctx) = super::partial_infer_types(
             &mock_reference("foo"),
             nodes.iter().collect(),
-            StrongContext::new(ProgramContext::new(
-                explode::FragmentMap::default(),
-                bindings,
-            )),
+            StrongResult::new(ProgramContext::new(FragmentMap::default(), bindings)),
             &modules,
         );
 

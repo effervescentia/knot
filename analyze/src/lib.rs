@@ -1,27 +1,14 @@
 mod ast;
 mod context;
-// mod declaration;
-// mod expression;
-// mod fragment;
-// mod component;
-// mod import;
 mod infer;
-// mod module;
-// mod parameter;
-mod weak;
-// mod register;
-// mod statement;
+mod strong;
 #[cfg(test)]
 mod test;
-// mod type_expression;
+mod weak;
 // mod types;
 
-use context::{NodeDescriptor, StrongContext, WeakContext};
 pub use infer::strong::Strong;
-use lang::{
-    ast::{explode, walk},
-    ModuleReference,
-};
+use lang::{ast::explode, ModuleReference};
 use std::collections::HashMap;
 // use infer::strong::{SemanticError, ToStrong};
 // use lang::ModuleReference;

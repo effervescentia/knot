@@ -1,10 +1,10 @@
 use crate::{
-    ast::{self, walk},
+    ast,
     weak::{ToWeak, Weak, WeakRef},
 };
-use lang::types;
+use lang::{types, NodeId};
 
-impl ToWeak for ast::Declaration<String, walk::NodeId, walk::NodeId, walk::NodeId, walk::NodeId> {
+impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
     fn to_weak(&self) -> WeakRef {
         match self {
             Self::TypeAlias { value, .. } => (types::RefKind::Type, Weak::Inherit(*value)),
@@ -49,11 +49,11 @@ impl ToWeak for ast::Declaration<String, walk::NodeId, walk::NodeId, walk::NodeI
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{self, walk::NodeId},
+        ast,
         weak::{ToWeak, Weak},
     };
     use kore::str;
-    use lang::types;
+    use lang::{types, NodeId};
 
     #[test]
     fn type_alias() {

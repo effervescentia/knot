@@ -1,7 +1,8 @@
-use crate::{ast::explode, context::WeakContext, weak::ToWeak};
+use crate::weak::{ToWeak, WeakResult};
+use lang::FragmentMap;
 
-pub fn infer_types(fragments: explode::FragmentMap) -> WeakContext {
-    let mut ctx = WeakContext::new(fragments);
+pub fn infer_types(fragments: FragmentMap) -> WeakResult {
+    let mut ctx = WeakResult::new(fragments);
 
     ctx.program.fragments.0.iter().for_each(|(id, (scope, x))| {
         ctx.refs.insert(*id, x.to_weak());
@@ -27,14 +28,7 @@ pub fn infer_types(fragments: explode::FragmentMap) -> WeakContext {
 mod tests {
     use crate::weak::Weak;
     use kore::str;
-    use lang::{
-        ast::{
-            self,
-            explode::{self, FragmentMap, ScopeId},
-            walk::NodeId,
-        },
-        types,
-    };
+    use lang::{ast, types, Fragment, FragmentMap, NodeId, ScopeId};
     use std::collections::{BTreeSet, HashMap};
 
     #[test]
@@ -43,7 +37,7 @@ mod tests {
             NodeId(1),
             (
                 ScopeId(vec![0]),
-                explode::Fragment::Declaration(ast::Declaration::type_alias(
+                Fragment::Declaration(ast::Declaration::type_alias(
                     ast::Storage::public(str!("MyType")),
                     NodeId(0),
                 )),
@@ -76,14 +70,14 @@ mod tests {
                 NodeId(0),
                 (
                     ScopeId(vec![0, 1]),
-                    explode::Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                    Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
                 ),
             ),
             (
                 NodeId(1),
                 (
                     ScopeId(vec![0]),
-                    explode::Fragment::Declaration(ast::Declaration::constant(
+                    Fragment::Declaration(ast::Declaration::constant(
                         ast::Storage::public(str!("FOO")),
                         None,
                         NodeId(0),
@@ -94,14 +88,14 @@ mod tests {
                 NodeId(2),
                 (
                     ScopeId(vec![0, 2]),
-                    explode::Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
+                    Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
                 ),
             ),
             (
                 NodeId(3),
                 (
                     ScopeId(vec![0]),
-                    explode::Fragment::Declaration(ast::Declaration::constant(
+                    Fragment::Declaration(ast::Declaration::constant(
                         ast::Storage::public(str!("BAR")),
                         None,
                         NodeId(2),
@@ -112,45 +106,42 @@ mod tests {
                 NodeId(4),
                 (
                     ScopeId(vec![0, 3, 4]),
-                    explode::Fragment::Expression(ast::Expression::Identifier(str!("BAR"))),
+                    Fragment::Expression(ast::Expression::Identifier(str!("BAR"))),
                 ),
             ),
             (
                 NodeId(5),
                 (
                     ScopeId(vec![0, 3, 4]),
-                    explode::Fragment::Statement(ast::Statement::Variable(str!("fizz"), NodeId(4))),
+                    Fragment::Statement(ast::Statement::Variable(str!("fizz"), NodeId(4))),
                 ),
             ),
             (
                 NodeId(6),
                 (
                     ScopeId(vec![0, 3, 4]),
-                    explode::Fragment::Expression(ast::Expression::Identifier(str!("fizz"))),
+                    Fragment::Expression(ast::Expression::Identifier(str!("fizz"))),
                 ),
             ),
             (
                 NodeId(7),
                 (
                     ScopeId(vec![0, 3, 4]),
-                    explode::Fragment::Statement(ast::Statement::Expression(NodeId(6))),
+                    Fragment::Statement(ast::Statement::Expression(NodeId(6))),
                 ),
             ),
             (
                 NodeId(8),
                 (
                     ScopeId(vec![0, 3]),
-                    explode::Fragment::Expression(ast::Expression::Closure(vec![
-                        NodeId(3),
-                        NodeId(7),
-                    ])),
+                    Fragment::Expression(ast::Expression::Closure(vec![NodeId(3), NodeId(7)])),
                 ),
             ),
             (
                 NodeId(9),
                 (
                     ScopeId(vec![0]),
-                    explode::Fragment::Declaration(ast::Declaration::constant(
+                    Fragment::Declaration(ast::Declaration::constant(
                         ast::Storage::public(str!("BUZZ")),
                         None,
                         NodeId(8),
@@ -213,7 +204,7 @@ mod tests {
                 NodeId(1),
                 (
                     ScopeId(vec![0]),
-                    explode::Fragment::Declaration(ast::Declaration::type_alias(
+                    Fragment::Declaration(ast::Declaration::type_alias(
                         ast::Storage::public(str!("MyType")),
                         NodeId(0),
                     )),
@@ -223,7 +214,7 @@ mod tests {
                 NodeId(3),
                 (
                     ScopeId(vec![0]),
-                    explode::Fragment::Declaration(ast::Declaration::type_alias(
+                    Fragment::Declaration(ast::Declaration::type_alias(
                         ast::Storage::public(str!("MyType")),
                         NodeId(2),
                     )),

@@ -1,18 +1,16 @@
 use crate::{
-    context::StrongContext,
+    ast,
     infer::strong::{ExpectedType, SemanticError, Strong},
+    strong::StrongResult,
 };
 use kore::invariant;
-use lang::{
-    ast::{self, walk},
-    types,
-};
+use lang::{types, NodeId};
 
 pub fn infer(
     op: &ast::BinaryOperator,
-    lhs: walk::NodeId,
-    rhs: walk::NodeId,
-    ctx: &StrongContext,
+    lhs: NodeId,
+    rhs: NodeId,
+    ctx: &StrongResult,
 ) -> Option<Strong> {
     match op {
         ast::BinaryOperator::Add
@@ -58,20 +56,18 @@ pub fn infer(
 #[cfg(test)]
 mod tests {
     use crate::{
-        context::StrongContext,
+        ast,
         infer::strong::{ExpectedType, SemanticError, Strong},
+        strong::StrongResult,
         test::fixture::strong_ctx_from,
     };
-    use lang::{
-        ast::{self, walk::NodeId},
-        types,
-    };
+    use lang::{types, NodeId};
 
     fn infer(
         op: ast::BinaryOperator,
         lhs: usize,
         rhs: usize,
-        ctx: &StrongContext,
+        ctx: &StrongResult,
     ) -> Option<Strong> {
         super::infer(&op, NodeId(lhs), NodeId(rhs), ctx)
     }

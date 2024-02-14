@@ -1,84 +1,5 @@
-use super::{
-    walk::{self, NodeId},
-    Storage,
-};
-use crate::Range;
-use std::collections::{BTreeMap, HashMap};
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct ScopeId(pub Vec<usize>);
-
-impl ScopeId {
-    fn child(&self, next_id: usize) -> Self {
-        Self([self.0.clone(), vec![next_id]].concat())
-    }
-}
-
-impl Default for ScopeId {
-    fn default() -> Self {
-        Self(vec![0])
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Fragment {
-    Expression(super::Expression<NodeId, NodeId, NodeId>),
-    Statement(super::Statement<NodeId>),
-    Component(super::Component<NodeId, NodeId>),
-    Parameter(super::Parameter<String, NodeId, NodeId>),
-    Declaration(super::Declaration<String, NodeId, NodeId, NodeId, NodeId>),
-    TypeExpression(super::TypeExpression<NodeId>),
-    Import(super::Import),
-    Module(super::Module<NodeId, NodeId>),
-}
-
-impl Fragment {
-    pub fn to_binding(&self) -> Result<Vec<String>, ()> {
-        match self {
-            Self::Statement(super::Statement::Variable(binding, ..))
-            | Self::Parameter(super::Parameter { binding, .. }) => Ok(vec![binding.clone()]),
-
-            Self::Declaration(x) => Ok(vec![x.binding().clone()]),
-
-            Self::Import(super::Import {
-                path, alias: None, ..
-            }) => Ok(vec![path.last().ok_or(())?.clone()]),
-
-            Self::Import(super::Import {
-                alias: Some(alias), ..
-            }) => Ok(vec![alias.clone()]),
-
-            _ => Ok(vec![]),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct FragmentMap(pub BTreeMap<NodeId, (ScopeId, Fragment)>);
-
-// impl FragmentMap {
-//     pub fn to_descriptors(&self, mut weak_refs: HashMap<usize, WeakRef>) -> Vec<NodeDescriptor> {
-//         self.0
-//             .iter()
-//             .filter_map(|(id, (scope, fragment))| match weak_refs.remove(id) {
-//                 Some((kind, weak)) => Some(NodeDescriptor {
-//                     id: *id,
-//                     kind,
-//                     scope: scope.clone(),
-//                     fragment: fragment.clone(),
-//                     weak,
-//                 }),
-//                 _ => None,
-//             })
-//             .collect()
-//     }
-// }
-
-impl FromIterator<(NodeId, (ScopeId, Fragment))> for FragmentMap {
-    fn from_iter<T: IntoIterator<Item = (NodeId, (ScopeId, Fragment))>>(iter: T) -> Self {
-        Self(BTreeMap::from_iter(iter))
-    }
-}
+use super::walk;
+use crate::{Fragment, FragmentMap, NodeId, Range, ScopeId};
 
 pub trait Explode {
     fn explode(self) -> FragmentMap;
@@ -221,12 +142,6 @@ impl walk::Visit for Visitor {
     }
 }
 
-// impl super::Program {
-//     fn collect(self) -> Vec<(NodeId, Fragment)> {
-//         self.0.walk(Visitor::default()).1.into_fragments()
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::Fragment;
@@ -234,9 +149,9 @@ mod tests {
         ast::{
             self,
             explode::{Explode, FragmentMap, ScopeId},
-            walk::NodeId,
         },
         test::{fixture, mock},
+        NodeId,
     };
     use kore::assert_eq;
 
@@ -251,13 +166,13 @@ mod tests {
             program.explode(),
             FragmentMap::from_iter(
                 [
-                    fixture::import::fragments(0, (vec![0], 0)),
-                    fixture::type_alias::fragments(1, (vec![0], 1)),
-                    fixture::constant::fragments(3, (vec![0], 2)),
-                    fixture::enumerated::fragments(6, (vec![0], 3)),
-                    fixture::function::fragments(8, (vec![0], 4)),
-                    fixture::view::fragments(14, (vec![0], 5)),
-                    fixture::module::fragments(19, (vec![0], 6)),
+                    fixture::import::fragments(0, &(vec![0], 0)),
+                    fixture::type_alias::fragments(1, &(vec![0], 1)),
+                    fixture::constant::fragments(3, &(vec![0], 2)),
+                    fixture::enumerated::fragments(6, &(vec![0], 3)),
+                    fixture::function::fragments(8, &(vec![0], 4)),
+                    fixture::view::fragments(14, &(vec![0], 5)),
+                    fixture::module::fragments(19, &(vec![0], 6)),
                     vec![(
                         NodeId(24),
                         (

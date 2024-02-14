@@ -1,14 +1,14 @@
 use crate::{
-    context::StrongContext,
     infer::strong::{SemanticError, Strong},
+    strong::StrongResult,
 };
-use lang::{ast::walk, types};
+use lang::{types, NodeId};
 
 pub fn infer(
-    lhs: walk::NodeId,
+    lhs: NodeId,
     rhs: String,
     kind: &types::RefKind,
-    ctx: &StrongContext,
+    ctx: &StrongResult,
 ) -> Option<Strong> {
     match ctx.as_strong(&lhs, kind)? {
         Ok(x @ types::Type::Module(declarations)) => {
@@ -53,14 +53,14 @@ pub fn infer(
 #[cfg(test)]
 mod tests {
     use crate::{
-        context::StrongContext,
         infer::strong::{SemanticError, Strong},
+        strong::StrongResult,
         test::fixture::strong_ctx_from,
     };
     use kore::str;
-    use lang::{ast::walk::NodeId, types};
+    use lang::{types, NodeId};
 
-    fn infer(lhs: usize, rhs: &str, kind: types::RefKind, ctx: &StrongContext) -> Option<Strong> {
+    fn infer(lhs: usize, rhs: &str, kind: types::RefKind, ctx: &StrongResult) -> Option<Strong> {
         super::infer(NodeId(lhs), rhs.to_owned(), &kind, ctx)
     }
 

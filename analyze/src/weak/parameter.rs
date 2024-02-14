@@ -1,10 +1,10 @@
 use crate::{
-    ast::{self, walk},
+    ast,
     weak::{ToWeak, Weak, WeakRef},
 };
-use lang::types;
+use lang::{types, NodeId};
 
-impl ToWeak for ast::Parameter<String, walk::NodeId, walk::NodeId> {
+impl ToWeak for ast::Parameter<String, NodeId, NodeId> {
     fn to_weak(&self) -> WeakRef {
         (
             types::RefKind::Value,
@@ -27,11 +27,11 @@ impl ToWeak for ast::Parameter<String, walk::NodeId, walk::NodeId> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{self, walk::NodeId},
+        ast,
         weak::{ToWeak, Weak},
     };
     use kore::str;
-    use lang::types;
+    use lang::{types, NodeId};
 
     #[test]
     fn unknown_parameter() {

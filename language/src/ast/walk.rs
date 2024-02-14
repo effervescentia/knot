@@ -1,8 +1,5 @@
 use crate::Range;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct NodeId(pub usize);
-
 pub struct Span<Value>(pub Value, pub Range);
 
 pub trait IntoSpan<Value> {

@@ -1,10 +1,9 @@
 use crate::{
     ast::{
-        self,
-        explode::{self, FragmentMap},
+        self, explode,
         walk::{self, Visit, Walk},
     },
-    Range,
+    FragmentMap, Range,
 };
 
 impl<Value> walk::Span<Value> {

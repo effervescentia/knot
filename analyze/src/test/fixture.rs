@@ -26,22 +26,20 @@
 // }
 
 use crate::{
-    context::{BindingMap, ProgramContext, StrongContext},
+    context::{BindingMap, ProgramContext},
     infer::strong::StrongRef,
+    strong::StrongResult,
 };
-use lang::ast::{
-    explode::{self, ScopeId},
-    walk::NodeId,
-};
+use lang::{Fragment, FragmentMap, NodeId, ScopeId};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 pub fn strong_ctx_from(
-    fragments: Vec<(NodeId, (ScopeId, explode::Fragment))>,
+    fragments: Vec<(NodeId, (ScopeId, Fragment))>,
     refs: Vec<(NodeId, StrongRef)>,
     bindings: Vec<((ScopeId, String), BTreeSet<NodeId>)>,
-) -> StrongContext {
-    let mut ctx = StrongContext::new(ProgramContext::new(
-        explode::FragmentMap(BTreeMap::from_iter(fragments)),
+) -> StrongResult {
+    let mut ctx = StrongResult::new(ProgramContext::new(
+        FragmentMap(BTreeMap::from_iter(fragments)),
         BindingMap(HashMap::from_iter(bindings)),
     ));
     ctx.refs.extend(refs);
