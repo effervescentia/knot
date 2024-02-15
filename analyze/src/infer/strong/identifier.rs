@@ -1,21 +1,18 @@
 use crate::{
-    context::StrongContext,
-    infer::strong::{SemanticError, Strong},
+    infer::strong::SemanticError,
+    strong::{Strong, StrongResult},
 };
-use lang::{
-    ast::{explode, walk},
-    types,
-};
+use lang::{types, NodeId, ScopeId};
 
 pub fn infer(
-    scope: &explode::ScopeId,
-    id: &walk::NodeId,
+    scope: &ScopeId,
+    id: &NodeId,
     name: &str,
     kind: &types::RefKind,
-    ctx: &StrongContext,
+    result: &StrongResult,
 ) -> Option<Strong> {
-    match ctx.program.bindings.resolve(scope, name, *id) {
-        Some(inherit_id) => ctx.as_strong(&inherit_id, kind).cloned(),
+    match result.module.bindings.resolve(scope, name, *id) {
+        Some(inherit_id) => result.as_strong(&inherit_id, kind).cloned(),
 
         None => Some(Err(SemanticError::NotFound(name.to_owned()))),
     }
@@ -23,41 +20,30 @@ pub fn infer(
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        context::StrongContext,
-        infer::strong::{SemanticError, Strong},
-        test::fixture::strong_ctx_from,
-    };
+    use crate::{infer::strong::SemanticError, test::fixture::strong_result_from};
     use kore::str;
-    use lang::{
-        ast::{explode::ScopeId, walk::NodeId},
-        types,
-    };
+    use lang::{types, NodeId, ScopeId};
     use std::collections::BTreeSet;
-
-    fn infer(
-        scope: &[usize],
-        id: usize,
-        name: &str,
-        kind: types::RefKind,
-        ctx: &StrongContext,
-    ) -> Option<Strong> {
-        super::infer(scope, &id, name, &kind, ctx)
-    }
 
     #[test]
     fn not_found() {
-        let ctx = strong_ctx_from(vec![], vec![], vec![]);
+        let result = strong_result_from(vec![], vec![], vec![]);
 
         assert_eq!(
-            infer(&[0], 0, "foo", types::RefKind::Value, &ctx),
+            super::infer(
+                &ScopeId(vec![0]),
+                &NodeId(0),
+                "foo",
+                &types::RefKind::Value,
+                &result
+            ),
             Some(Err(SemanticError::NotFound(str!("foo"))))
         );
     }
 
     #[test]
     fn found_in_scope() {
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![],
             vec![
                 (NodeId(0), (types::RefKind::Value, Ok(types::Type::Boolean))),
@@ -76,11 +62,23 @@ mod tests {
         );
 
         assert_eq!(
-            infer(&[0], 2, "foo", types::RefKind::Value, &ctx),
+            super::infer(
+                &ScopeId(vec![0]),
+                &NodeId(2),
+                "foo",
+                &types::RefKind::Value,
+                &result
+            ),
             Some(Ok(types::Type::Boolean))
         );
         assert_eq!(
-            infer(&[0], 2, "bar", types::RefKind::Type, &ctx),
+            super::infer(
+                &ScopeId(vec![0]),
+                &NodeId(2),
+                "bar",
+                &types::RefKind::Type,
+                &result
+            ),
             Some(Ok(types::Type::Integer))
         );
     }

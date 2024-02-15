@@ -1,12 +1,12 @@
 use crate::{
     ast,
-    weak::{ToWeak, Weak, WeakRef},
+    weak::{ToWeak, WeakRef},
 };
 use lang::{types, NodeId};
 
 impl ToWeak for ast::Module<NodeId, NodeId> {
     fn to_weak(&self) -> WeakRef {
-        (types::RefKind::Mixed, Weak::Infer)
+        (types::RefKind::Mixed, None)
     }
 }
 

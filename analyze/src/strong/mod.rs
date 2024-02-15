@@ -1,23 +1,26 @@
 use crate::{
-    context::{NodeDescriptor, ProgramContext},
-    infer::strong::StrongRef,
-    Strong,
+    data::{ModuleMetadata, NodeDescriptor},
+    infer::strong::SemanticError,
 };
 use kore::invariant;
 use lang::{types, NodeId};
 use std::collections::HashMap;
 
+pub type Strong = Result<types::Type<NodeId>, SemanticError>;
+
+pub type StrongRef = (types::RefKind, Strong);
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct StrongResult {
-    pub program: ProgramContext,
+    pub module: ModuleMetadata,
 
     pub refs: HashMap<NodeId, StrongRef>,
 }
 
 impl StrongResult {
-    pub fn new(program: ProgramContext) -> Self {
+    pub fn new(module: ModuleMetadata) -> Self {
         Self {
-            program,
+            module,
             refs: HashMap::default(),
         }
     }

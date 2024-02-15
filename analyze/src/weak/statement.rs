@@ -1,25 +1,26 @@
 use crate::{
     ast,
-    weak::{ToWeak, Weak, WeakRef},
+    data::ScopedType,
+    weak::{ToWeak, WeakRef},
 };
 use lang::{types, NodeId};
 
 impl ToWeak for ast::Statement<NodeId> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Self::Expression(id) => (types::RefKind::Value, Weak::Inherit(*id)),
+            Self::Expression(id) => (types::RefKind::Value, Some(ScopedType::Inherit(*id))),
 
-            Self::Variable(..) => (types::RefKind::Value, Weak::Type(types::Type::Nil)),
+            Self::Variable(..) => (
+                types::RefKind::Value,
+                Some(ScopedType::Type(types::Type::Nil)),
+            ),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast,
-        weak::{ToWeak, Weak},
-    };
+    use crate::{ast, data::ScopedType, weak::ToWeak};
     use kore::str;
     use lang::{types, NodeId};
 
@@ -27,7 +28,7 @@ mod tests {
     fn expression() {
         assert_eq!(
             ast::Statement::Expression(NodeId(0)).to_weak(),
-            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 
@@ -35,7 +36,10 @@ mod tests {
     fn variable() {
         assert_eq!(
             ast::Statement::Variable(str!("foo"), NodeId(0)).to_weak(),
-            (types::RefKind::Value, Weak::Type(types::Type::Nil))
+            (
+                types::RefKind::Value,
+                Some(ScopedType::Type(types::Type::Nil))
+            )
         );
     }
 }

@@ -7,18 +7,13 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::context::ProgramContext;
+use crate::data::{ModuleMetadata, ScopedType};
 use lang::{types, Fragment, FragmentMap, NodeId};
 use std::collections::HashMap;
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum Weak {
-    Infer,
-    Type(types::Type<NodeId>),
-    Inherit(NodeId),
-}
+pub type Weak<'a> = Option<ScopedType<'a>>;
 
-pub type WeakRef = (types::RefKind, Weak);
+pub type WeakRef<'a> = (types::RefKind, Weak<'a>);
 
 pub trait ToWeak {
     fn to_weak(&self) -> WeakRef;
@@ -40,16 +35,16 @@ impl ToWeak for Fragment {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct WeakResult {
-    pub program: ProgramContext,
+pub struct WeakResult<'a> {
+    pub module: ModuleMetadata,
 
-    pub refs: HashMap<NodeId, WeakRef>,
+    pub refs: HashMap<NodeId, WeakRef<'a>>,
 }
 
-impl WeakResult {
+impl<'a> WeakResult<'a> {
     pub fn new(fragments: FragmentMap) -> Self {
         Self {
-            program: ProgramContext::from_fragments(fragments),
+            module: ModuleMetadata::from_fragments(fragments),
             refs: HashMap::default(),
         }
     }

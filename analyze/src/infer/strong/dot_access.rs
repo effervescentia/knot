@@ -1,79 +1,77 @@
 use crate::{
-    infer::strong::{SemanticError, Strong},
-    strong::StrongResult,
+    infer::strong::SemanticError,
+    strong::{Strong, StrongResult},
 };
 use lang::{types, NodeId};
 
 pub fn infer(
-    lhs: NodeId,
-    rhs: String,
+    lhs: &NodeId,
+    rhs: &str,
     kind: &types::RefKind,
-    ctx: &StrongResult,
+    result: &StrongResult,
 ) -> Option<Strong> {
-    match ctx.as_strong(&lhs, kind)? {
+    match result.as_strong(lhs, kind)? {
         Ok(x @ types::Type::Module(declarations)) => {
-            match declarations.iter().find(|(name, ..)| name == &rhs) {
+            match declarations.iter().find(|(name, ..)| name == rhs) {
                 Some((_, declaration_kind, declaration_id))
                     if declaration_kind == kind || declaration_kind == &types::RefKind::Mixed =>
                 {
-                    ctx.as_strong(declaration_id, kind).cloned()
+                    result.as_strong(declaration_id, kind).cloned()
                 }
 
                 Some(_) => Some(Err(SemanticError::IllegalTypeAccess(
-                    (x.clone(), lhs),
-                    rhs.clone(),
+                    (x.clone(), *lhs),
+                    rhs.to_string(),
                 ))),
 
                 None => Some(Err(SemanticError::DeclarationNotFound(
-                    (x.clone(), lhs),
-                    rhs.clone(),
+                    (x.clone(), *lhs),
+                    rhs.to_string(),
                 ))),
             }
         }
 
         Ok(x @ types::Type::Enumerated(types::Enumerated::Declaration(variants))) => {
-            match variants.iter().find(|(name, _)| name == &rhs) {
+            match variants.iter().find(|(name, _)| name == rhs) {
                 Some((_, parameters)) => Some(Ok(types::Type::Enumerated(
-                    types::Enumerated::Variant(parameters.clone(), lhs),
+                    types::Enumerated::Variant(parameters.clone(), *lhs),
                 ))),
 
-                None => Some(Err(SemanticError::VariantNotFound((x.clone(), lhs), rhs))),
+                None => Some(Err(SemanticError::VariantNotFound(
+                    (x.clone(), *lhs),
+                    rhs.to_string(),
+                ))),
             }
         }
 
         Ok(x) => Some(Err(SemanticError::NotIndexable(
-            (x.clone(), lhs),
-            rhs.clone(),
+            (x.clone(), *lhs),
+            rhs.to_string(),
         ))),
 
-        Err(_) => Some(Err(SemanticError::NotInferrable(vec![lhs]))),
+        Err(_) => Some(Err(SemanticError::NotInferrable(vec![*lhs]))),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        infer::strong::{SemanticError, Strong},
-        strong::StrongResult,
-        test::fixture::strong_ctx_from,
-    };
+    use crate::{infer::strong::SemanticError, test::fixture::strong_result_from};
     use kore::str;
     use lang::{types, NodeId};
 
-    fn infer(lhs: usize, rhs: &str, kind: types::RefKind, ctx: &StrongResult) -> Option<Strong> {
-        super::infer(NodeId(lhs), rhs.to_owned(), &kind, ctx)
-    }
-
     #[test]
     fn none_result() {
-        let ctx = strong_ctx_from(vec![], vec![], vec![]);
+        let result = strong_result_from(vec![], vec![], vec![]);
 
-        assert_eq!(infer(0, "foo", types::RefKind::Value, &ctx), None);
+        assert_eq!(
+            super::infer(&NodeId(0), "foo", &types::RefKind::Value, &result),
+            None
+        );
     }
 
     #[test]
     fn module_entry_result() {
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![],
             vec![
                 (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
@@ -93,11 +91,11 @@ mod tests {
         );
 
         assert_eq!(
-            infer(2, "foo", types::RefKind::Value, &ctx),
+            super::infer(&NodeId(2), "foo", &types::RefKind::Value, &result),
             Some(Ok(types::Type::Nil))
         );
         assert_eq!(
-            infer(2, "bar", types::RefKind::Type, &ctx),
+            super::infer(&NodeId(2), "bar", &types::RefKind::Type, &result),
             Some(Ok(types::Type::Nil))
         );
     }
@@ -110,7 +108,7 @@ mod tests {
                 (str!("bar"), types::RefKind::Type, NodeId(1)),
             ])
         };
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![],
             vec![
                 (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
@@ -121,14 +119,14 @@ mod tests {
         );
 
         assert_eq!(
-            infer(2, "foo", types::RefKind::Type, &ctx),
+            super::infer(&NodeId(2), "foo", &types::RefKind::Type, &result),
             Some(Err(SemanticError::IllegalTypeAccess(
                 (module_type(), NodeId(2)),
                 str!("foo")
             )))
         );
         assert_eq!(
-            infer(2, "bar", types::RefKind::Value, &ctx),
+            super::infer(&NodeId(2), "bar", &types::RefKind::Value, &result),
             Some(Err(SemanticError::IllegalTypeAccess(
                 (module_type(), NodeId(2)),
                 str!("bar")
@@ -140,7 +138,7 @@ mod tests {
     fn module_declaration_not_found() {
         let module_type =
             || types::Type::Module(vec![(str!("foo"), types::RefKind::Value, NodeId(0))]);
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![],
             vec![
                 (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
@@ -150,14 +148,14 @@ mod tests {
         );
 
         assert_eq!(
-            infer(1, "bar", types::RefKind::Value, &ctx),
+            super::infer(&NodeId(1), "bar", &types::RefKind::Value, &result),
             Some(Err(SemanticError::DeclarationNotFound(
                 (module_type(), NodeId(1)),
                 str!("bar")
             )))
         );
         assert_eq!(
-            infer(1, "bar", types::RefKind::Type, &ctx),
+            super::infer(&NodeId(1), "bar", &types::RefKind::Type, &result),
             Some(Err(SemanticError::DeclarationNotFound(
                 (module_type(), NodeId(1)),
                 str!("bar")
@@ -167,7 +165,7 @@ mod tests {
 
     #[test]
     fn enumerated_variant_result() {
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![],
             vec![
                 (NodeId(0), (types::RefKind::Type, Ok(types::Type::Nil))),
@@ -185,7 +183,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(1, "Foo", types::RefKind::Value, &ctx),
+            super::infer(&NodeId(1), "Foo", &types::RefKind::Value, &result),
             Some(Ok(types::Type::Enumerated(types::Enumerated::Variant(
                 vec![NodeId(0)],
                 NodeId(1)
@@ -197,14 +195,14 @@ mod tests {
     fn enumerated_variant_not_found() {
         let enum_type =
             || types::Type::Enumerated(types::Enumerated::Declaration(vec![(str!("Foo"), vec![])]));
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![],
             vec![(NodeId(0), (types::RefKind::Mixed, Ok(enum_type())))],
             vec![],
         );
 
         assert_eq!(
-            infer(0, "Bar", types::RefKind::Value, &ctx),
+            super::infer(&NodeId(0), "Bar", &types::RefKind::Value, &result),
             Some(Err(SemanticError::VariantNotFound(
                 (enum_type(), NodeId(0)),
                 str!("Bar")
@@ -214,14 +212,14 @@ mod tests {
 
     #[test]
     fn not_indexable() {
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![],
             vec![(NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil)))],
             vec![],
         );
 
         assert_eq!(
-            infer(0, "foo", types::RefKind::Value, &ctx),
+            super::infer(&NodeId(0), "foo", &types::RefKind::Value, &result),
             Some(Err(SemanticError::NotIndexable(
                 (types::Type::Nil, NodeId(0)),
                 str!("foo")
@@ -231,7 +229,7 @@ mod tests {
 
     #[test]
     fn not_inferrable() {
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![],
             vec![(
                 NodeId(0),
@@ -244,7 +242,7 @@ mod tests {
         );
 
         assert_eq!(
-            infer(0, "foo", types::RefKind::Value, &ctx),
+            super::infer(&NodeId(0), "foo", &types::RefKind::Value, &result),
             Some(Err(SemanticError::NotInferrable(vec![NodeId(0)])))
         );
     }

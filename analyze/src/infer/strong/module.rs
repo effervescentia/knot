@@ -1,18 +1,16 @@
-use crate::context::StrongContext;
-use lang::{
-    ast::{self, explode, walk},
-    types,
+use crate::{
+    ast,
+    strong::{Strong, StrongResult},
 };
+use lang::{types, Fragment, NodeId};
 
-use super::Strong;
-
-pub fn infer(declarations: &[walk::NodeId], ctx: &StrongContext) -> Option<Strong> {
+pub fn infer(declarations: &[NodeId], result: &StrongResult) -> Option<Strong> {
     let typed_declarations = declarations
         .iter()
-        .map(|x| match ctx.fragments.0.get(x)? {
+        .map(|x| match result.module.fragments.0.get(x)? {
             (
                 _,
-                explode::Fragment::Declaration(
+                Fragment::Declaration(
                     ast::Declaration::TypeAlias { storage, .. }
                     | ast::Declaration::Enumerated { storage, .. }
                     | ast::Declaration::Constant { storage, .. }
@@ -21,7 +19,7 @@ pub fn infer(declarations: &[walk::NodeId], ctx: &StrongContext) -> Option<Stron
                     | ast::Declaration::Module { storage, .. },
                 ),
             ) => {
-                let (kind, _) = ctx.refs.get(x)?;
+                let (kind, _) = result.refs.get(x)?;
 
                 Some((storage.binding, *kind, *x))
             }
@@ -35,37 +33,26 @@ pub fn infer(declarations: &[walk::NodeId], ctx: &StrongContext) -> Option<Stron
 
 #[cfg(test)]
 mod tests {
-    use crate::{context::StrongContext, infer::strong::Strong, test::fixture::strong_ctx_from};
+    use crate::{ast, test::fixture::strong_result_from};
     use kore::str;
-    use lang::{
-        ast::{
-            self,
-            explode::{self, ScopeId},
-            walk::NodeId,
-        },
-        types,
-    };
-
-    fn infer(declarations: &[NodeId], ctx: &StrongContext) -> Option<Strong> {
-        super::infer(declarations, ctx)
-    }
+    use lang::{types, Fragment, NodeId, ScopeId};
 
     #[test]
     fn none_result() {
-        let ctx = strong_ctx_from(vec![], vec![], vec![]);
+        let result = strong_result_from(vec![], vec![], vec![]);
 
-        assert_eq!(infer(&[NodeId(0)], &ctx), None);
+        assert_eq!(super::infer(&[NodeId(0)], &result), None);
     }
 
     #[test]
     fn declarations() {
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![
                 (
                     NodeId(0),
                     (
                         ScopeId(vec![0]),
-                        explode::Fragment::Declaration(ast::Declaration::Constant {
+                        Fragment::Declaration(ast::Declaration::Constant {
                             storage: ast::Storage::public(str!("foo")),
                             value_type: None,
                             value: NodeId(0),
@@ -76,7 +63,7 @@ mod tests {
                     NodeId(1),
                     (
                         ScopeId(vec![0]),
-                        explode::Fragment::Declaration(ast::Declaration::TypeAlias {
+                        Fragment::Declaration(ast::Declaration::TypeAlias {
                             storage: ast::Storage::public(str!("bar")),
                             value: NodeId(2),
                         }),
@@ -91,10 +78,10 @@ mod tests {
         );
 
         assert_eq!(
-            infer(&[NodeId(0), NodeId(1)], &ctx),
+            super::infer(&[NodeId(0), NodeId(1)], &result),
             Some(Ok(types::Type::Module(vec![
-                (str!("foo"), types::RefKind::Value, 0),
-                (str!("bar"), types::RefKind::Type, 1)
+                (str!("foo"), types::RefKind::Value, NodeId(0)),
+                (str!("bar"), types::RefKind::Type, NodeId(1))
             ])))
         );
     }
@@ -102,13 +89,13 @@ mod tests {
     #[test]
     #[ignore = "not finished"]
     fn imports() {
-        let ctx = strong_ctx_from(
+        let result = strong_result_from(
             vec![
                 (
                     NodeId(0),
                     (
                         ScopeId(vec![0]),
-                        explode::Fragment::Import(ast::Import {
+                        Fragment::Import(ast::Import {
                             source: ast::ImportSource::Local,
                             path: vec![],
                             alias: None,
@@ -119,7 +106,7 @@ mod tests {
                     NodeId(1),
                     (
                         ScopeId(vec![0]),
-                        explode::Fragment::Declaration(ast::Declaration::Constant {
+                        Fragment::Declaration(ast::Declaration::Constant {
                             storage: ast::Storage::public(str!("foo")),
                             value_type: None,
                             value: NodeId(2),
@@ -135,10 +122,10 @@ mod tests {
         );
 
         assert_eq!(
-            infer(&[NodeId(0), NodeId(1)], &ctx),
+            super::infer(&[NodeId(0), NodeId(1)], &result),
             Some(Ok(types::Type::Module(vec![
-                (str!("foo"), types::RefKind::Value, 0),
-                (str!("bar"), types::RefKind::Type, 1)
+                (str!("foo"), types::RefKind::Value, NodeId(0)),
+                (str!("bar"), types::RefKind::Type, NodeId(1))
             ])))
         );
     }

@@ -1,6 +1,7 @@
 use crate::{
     ast,
-    weak::{ToWeak, Weak, WeakRef},
+    data::ScopedType,
+    weak::{ToWeak, WeakRef},
 };
 use lang::{types, NodeId};
 
@@ -16,9 +17,9 @@ impl ToWeak for ast::Parameter<String, NodeId, NodeId> {
                 | Self {
                     default_value: Some(x),
                     ..
-                } => Weak::Inherit(*x),
+                } => Some(ScopedType::Inherit(*x)),
 
-                Self { .. } => Weak::Infer,
+                Self { .. } => None,
             },
         )
     }
@@ -26,10 +27,7 @@ impl ToWeak for ast::Parameter<String, NodeId, NodeId> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast,
-        weak::{ToWeak, Weak},
-    };
+    use crate::{ast, data::ScopedType, weak::ToWeak};
     use kore::str;
     use lang::{types, NodeId};
 
@@ -37,7 +35,7 @@ mod tests {
     fn unknown_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), None, None).to_weak(),
-            (types::RefKind::Value, Weak::Infer)
+            (types::RefKind::Value, None)
         );
     }
 
@@ -45,7 +43,7 @@ mod tests {
     fn typedef_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), Some(NodeId(0)), None).to_weak(),
-            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 
@@ -53,7 +51,7 @@ mod tests {
     fn default_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), None, Some(NodeId(0))).to_weak(),
-            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 
@@ -61,7 +59,7 @@ mod tests {
     fn typedef_and_default_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), Some(NodeId(0)), Some(NodeId(1))).to_weak(),
-            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 }

@@ -1,5 +1,5 @@
 mod ast;
-mod context;
+mod data;
 mod infer;
 mod strong;
 #[cfg(test)]
@@ -7,16 +7,13 @@ mod test;
 mod weak;
 // mod types;
 
-pub use infer::strong::Strong;
-use lang::{ast::explode, ModuleReference};
-use std::collections::HashMap;
+use data::AnalyzeContext;
+use lang::ast::explode;
 // use infer::strong::{SemanticError, ToStrong};
 // use lang::ModuleReference;
 // use register::Register;
 // use std::{cell::RefCell, collections::HashMap, fmt::Debug};
 // use types::Type;
-
-type ModuleTypeMap = HashMap<ModuleReference, Strong>;
 
 // #[derive(Clone, Debug, PartialEq)]
 // pub struct FinalType(Result<Type<Box<FinalType>>, SemanticError>);
@@ -41,11 +38,7 @@ type ModuleTypeMap = HashMap<ModuleReference, Strong>;
 //     (Program(untyped), file_ctx.into_inner())
 // }
 
-pub fn analyze<'a, Raw, R>(
-    module_reference: &ModuleReference,
-    raw: Raw,
-    modules: &ModuleTypeMap,
-) -> ast::typed::Program<'a>
+pub fn analyze<'a, Raw, R>(ctx: &AnalyzeContext, raw: Raw) -> ast::typed::Program<'a>
 where
     Raw: explode::Explode,
     R: Copy,
@@ -57,7 +50,7 @@ where
     let weak = infer::weak::infer_types(fragments);
 
     // apply strong type inference
-    let strong = infer::strong::infer_types(module_reference, modules, weak);
+    let strong = infer::strong::infer_types(ctx, weak);
 
     raw.to_strong(&strong)
 }

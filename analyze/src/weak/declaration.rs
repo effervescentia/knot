@@ -1,18 +1,21 @@
 use crate::{
     ast,
-    weak::{ToWeak, Weak, WeakRef},
+    data::ScopedType,
+    weak::{ToWeak, WeakRef},
 };
 use lang::{types, NodeId};
 
 impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Self::TypeAlias { value, .. } => (types::RefKind::Type, Weak::Inherit(*value)),
+            Self::TypeAlias { value, .. } => {
+                (types::RefKind::Type, Some(ScopedType::Inherit(*value)))
+            }
 
             Self::Enumerated { variants, .. } => (
                 types::RefKind::Mixed,
-                Weak::Type(types::Type::Enumerated(types::Enumerated::Declaration(
-                    variants.clone(),
+                Some(ScopedType::Type(types::Type::Enumerated(
+                    types::Enumerated::Declaration(variants.clone()),
                 ))),
             ),
 
@@ -20,7 +23,7 @@ impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
                 value_type, value, ..
             } => (
                 types::RefKind::Value,
-                Weak::Inherit(value_type.unwrap_or(*value)),
+                Some(ScopedType::Inherit(value_type.unwrap_or(*value))),
             ),
 
             Self::Function {
@@ -30,28 +33,27 @@ impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
                 ..
             } => (
                 types::RefKind::Value,
-                Weak::Type(types::Type::Function(
+                Some(ScopedType::Type(types::Type::Function(
                     parameters.clone(),
                     body_type.unwrap_or(*body),
-                )),
+                ))),
             ),
 
             Self::View { parameters, .. } => (
                 types::RefKind::Value,
-                Weak::Type(types::Type::View(parameters.clone())),
+                Some(ScopedType::Type(types::Type::View(parameters.clone()))),
             ),
 
-            Self::Module { value, .. } => (types::RefKind::Mixed, Weak::Inherit(*value)),
+            Self::Module { value, .. } => {
+                (types::RefKind::Mixed, Some(ScopedType::Inherit(*value)))
+            }
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast,
-        weak::{ToWeak, Weak},
-    };
+    use crate::{ast, data::ScopedType, weak::ToWeak};
     use kore::str;
     use lang::{types, NodeId};
 
@@ -59,7 +61,7 @@ mod tests {
     fn type_alias() {
         assert_eq!(
             ast::Declaration::type_alias(ast::Storage::public(str!("Foo")), NodeId(0)).to_weak(),
-            (types::RefKind::Type, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 
@@ -73,8 +75,11 @@ mod tests {
             .to_weak(),
             (
                 types::RefKind::Mixed,
-                Weak::Type(types::Type::Enumerated(types::Enumerated::Declaration(
-                    vec![(str!("Bar"), vec![NodeId(0), NodeId(1), NodeId(2)])]
+                Some(ScopedType::Type(types::Type::Enumerated(
+                    types::Enumerated::Declaration(vec![(
+                        str!("Bar"),
+                        vec![NodeId(0), NodeId(1), NodeId(2)]
+                    )])
                 )))
             )
         );
@@ -85,7 +90,7 @@ mod tests {
         assert_eq!(
             ast::Declaration::constant(ast::Storage::public(str!("FOO")), None, NodeId(0))
                 .to_weak(),
-            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 
@@ -98,7 +103,7 @@ mod tests {
                 NodeId(1)
             )
             .to_weak(),
-            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 
@@ -114,7 +119,10 @@ mod tests {
             .to_weak(),
             (
                 types::RefKind::Value,
-                Weak::Type(types::Type::Function(vec![NodeId(0), NodeId(1)], NodeId(2)))
+                Some(ScopedType::Type(types::Type::Function(
+                    vec![NodeId(0), NodeId(1)],
+                    NodeId(2)
+                )))
             )
         );
     }
@@ -131,7 +139,10 @@ mod tests {
             .to_weak(),
             (
                 types::RefKind::Value,
-                Weak::Type(types::Type::Function(vec![NodeId(0), NodeId(1)], NodeId(2)))
+                Some(ScopedType::Type(types::Type::Function(
+                    vec![NodeId(0), NodeId(1)],
+                    NodeId(2)
+                )))
             )
         );
     }
@@ -147,7 +158,10 @@ mod tests {
             .to_weak(),
             (
                 types::RefKind::Value,
-                Weak::Type(types::Type::View(vec![NodeId(0), NodeId(1)]))
+                Some(ScopedType::Type(types::Type::View(vec![
+                    NodeId(0),
+                    NodeId(1)
+                ])))
             )
         );
     }
@@ -156,7 +170,7 @@ mod tests {
     fn module() {
         assert_eq!(
             ast::Declaration::module(ast::Storage::public(str!("foo")), NodeId(0)).to_weak(),
-            (types::RefKind::Mixed, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Mixed, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 }

@@ -1,6 +1,7 @@
 use crate::{
     ast,
-    weak::{ToWeak, Weak, WeakRef},
+    data::ScopedType,
+    weak::{ToWeak, WeakRef},
 };
 use lang::{types, NodeId};
 
@@ -9,7 +10,7 @@ impl ToWeak for ast::TypeExpression<NodeId> {
         (
             types::RefKind::Type,
             match self {
-                Self::Primitive(x) => Weak::Type(match x {
+                Self::Primitive(x) => Some(ScopedType::Type(match x {
                     ast::TypePrimitive::Nil => types::Type::Nil,
                     ast::TypePrimitive::Boolean => types::Type::Boolean,
                     ast::TypePrimitive::Integer => types::Type::Integer,
@@ -17,15 +18,17 @@ impl ToWeak for ast::TypeExpression<NodeId> {
                     ast::TypePrimitive::String => types::Type::String,
                     ast::TypePrimitive::Style => types::Type::Style,
                     ast::TypePrimitive::Element => types::Type::Element,
-                }),
+                })),
 
-                Self::Identifier(..) => Weak::Infer,
+                Self::Identifier(..) => None,
 
-                Self::Group(id) => Weak::Inherit(**id),
+                Self::Group(id) => Some(ScopedType::Inherit(**id)),
 
-                Self::PropertyAccess(..) => Weak::Infer,
+                Self::PropertyAccess(..) => None,
 
-                Self::Function(params, x) => Weak::Type(types::Type::Function(params.clone(), **x)),
+                Self::Function(params, x) => {
+                    Some(ScopedType::Type(types::Type::Function(params.clone(), **x)))
+                }
             },
         )
     }
@@ -33,10 +36,7 @@ impl ToWeak for ast::TypeExpression<NodeId> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast,
-        weak::{ToWeak, Weak},
-    };
+    use crate::{ast, data::ScopedType, weak::ToWeak};
     use kore::str;
     use lang::{types, NodeId};
 
@@ -44,31 +44,52 @@ mod tests {
     fn primitive() {
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Nil).to_weak(),
-            (types::RefKind::Type, Weak::Type(types::Type::Nil))
+            (
+                types::RefKind::Type,
+                Some(ScopedType::Type(types::Type::Nil))
+            )
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean).to_weak(),
-            (types::RefKind::Type, Weak::Type(types::Type::Boolean))
+            (
+                types::RefKind::Type,
+                Some(ScopedType::Type(types::Type::Boolean))
+            )
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Integer).to_weak(),
-            (types::RefKind::Type, Weak::Type(types::Type::Integer))
+            (
+                types::RefKind::Type,
+                Some(ScopedType::Type(types::Type::Integer))
+            )
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Float).to_weak(),
-            (types::RefKind::Type, Weak::Type(types::Type::Float))
+            (
+                types::RefKind::Type,
+                Some(ScopedType::Type(types::Type::Float))
+            )
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::String).to_weak(),
-            (types::RefKind::Type, Weak::Type(types::Type::String))
+            (
+                types::RefKind::Type,
+                Some(ScopedType::Type(types::Type::String))
+            )
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Style).to_weak(),
-            (types::RefKind::Type, Weak::Type(types::Type::Style))
+            (
+                types::RefKind::Type,
+                Some(ScopedType::Type(types::Type::Style))
+            )
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Element).to_weak(),
-            (types::RefKind::Type, Weak::Type(types::Type::Element))
+            (
+                types::RefKind::Type,
+                Some(ScopedType::Type(types::Type::Element))
+            )
         );
     }
 
@@ -76,7 +97,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             ast::TypeExpression::Identifier(str!("foo")).to_weak(),
-            (types::RefKind::Type, Weak::Infer)
+            (types::RefKind::Type, None)
         );
     }
 
@@ -84,7 +105,7 @@ mod tests {
     fn group() {
         assert_eq!(
             ast::TypeExpression::Group(Box::new(NodeId(0))).to_weak(),
-            (types::RefKind::Type, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 
@@ -92,7 +113,7 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             ast::TypeExpression::PropertyAccess(Box::new(NodeId(0)), str!("foo")).to_weak(),
-            (types::RefKind::Type, Weak::Infer)
+            (types::RefKind::Type, None)
         );
     }
 
@@ -102,7 +123,10 @@ mod tests {
             ast::TypeExpression::Function(vec![NodeId(0)], Box::new(NodeId(1))).to_weak(),
             (
                 types::RefKind::Type,
-                Weak::Type(types::Type::Function(vec![NodeId(0)], NodeId(1)))
+                Some(ScopedType::Type(types::Type::Function(
+                    vec![NodeId(0)],
+                    NodeId(1)
+                )))
             )
         );
     }

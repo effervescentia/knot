@@ -1,29 +1,31 @@
 use crate::{
     ast,
-    weak::{ToWeak, Weak, WeakRef},
+    data::ScopedType,
+    weak::{ToWeak, WeakRef},
 };
 use lang::{types, NodeId};
 
 impl ToWeak for ast::Component<NodeId, NodeId> {
     fn to_weak(&self) -> WeakRef {
         match self {
-            Self::Text(..) => (types::RefKind::Value, Weak::Type(types::Type::String)),
+            Self::Text(..) => (
+                types::RefKind::Value,
+                Some(ScopedType::Type(types::Type::String)),
+            ),
 
-            Self::Expression(id) => (types::RefKind::Value, Weak::Inherit(*id)),
+            Self::Expression(id) => (types::RefKind::Value, Some(ScopedType::Inherit(*id))),
 
-            Self::Fragment(..) | Self::ClosedElement(..) | Self::OpenElement { .. } => {
-                (types::RefKind::Value, Weak::Type(types::Type::Element))
-            }
+            Self::Fragment(..) | Self::ClosedElement(..) | Self::OpenElement { .. } => (
+                types::RefKind::Value,
+                Some(ScopedType::Type(types::Type::Element)),
+            ),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast,
-        weak::{ToWeak, Weak},
-    };
+    use crate::{ast, data::ScopedType, weak::ToWeak};
     use kore::str;
     use lang::{types, NodeId};
 
@@ -31,7 +33,10 @@ mod tests {
     fn text() {
         assert_eq!(
             ast::Component::Text(str!("foo")).to_weak(),
-            (types::RefKind::Value, Weak::Type(types::Type::String))
+            (
+                types::RefKind::Value,
+                Some(ScopedType::Type(types::Type::String))
+            )
         );
     }
 
@@ -39,7 +44,7 @@ mod tests {
     fn expression() {
         assert_eq!(
             ast::Component::Expression(NodeId(0)).to_weak(),
-            (types::RefKind::Value, Weak::Inherit(NodeId(0)))
+            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
         );
     }
 
@@ -47,7 +52,10 @@ mod tests {
     fn fragment() {
         assert_eq!(
             ast::Component::Fragment(vec![NodeId(0)]).to_weak(),
-            (types::RefKind::Value, Weak::Type(types::Type::Element))
+            (
+                types::RefKind::Value,
+                Some(ScopedType::Type(types::Type::Element))
+            )
         );
     }
 
@@ -59,7 +67,10 @@ mod tests {
                 vec![(str!("bar"), None), (str!("fizz"), Some(NodeId(0)))]
             )
             .to_weak(),
-            (types::RefKind::Value, Weak::Type(types::Type::Element))
+            (
+                types::RefKind::Value,
+                Some(ScopedType::Type(types::Type::Element))
+            )
         );
     }
 
@@ -73,7 +84,10 @@ mod tests {
                 str!("Foo"),
             )
             .to_weak(),
-            (types::RefKind::Value, Weak::Type(types::Type::Element))
+            (
+                types::RefKind::Value,
+                Some(ScopedType::Type(types::Type::Element))
+            )
         );
     }
 }

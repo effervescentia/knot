@@ -1,39 +1,44 @@
 use crate::weak::{ToWeak, WeakResult};
 use lang::FragmentMap;
 
-pub fn infer_types(fragments: FragmentMap) -> WeakResult {
-    let mut ctx = WeakResult::new(fragments);
+pub fn infer_types<'a>(fragments: FragmentMap) -> WeakResult<'a> {
+    let mut result = WeakResult::new(fragments);
 
-    ctx.program.fragments.0.iter().for_each(|(id, (scope, x))| {
-        ctx.refs.insert(*id, x.to_weak());
+    result
+        .module
+        .fragments
+        .0
+        .iter()
+        .for_each(|(id, (scope, x))| {
+            result.refs.insert(*id, x.to_weak());
 
-        if let Ok(bindings) = x.to_binding() {
-            for name in bindings {
-                let entry = ctx
-                    .program
-                    .bindings
-                    .0
-                    .entry((scope.clone(), name))
-                    .or_default();
+            if let Ok(bindings) = x.to_binding() {
+                for name in bindings {
+                    let entry = result
+                        .module
+                        .bindings
+                        .0
+                        .entry((scope.clone(), name))
+                        .or_default();
 
-                entry.insert(*id);
+                    entry.insert(*id);
+                }
             }
-        }
-    });
+        });
 
-    ctx
+    result
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::weak::Weak;
+    use crate::data::ScopedType;
     use kore::str;
     use lang::{ast, types, Fragment, FragmentMap, NodeId, ScopeId};
     use std::collections::{BTreeSet, HashMap};
 
     #[test]
     fn infer_types() {
-        let file_ctx = FragmentMap::from_iter(vec![(
+        let fragments = FragmentMap::from_iter(vec![(
             NodeId(1),
             (
                 ScopeId(vec![0]),
@@ -44,18 +49,18 @@ mod tests {
             ),
         )]);
 
-        let result = super::infer_types(file_ctx);
+        let result = super::infer_types(fragments);
 
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![(
                 NodeId(1),
-                (types::RefKind::Type, Weak::Inherit(NodeId(0)))
+                (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(0))))
             )])
         );
 
         assert_eq!(
-            result.program.bindings.0,
+            result.module.bindings.0,
             HashMap::from_iter(vec![(
                 (ScopeId(vec![0]), str!("MyType")),
                 (BTreeSet::from_iter(vec![NodeId(1)]))
@@ -65,7 +70,7 @@ mod tests {
 
     #[test]
     fn type_inheritance() {
-        let file_ctx = FragmentMap::from_iter(vec![
+        let fragments = FragmentMap::from_iter(vec![
             (
                 NodeId(0),
                 (
@@ -150,32 +155,53 @@ mod tests {
             ),
         ]);
 
-        let result = super::infer_types(file_ctx);
+        let result = super::infer_types(fragments);
 
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
                 (
                     NodeId(0),
-                    (types::RefKind::Value, Weak::Type(types::Type::Nil))
+                    (
+                        types::RefKind::Value,
+                        Some(ScopedType::Type(types::Type::Nil))
+                    )
                 ),
-                (NodeId(1), (types::RefKind::Value, Weak::Inherit(NodeId(0)))),
-                (NodeId(2), (types::RefKind::Value, Weak::Infer)),
-                (NodeId(3), (types::RefKind::Value, Weak::Inherit(NodeId(2)))),
-                (NodeId(4), (types::RefKind::Value, Weak::Infer)),
+                (
+                    NodeId(1),
+                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
+                ),
+                (NodeId(2), (types::RefKind::Value, None)),
+                (
+                    NodeId(3),
+                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(2))))
+                ),
+                (NodeId(4), (types::RefKind::Value, None)),
                 (
                     NodeId(5),
-                    (types::RefKind::Value, Weak::Type(types::Type::Nil))
+                    (
+                        types::RefKind::Value,
+                        Some(ScopedType::Type(types::Type::Nil))
+                    )
                 ),
-                (NodeId(6), (types::RefKind::Value, Weak::Infer)),
-                (NodeId(7), (types::RefKind::Value, Weak::Inherit(NodeId(6)))),
-                (NodeId(8), (types::RefKind::Value, Weak::Inherit(NodeId(7)))),
-                (NodeId(9), (types::RefKind::Value, Weak::Inherit(NodeId(8)))),
+                (NodeId(6), (types::RefKind::Value, None)),
+                (
+                    NodeId(7),
+                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(6))))
+                ),
+                (
+                    NodeId(8),
+                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(7))))
+                ),
+                (
+                    NodeId(9),
+                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(8))))
+                ),
             ])
         );
 
         assert_eq!(
-            result.program.bindings.0,
+            result.module.bindings.0,
             HashMap::from_iter(vec![
                 (
                     (ScopeId(vec![0]), str!("FOO")),
@@ -199,7 +225,7 @@ mod tests {
 
     #[test]
     fn duplicate_bindings() {
-        let file_ctx = FragmentMap::from_iter(vec![
+        let fragments = FragmentMap::from_iter(vec![
             (
                 NodeId(1),
                 (
@@ -222,18 +248,24 @@ mod tests {
             ),
         ]);
 
-        let result = super::infer_types(file_ctx);
+        let result = super::infer_types(fragments);
 
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
-                (NodeId(1), (types::RefKind::Type, Weak::Inherit(NodeId(0)))),
-                (NodeId(3), (types::RefKind::Type, Weak::Inherit(NodeId(2)))),
+                (
+                    NodeId(1),
+                    (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(0))))
+                ),
+                (
+                    NodeId(3),
+                    (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(2))))
+                ),
             ])
         );
 
         assert_eq!(
-            result.program.bindings.0,
+            result.module.bindings.0,
             HashMap::from_iter(vec![(
                 (ScopeId(vec![0]), str!("MyType")),
                 BTreeSet::from_iter(vec![NodeId(1), NodeId(3)])
