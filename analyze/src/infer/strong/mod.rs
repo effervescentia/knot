@@ -1,5 +1,5 @@
 mod binary_operation;
-// mod dot_access;
+mod dot_access;
 // mod function_call;
 mod identifier;
 // mod module;

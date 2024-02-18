@@ -36,6 +36,26 @@ impl<'a> Result<'a> {
             .and_then(|(kind, strong)| allowed_kind.can_accept(kind).then_some(strong))
     }
 
+    pub fn get_deep_type(
+        &self,
+        id: &NodeId,
+        allowed_kind: &types::RefKind,
+    ) -> Option<std::result::Result<&types::Type<NodeId>, ()>> {
+        match self.get_shallow_type(id, allowed_kind) {
+            Some(Ok(ScopedType::Inherit(x))) => self.get_deep_type(x, allowed_kind),
+
+            Some(Ok(ScopedType::InheritKind(x, from_kind))) => self.get_deep_type(x, from_kind),
+
+            Some(Ok(ScopedType::Type(x))) => Some(Ok(x)),
+
+            Some(Ok(ScopedType::External(x))) => unimplemented!(),
+
+            Some(Err(_)) => Some(Err(())),
+
+            None => None,
+        }
+    }
+
     pub fn get_type_shape(
         &self,
         id: &NodeId,

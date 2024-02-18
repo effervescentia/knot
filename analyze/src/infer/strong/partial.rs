@@ -1,4 +1,4 @@
-use super::{binary_operation, identifier};
+use super::{binary_operation, dot_access, identifier};
 // use super::{binary_operation, dot_access, function_call, identifier, module};
 use crate::{
     ast,
@@ -88,26 +88,20 @@ pub fn infer_types<'a>(
                 ..
             } => binary_operation::infer(&strong, node, &op, &lhs, &rhs),
 
-            // NodeDescriptor {
-            //     id,
-            //     kind: kind @ types::RefKind::Type,
-            //     fragment: Fragment::TypeExpression(ast::TypeExpression::PropertyAccess(lhs, rhs)),
-            //     weak: None,
-            //     ..
-            // }
-            // | NodeDescriptor {
-            //     id,
-            //     kind: kind @ types::RefKind::Value,
-            //     fragment: Fragment::Expression(ast::Expression::PropertyAccess(lhs, rhs)),
-            //     weak: None,
-            //     ..
-            // } => match dot_access::infer(lhs, rhs, kind, &result) {
-            //     Some(x) => {
-            //         result.refs.insert(*id, (*kind, x));
-            //     }
-
-            //     None => unhandled.push(node),
-            // },
+            NodeDescriptor {
+                id,
+                kind: kind @ types::RefKind::Type,
+                fragment: Fragment::TypeExpression(ast::TypeExpression::PropertyAccess(lhs, rhs)),
+                weak: None,
+                ..
+            }
+            | NodeDescriptor {
+                id,
+                kind: kind @ types::RefKind::Value,
+                fragment: Fragment::Expression(ast::Expression::PropertyAccess(lhs, rhs)),
+                weak: None,
+                ..
+            } => dot_access::infer(&strong, node, &lhs, &rhs),
 
             // NodeDescriptor {
             //     id,
