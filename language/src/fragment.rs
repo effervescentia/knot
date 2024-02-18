@@ -37,24 +37,6 @@ impl Fragment {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct FragmentMap(pub BTreeMap<NodeId, (ScopeId, Fragment)>);
 
-// impl FragmentMap {
-//     pub fn to_descriptors(&self, mut weak_refs: HashMap<usize, WeakRef>) -> Vec<NodeDescriptor> {
-//         self.0
-//             .iter()
-//             .filter_map(|(id, (scope, fragment))| match weak_refs.remove(id) {
-//                 Some((kind, weak)) => Some(NodeDescriptor {
-//                     id: *id,
-//                     kind,
-//                     scope: scope.clone(),
-//                     fragment: fragment.clone(),
-//                     weak,
-//                 }),
-//                 _ => None,
-//             })
-//             .collect()
-//     }
-// }
-
 impl FromIterator<(NodeId, (ScopeId, Fragment))> for FragmentMap {
     fn from_iter<T: IntoIterator<Item = (NodeId, (ScopeId, Fragment))>>(iter: T) -> Self {
         Self(BTreeMap::from_iter(iter))

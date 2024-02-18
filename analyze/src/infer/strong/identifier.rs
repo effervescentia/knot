@@ -1,53 +1,83 @@
 use crate::{
-    infer::strong::SemanticError,
-    strong::{Strong, StrongResult},
+    data::{NodeKind, ResolveTarget},
+    error::SemanticError,
+    strong,
 };
-use lang::{types, NodeId, ScopeId};
 
-pub fn infer(
-    scope: &ScopeId,
-    id: &NodeId,
-    name: &str,
-    kind: &types::RefKind,
-    result: &StrongResult,
-) -> Option<Strong> {
-    match result.module.bindings.resolve(scope, name, *id) {
-        Some(inherit_id) => result.as_strong(&inherit_id, kind).cloned(),
+use super::{inherit, partial};
 
-        None => Some(Err(SemanticError::NotFound(name.to_owned()))),
+pub fn infer<'a, Node>(strong: &strong::Result, node: Node, name: &str) -> partial::Action<'a, Node>
+where
+    Node: ResolveTarget + NodeKind,
+{
+    match strong.module.bindings.resolve(&node, name) {
+        Some(from_id) => inherit::inherit(strong, node, &from_id, node.kind()),
+
+        None => partial::Action::Infer(node, &Err(SemanticError::NotFound(name.to_owned()))),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{infer::strong::SemanticError, test::fixture::strong_result_from};
+    use crate::{
+        data::{NodeKind, ResolveTarget, ScopedType},
+        error::SemanticError,
+        infer::strong::partial,
+        test::fixture::strong_result_from,
+    };
     use kore::str;
     use lang::{types, NodeId, ScopeId};
     use std::collections::BTreeSet;
 
+    #[derive(Debug, PartialEq)]
+    struct MockNode(types::RefKind);
+
+    impl ResolveTarget for MockNode {
+        fn id(&self) -> &NodeId {
+            &NodeId(0)
+        }
+
+        fn scope(&self) -> &ScopeId {
+            &ScopeId(vec![])
+        }
+    }
+
+    impl NodeKind for MockNode {
+        fn kind(&self) -> &types::RefKind {
+            &self.0
+        }
+    }
+
     #[test]
     fn not_found() {
-        let result = strong_result_from(vec![], vec![], vec![]);
+        let strong = strong_result_from(vec![], vec![], vec![]);
+        let node = || MockNode(types::RefKind::Value);
 
         assert_eq!(
-            super::infer(
-                &ScopeId(vec![0]),
-                &NodeId(0),
-                "foo",
-                &types::RefKind::Value,
-                &result
-            ),
-            Some(Err(SemanticError::NotFound(str!("foo"))))
+            super::infer(&strong, node(), "foo"),
+            partial::Action::Infer(node(), &Err(SemanticError::NotFound(str!("foo"))))
         );
     }
 
     #[test]
     fn found_in_scope() {
-        let result = strong_result_from(
+        let strong = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(1), (types::RefKind::Type, Ok(types::Type::Integer))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Type,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
             ],
             vec![
                 (
@@ -62,24 +92,18 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(
-                &ScopeId(vec![0]),
-                &NodeId(2),
-                "foo",
-                &types::RefKind::Value,
-                &result
-            ),
-            Some(Ok(types::Type::Boolean))
+            super::infer(&strong, MockNode(types::RefKind::Value), "foo"),
+            partial::Action::Infer(
+                MockNode(types::RefKind::Value),
+                &Ok(ScopedType::Type(types::Type::Boolean))
+            )
         );
         assert_eq!(
-            super::infer(
-                &ScopeId(vec![0]),
-                &NodeId(2),
-                "bar",
-                &types::RefKind::Type,
-                &result
-            ),
-            Some(Ok(types::Type::Integer))
+            super::infer(&strong, MockNode(types::RefKind::Type), "bar"),
+            partial::Action::Infer(
+                MockNode(types::RefKind::Type),
+                &Ok(ScopedType::Type(types::Type::Integer))
+            )
         );
     }
 }

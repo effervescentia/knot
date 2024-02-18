@@ -1,12 +1,8 @@
-use crate::{
-    ast,
-    data::ScopedType,
-    weak::{ToWeak, WeakRef},
-};
+use crate::{ast, data::ScopedType};
 use lang::{types, NodeId};
 
-impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
-    fn to_weak(&self) -> WeakRef {
+impl super::ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
+    fn to_weak(&self) -> super::Ref {
         match self {
             Self::Primitive(x) => (
                 types::RefKind::Value,

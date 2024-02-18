@@ -1,11 +1,8 @@
-use crate::{
-    ast,
-    weak::{ToWeak, WeakRef},
-};
+use crate::ast;
 use lang::{types, NodeId};
 
-impl ToWeak for ast::Module<NodeId, NodeId> {
-    fn to_weak(&self) -> WeakRef {
+impl super::ToWeak for ast::Module<NodeId, NodeId> {
+    fn to_weak(&self) -> super::Ref {
         (types::RefKind::Mixed, None)
     }
 }

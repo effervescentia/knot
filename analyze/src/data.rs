@@ -1,28 +1,44 @@
-use crate::{strong::Strong, weak::Weak};
+use crate::{strong, weak};
 use lang::{types, Fragment, FragmentMap, ModuleReference, NodeId, ScopeId};
 use std::collections::{BTreeSet, HashMap};
+
+pub trait ResolveTarget {
+    fn id(&self) -> &NodeId;
+    fn scope(&self) -> &ScopeId;
+}
+
+pub trait NodeKind {
+    fn kind(&self) -> &types::RefKind;
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ScopedType<'a> {
     Type(types::Type<NodeId>),
     Inherit(NodeId),
-    External(&'a Strong),
+    InheritKind(NodeId, types::RefKind),
+    External(&'a types::TypeShape),
+}
+
+impl<'a> ScopedType<'a> {
+    pub fn inherit_from_type(id: NodeId) -> Self {
+        Self::InheritKind(id, types::RefKind::Type)
+    }
 }
 
 pub struct AnalyzeContext<'a> {
     pub module_reference: &'a ModuleReference,
 
-    pub modules: &'a HashMap<ModuleReference, Strong>,
+    pub modules: &'a HashMap<ModuleReference, strong::Type<'a>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct ModuleMetadata {
+pub struct DeconstructedModule {
     pub fragments: FragmentMap,
 
     pub bindings: BindingMap,
 }
 
-impl ModuleMetadata {
+impl DeconstructedModule {
     pub fn from_fragments(fragments: FragmentMap) -> Self {
         Self::new(fragments, BindingMap::default())
     }
@@ -32,6 +48,18 @@ impl ModuleMetadata {
             fragments,
             bindings,
         }
+    }
+}
+
+struct NodeTarget<'a>(&'a NodeId, &'a ScopeId);
+
+impl<'a> ResolveTarget for NodeTarget<'a> {
+    fn id(&self) -> &NodeId {
+        self.0
+    }
+
+    fn scope(&self) -> &ScopeId {
+        self.1
     }
 }
 
@@ -45,12 +73,16 @@ impl BindingMap {
         Self(HashMap::from_iter(iter))
     }
 
-    pub fn resolve(&self, scope: &ScopeId, name: &str, origin_id: NodeId) -> Option<NodeId> {
-        let source_ids = self.0.get(&(scope.clone(), name.to_owned()));
+    pub fn resolve<Target>(&self, target: &Target, name: &str) -> Option<NodeId>
+    where
+        Target: ResolveTarget,
+    {
+        let scope = target.scope();
+        let source_ids = self.0.get(&(*scope, name.to_owned()));
 
         if let Some(xs) = source_ids {
             for x in xs.iter().rev() {
-                if x < &origin_id {
+                if x < target.id() {
                     return Some(*x);
                 }
             }
@@ -58,8 +90,9 @@ impl BindingMap {
 
         if scope.0.len() > 1 {
             let parent_scope = ScopeId(scope.0.get(..scope.0.len() - 1)?.to_vec());
+            let parent_target = NodeTarget(target.id(), &parent_scope);
 
-            self.resolve(&parent_scope, name, origin_id)
+            self.resolve(&parent_target, name)
         } else {
             None
         }
@@ -72,11 +105,38 @@ pub struct NodeDescriptor<'a> {
     pub kind: types::RefKind,
     pub scope: ScopeId,
     pub fragment: Fragment,
-    pub weak: Weak<'a>,
+    pub weak: weak::Type<'a>,
+}
+
+impl<'a> NodeDescriptor<'a> {
+    pub fn as_inherit_from(self, from_id: NodeId) -> Self {
+        Self {
+            weak: Some(ScopedType::Inherit(from_id)),
+            ..self
+        }
+    }
+}
+
+impl<'a> ResolveTarget for NodeDescriptor<'a> {
+    fn id(&self) -> &NodeId {
+        &self.id
+    }
+
+    fn scope(&self) -> &ScopeId {
+        &self.scope
+    }
+}
+
+impl<'a> NodeKind for NodeDescriptor<'a> {
+    fn kind(&self) -> &types::RefKind {
+        &self.kind
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::data::NodeTarget;
+
     use super::BindingMap;
     use kore::str;
     use lang::{NodeId, ScopeId};
@@ -100,7 +160,7 @@ mod tests {
         ]);
 
         assert_eq!(
-            bindings.resolve(&ScopeId(vec![0]), "foo", NodeId(3)),
+            bindings.resolve(&NodeTarget(&NodeId(3), &ScopeId(vec![0])), "foo",),
             Some(NodeId(0))
         );
     }
@@ -121,19 +181,11 @@ mod tests {
                 BTreeSet::from_iter(vec![NodeId(2)]),
             ),
         ]);
+        let target = NodeTarget(&NodeId(3), &ScopeId(vec![0, 1, 2]));
 
-        assert_eq!(
-            bindings.resolve(&ScopeId(vec![0, 1, 2]), "foo", NodeId(3)),
-            Some(NodeId(0))
-        );
-        assert_eq!(
-            bindings.resolve(&ScopeId(vec![0, 1, 2]), "bar", NodeId(3)),
-            Some(NodeId(1))
-        );
-        assert_eq!(
-            bindings.resolve(&ScopeId(vec![0, 1, 2]), "fizz", NodeId(3)),
-            Some(NodeId(2))
-        );
+        assert_eq!(bindings.resolve(&target, "foo",), Some(NodeId(0)));
+        assert_eq!(bindings.resolve(&target, "bar",), Some(NodeId(1)));
+        assert_eq!(bindings.resolve(&target, "fizz",), Some(NodeId(2)));
     }
 
     #[test]
@@ -154,7 +206,7 @@ mod tests {
         ]);
 
         assert_eq!(
-            bindings.resolve(&ScopeId(vec![0, 1, 2]), "foo", NodeId(4)),
+            bindings.resolve(&NodeTarget(&NodeId(4), &ScopeId(vec![0, 1, 2])), "foo"),
             Some(NodeId(2))
         );
     }
@@ -167,9 +219,12 @@ mod tests {
         )]);
 
         assert_eq!(
-            bindings.resolve(&ScopeId(vec![0]), "foo", NodeId(2)),
+            bindings.resolve(&NodeTarget(&NodeId(2), &ScopeId(vec![0])), "foo"),
             Some(NodeId(1))
         );
-        assert_eq!(bindings.resolve(&ScopeId(vec![0]), "foo", NodeId(0)), None);
+        assert_eq!(
+            bindings.resolve(&NodeTarget(&NodeId(0), &ScopeId(vec![0])), "foo"),
+            None
+        );
     }
 }

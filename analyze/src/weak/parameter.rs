@@ -1,20 +1,17 @@
-use crate::{
-    ast,
-    data::ScopedType,
-    weak::{ToWeak, WeakRef},
-};
+use crate::{ast, data::ScopedType};
 use lang::{types, NodeId};
 
-impl ToWeak for ast::Parameter<String, NodeId, NodeId> {
-    fn to_weak(&self) -> WeakRef {
+impl super::ToWeak for ast::Parameter<String, NodeId, NodeId> {
+    fn to_weak(&self) -> super::Ref {
         (
             types::RefKind::Value,
             match self {
                 Self {
                     value_type: Some(x),
                     ..
-                }
-                | Self {
+                } => Some(ScopedType::inherit_from_type(*x)),
+
+                Self {
                     default_value: Some(x),
                     ..
                 } => Some(ScopedType::Inherit(*x)),

@@ -1,17 +1,18 @@
 use crate::{
-    infer::strong::SemanticError,
+    data::ScopedType,
+    error::SemanticError,
     strong::{Strong, StrongResult},
 };
 use lang::{types, NodeId};
 
-pub fn infer(
+pub fn infer<'a>(
     lhs: &NodeId,
     rhs: &str,
     kind: &types::RefKind,
     result: &StrongResult,
-) -> Option<Strong> {
+) -> Option<Strong<'a>> {
     match result.as_strong(lhs, kind)? {
-        Ok(x @ types::Type::Module(declarations)) => {
+        Ok(ScopedType::Type(x @ types::Type::Module(declarations))) => {
             match declarations.iter().find(|(name, ..)| name == rhs) {
                 Some((_, declaration_kind, declaration_id))
                     if declaration_kind == kind || declaration_kind == &types::RefKind::Mixed =>
@@ -31,20 +32,20 @@ pub fn infer(
             }
         }
 
-        Ok(x @ types::Type::Enumerated(types::Enumerated::Declaration(variants))) => {
-            match variants.iter().find(|(name, _)| name == rhs) {
-                Some((_, parameters)) => Some(Ok(types::Type::Enumerated(
-                    types::Enumerated::Variant(parameters.clone(), *lhs),
-                ))),
+        Ok(ScopedType::Type(
+            x @ types::Type::Enumerated(types::Enumerated::Declaration(variants)),
+        )) => match variants.iter().find(|(name, _)| name == rhs) {
+            Some((_, parameters)) => Some(Ok(ScopedType::Type(types::Type::Enumerated(
+                types::Enumerated::Variant(parameters.clone(), *lhs),
+            )))),
 
-                None => Some(Err(SemanticError::VariantNotFound(
-                    (x.clone(), *lhs),
-                    rhs.to_string(),
-                ))),
-            }
-        }
+            None => Some(Err(SemanticError::VariantNotFound(
+                (x.clone(), *lhs),
+                rhs.to_string(),
+            ))),
+        },
 
-        Ok(x) => Some(Err(SemanticError::NotIndexable(
+        Ok(ScopedType::Type(x)) => Some(Err(SemanticError::NotIndexable(
             (x.clone(), *lhs),
             rhs.to_string(),
         ))),
@@ -55,7 +56,7 @@ pub fn infer(
 
 #[cfg(test)]
 mod tests {
-    use crate::{infer::strong::SemanticError, test::fixture::strong_result_from};
+    use crate::{data::ScopedType, error::SemanticError, test::fixture::strong_result_from};
     use kore::str;
     use lang::{types, NodeId};
 
@@ -74,16 +75,25 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Type, Ok(types::Type::Nil))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (types::RefKind::Type, Ok(ScopedType::Type(types::Type::Nil))),
+                ),
                 (
                     NodeId(2),
                     (
                         types::RefKind::Mixed,
-                        Ok(types::Type::Module(vec![
+                        Ok(ScopedType::Type(types::Type::Module(vec![
                             (str!("foo"), types::RefKind::Value, NodeId(0)),
                             (str!("bar"), types::RefKind::Type, NodeId(1)),
-                        ])),
+                        ]))),
                     ),
                 ),
             ],
@@ -92,11 +102,11 @@ mod tests {
 
         assert_eq!(
             super::infer(&NodeId(2), "foo", &types::RefKind::Value, &result),
-            Some(Ok(types::Type::Nil))
+            Some(Ok(ScopedType::Type(types::Type::Nil)))
         );
         assert_eq!(
             super::infer(&NodeId(2), "bar", &types::RefKind::Type, &result),
-            Some(Ok(types::Type::Nil))
+            Some(Ok(ScopedType::Type(types::Type::Nil)))
         );
     }
 
@@ -111,9 +121,21 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Type, Ok(types::Type::Nil))),
-                (NodeId(2), (types::RefKind::Mixed, Ok(module_type()))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (types::RefKind::Type, Ok(ScopedType::Type(types::Type::Nil))),
+                ),
+                (
+                    NodeId(2),
+                    (types::RefKind::Mixed, Ok(ScopedType::Type(module_type()))),
+                ),
             ],
             vec![],
         );
@@ -141,8 +163,17 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Mixed, Ok(module_type()))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (types::RefKind::Mixed, Ok(ScopedType::Type(module_type()))),
+                ),
             ],
             vec![],
         );
@@ -168,13 +199,16 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Type, Ok(types::Type::Nil))),
+                (
+                    NodeId(0),
+                    (types::RefKind::Type, Ok(ScopedType::Type(types::Type::Nil))),
+                ),
                 (
                     NodeId(1),
                     (
                         types::RefKind::Mixed,
-                        Ok(types::Type::Enumerated(types::Enumerated::Declaration(
-                            vec![(str!("Foo"), vec![NodeId(0)])],
+                        Ok(ScopedType::Type(types::Type::Enumerated(
+                            types::Enumerated::Declaration(vec![(str!("Foo"), vec![NodeId(0)])]),
                         ))),
                     ),
                 ),
@@ -184,9 +218,8 @@ mod tests {
 
         assert_eq!(
             super::infer(&NodeId(1), "Foo", &types::RefKind::Value, &result),
-            Some(Ok(types::Type::Enumerated(types::Enumerated::Variant(
-                vec![NodeId(0)],
-                NodeId(1)
+            Some(Ok(ScopedType::Type(types::Type::Enumerated(
+                types::Enumerated::Variant(vec![NodeId(0)], NodeId(1))
             ))))
         );
     }
@@ -197,7 +230,10 @@ mod tests {
             || types::Type::Enumerated(types::Enumerated::Declaration(vec![(str!("Foo"), vec![])]));
         let result = strong_result_from(
             vec![],
-            vec![(NodeId(0), (types::RefKind::Mixed, Ok(enum_type())))],
+            vec![(
+                NodeId(0),
+                (types::RefKind::Mixed, Ok(ScopedType::Type(enum_type()))),
+            )],
             vec![],
         );
 
@@ -214,7 +250,13 @@ mod tests {
     fn not_indexable() {
         let result = strong_result_from(
             vec![],
-            vec![(NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil)))],
+            vec![(
+                NodeId(0),
+                (
+                    types::RefKind::Value,
+                    Ok(ScopedType::Type(types::Type::Nil)),
+                ),
+            )],
             vec![],
         );
 

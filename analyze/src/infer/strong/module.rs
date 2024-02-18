@@ -1,10 +1,11 @@
 use crate::{
     ast,
+    data::ScopedType,
     strong::{Strong, StrongResult},
 };
 use lang::{types, Fragment, NodeId};
 
-pub fn infer(declarations: &[NodeId], result: &StrongResult) -> Option<Strong> {
+pub fn infer<'a>(declarations: &[NodeId], result: &StrongResult) -> Option<Strong<'a>> {
     let typed_declarations = declarations
         .iter()
         .map(|x| match result.module.fragments.0.get(x)? {
@@ -28,12 +29,14 @@ pub fn infer(declarations: &[NodeId], result: &StrongResult) -> Option<Strong> {
         })
         .collect::<Option<Vec<_>>>()?;
 
-    Some(Ok(types::Type::Module(typed_declarations)))
+    Some(Ok(ScopedType::Type(types::Type::Module(
+        typed_declarations,
+    ))))
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast, test::fixture::strong_result_from};
+    use crate::{ast, data::ScopedType, test::fixture::strong_result_from};
     use kore::str;
     use lang::{types, Fragment, NodeId, ScopeId};
 
@@ -71,18 +74,30 @@ mod tests {
                 ),
             ],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(1), (types::RefKind::Type, Ok(types::Type::Integer))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Type,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
             ],
             vec![],
         );
 
         assert_eq!(
             super::infer(&[NodeId(0), NodeId(1)], &result),
-            Some(Ok(types::Type::Module(vec![
+            Some(Ok(ScopedType::Type(types::Type::Module(vec![
                 (str!("foo"), types::RefKind::Value, NodeId(0)),
                 (str!("bar"), types::RefKind::Type, NodeId(1))
-            ])))
+            ]))))
         );
     }
 
@@ -115,18 +130,30 @@ mod tests {
                 ),
             ],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(1), (types::RefKind::Type, Ok(types::Type::Integer))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Type,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
             ],
             vec![],
         );
 
         assert_eq!(
             super::infer(&[NodeId(0), NodeId(1)], &result),
-            Some(Ok(types::Type::Module(vec![
+            Some(Ok(ScopedType::Type(types::Type::Module(vec![
                 (str!("foo"), types::RefKind::Value, NodeId(0)),
                 (str!("bar"), types::RefKind::Type, NodeId(1))
-            ])))
+            ]))))
         );
     }
 }

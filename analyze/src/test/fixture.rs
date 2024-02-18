@@ -26,18 +26,18 @@
 // }
 
 use crate::{
-    data::{BindingMap, ModuleMetadata},
-    strong::{StrongRef, StrongResult},
+    data::{BindingMap, DeconstructedModule},
+    strong,
 };
 use lang::{Fragment, FragmentMap, NodeId, ScopeId};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 pub fn strong_result_from(
     fragments: Vec<(NodeId, (ScopeId, Fragment))>,
-    refs: Vec<(NodeId, StrongRef)>,
+    refs: Vec<(NodeId, strong::Ref)>,
     bindings: Vec<((ScopeId, String), BTreeSet<NodeId>)>,
-) -> StrongResult {
-    let mut ctx = StrongResult::new(ModuleMetadata::new(
+) -> strong::Result {
+    let mut ctx = strong::Result::new(DeconstructedModule::new(
         FragmentMap(BTreeMap::from_iter(fragments)),
         BindingMap(HashMap::from_iter(bindings)),
     ));

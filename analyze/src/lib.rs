@@ -1,5 +1,6 @@
 mod ast;
 mod data;
+mod error;
 mod infer;
 mod strong;
 #[cfg(test)]

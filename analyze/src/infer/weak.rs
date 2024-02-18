@@ -1,8 +1,8 @@
-use crate::weak::{ToWeak, WeakResult};
+use crate::weak::{Result, ToWeak};
 use lang::FragmentMap;
 
-pub fn infer_types<'a>(fragments: FragmentMap) -> WeakResult<'a> {
-    let mut result = WeakResult::new(fragments);
+pub fn infer_types<'a>(fragments: FragmentMap) -> Result<'a> {
+    let mut result = Result::new(fragments);
 
     result
         .module

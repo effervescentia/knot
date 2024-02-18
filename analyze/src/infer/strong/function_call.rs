@@ -1,11 +1,12 @@
 use crate::{
-    infer::strong::SemanticError,
+    data::ScopedType,
+    error::SemanticError,
     strong::{Strong, StrongResult},
 };
 use lang::{types, NodeId};
 use std::cmp::Ordering;
 
-pub fn infer(lhs: &NodeId, arguments: &[NodeId], result: &StrongResult) -> Option<Strong> {
+pub fn infer<'a>(lhs: &NodeId, arguments: &[NodeId], result: &StrongResult) -> Option<Strong<'a>> {
     let kind = types::RefKind::Value;
 
     let resolve_all_types = |xs: &[NodeId]| {
@@ -51,17 +52,17 @@ pub fn infer(lhs: &NodeId, arguments: &[NodeId], result: &StrongResult) -> Optio
         };
 
     match result.as_strong(lhs, &kind)? {
-        Ok(x @ types::Type::Function(parameters, result)) => {
+        Ok(ScopedType::Type(x @ types::Type::Function(parameters, body))) => {
             match (
                 resolve_all_types(parameters),
                 resolve_all_types(arguments),
-                result.as_strong(result, &kind),
+                result.as_strong(body, &kind),
             ) {
-                (Some(typed_parameters), Some(typed_arguments), Some(Ok(typed_result))) => {
+                (Some(typed_parameters), Some(typed_arguments), Some(Ok(typed_body))) => {
                     match resolve_arguments(x.clone(), typed_parameters, typed_arguments) {
                         Ok(mismatched) => {
                             if mismatched.is_empty() {
-                                Some(Ok(typed_result.clone()))
+                                Some(Ok(typed_body.clone()))
                             } else {
                                 Some(Err(SemanticError::InvalidArguments(
                                     (x.clone(), *lhs),
@@ -80,32 +81,32 @@ pub fn infer(lhs: &NodeId, arguments: &[NodeId], result: &StrongResult) -> Optio
             }
         }
 
-        Ok(x @ types::Type::Enumerated(types::Enumerated::Variant(parameters, result))) => {
-            match (resolve_all_types(parameters), resolve_all_types(arguments)) {
-                (Some(typed_parameters), Some(typed_arguments)) => {
-                    match resolve_arguments(x.clone(), typed_parameters, typed_arguments) {
-                        Ok(mismatched) => {
-                            if mismatched.is_empty() {
-                                Some(Ok(types::Type::Enumerated(types::Enumerated::Instance(
-                                    *result,
-                                ))))
-                            } else {
-                                Some(Err(SemanticError::InvalidArguments(
-                                    (x.clone(), *lhs),
-                                    mismatched,
-                                )))
-                            }
+        Ok(ScopedType::Type(
+            x @ types::Type::Enumerated(types::Enumerated::Variant(parameters, instance)),
+        )) => match (resolve_all_types(parameters), resolve_all_types(arguments)) {
+            (Some(typed_parameters), Some(typed_arguments)) => {
+                match resolve_arguments(x.clone(), typed_parameters, typed_arguments) {
+                    Ok(mismatched) => {
+                        if mismatched.is_empty() {
+                            Some(Ok(ScopedType::Type(types::Type::Enumerated(
+                                types::Enumerated::Instance(*instance),
+                            ))))
+                        } else {
+                            Some(Err(SemanticError::InvalidArguments(
+                                (x.clone(), *lhs),
+                                mismatched,
+                            )))
                         }
-
-                        Err(err) => Some(Err(err)),
                     }
+
+                    Err(err) => Some(Err(err)),
                 }
-
-                _ => None,
             }
-        }
 
-        Ok(x) => Some(Err(SemanticError::NotCallable(x.clone(), *lhs))),
+            _ => None,
+        },
+
+        Ok(ScopedType::Type(x)) => Some(Err(SemanticError::NotCallable(x.clone(), *lhs))),
 
         Err(_) => Some(Err(SemanticError::NotInferrable(vec![*lhs]))),
     }
@@ -113,7 +114,7 @@ pub fn infer(lhs: &NodeId, arguments: &[NodeId], result: &StrongResult) -> Optio
 
 #[cfg(test)]
 mod tests {
-    use crate::{infer::strong::SemanticError, test::fixture::strong_result_from};
+    use crate::{data::ScopedType, error::SemanticError, test::fixture::strong_result_from};
     use lang::{types, NodeId};
 
     #[test]
@@ -128,14 +129,35 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(2),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
                 (
                     NodeId(3),
                     (
                         types::RefKind::Value,
-                        Ok(types::Type::Function(vec![NodeId(0), NodeId(1)], NodeId(2))),
+                        Ok(ScopedType::Type(types::Type::Function(
+                            vec![NodeId(0), NodeId(1)],
+                            NodeId(2),
+                        ))),
                     ),
                 ),
             ],
@@ -144,7 +166,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&NodeId(3), &[NodeId(0), NodeId(1)], &result),
-            Some(Ok(types::Type::Integer))
+            Some(Ok(ScopedType::Type(types::Type::Integer)))
         );
     }
 
@@ -154,10 +176,31 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
-                (NodeId(3), (types::RefKind::Value, Ok(func_type()))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(2),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
+                (
+                    NodeId(3),
+                    (types::RefKind::Value, Ok(ScopedType::Type(func_type()))),
+                ),
             ],
             vec![],
         );
@@ -190,10 +233,31 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
-                (NodeId(3), (types::RefKind::Value, Ok(func_type()))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(2),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
+                (
+                    NodeId(3),
+                    (types::RefKind::Value, Ok(ScopedType::Type(func_type()))),
+                ),
             ],
             vec![],
         );
@@ -216,10 +280,31 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
-                (NodeId(3), (types::RefKind::Value, Ok(func_type()))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(2),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
+                (
+                    NodeId(3),
+                    (types::RefKind::Value, Ok(ScopedType::Type(func_type()))),
+                ),
             ],
             vec![],
         );
@@ -241,15 +326,26 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
                 (
                     NodeId(2),
                     (
                         types::RefKind::Value,
-                        Ok(types::Type::Enumerated(types::Enumerated::Variant(
-                            vec![NodeId(0), NodeId(1)],
-                            NodeId(3),
+                        Ok(ScopedType::Type(types::Type::Enumerated(
+                            types::Enumerated::Variant(vec![NodeId(0), NodeId(1)], NodeId(3)),
                         ))),
                     ),
                 ),
@@ -259,8 +355,8 @@ mod tests {
 
         assert_eq!(
             super::infer(&NodeId(2), &[NodeId(0), NodeId(1)], &result),
-            Some(Ok(types::Type::Enumerated(types::Enumerated::Instance(
-                NodeId(3)
+            Some(Ok(ScopedType::Type(types::Type::Enumerated(
+                types::Enumerated::Instance(NodeId(3))
             ))))
         );
     }
@@ -276,10 +372,31 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
-                (NodeId(3), (types::RefKind::Value, Ok(variant_type()))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(2),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
+                (
+                    NodeId(3),
+                    (types::RefKind::Value, Ok(ScopedType::Type(variant_type()))),
+                ),
             ],
             vec![],
         );
@@ -317,10 +434,31 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
-                (NodeId(3), (types::RefKind::Value, Ok(variant_type()))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(2),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
+                (
+                    NodeId(3),
+                    (types::RefKind::Value, Ok(ScopedType::Type(variant_type()))),
+                ),
             ],
             vec![],
         );
@@ -343,10 +481,31 @@ mod tests {
         let result = strong_result_from(
             vec![],
             vec![
-                (NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil))),
-                (NodeId(1), (types::RefKind::Value, Ok(types::Type::Boolean))),
-                (NodeId(2), (types::RefKind::Value, Ok(types::Type::Integer))),
-                (NodeId(3), (types::RefKind::Value, Ok(enum_type()))),
+                (
+                    NodeId(0),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Nil)),
+                    ),
+                ),
+                (
+                    NodeId(1),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Boolean)),
+                    ),
+                ),
+                (
+                    NodeId(2),
+                    (
+                        types::RefKind::Value,
+                        Ok(ScopedType::Type(types::Type::Integer)),
+                    ),
+                ),
+                (
+                    NodeId(3),
+                    (types::RefKind::Value, Ok(ScopedType::Type(enum_type()))),
+                ),
             ],
             vec![],
         );
@@ -367,7 +526,13 @@ mod tests {
     fn not_callable() {
         let result = strong_result_from(
             vec![],
-            vec![(NodeId(0), (types::RefKind::Value, Ok(types::Type::Nil)))],
+            vec![(
+                NodeId(0),
+                (
+                    types::RefKind::Value,
+                    Ok(ScopedType::Type(types::Type::Nil)),
+                ),
+            )],
             vec![],
         );
 
