@@ -1,5 +1,6 @@
 use crate::{ast, data::ScopedType};
 use lang::{types, NodeId};
+use std::ops::Deref;
 
 impl super::ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
     fn to_weak(&self) -> super::Ref {
@@ -19,11 +20,10 @@ impl super::ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> 
                 value_type, value, ..
             } => (
                 types::RefKind::Value,
-                Some(match value_type {
-                    Some(x) => ScopedType::inherit_from_type(*x),
-
-                    None => ScopedType::Inherit(*value),
-                }),
+                value_type
+                    .deref()
+                    .map(ScopedType::inherit_from_type)
+                    .or(Some(ScopedType::Inherit(*value))),
             ),
 
             Self::Function {

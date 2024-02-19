@@ -1,7 +1,7 @@
 use super::{inherit, partial};
 use crate::{
     data::{NodeKind, ResolveTarget},
-    error::ResolveError,
+    error::SemanticError,
     strong,
 };
 
@@ -12,7 +12,7 @@ where
     match strong.module.bindings.resolve(node, name) {
         Some(from_id) => inherit::inherit(strong, &from_id, node.kind()),
 
-        None => partial::Action::Infer(&Err(ResolveError::NotFound(name.to_string(), *node.id()))),
+        None => partial::Action::Infer(&Err(SemanticError::NotFound(name.to_string()))),
     }
 }
 
@@ -20,7 +20,7 @@ where
 mod tests {
     use crate::{
         data::{NodeKind, ResolveTarget, ScopedType},
-        error::ResolveError,
+        error::SemanticError,
         infer::strong::partial,
         test::fixture::strong_result_from,
     };
@@ -29,11 +29,11 @@ mod tests {
     use std::collections::BTreeSet;
 
     #[derive(Debug, PartialEq)]
-    struct MockNode(types::RefKind, NodeId);
+    struct MockNode(types::RefKind);
 
     impl ResolveTarget for MockNode {
         fn id(&self) -> &NodeId {
-            &self.1
+            &NodeId(0)
         }
 
         fn scope(&self) -> &ScopeId {
@@ -52,8 +52,8 @@ mod tests {
         let strong = strong_result_from(vec![], vec![], vec![]);
 
         assert_eq!(
-            super::infer(&strong, &MockNode(types::RefKind::Value, NodeId(0)), "foo"),
-            partial::Action::Infer(&Err(ResolveError::NotFound(str!("foo"), NodeId(0))))
+            super::infer(&strong, &MockNode(types::RefKind::Value), "foo"),
+            partial::Action::Infer(&Err(SemanticError::NotFound(str!("foo"))))
         );
     }
 
@@ -90,11 +90,11 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&strong, &MockNode(types::RefKind::Value, NodeId(0)), "foo"),
+            super::infer(&strong, &MockNode(types::RefKind::Value), "foo"),
             partial::Action::Infer(&Ok(ScopedType::Type(types::Type::Boolean)))
         );
         assert_eq!(
-            super::infer(&strong, &MockNode(types::RefKind::Type, NodeId(0)), "bar"),
+            super::infer(&strong, &MockNode(types::RefKind::Type), "bar"),
             partial::Action::Infer(&Ok(ScopedType::Type(types::Type::Integer)))
         );
     }

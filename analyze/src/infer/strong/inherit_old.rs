@@ -12,6 +12,6 @@ pub fn inherit<'a>(
 
         Some(x) => partial::Action::Infer(&Ok(ScopedType::Inherit(*from_id))),
 
-        None => partial::Action::Inherit(from_id),
+        None => partial::Action::SkipInherit(from_id),
     }
 }

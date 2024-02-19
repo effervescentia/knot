@@ -13,12 +13,6 @@ impl RefKind {
     }
 }
 
-pub trait ToShape {
-    type Shape;
-
-    fn to_shape(&self) -> Self::Shape;
-}
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum Enumerated<T> {
     Declaration(Vec<(String, Vec<T>)>),
@@ -64,8 +58,8 @@ pub enum Type<T> {
 }
 
 impl<T> Type<T> {
-    pub fn to_shape(&self) -> TypeShape {
-        TypeShape(match self {
+    pub fn to_shallow(&self) -> ShallowType {
+        ShallowType(match self {
             Self::Nil => Type::Nil,
             Self::Boolean => Type::Boolean,
             Self::Integer => Type::Integer,
@@ -93,4 +87,13 @@ impl<T> Type<T> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct TypeShape(pub Type<()>);
+pub struct ShallowType(pub Type<()>);
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct DeepType(pub Type<Box<DeepType>>);
+
+impl DeepType {
+    pub fn to_shallow(&self) -> ShallowType {
+        self.0.to_shallow()
+    }
+}

@@ -1,10 +1,10 @@
 mod binary_operation;
-mod dot_access;
-// mod function_call;
+mod function_call;
 mod identifier;
-// mod module;
 mod inherit;
+mod module;
 mod partial;
+mod property_access;
 
 use crate::{data::AnalyzeContext, strong, weak};
 // use kore::invariant;
@@ -130,10 +130,7 @@ pub fn infer_types<'a>(ctx: &AnalyzeContext, weak: weak::Result) -> strong::Resu
     let mut result = strong::Result::new(weak.module);
 
     while !partial.is_done() {
-        let (next_partial, next_result) = partial::infer_types(ctx, partial, result);
-
-        partial = next_partial;
-        result = next_result;
+        (partial, result) = partial::infer_types(ctx, partial, result);
     }
 
     result

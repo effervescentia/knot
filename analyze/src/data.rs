@@ -16,7 +16,7 @@ pub enum ScopedType<'a> {
     Type(types::Type<NodeId>),
     Inherit(NodeId),
     InheritKind(NodeId, types::RefKind),
-    External(&'a types::TypeShape),
+    External(&'a types::DeepType),
 }
 
 impl<'a> ScopedType<'a> {

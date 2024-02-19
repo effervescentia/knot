@@ -1,35 +1,44 @@
-use lang::{types, NodeId};
+use lang::{
+    types::{RefKind, ShallowType, Type},
+    NodeId,
+};
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum ExpectedType {
-    Type(types::Type<usize>),
-    Union(Vec<types::Type<usize>>),
+pub enum ExpectedShape {
+    Type(Type<usize>),
+    Union(Vec<Type<usize>>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ResolveError {
+    NotInferrable(Vec<NodeId>),
+
+    NotFound(String, NodeId),
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum SemanticError {
-    NotInferrable(Vec<NodeId>),
+    NotResolved(ResolveError),
 
-    NotFound(String),
+    /* mismatch */
+    UnexpectedShape((ShallowType, NodeId), ExpectedShape),
+    UnexpectedKind((RefKind, NodeId), RefKind),
 
-    IllegalValueAccess((types::TypeShape, NodeId), String),
-    IllegalTypeAccess((types::TypeShape, NodeId), String),
+    /* enum-related */
+    VariantNotFound((ShallowType, NodeId), String),
 
-    ShapeMismatch((types::TypeShape, NodeId), (types::TypeShape, NodeId)),
-    UnexpectedShape((types::TypeShape, NodeId), ExpectedType),
+    /* module-related */
+    DeclarationNotFound((ShallowType, NodeId), String),
 
-    VariantNotFound((types::TypeShape, NodeId), String),
+    /* object-related */
+    NotIndexable((ShallowType, NodeId), String),
 
-    DeclarationNotFound((types::TypeShape, NodeId), String),
-
-    NotIndexable((types::TypeShape, NodeId), String),
-
-    NotCallable(types::TypeShape, NodeId),
-    MissingArguments((types::TypeShape, NodeId), Vec<(types::TypeShape, NodeId)>),
-    UnexpectedArguments((types::TypeShape, NodeId), Vec<(types::TypeShape, NodeId)>),
+    /* function-related */
+    NotCallable(ShallowType, NodeId),
+    MissingArguments(NodeId, Vec<(ShallowType, NodeId)>),
+    UnexpectedArguments(NodeId, Vec<(ShallowType, NodeId)>),
     InvalidArguments(
-        (types::TypeShape, NodeId),
-        #[allow(clippy::type_complexity)]
-        Vec<((types::TypeShape, NodeId), (types::TypeShape, NodeId))>,
+        NodeId,
+        #[allow(clippy::type_complexity)] Vec<((ShallowType, NodeId), (ShallowType, NodeId))>,
     ),
 }

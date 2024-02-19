@@ -1,4 +1,3 @@
-// use super::{binary_operation, function_call, identifier, module, property_access};
 use super::{binary_operation, function_call, identifier, module, property_access};
 use crate::{
     ast,
@@ -15,7 +14,7 @@ use super::inherit;
 pub enum Action<'a> {
     Skip,
     Infer(&'a strong::Type<'a>),
-    Inherit(&'a NodeId),
+    SkipInherit(&'a NodeId),
 }
 
 #[derive(Default)]
@@ -140,7 +139,7 @@ pub fn infer_types<'a>(
 
             Action::Skip => result.unhandled.push(node),
 
-            Action::Inherit(from_id) => result.unhandled.push(node.as_inherit_from(*from_id)),
+            Action::SkipInherit(from_id) => result.unhandled.push(node.as_inherit_from(*from_id)),
         }
     });
 
