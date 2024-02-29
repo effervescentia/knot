@@ -11,19 +11,19 @@ pub trait NodeKind {
     fn kind(&self) -> &types::RefKind;
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum ScopedType<'a> {
-    Type(types::Type<NodeId>),
-    Inherit(NodeId),
-    InheritKind(NodeId, types::RefKind),
-    External(&'a types::DeepType),
-}
+// #[derive(Clone, Debug, PartialEq)]
+// pub enum ScopedType<'a> {
+//     Type(types::Type<NodeId>),
+//     Inherit(NodeId),
+//     InheritKind(NodeId, types::RefKind),
+//     External(&'a types::DeepType),
+// }
 
-impl<'a> ScopedType<'a> {
-    pub fn inherit_from_type(id: NodeId) -> Self {
-        Self::InheritKind(id, types::RefKind::Type)
-    }
-}
+// impl<'a> ScopedType<'a> {
+//     pub fn inherit_from_type(id: NodeId) -> Self {
+//         Self::InheritKind(id, types::RefKind::Type)
+//     }
+// }
 
 pub struct AnalyzeContext<'a> {
     pub module_reference: &'a ModuleReference,
@@ -108,14 +108,14 @@ pub struct NodeDescriptor<'a> {
     pub weak: weak::Type<'a>,
 }
 
-impl<'a> NodeDescriptor<'a> {
-    pub fn as_inherit_from(self, from_id: NodeId) -> Self {
-        Self {
-            weak: Some(ScopedType::Inherit(from_id)),
-            ..self
-        }
-    }
-}
+// impl<'a> NodeDescriptor<'a> {
+//     pub fn as_inherit_from(self, from_id: NodeId) -> Self {
+//         Self {
+//             weak: Some(ScopedType::Inherit(from_id)),
+//             ..self
+//         }
+//     }
+// }
 
 impl<'a> ResolveTarget for NodeDescriptor<'a> {
     fn id(&self) -> &NodeId {

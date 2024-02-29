@@ -1,29 +1,30 @@
-use crate::{ast, data::ScopedType};
-use lang::{types, NodeId};
+use crate::ast;
+use lang::{
+    types::{RefKind, Type},
+    NodeId,
+};
 
 impl super::ToWeak for ast::TypeExpression<NodeId> {
     fn to_weak(&self) -> super::Ref {
         (
-            types::RefKind::Type,
+            RefKind::Type,
             match self {
-                Self::Primitive(x) => Some(ScopedType::Type(match x {
-                    ast::TypePrimitive::Nil => types::Type::Nil,
-                    ast::TypePrimitive::Boolean => types::Type::Boolean,
-                    ast::TypePrimitive::Integer => types::Type::Integer,
-                    ast::TypePrimitive::Float => types::Type::Float,
-                    ast::TypePrimitive::String => types::Type::String,
-                    ast::TypePrimitive::Style => types::Type::Style,
-                    ast::TypePrimitive::Element => types::Type::Element,
-                })),
+                Self::Primitive(x) => super::Type::Local(match x {
+                    ast::TypePrimitive::Nil => Type::Nil,
+                    ast::TypePrimitive::Boolean => Type::Boolean,
+                    ast::TypePrimitive::Integer => Type::Integer,
+                    ast::TypePrimitive::Float => Type::Float,
+                    ast::TypePrimitive::String => Type::String,
+                    ast::TypePrimitive::Style => Type::Style,
+                    ast::TypePrimitive::Element => Type::Element,
+                }),
 
-                Self::Identifier(..) => None,
+                Self::Group(id) => super::Type::Inherit(**id),
 
-                Self::Group(id) => Some(ScopedType::Inherit(**id)),
-
-                Self::PropertyAccess(..) => None,
+                Self::Identifier(..) | Self::PropertyAccess(..) => super::Type::Infer,
 
                 Self::Function(params, x) => {
-                    Some(ScopedType::Type(types::Type::Function(params.clone(), **x)))
+                    super::Type::Local(Type::Function(params.clone(), **x))
                 }
             },
         )
@@ -32,60 +33,45 @@ impl super::ToWeak for ast::TypeExpression<NodeId> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast, data::ScopedType, weak::ToWeak};
+    use crate::{
+        ast,
+        weak::{self, ToWeak},
+    };
     use kore::str;
-    use lang::{types, NodeId};
+    use lang::{
+        types::{RefKind, Type},
+        NodeId,
+    };
 
     #[test]
     fn primitive() {
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Nil).to_weak(),
-            (
-                types::RefKind::Type,
-                Some(ScopedType::Type(types::Type::Nil))
-            )
+            (RefKind::Type, weak::Type::Local(Type::Nil))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean).to_weak(),
-            (
-                types::RefKind::Type,
-                Some(ScopedType::Type(types::Type::Boolean))
-            )
+            (RefKind::Type, weak::Type::Local(Type::Boolean))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Integer).to_weak(),
-            (
-                types::RefKind::Type,
-                Some(ScopedType::Type(types::Type::Integer))
-            )
+            (RefKind::Type, weak::Type::Local(Type::Integer))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Float).to_weak(),
-            (
-                types::RefKind::Type,
-                Some(ScopedType::Type(types::Type::Float))
-            )
+            (RefKind::Type, weak::Type::Local(Type::Float))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::String).to_weak(),
-            (
-                types::RefKind::Type,
-                Some(ScopedType::Type(types::Type::String))
-            )
+            (RefKind::Type, weak::Type::Local(Type::String))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Style).to_weak(),
-            (
-                types::RefKind::Type,
-                Some(ScopedType::Type(types::Type::Style))
-            )
+            (RefKind::Type, weak::Type::Local(Type::Style))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Element).to_weak(),
-            (
-                types::RefKind::Type,
-                Some(ScopedType::Type(types::Type::Element))
-            )
+            (RefKind::Type, weak::Type::Local(Type::Element))
         );
     }
 
@@ -93,7 +79,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             ast::TypeExpression::Identifier(str!("foo")).to_weak(),
-            (types::RefKind::Type, None)
+            (RefKind::Type, weak::Type::Infer)
         );
     }
 
@@ -101,7 +87,7 @@ mod tests {
     fn group() {
         assert_eq!(
             ast::TypeExpression::Group(Box::new(NodeId(0))).to_weak(),
-            (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(0))))
+            (RefKind::Type, weak::Type::Inherit(NodeId(0)))
         );
     }
 
@@ -109,7 +95,7 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             ast::TypeExpression::PropertyAccess(Box::new(NodeId(0)), str!("foo")).to_weak(),
-            (types::RefKind::Type, None)
+            (RefKind::Type, weak::Type::Infer)
         );
     }
 
@@ -118,11 +104,8 @@ mod tests {
         assert_eq!(
             ast::TypeExpression::Function(vec![NodeId(0)], Box::new(NodeId(1))).to_weak(),
             (
-                types::RefKind::Type,
-                Some(ScopedType::Type(types::Type::Function(
-                    vec![NodeId(0)],
-                    NodeId(1)
-                )))
+                RefKind::Type,
+                weak::Type::Local(Type::Function(vec![NodeId(0)], NodeId(1)))
             )
         );
     }

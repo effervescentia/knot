@@ -125,13 +125,13 @@ use crate::{data::AnalyzeContext, strong, weak};
 //     fn to_strong(&self, ctx: &StrongResult) -> R;
 // }
 
-pub fn infer_types<'a>(ctx: &AnalyzeContext, weak: weak::Result) -> strong::Result<'a> {
+pub fn infer_types<'a>(ctx: &AnalyzeContext, weak: weak::Result) -> strong::State<'a> {
     let mut partial = partial::Result::new(weak.to_descriptors());
-    let mut result = strong::Result::new(weak.module);
+    let mut state = strong::State::new(weak.module);
 
     while !partial.is_done() {
-        (partial, result) = partial::infer_types(ctx, partial, result);
+        (partial, state) = partial::infer_types(ctx, partial, state);
     }
 
-    result
+    state
 }

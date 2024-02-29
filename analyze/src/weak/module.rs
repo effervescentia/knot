@@ -1,9 +1,9 @@
 use crate::ast;
-use lang::{types, NodeId};
+use lang::{types::RefKind, NodeId};
 
 impl super::ToWeak for ast::Module<NodeId, NodeId> {
     fn to_weak(&self) -> super::Ref {
-        (types::RefKind::Mixed, None)
+        (RefKind::Mixed, super::Type::Infer)
     }
 }
 

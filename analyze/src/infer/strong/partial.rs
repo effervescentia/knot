@@ -1,14 +1,11 @@
-// use super::{binary_operation, function_call, identifier, module, property_access};
-use super::{binary_operation, function_call, identifier, module, property_access};
+use super::{binary_operation, function_call, identifier, inherit, module, property_access};
 use crate::{
     ast,
-    data::{AnalyzeContext, NodeDescriptor, ScopedType},
-    strong,
+    data::{AnalyzeContext, NodeDescriptor},
+    strong, weak,
 };
 use kore::invariant;
-use lang::{types::RefKind, Fragment, ModuleReference, NodeId};
-
-use super::inherit;
+use lang::{Fragment, ModuleReference, NodeId};
 
 // TODO: consider adding a dedicated error type
 #[derive(Debug, PartialEq)]
@@ -42,29 +39,29 @@ pub fn infer_types<'a>(
     Result {
         unhandled: nodes, ..
     }: Result,
-    mut strong: strong::Result,
-) -> (Result<'a>, strong::Result<'a>) {
+    mut strong: strong::State,
+) -> (Result<'a>, strong::State<'a>) {
     let mut result = Result::default();
 
     nodes.into_iter().for_each(|node| {
         let action = match node {
-            // capture concrete types known during this pass
+            // capture local types known during this pass
             NodeDescriptor {
-                weak: Some(x @ ScopedType::Type(_)),
+                weak: x @ weak::Type::Local(_),
                 ..
             } => Action::Infer(&Ok(x.clone())),
 
             // capture inherited types
             NodeDescriptor {
-                weak: Some(ScopedType::Inherit(inherit_id)),
+                weak: weak::Type::Inherit(inherit_id),
                 kind,
                 ..
             } => inherit::inherit(&strong, &inherit_id, &kind),
 
             // capture inherited types of a particular source kind
-            // used to inherit types from type expressions
+            // used to infer a value's type from a type expression
             NodeDescriptor {
-                weak: Some(ScopedType::InheritKind(inherit_id, from_kind)),
+                weak: weak::Type::InheritKind(inherit_id, from_kind),
                 ..
             } => inherit::inherit(&strong, &inherit_id, &from_kind),
 
@@ -76,12 +73,13 @@ pub fn infer_types<'a>(
                 ..
             } => identifier::infer(&strong, &node, &name),
 
-            // capture the type of ambiguous binary operations
+            // capture the type of dynamic binary operations
             NodeDescriptor {
                 fragment: Fragment::Expression(ast::Expression::BinaryOperation(op, lhs, rhs)),
                 ..
             } => binary_operation::infer(&strong, &op, &lhs, &rhs),
 
+            // capture the type of a property by name
             NodeDescriptor {
                 fragment:
                     Fragment::TypeExpression(ast::TypeExpression::PropertyAccess(lhs, property))
@@ -89,19 +87,19 @@ pub fn infer_types<'a>(
                 ..
             } => property_access::infer(&strong, &node, &lhs, &property),
 
+            // capture the result of calling a function
             NodeDescriptor {
                 fragment: Fragment::Expression(ast::Expression::FunctionCall(lhs, arguments)),
                 ..
             } => function_call::infer(&strong, &lhs, &arguments),
 
+            // capture the result of a module declaration
             NodeDescriptor {
-                id,
-                kind: kind @ RefKind::Mixed,
                 fragment: Fragment::Module(ast::Module { declarations, .. }),
-                weak: None,
                 ..
             } => module::infer(&strong, &declarations),
 
+            // capture a type imported from another file
             NodeDescriptor {
                 fragment: Fragment::Import(import),
                 ..
@@ -124,12 +122,16 @@ pub fn infer_types<'a>(
             } => unimplemented!(),
 
             NodeDescriptor {
-                weak: Some(ScopedType::External(_)),
+                weak: weak::Type::Remote(_),
                 ..
             } => unimplemented!(),
 
-            NodeDescriptor { weak: None, .. } => {
-                invariant!("all other inference should be done already")
+            NodeDescriptor {
+                weak: weak::Type::Infer,
+                fragment,
+                ..
+            } => {
+                invariant!("unexpected inference request {fragment:?}")
             }
         };
 
@@ -159,11 +161,14 @@ mod tests {
     use super::NodeDescriptor;
     use crate::{
         ast,
-        data::{AnalyzeContext, BindingMap, DeconstructedModule, ScopedType},
-        strong,
+        data::{AnalyzeContext, BindingMap, DeconstructedModule},
+        strong, weak,
     };
     use kore::str;
-    use lang::{types, Fragment, FragmentMap, ModuleReference, ModuleScope, NodeId, ScopeId};
+    use lang::{
+        types::{RefKind, ReferenceType, Type},
+        Fragment, FragmentMap, ModuleReference, ModuleScope, NodeId, ScopeId,
+    };
     use std::collections::{BTreeSet, HashMap};
 
     fn mock_reference(name: &str) -> ModuleReference {
@@ -175,22 +180,22 @@ mod tests {
         let nodes = vec![
             NodeDescriptor {
                 id: NodeId(0),
-                kind: types::RefKind::Type,
+                kind: RefKind::Type,
                 scope: ScopeId(vec![0, 1]),
                 fragment: Fragment::TypeExpression(ast::TypeExpression::Primitive(
                     ast::TypePrimitive::Nil,
                 )),
-                weak: Some(ScopedType::Type(types::Type::Nil)),
+                weak: weak::Type::Local(Type::Nil),
             },
             NodeDescriptor {
                 id: NodeId(1),
-                kind: types::RefKind::Type,
+                kind: RefKind::Type,
                 scope: ScopeId(vec![0]),
                 fragment: Fragment::Declaration(ast::Declaration::type_alias(
                     ast::Storage::public(str!("MyType")),
                     NodeId(0),
                 )),
-                weak: Some(ScopedType::Inherit(NodeId(0))),
+                weak: weak::Type::Inherit(NodeId(0)),
             },
         ];
         let bindings = BindingMap::from_iter(vec![(
@@ -205,20 +210,14 @@ mod tests {
         let (.., result) = super::infer_types(
             &ctx,
             super::Result::new(nodes),
-            strong::Result::new(DeconstructedModule::new(FragmentMap::default(), bindings)),
+            strong::State::new(DeconstructedModule::new(FragmentMap::default(), bindings)),
         );
 
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
-                (
-                    NodeId(0),
-                    (types::RefKind::Type, Ok(ScopedType::Type(types::Type::Nil)))
-                ),
-                (
-                    NodeId(1),
-                    (types::RefKind::Type, Ok(ScopedType::Type(types::Type::Nil)))
-                )
+                (NodeId(0), (RefKind::Type, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(1), (RefKind::Type, Ok(&ReferenceType(Type::Nil))))
             ])
         );
     }
@@ -228,39 +227,39 @@ mod tests {
         let nodes = vec![
             NodeDescriptor {
                 id: NodeId(0),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0, 1]),
                 fragment: Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
-                weak: Some(ScopedType::Type(types::Type::Nil)),
+                weak: weak::Type::Local(Type::Nil),
             },
             NodeDescriptor {
                 id: NodeId(1),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0]),
                 fragment: Fragment::Declaration(ast::Declaration::constant(
                     ast::Storage::public(str!("FOO")),
                     None,
                     NodeId(0),
                 )),
-                weak: Some(ScopedType::Inherit(NodeId(0))),
+                weak: weak::Type::Inherit(NodeId(0)),
             },
             NodeDescriptor {
                 id: NodeId(2),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0, 2]),
                 fragment: Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
-                weak: Some(ScopedType::Type(types::Type::Nil)),
+                weak: weak::Type::Local(Type::Nil),
             },
             NodeDescriptor {
                 id: NodeId(3),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0]),
                 fragment: Fragment::Declaration(ast::Declaration::constant(
                     ast::Storage::public(str!("BAR")),
                     None,
                     NodeId(2),
                 )),
-                weak: Some(ScopedType::Inherit(NodeId(2))),
+                weak: weak::Type::Inherit(NodeId(2)),
             },
         ];
         let bindings = BindingMap::from_iter(vec![
@@ -281,40 +280,16 @@ mod tests {
         let (.., result) = super::infer_types(
             &ctx,
             super::Result::new(nodes),
-            strong::Result::new(DeconstructedModule::new(FragmentMap::default(), bindings)),
+            strong::State::new(DeconstructedModule::new(FragmentMap::default(), bindings)),
         );
 
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
-                (
-                    NodeId(0),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(1),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(2),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(3),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
+                (NodeId(0), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(1), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(2), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(3), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
             ])
         );
     }
@@ -324,70 +299,70 @@ mod tests {
         let nodes = vec![
             NodeDescriptor {
                 id: NodeId(0),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0, 1]),
                 fragment: Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
-                weak: Some(ScopedType::Type(types::Type::Nil)),
+                weak: weak::Type::Local(Type::Nil),
             },
             NodeDescriptor {
                 id: NodeId(1),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0]),
                 fragment: Fragment::Declaration(ast::Declaration::constant(
                     ast::Storage::public(str!("FOO")),
                     None,
                     NodeId(0),
                 )),
-                weak: Some(ScopedType::Inherit(NodeId(0))),
+                weak: weak::Type::Inherit(NodeId(0)),
             },
             NodeDescriptor {
                 id: NodeId(2),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0, 2, 3]),
                 fragment: Fragment::Expression(ast::Expression::Identifier(str!("FOO"))),
-                weak: None,
+                weak: weak::Type::Infer,
             },
             NodeDescriptor {
                 id: NodeId(3),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0, 2, 3]),
                 fragment: Fragment::Statement(ast::Statement::Variable(str!("bar"), NodeId(2))),
-                weak: Some(ScopedType::Inherit(NodeId(2))),
+                weak: weak::Type::Inherit(NodeId(2)),
             },
             NodeDescriptor {
                 id: NodeId(4),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0, 2, 3]),
                 fragment: Fragment::Expression(ast::Expression::Identifier(str!("bar"))),
-                weak: None,
+                weak: weak::Type::Infer,
             },
             NodeDescriptor {
                 id: NodeId(5),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0, 2, 3]),
                 fragment: Fragment::Statement(ast::Statement::Expression(NodeId(4))),
-                weak: Some(ScopedType::Inherit(NodeId(4))),
+                weak: weak::Type::Inherit(NodeId(4)),
             },
             NodeDescriptor {
                 id: NodeId(6),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0, 2]),
                 fragment: Fragment::Expression(ast::Expression::Closure(vec![
                     NodeId(3),
                     NodeId(5),
                 ])),
-                weak: Some(ScopedType::Inherit(NodeId(5))),
+                weak: weak::Type::Inherit(NodeId(5)),
             },
             NodeDescriptor {
                 id: NodeId(7),
-                kind: types::RefKind::Value,
+                kind: RefKind::Value,
                 scope: ScopeId(vec![0]),
                 fragment: Fragment::Declaration(ast::Declaration::constant(
                     ast::Storage::public(str!("FIZZ")),
                     None,
                     NodeId(6),
                 )),
-                weak: Some(ScopedType::Inherit(NodeId(6))),
+                weak: weak::Type::Inherit(NodeId(6)),
             },
         ];
         let bindings = BindingMap::from_iter(vec![
@@ -412,68 +387,20 @@ mod tests {
         let (.., result) = super::infer_types(
             &ctx,
             super::Result::new(nodes),
-            strong::Result::new(DeconstructedModule::new(FragmentMap::default(), bindings)),
+            strong::State::new(DeconstructedModule::new(FragmentMap::default(), bindings)),
         );
 
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
-                (
-                    NodeId(0),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(1),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(2),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(3),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(4),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(5),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(6),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(7),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
+                (NodeId(0), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(1), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(2), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(3), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(4), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(5), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(6), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(7), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
             ])
         );
     }

@@ -1,16 +1,12 @@
 use super::partial;
-use crate::{
-    data::{NodeKind, ScopedType},
-    error::ResolveError,
-    strong,
-};
+use crate::{data::NodeKind, error::ResolveError, strong};
 use lang::{
-    types::{Enumerated, Type},
+    types::{Enumerated, ReferenceType, Type},
     NodeId,
 };
 
 pub fn infer<'a, Node>(
-    strong: &strong::Result,
+    state: &strong::State,
     node: &Node,
     lhs: &NodeId,
     property: &str,
@@ -18,23 +14,23 @@ pub fn infer<'a, Node>(
 where
     Node: NodeKind,
 {
-    match strong.resolve_type(lhs, node.kind()) {
-        Some(Ok(x @ Type::Module(declarations))) => {
+    match state.resolve_type(lhs, node.kind()) {
+        Some(Ok(ReferenceType(x @ Type::Module(declarations)))) => {
             match declarations.iter().find(|(name, ..)| name == property) {
-                Some((_, declaration_kind, declaration_id))
+                Some((_, declaration_kind, declaration_type))
                     if node.kind().can_accept(declaration_kind) =>
                 {
-                    partial::Action::Inherit(&declaration_id)
+                    partial::Action::Infer(&Ok(declaration_type))
                 }
 
                 Some(_) | None => partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![]))),
             }
         }
 
-        Some(Ok(x @ Type::Enumerated(Enumerated::Declaration(variants)))) => {
+        Some(Ok(x @ ReferenceType(Type::Enumerated(Enumerated::Declaration(variants))))) => {
             match variants.iter().find(|(name, _)| name == property) {
-                Some((_, parameters)) => partial::Action::Infer(&Ok(ScopedType::Type(
-                    Type::Enumerated(Enumerated::Variant(parameters.clone(), *lhs)),
+                Some((_, parameters)) => partial::Action::Infer(&Ok(&ReferenceType(
+                    Type::Enumerated(Enumerated::Variant(parameters.clone(), x)),
                 ))),
 
                 None => partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![]))),
@@ -50,14 +46,12 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        data::{NodeKind, ScopedType},
-        error::ResolveError,
-        infer::strong::partial,
-        test::fixture::strong_result_from,
+        data::NodeKind, error::ResolveError, infer::strong::partial,
+        test::fixture::strong_state_from,
     };
     use kore::str;
     use lang::{
-        types::{Enumerated, RefKind, Type},
+        types::{Enumerated, RefKind, ReferenceType, Type},
         NodeId,
     };
 
@@ -72,28 +66,28 @@ mod tests {
 
     #[test]
     fn skip_infer() {
-        let strong = strong_result_from(vec![], vec![], vec![]);
+        let state = strong_state_from(vec![], vec![], vec![]);
 
         assert_eq!(
-            super::infer(&strong, &MockNode(RefKind::Value), &NodeId(0), "foo"),
+            super::infer(&state, &MockNode(RefKind::Value), &NodeId(0), "foo"),
             partial::Action::Skip
         );
     }
 
     #[test]
     fn module_entry_result() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![],
             vec![
-                (NodeId(0), (RefKind::Value, Ok(ScopedType::Type(Type::Nil)))),
-                (NodeId(1), (RefKind::Type, Ok(ScopedType::Type(Type::Nil)))),
+                (NodeId(0), (RefKind::Value, Ok(&ReferenceType(Type::Nil)))),
+                (NodeId(1), (RefKind::Type, Ok(&ReferenceType(Type::Nil)))),
                 (
                     NodeId(2),
                     (
                         RefKind::Mixed,
-                        Ok(ScopedType::Type(Type::Module(vec![
-                            (str!("foo"), RefKind::Value, NodeId(0)),
-                            (str!("bar"), RefKind::Type, NodeId(1)),
+                        Ok(&ReferenceType(Type::Module(vec![
+                            (str!("foo"), RefKind::Value, &ReferenceType(Type::Nil)),
+                            (str!("bar"), RefKind::Type, &ReferenceType(Type::Nil)),
                         ]))),
                     ),
                 ),
@@ -102,12 +96,12 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&strong, &MockNode(RefKind::Value), &NodeId(2), "foo"),
-            partial::Action::Infer(&Ok(ScopedType::Type(Type::Nil)))
+            super::infer(&state, &MockNode(RefKind::Value), &NodeId(2), "foo"),
+            partial::Action::Infer(&Ok(&ReferenceType(Type::Nil)))
         );
         assert_eq!(
-            super::infer(&strong, &MockNode(RefKind::Type), &NodeId(2), "bar"),
-            partial::Action::Infer(&Ok(ScopedType::Type(Type::Nil)))
+            super::infer(&state, &MockNode(RefKind::Type), &NodeId(2), "bar"),
+            partial::Action::Infer(&Ok(&ReferenceType(Type::Nil)))
         );
     }
 
@@ -119,7 +113,7 @@ mod tests {
     //             (str!("bar"), RefKind::Type, NodeId(1)),
     //         ])
     //     };
-    //     let strong = strong_result_from(
+    //     let state = strong_result_from(
     //         vec![],
     //         vec![
     //             (NodeId(0), (RefKind::Value, Ok(ScopedType::Type(Type::Nil)))),
@@ -139,14 +133,14 @@ mod tests {
     //     );
 
     //     assert_eq!(
-    //         super::infer(&strong, &MockNode(RefKind::Type), &NodeId(2), "foo"),
+    //         super::infer(&state, &MockNode(RefKind::Type), &NodeId(2), "foo"),
     //         partial::Action::Infer(&Err(SemanticError::UnexpectedKind(
     //             (RefKind::Value, NodeId(2)),
     //             RefKind::Type
     //         )))
     //     );
     //     assert_eq!(
-    //         super::infer(&strong, &MockNode(RefKind::Value), &NodeId(2), "bar"),
+    //         super::infer(&state, &MockNode(RefKind::Value), &NodeId(2), "bar"),
     //         partial::Action::Infer(&Err(SemanticError::UnexpectedKind(
     //             (RefKind::Type, NodeId(2)),
     //             RefKind::Value
@@ -156,7 +150,7 @@ mod tests {
 
     // #[test]
     // fn module_declaration_not_found() {
-    //     let strong = strong_result_from(
+    //     let state = strong_result_from(
     //         vec![],
     //         vec![
     //             (NodeId(0), (RefKind::Value, Ok(ScopedType::Type(Type::Nil)))),
@@ -176,7 +170,7 @@ mod tests {
     //     );
 
     //     assert_eq!(
-    //         super::infer(&strong, &MockNode(RefKind::Value), &NodeId(1), "bar"),
+    //         super::infer(&state, &MockNode(RefKind::Value), &NodeId(1), "bar"),
     //         partial::Action::Infer(&Err(SemanticError::DeclarationNotFound(
     //             (
     //                 ShallowType(Type::Module(vec![(str!("foo"), RefKind::Value, ())])),
@@ -186,7 +180,7 @@ mod tests {
     //         )))
     //     );
     //     assert_eq!(
-    //         super::infer(&strong, &MockNode(RefKind::Type), &NodeId(1), "bar"),
+    //         super::infer(&state, &MockNode(RefKind::Type), &NodeId(1), "bar"),
     //         partial::Action::Infer(&Err(SemanticError::DeclarationNotFound(
     //             (
     //                 ShallowType(Type::Module(vec![(str!("foo"), RefKind::Value, ())])),
@@ -199,16 +193,16 @@ mod tests {
 
     #[test]
     fn enumerated_variant_result() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![],
             vec![
-                (NodeId(0), (RefKind::Type, Ok(ScopedType::Type(Type::Nil)))),
+                (NodeId(0), (RefKind::Type, Ok(&ReferenceType(Type::Nil)))),
                 (
                     NodeId(1),
                     (
                         RefKind::Mixed,
-                        Ok(ScopedType::Type(Type::Enumerated(Enumerated::Declaration(
-                            vec![(str!("Foo"), vec![NodeId(0)])],
+                        Ok(&ReferenceType(Type::Enumerated(Enumerated::Declaration(
+                            vec![(str!("Foo"), vec![&ReferenceType(Type::Nil)])],
                         )))),
                     ),
                 ),
@@ -217,16 +211,20 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&strong, &MockNode(RefKind::Value), &NodeId(1), "Foo"),
-            partial::Action::Infer(&Ok(ScopedType::Type(Type::Enumerated(
-                Enumerated::Variant(vec![NodeId(0)], NodeId(1))
-            ))))
+            super::infer(&state, &MockNode(RefKind::Value), &NodeId(1), "Foo"),
+            partial::Action::Infer(&Ok(&ReferenceType(Type::Enumerated(Enumerated::Variant(
+                vec![&ReferenceType(Type::Nil)],
+                &ReferenceType(Type::Enumerated(Enumerated::Declaration(vec![(
+                    str!("Foo"),
+                    vec![&ReferenceType(Type::Nil)]
+                )],)))
+            )))))
         );
     }
 
     // #[test]
     // fn enumerated_variant_not_found() {
-    //     let strong = strong_result_from(
+    //     let state = strong_result_from(
     //         vec![],
     //         vec![(
     //             NodeId(0),
@@ -241,7 +239,7 @@ mod tests {
     //     );
 
     //     assert_eq!(
-    //         super::infer(&strong, &MockNode(RefKind::Value), &NodeId(0), "Bar"),
+    //         super::infer(&state, &MockNode(RefKind::Value), &NodeId(0), "Bar"),
     //         partial::Action::Infer(&Err(SemanticError::VariantNotFound(
     //             (
     //                 ShallowType(Type::Enumerated(Enumerated::Declaration(vec![(
@@ -257,14 +255,14 @@ mod tests {
 
     // #[test]
     // fn not_indexable() {
-    //     let strong = strong_result_from(
+    //     let state = strong_result_from(
     //         vec![],
     //         vec![(NodeId(0), (RefKind::Value, Ok(ScopedType::Type(Type::Nil))))],
     //         vec![],
     //     );
 
     //     assert_eq!(
-    //         super::infer(&strong, &MockNode(RefKind::Value), &NodeId(0), "foo"),
+    //         super::infer(&state, &MockNode(RefKind::Value), &NodeId(0), "foo"),
     //         partial::Action::Infer(&Err(SemanticError::NotIndexable(
     //             (ShallowType(Type::Nil), NodeId(0)),
     //             str!("foo")
@@ -274,7 +272,7 @@ mod tests {
 
     #[test]
     fn not_inferrable() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![],
             vec![(
                 NodeId(0),
@@ -284,7 +282,7 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&strong, &MockNode(RefKind::Value), &NodeId(0), "foo"),
+            super::infer(&state, &MockNode(RefKind::Value), &NodeId(0), "foo"),
             partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![NodeId(0)])))
         );
     }

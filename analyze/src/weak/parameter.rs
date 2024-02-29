@@ -1,22 +1,22 @@
-use crate::{ast, data::ScopedType};
-use lang::{types, NodeId};
+use crate::ast;
+use lang::{types::RefKind, NodeId};
 
 impl super::ToWeak for ast::Parameter<String, NodeId, NodeId> {
     fn to_weak(&self) -> super::Ref {
         (
-            types::RefKind::Value,
+            RefKind::Value,
             match self {
                 Self {
                     value_type: Some(x),
                     ..
-                } => Some(ScopedType::inherit_from_type(*x)),
+                } => super::Type::inherit_from_type(*x),
 
                 Self {
                     default_value: Some(x),
                     ..
-                } => Some(ScopedType::Inherit(*x)),
+                } => super::Type::Inherit(*x),
 
-                Self { .. } => None,
+                Self { .. } => super::Type::Infer,
             },
         )
     }
@@ -24,15 +24,18 @@ impl super::ToWeak for ast::Parameter<String, NodeId, NodeId> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast, data::ScopedType, weak::ToWeak};
+    use crate::{
+        ast,
+        weak::{self, ToWeak},
+    };
     use kore::str;
-    use lang::{types, NodeId};
+    use lang::{types::RefKind, NodeId};
 
     #[test]
     fn unknown_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), None, None).to_weak(),
-            (types::RefKind::Value, None)
+            (RefKind::Value, weak::Type::Infer)
         );
     }
 
@@ -40,7 +43,7 @@ mod tests {
     fn typedef_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), Some(NodeId(0)), None).to_weak(),
-            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
+            (RefKind::Value, weak::Type::Inherit(NodeId(0)))
         );
     }
 
@@ -48,7 +51,7 @@ mod tests {
     fn default_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), None, Some(NodeId(0))).to_weak(),
-            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
+            (RefKind::Value, weak::Type::Inherit(NodeId(0)))
         );
     }
 
@@ -56,7 +59,7 @@ mod tests {
     fn typedef_and_default_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), Some(NodeId(0)), Some(NodeId(1))).to_weak(),
-            (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
+            (RefKind::Value, weak::Type::Inherit(NodeId(0)))
         );
     }
 }

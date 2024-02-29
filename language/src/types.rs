@@ -90,9 +90,12 @@ impl<T> Type<T> {
 pub struct ShallowType(pub Type<()>);
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct DeepType(pub Type<Box<DeepType>>);
+pub struct ReferenceType<'a>(pub Type<&'a ReferenceType<'a>>);
 
-impl DeepType {
+#[derive(Clone, Debug, PartialEq)]
+pub struct ConcreteType(pub Type<Box<ConcreteType>>);
+
+impl ConcreteType {
     pub fn to_shallow(&self) -> ShallowType {
         self.0.to_shallow()
     }

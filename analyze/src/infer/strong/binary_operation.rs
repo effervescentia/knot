@@ -1,15 +1,15 @@
 use super::partial;
-use crate::{ast, data::ScopedType, error::ResolveError, strong};
+use crate::{ast, error::ResolveError, strong};
 use kore::invariant;
 use lang::{
-    types::{RefKind, Type},
+    types::{RefKind, ReferenceType, Type},
     NodeId,
 };
 
 const VALUE_KIND: RefKind = RefKind::Value;
 
 pub fn infer<'a>(
-    strong: &strong::Result,
+    state: &strong::State,
     op: &ast::BinaryOperator,
     lhs: &NodeId,
     rhs: &NodeId,
@@ -18,26 +18,27 @@ pub fn infer<'a>(
         ast::BinaryOperator::Add
         | ast::BinaryOperator::Subtract
         | ast::BinaryOperator::Multiply => match (
-            strong.resolve_type(lhs, &VALUE_KIND),
-            strong.resolve_type(rhs, &VALUE_KIND),
+            state.resolve_type(lhs, &VALUE_KIND),
+            state.resolve_type(rhs, &VALUE_KIND),
         ) {
-            (Some(Ok(Type::Integer)), Some(Ok(Type::Integer))) => {
-                partial::Action::Infer(&Ok(ScopedType::Type(Type::Integer)))
+            (Some(Ok(ReferenceType(Type::Integer))), Some(Ok(ReferenceType(Type::Integer)))) => {
+                partial::Action::Infer(&Ok(&ReferenceType(Type::Integer)))
             }
 
-            (Some(Ok(Type::Integer | Type::Float)), Some(Ok(Type::Integer | Type::Float))) => {
-                partial::Action::Infer(&Ok(ScopedType::Type(Type::Float)))
-            }
+            (
+                Some(Ok(ReferenceType(Type::Integer | Type::Float))),
+                Some(Ok(ReferenceType(Type::Integer | Type::Float))),
+            ) => partial::Action::Infer(&Ok(&ReferenceType(Type::Float))),
 
             (Some(Err(_)), Some(Err(_))) => {
                 partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![*lhs, *rhs])))
             }
 
-            (_, Some(Err(_))) | (Some(Ok(Type::Integer | Type::Float)), _) => {
+            (_, Some(Err(_))) | (Some(Ok(ReferenceType(Type::Integer | Type::Float))), _) => {
                 partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![*rhs])))
             }
 
-            (Some(Err(_)), _) | (_, Some(Ok(Type::Integer | Type::Float))) => {
+            (Some(Err(_)), _) | (_, Some(Ok(ReferenceType(Type::Integer | Type::Float)))) => {
                 partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![*lhs])))
             }
 
@@ -57,11 +58,10 @@ pub fn infer<'a>(
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast, data::ScopedType, error::ResolveError, infer::strong::partial,
-        test::fixture::strong_result_from,
+        ast, error::ResolveError, infer::strong::partial, test::fixture::strong_state_from,
     };
     use lang::{
-        types::{RefKind, Type},
+        types::{RefKind, ReferenceType, Type},
         NodeId,
     };
 
@@ -70,16 +70,16 @@ mod tests {
 
     #[test]
     fn skip_infer() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![],
             vec![(
                 NodeId(0),
-                (RefKind::Value, Ok(ScopedType::Type(Type::Integer))),
+                (RefKind::Value, Ok(&ReferenceType(Type::Integer))),
             )],
             vec![],
         );
         let assert_skip =
-            |op, lhs, rhs| assert_eq!(super::infer(&strong, op, lhs, rhs), partial::Action::Skip);
+            |op, lhs, rhs| assert_eq!(super::infer(&state, op, lhs, rhs), partial::Action::Skip);
 
         assert_skip(&ast::BinaryOperator::Add, &NodeId(0), &NodeId(1));
         assert_skip(&ast::BinaryOperator::Add, &NodeId(1), &NodeId(0));
@@ -96,18 +96,18 @@ mod tests {
 
     #[test]
     fn integer_result() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![],
             vec![(
                 NodeId(0),
-                (RefKind::Value, Ok(ScopedType::Type(Type::Integer))),
+                (RefKind::Value, Ok(&ReferenceType(Type::Integer))),
             )],
             vec![],
         );
         let assert_integer = |op, lhs, rhs| {
             assert_eq!(
-                super::infer(&strong, op, lhs, rhs),
-                partial::Action::Infer(&Ok(ScopedType::Type(Type::Integer)))
+                super::infer(&state, op, lhs, rhs),
+                partial::Action::Infer(&Ok(&ReferenceType(Type::Integer)))
             )
         };
 
@@ -118,24 +118,21 @@ mod tests {
 
     #[test]
     fn float_result() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![],
             vec![
-                (
-                    NodeId(0),
-                    (RefKind::Value, Ok(ScopedType::Type(Type::Float))),
-                ),
+                (NodeId(0), (RefKind::Value, Ok(&ReferenceType(Type::Float)))),
                 (
                     NodeId(1),
-                    (RefKind::Value, Ok(ScopedType::Type(Type::Integer))),
+                    (RefKind::Value, Ok(&ReferenceType(Type::Integer))),
                 ),
             ],
             vec![],
         );
         let assert_float = |op, lhs, rhs| {
             assert_eq!(
-                super::infer(&strong, op, lhs, rhs),
-                partial::Action::Infer(&Ok(ScopedType::Type(Type::Float)))
+                super::infer(&state, op, lhs, rhs),
+                partial::Action::Infer(&Ok(&ReferenceType(Type::Float)))
             )
         };
 
@@ -154,7 +151,7 @@ mod tests {
 
     // #[test]
     // fn unexpected_shape() {
-    //     let strong = strong_result_from(
+    //     let state = strong_result_from(
     //         vec![],
     //         vec![
     //             (
@@ -170,7 +167,7 @@ mod tests {
     //     );
     //     let assert_unexpected_shape = |op, lhs, rhs| {
     //         assert_eq!(
-    //             super::infer(&strong, op, lhs, rhs),
+    //             super::infer(&state, op, lhs, rhs),
     //             partial::Action::Infer(&Err(SemanticError::UnexpectedShape(
     //                 (ShallowType(Type::Boolean), NodeId(1)),
     //                 ExpectedShape::Union(vec![Type::Integer, Type::Float])
@@ -190,12 +187,12 @@ mod tests {
 
     #[test]
     fn not_inferrable() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![],
             vec![
                 (
                     NodeId(0),
-                    (RefKind::Value, Ok(ScopedType::Type(Type::Integer))),
+                    (RefKind::Value, Ok(&ReferenceType(Type::Integer))),
                 ),
                 (
                     NodeId(1),
@@ -206,7 +203,7 @@ mod tests {
         );
         let assert_not_inferrable = |op, lhs, rhs| {
             assert_eq!(
-                super::infer(&strong, op, lhs, rhs),
+                super::infer(&state, op, lhs, rhs),
                 partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![NodeId(1)])))
             )
         };

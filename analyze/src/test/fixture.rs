@@ -32,12 +32,12 @@ use crate::{
 use lang::{Fragment, FragmentMap, NodeId, ScopeId};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
-pub fn strong_result_from(
+pub fn strong_state_from(
     fragments: Vec<(NodeId, (ScopeId, Fragment))>,
     refs: Vec<(NodeId, strong::Ref)>,
     bindings: Vec<((ScopeId, String), BTreeSet<NodeId>)>,
-) -> strong::Result {
-    let mut ctx = strong::Result::new(DeconstructedModule::new(
+) -> strong::State {
+    let mut ctx = strong::State::new(DeconstructedModule::new(
         FragmentMap(BTreeMap::from_iter(fragments)),
         BindingMap(HashMap::from_iter(bindings)),
     ));

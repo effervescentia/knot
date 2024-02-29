@@ -6,7 +6,6 @@ mod strong;
 #[cfg(test)]
 mod test;
 mod weak;
-// mod types;
 
 use data::AnalyzeContext;
 use lang::ast::explode;

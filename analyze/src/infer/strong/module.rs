@@ -1,11 +1,14 @@
 use super::partial;
-use crate::{ast, data::ScopedType, strong};
-use lang::{types::Type, Fragment, NodeId};
+use crate::{ast, strong};
+use lang::{
+    types::{ReferenceType, Type},
+    Fragment, NodeId,
+};
 
-pub fn infer<'a>(strong: &strong::Result, declarations: &[NodeId]) -> partial::Action<'a> {
+pub fn infer<'a>(state: &strong::State, declarations: &[NodeId]) -> partial::Action<'a> {
     let typed_declarations = declarations
         .iter()
-        .map(|x| match strong.module.fragments.0.get(x)? {
+        .map(|x| match state.module.fragments.0.get(x)? {
             (
                 _,
                 Fragment::Declaration(
@@ -17,7 +20,7 @@ pub fn infer<'a>(strong: &strong::Result, declarations: &[NodeId]) -> partial::A
                     | ast::Declaration::Module { storage, .. },
                 ),
             ) => {
-                let (kind, _) = strong.refs.get(x)?;
+                let (kind, _) = state.refs.get(x)?;
 
                 Some((storage.binding, *kind, *x))
             }
@@ -27,26 +30,29 @@ pub fn infer<'a>(strong: &strong::Result, declarations: &[NodeId]) -> partial::A
         .collect::<Option<Vec<_>>>();
 
     typed_declarations
-        .map(|xs| partial::Action::Infer(&Ok(ScopedType::Type(Type::Module(xs)))))
+        .map(|xs| partial::Action::Infer(&Ok(&ReferenceType(Type::Module(xs)))))
         .unwrap_or(partial::Action::Skip)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast, data::ScopedType, infer::strong::partial, test::fixture::strong_result_from};
+    use crate::{ast, infer::strong::partial, test::fixture::strong_state_from};
     use kore::str;
-    use lang::{types, Fragment, NodeId, ScopeId};
+    use lang::{
+        types::{RefKind, ReferenceType, Type},
+        Fragment, NodeId, ScopeId,
+    };
 
     #[test]
     fn none_result() {
-        let strong = strong_result_from(vec![], vec![], vec![]);
+        let state = strong_state_from(vec![], vec![], vec![]);
 
-        assert_eq!(super::infer(&strong, &[NodeId(0)]), partial::Action::Skip);
+        assert_eq!(super::infer(&state, &[NodeId(0)]), partial::Action::Skip);
     }
 
     #[test]
     fn declarations() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![
                 (
                     NodeId(0),
@@ -73,27 +79,21 @@ mod tests {
             vec![
                 (
                     NodeId(0),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Boolean)),
-                    ),
+                    (RefKind::Value, Ok(&ReferenceType(Type::Boolean))),
                 ),
                 (
                     NodeId(1),
-                    (
-                        types::RefKind::Type,
-                        Ok(ScopedType::Type(types::Type::Integer)),
-                    ),
+                    (RefKind::Type, Ok(&ReferenceType(Type::Integer))),
                 ),
             ],
             vec![],
         );
 
         assert_eq!(
-            super::infer(&strong, &[NodeId(0), NodeId(1)],),
-            partial::Action::Infer(&Ok(ScopedType::Type(types::Type::Module(vec![
-                (str!("foo"), types::RefKind::Value, NodeId(0)),
-                (str!("bar"), types::RefKind::Type, NodeId(1))
+            super::infer(&state, &[NodeId(0), NodeId(1)],),
+            partial::Action::Infer(&Ok(&ReferenceType(Type::Module(vec![
+                (str!("foo"), RefKind::Value, NodeId(0)),
+                (str!("bar"), RefKind::Type, NodeId(1))
             ]))))
         );
     }
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     #[ignore = "not finished"]
     fn imports() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![
                 (
                     NodeId(0),
@@ -129,27 +129,21 @@ mod tests {
             vec![
                 (
                     NodeId(0),
-                    (
-                        types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Boolean)),
-                    ),
+                    (RefKind::Value, Ok(&ReferenceType(Type::Boolean))),
                 ),
                 (
                     NodeId(1),
-                    (
-                        types::RefKind::Type,
-                        Ok(ScopedType::Type(types::Type::Integer)),
-                    ),
+                    (RefKind::Type, Ok(&ReferenceType(Type::Integer))),
                 ),
             ],
             vec![],
         );
 
         assert_eq!(
-            super::infer(&strong, &[NodeId(0), NodeId(1)]),
-            partial::Action::Infer(&Ok(ScopedType::Type(types::Type::Module(vec![
-                (str!("foo"), types::RefKind::Value, NodeId(0)),
-                (str!("bar"), types::RefKind::Type, NodeId(1))
+            super::infer(&state, &[NodeId(0), NodeId(1)]),
+            partial::Action::Infer(&Ok(&ReferenceType(Type::Module(vec![
+                (str!("foo"), RefKind::Value, NodeId(0)),
+                (str!("bar"), RefKind::Type, NodeId(1))
             ]))))
         );
     }

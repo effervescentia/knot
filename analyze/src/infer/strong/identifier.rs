@@ -5,12 +5,12 @@ use crate::{
     strong,
 };
 
-pub fn infer<'a, Node>(strong: &strong::Result, node: &Node, name: &str) -> partial::Action<'a>
+pub fn infer<'a, Node>(state: &strong::State, node: &Node, name: &str) -> partial::Action<'a>
 where
     Node: ResolveTarget + NodeKind,
 {
-    match strong.module.bindings.resolve(node, name) {
-        Some(from_id) => inherit::inherit(strong, &from_id, node.kind()),
+    match state.module.bindings.resolve(node, name) {
+        Some(from_id) => inherit::inherit(state, &from_id, node.kind()),
 
         None => partial::Action::Infer(&Err(ResolveError::NotFound(name.to_string(), *node.id()))),
     }
@@ -19,13 +19,16 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        data::{NodeKind, ResolveTarget, ScopedType},
+        data::{NodeKind, ResolveTarget},
         error::ResolveError,
         infer::strong::partial,
-        test::fixture::strong_result_from,
+        test::fixture::strong_state_from,
     };
     use kore::str;
-    use lang::{types, NodeId, ScopeId};
+    use lang::{
+        types::{self, ReferenceType},
+        NodeId, ScopeId,
+    };
     use std::collections::BTreeSet;
 
     #[derive(Debug, PartialEq)]
@@ -49,31 +52,31 @@ mod tests {
 
     #[test]
     fn not_found() {
-        let strong = strong_result_from(vec![], vec![], vec![]);
+        let state = strong_state_from(vec![], vec![], vec![]);
 
         assert_eq!(
-            super::infer(&strong, &MockNode(types::RefKind::Value, NodeId(0)), "foo"),
+            super::infer(&state, &MockNode(types::RefKind::Value, NodeId(0)), "foo"),
             partial::Action::Infer(&Err(ResolveError::NotFound(str!("foo"), NodeId(0))))
         );
     }
 
     #[test]
     fn found_in_scope() {
-        let strong = strong_result_from(
+        let state = strong_state_from(
             vec![],
             vec![
                 (
                     NodeId(0),
                     (
                         types::RefKind::Value,
-                        Ok(ScopedType::Type(types::Type::Boolean)),
+                        Ok(&ReferenceType(types::Type::Boolean)),
                     ),
                 ),
                 (
                     NodeId(1),
                     (
                         types::RefKind::Type,
-                        Ok(ScopedType::Type(types::Type::Integer)),
+                        Ok(&ReferenceType(types::Type::Integer)),
                     ),
                 ),
             ],
@@ -90,12 +93,12 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&strong, &MockNode(types::RefKind::Value, NodeId(0)), "foo"),
-            partial::Action::Infer(&Ok(ScopedType::Type(types::Type::Boolean)))
+            super::infer(&state, &MockNode(types::RefKind::Value, NodeId(0)), "foo"),
+            partial::Action::Infer(&Ok(&ReferenceType(types::Type::Boolean)))
         );
         assert_eq!(
-            super::infer(&strong, &MockNode(types::RefKind::Type, NodeId(0)), "bar"),
-            partial::Action::Infer(&Ok(ScopedType::Type(types::Type::Integer)))
+            super::infer(&state, &MockNode(types::RefKind::Type, NodeId(0)), "bar"),
+            partial::Action::Infer(&Ok(&ReferenceType(types::Type::Integer)))
         );
     }
 }

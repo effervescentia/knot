@@ -7,11 +7,44 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::data::{DeconstructedModule, NodeDescriptor, ScopedType};
+use crate::data::{DeconstructedModule, NodeDescriptor};
 use lang::{types, Fragment, FragmentMap, NodeId};
 use std::collections::HashMap;
 
-pub type Type<'a> = Option<ScopedType<'a>>;
+#[derive(Clone, Debug, PartialEq)]
+pub enum Type<'a> {
+    Infer,
+    Inherit(NodeId),
+    InheritKind(NodeId, types::RefKind),
+    Local(types::Type<NodeId>),
+    Remote(&'a types::ReferenceType<'a>),
+}
+
+impl<'a> Type<'a> {
+    pub fn inherit_from_type(id: NodeId) -> Self {
+        Self::InheritKind(id, types::RefKind::Type)
+    }
+
+    // pub fn resolve(
+    //     &self,
+    //     id: &NodeId,
+    //     allowed_kind: &types::RefKind,
+    // ) -> Option<std::result::Result<&types::ReferenceType, ()>> {
+    //     match self.get_type(id, allowed_kind) {
+    //         Some(Ok(ScopedType::Inherit(x))) => self.resolve_type(x, allowed_kind),
+
+    //         Some(Ok(ScopedType::InheritKind(x, from_kind))) => self.resolve_type(x, from_kind),
+
+    //         Some(Ok(ScopedType::Type(x))) => Some(Ok(&x)),
+
+    //         Some(Ok(ScopedType::External(x))) => unimplemented!(),
+
+    //         Some(Err(_)) => Some(Err(())),
+
+    //         None => None,
+    //     }
+    // }
+}
 
 pub type Ref<'a> = (types::RefKind, Type<'a>);
 

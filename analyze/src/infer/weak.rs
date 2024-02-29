@@ -31,10 +31,15 @@ pub fn infer_types<'a>(fragments: FragmentMap) -> Result<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::data::ScopedType;
     use kore::str;
-    use lang::{ast, types, Fragment, FragmentMap, NodeId, ScopeId};
+    use lang::{
+        ast,
+        types::{RefKind, Type},
+        Fragment, FragmentMap, NodeId, ScopeId,
+    };
     use std::collections::{BTreeSet, HashMap};
+
+    use crate::weak;
 
     #[test]
     fn infer_types() {
@@ -55,7 +60,7 @@ mod tests {
             result.refs,
             HashMap::from_iter(vec![(
                 NodeId(1),
-                (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(0))))
+                (RefKind::Type, weak::Type::Inherit(NodeId(0)))
             )])
         );
 
@@ -160,43 +165,16 @@ mod tests {
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
-                (
-                    NodeId(0),
-                    (
-                        types::RefKind::Value,
-                        Some(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (
-                    NodeId(1),
-                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(0))))
-                ),
-                (NodeId(2), (types::RefKind::Value, None)),
-                (
-                    NodeId(3),
-                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(2))))
-                ),
-                (NodeId(4), (types::RefKind::Value, None)),
-                (
-                    NodeId(5),
-                    (
-                        types::RefKind::Value,
-                        Some(ScopedType::Type(types::Type::Nil))
-                    )
-                ),
-                (NodeId(6), (types::RefKind::Value, None)),
-                (
-                    NodeId(7),
-                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(6))))
-                ),
-                (
-                    NodeId(8),
-                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(7))))
-                ),
-                (
-                    NodeId(9),
-                    (types::RefKind::Value, Some(ScopedType::Inherit(NodeId(8))))
-                ),
+                (NodeId(0), (RefKind::Value, weak::Type::Local(Type::Nil))),
+                (NodeId(1), (RefKind::Value, weak::Type::Inherit(NodeId(0)))),
+                (NodeId(2), (RefKind::Value, weak::Type::Infer)),
+                (NodeId(3), (RefKind::Value, weak::Type::Inherit(NodeId(2)))),
+                (NodeId(4), (RefKind::Value, weak::Type::Infer)),
+                (NodeId(5), (RefKind::Value, weak::Type::Local(Type::Nil))),
+                (NodeId(6), (RefKind::Value, weak::Type::Infer)),
+                (NodeId(7), (RefKind::Value, weak::Type::Inherit(NodeId(6)))),
+                (NodeId(8), (RefKind::Value, weak::Type::Inherit(NodeId(7)))),
+                (NodeId(9), (RefKind::Value, weak::Type::Inherit(NodeId(8)))),
             ])
         );
 
@@ -253,14 +231,8 @@ mod tests {
         assert_eq!(
             result.refs,
             HashMap::from_iter(vec![
-                (
-                    NodeId(1),
-                    (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(0))))
-                ),
-                (
-                    NodeId(3),
-                    (types::RefKind::Type, Some(ScopedType::Inherit(NodeId(2))))
-                ),
+                (NodeId(1), (RefKind::Type, weak::Type::Inherit(NodeId(0)))),
+                (NodeId(3), (RefKind::Type, weak::Type::Inherit(NodeId(2)))),
             ])
         );
 
