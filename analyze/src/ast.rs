@@ -1,13 +1,16 @@
 pub use lang::ast::*;
 
 pub mod typed {
+    use std::rc::Rc;
+
     use lang::{types, Node, Range};
 
+    #[derive(Clone, Debug, PartialEq)]
+    pub struct ReferenceType(pub types::Type<Rc<ReferenceType>>);
+
+    type Typed<Value> = Node<Value, ReferenceType>;
+
     #[derive(Debug, PartialEq)]
-    pub struct TypeRef<'a>(pub types::Type<&'a TypeRef<'a>>);
-
-    type Typed<'a, Value> = Node<Value, TypeRef<'a>>;
-
     pub struct Binding(pub Node<super::Binding, ()>);
 
     impl Binding {
@@ -16,36 +19,32 @@ pub mod typed {
         }
     }
 
-    pub struct Expression<'a>(
-        pub Typed<'a, super::Expression<Expression<'a>, Statement<'a>, Component<'a>>>,
+    #[derive(Debug, PartialEq)]
+    pub struct Expression(pub Typed<super::Expression<Expression, Statement, Component>>);
+
+    #[derive(Debug, PartialEq)]
+    pub struct Statement(pub Typed<super::Statement<Expression>>);
+
+    #[derive(Debug, PartialEq)]
+    pub struct Component(pub Typed<super::Component<Component, Expression>>);
+
+    #[derive(Debug, PartialEq)]
+    pub struct TypeExpression(pub Typed<super::TypeExpression<TypeExpression>>);
+
+    #[derive(Debug, PartialEq)]
+    pub struct Parameter(pub Typed<super::Parameter<Binding, Expression, TypeExpression>>);
+
+    #[derive(Debug, PartialEq)]
+    pub struct Declaration(
+        pub Typed<super::Declaration<Binding, Expression, TypeExpression, Parameter, Module>>,
     );
 
-    pub struct Statement<'a>(pub Typed<'a, super::Statement<Expression<'a>>>);
+    #[derive(Debug, PartialEq)]
+    pub struct Import(pub Typed<super::Import>);
 
-    pub struct Component<'a>(pub Typed<'a, super::Component<Component<'a>, Expression<'a>>>);
+    #[derive(Debug, PartialEq)]
+    pub struct Module(pub Typed<super::Module<Import, Declaration>>);
 
-    pub struct TypeExpression<'a>(pub Typed<'a, super::TypeExpression<TypeExpression<'a>>>);
-
-    pub struct Parameter<'a>(
-        pub Typed<'a, super::Parameter<Binding, Expression<'a>, TypeExpression<'a>>>,
-    );
-
-    pub struct Declaration<'a>(
-        pub  Typed<
-            'a,
-            super::Declaration<
-                Binding,
-                Expression<'a>,
-                TypeExpression<'a>,
-                Parameter<'a>,
-                Module<'a>,
-            >,
-        >,
-    );
-
-    pub struct Import<'a>(pub Typed<'a, super::Import>);
-
-    pub struct Module<'a>(pub Typed<'a, super::Module<Import<'a>, Declaration<'a>>>);
-
-    pub struct Program<'a>(pub Module<'a>);
+    #[derive(Debug, PartialEq)]
+    pub struct Program(pub Module);
 }

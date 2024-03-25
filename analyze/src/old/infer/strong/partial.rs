@@ -1,4 +1,4 @@
-use super::{binary_operation, function_call, identifier, inherit, module, property_access};
+// use super::{binary_operation, function_call, identifier, inherit, module, property_access};
 use crate::{
     ast,
     data::{AnalyzeContext, NodeDescriptor},
@@ -11,7 +11,7 @@ use lang::{Fragment, ModuleReference, NodeId};
 #[derive(Debug, PartialEq)]
 pub enum Action<'a> {
     Skip,
-    Infer(&'a strong::Type<'a>),
+    Infer(&'a strong::TypeResult<'a>),
     Inherit(&'a NodeId),
 }
 

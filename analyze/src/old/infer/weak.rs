@@ -4,25 +4,25 @@ use lang::FragmentMap;
 pub fn infer_types<'a>(fragments: FragmentMap) -> Result<'a> {
     let mut result = Result::new(fragments);
 
+    // iterate through the AST fragments
     result
         .module
         .fragments
         .0
         .iter()
-        .for_each(|(id, (scope, x))| {
-            result.refs.insert(*id, x.to_weak());
+        .for_each(|(id, (scope, fragment))| {
+            // capture the weak type of each fragment
+            result.refs.insert(*id, fragment.to_weak());
 
-            if let Ok(bindings) = x.to_binding() {
-                for name in bindings {
-                    let entry = result
-                        .module
-                        .bindings
-                        .0
-                        .entry((scope.clone(), name))
-                        .or_default();
-
-                    entry.insert(*id);
-                }
+            // register any bindings discovered
+            if let Some(name) = fragment.to_binding() {
+                result
+                    .module
+                    .bindings
+                    .0
+                    .entry((scope.clone(), name))
+                    .or_default()
+                    .insert(*id);
             }
         });
 
@@ -167,11 +167,29 @@ mod tests {
             HashMap::from_iter(vec![
                 (NodeId(0), (RefKind::Value, weak::Type::Local(Type::Nil))),
                 (NodeId(1), (RefKind::Value, weak::Type::Inherit(NodeId(0)))),
-                (NodeId(2), (RefKind::Value, weak::Type::Infer)),
+                (
+                    NodeId(2),
+                    (
+                        RefKind::Value,
+                        weak::Type::Infer(weak::Inference::Resolve(str!("FOO")))
+                    )
+                ),
                 (NodeId(3), (RefKind::Value, weak::Type::Inherit(NodeId(2)))),
-                (NodeId(4), (RefKind::Value, weak::Type::Infer)),
+                (
+                    NodeId(4),
+                    (
+                        RefKind::Value,
+                        weak::Type::Infer(weak::Inference::Resolve(str!("BAR")))
+                    )
+                ),
                 (NodeId(5), (RefKind::Value, weak::Type::Local(Type::Nil))),
-                (NodeId(6), (RefKind::Value, weak::Type::Infer)),
+                (
+                    NodeId(6),
+                    (
+                        RefKind::Value,
+                        weak::Type::Infer(weak::Inference::Resolve(str!("fizz")))
+                    )
+                ),
                 (NodeId(7), (RefKind::Value, weak::Type::Inherit(NodeId(6)))),
                 (NodeId(8), (RefKind::Value, weak::Type::Inherit(NodeId(7)))),
                 (NodeId(9), (RefKind::Value, weak::Type::Inherit(NodeId(8)))),

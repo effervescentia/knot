@@ -12,9 +12,9 @@ pub fn infer<'a>(state: &strong::State, lhs: &NodeId, arguments: &[NodeId]) -> p
         Some(Ok(ReferenceType(Type::Function(_, body)))) => partial::Action::Infer(&Ok(body)),
 
         Some(Ok(ReferenceType(Type::Enumerated(Enumerated::Variant(parameters, instance))))) => {
-            partial::Action::Infer(&Ok(&ReferenceType(Type::Enumerated(Enumerated::Instance(
-                *instance,
-            )))))
+            partial::Action::Infer(&Ok(strong::Type::Local(Type::Enumerated(
+                Enumerated::Instance(*instance),
+            ))))
         }
 
         Some(Ok(_)) => partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![]))),

@@ -2,9 +2,16 @@ use crate::{data::DeconstructedModule, error::ResolveError, strong};
 use lang::{types, NodeId};
 use std::collections::HashMap;
 
-pub type Type<'a> = std::result::Result<&'a types::ReferenceType<'a>, ResolveError>;
+#[derive(Clone, Debug, PartialEq)]
+pub enum Type<'a> {
+    Inherit(NodeId),
+    Local(types::Type<NodeId>),
+    Remote(&'a types::ReferenceType<'a>),
+}
 
-pub type Ref<'a> = (types::RefKind, Type<'a>);
+pub type TypeResult<'a> = std::result::Result<Type<'a>, ResolveError>;
+
+pub type Ref<'a> = (types::RefKind, TypeResult<'a>);
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct State<'a> {
@@ -21,25 +28,29 @@ impl<'a> State<'a> {
         }
     }
 
-    pub fn get_type(&self, id: &NodeId, allowed_kind: &types::RefKind) -> Option<&strong::Type> {
+    pub fn get_type(
+        &self,
+        id: &NodeId,
+        allowed_kind: &types::RefKind,
+    ) -> Option<&strong::TypeResult> {
         self.refs
             .get(id)
             .and_then(|(kind, strong)| allowed_kind.can_accept(kind).then_some(strong))
     }
 
-    pub fn resolve_type(
-        &self,
-        id: &NodeId,
-        allowed_kind: &types::RefKind,
-    ) -> Option<std::result::Result<&types::ReferenceType, ResolveError>> {
-        match self.get_type(id, allowed_kind) {
-            Some(Ok(x)) => Some(Ok(x)),
+    // pub fn resolve_type(
+    //     &self,
+    //     id: &NodeId,
+    //     allowed_kind: &types::RefKind,
+    // ) -> Option<std::result::Result<&types::ReferenceType, ResolveError>> {
+    //     match self.get_type(id, allowed_kind) {
+    //         Some(Ok(x)) => Some(Ok(x)),
 
-            Some(Err(_)) => Some(Err(ResolveError::NotInferrable(vec![*id]))),
+    //         Some(Err(_)) => Some(Err(ResolveError::NotInferrable(vec![*id]))),
 
-            None => None,
-        }
-    }
+    //         None => None,
+    //     }
+    // }
 
     // pub fn resolve_type(
     //     &self,

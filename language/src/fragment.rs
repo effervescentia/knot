@@ -14,31 +14,24 @@ pub enum Fragment {
 }
 
 impl Fragment {
-    pub fn to_binding(&self) -> Result<Vec<String>, ()> {
+    pub fn to_binding(&self) -> Option<String> {
         match self {
             Self::Statement(ast::Statement::Variable(binding, ..))
-            | Self::Parameter(ast::Parameter { binding, .. }) => Ok(vec![binding.clone()]),
+            | Self::Parameter(ast::Parameter { binding, .. }) => Some(binding.clone()),
 
-            Self::Declaration(x) => Ok(vec![x.binding().clone()]),
+            Self::Declaration(x) => Some(x.binding().clone()),
 
             Self::Import(ast::Import {
                 path, alias: None, ..
-            }) => Ok(vec![path.last().ok_or(())?.clone()]),
+            }) => path.last().cloned(),
 
             Self::Import(ast::Import {
                 alias: Some(alias), ..
-            }) => Ok(vec![alias.clone()]),
+            }) => Some(alias.clone()),
 
-            _ => Ok(vec![]),
+            _ => None,
         }
     }
 }
 
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct FragmentMap(pub BTreeMap<NodeId, (ScopeId, Fragment)>);
-
-impl FromIterator<(NodeId, (ScopeId, Fragment))> for FragmentMap {
-    fn from_iter<T: IntoIterator<Item = (NodeId, (ScopeId, Fragment))>>(iter: T) -> Self {
-        Self(BTreeMap::from_iter(iter))
-    }
-}
+pub type FragmentMap = BTreeMap<NodeId, (ScopeId, Fragment)>;

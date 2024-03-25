@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum RefKind {
+pub enum Kind {
     Type,
     Value,
     Mixed,
 }
 
-impl RefKind {
+impl Kind {
     pub fn can_accept(&self, other: &Self) -> bool {
         other == self || other == &Self::Mixed
     }
@@ -54,49 +54,49 @@ pub enum Type<T> {
     Enumerated(Enumerated<T>),
     Function(Vec<T>, T),
     View(Vec<T>),
-    Module(Vec<(String, RefKind, T)>),
+    Module(Vec<(String, Kind, T)>),
 }
 
-impl<T> Type<T> {
-    pub fn to_shallow(&self) -> ShallowType {
-        ShallowType(match self {
-            Self::Nil => Type::Nil,
-            Self::Boolean => Type::Boolean,
-            Self::Integer => Type::Integer,
-            Self::Float => Type::Float,
-            Self::String => Type::String,
-            Self::Style => Type::Style,
-            Self::Element => Type::Element,
+// impl<T> Type<T> {
+//     pub fn to_shallow(&self) -> ShallowType {
+//         ShallowType(match self {
+//             Self::Nil => Type::Nil,
+//             Self::Boolean => Type::Boolean,
+//             Self::Integer => Type::Integer,
+//             Self::Float => Type::Float,
+//             Self::String => Type::String,
+//             Self::Style => Type::Style,
+//             Self::Element => Type::Element,
 
-            Self::Enumerated(x) => Type::Enumerated(x.to_shape()),
+//             Self::Enumerated(x) => Type::Enumerated(x.to_shape()),
 
-            Self::Function(parameters, _) => {
-                Type::Function(parameters.iter().map(|_| ()).collect(), ())
-            }
+//             Self::Function(parameters, _) => {
+//                 Type::Function(parameters.iter().map(|_| ()).collect(), ())
+//             }
 
-            Self::View(parameters) => Type::View(parameters.iter().map(|_| ()).collect()),
+//             Self::View(parameters) => Type::View(parameters.iter().map(|_| ()).collect()),
 
-            Self::Module(entries) => Type::Module(
-                entries
-                    .iter()
-                    .map(|(name, kind, _)| (name.clone(), *kind, ()))
-                    .collect(),
-            ),
-        })
-    }
-}
+//             Self::Module(entries) => Type::Module(
+//                 entries
+//                     .iter()
+//                     .map(|(name, kind, _)| (name.clone(), *kind, ()))
+//                     .collect(),
+//             ),
+//         })
+//     }
+// }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct ShallowType(pub Type<()>);
+// #[derive(Clone, Debug, PartialEq)]
+// pub struct ShallowType(pub Type<()>);
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct ReferenceType<'a>(pub Type<&'a ReferenceType<'a>>);
+// #[derive(Clone, Debug, PartialEq)]
+// pub struct ReferenceType<'a>(pub Type<&'a ReferenceType<'a>>);
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct ConcreteType(pub Type<Box<ConcreteType>>);
+// #[derive(Clone, Debug, PartialEq)]
+// pub struct ConcreteType(pub Type<Box<ConcreteType>>);
 
-impl ConcreteType {
-    pub fn to_shallow(&self) -> ShallowType {
-        self.0.to_shallow()
-    }
-}
+// impl ConcreteType {
+//     pub fn to_shallow(&self) -> ShallowType {
+//         self.0.to_shallow()
+//     }
+// }

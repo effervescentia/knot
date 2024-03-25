@@ -22,13 +22,13 @@ pub fn infer<'a>(
             state.resolve_type(rhs, &VALUE_KIND),
         ) {
             (Some(Ok(ReferenceType(Type::Integer))), Some(Ok(ReferenceType(Type::Integer)))) => {
-                partial::Action::Infer(&Ok(&ReferenceType(Type::Integer)))
+                partial::Action::Infer(&Ok(strong::Type::Local(Type::Integer)))
             }
 
             (
                 Some(Ok(ReferenceType(Type::Integer | Type::Float))),
                 Some(Ok(ReferenceType(Type::Integer | Type::Float))),
-            ) => partial::Action::Infer(&Ok(&ReferenceType(Type::Float))),
+            ) => partial::Action::Infer(&Ok(strong::Type::Local(Type::Float))),
 
             (Some(Err(_)), Some(Err(_))) => {
                 partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![*lhs, *rhs])))

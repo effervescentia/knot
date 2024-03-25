@@ -1,8 +1,8 @@
 use super::walk;
 use crate::{Fragment, FragmentMap, NodeId, Range, ScopeId};
 
-pub trait Explode {
-    fn explode(self) -> FragmentMap;
+pub trait IntoFragments {
+    fn into_fragments(self) -> FragmentMap;
 }
 
 #[derive(Default)]
@@ -55,7 +55,7 @@ impl Visitor {
     pub fn capture(mut self, fragment: Fragment) -> (NodeId, Self) {
         let node_id = NodeId(self.next_node_id());
         let scope_id = self.scope_id.clone();
-        self.state.fragments.0.insert(node_id, (scope_id, fragment));
+        self.state.fragments.insert(node_id, (scope_id, fragment));
         (node_id, self)
     }
 
@@ -148,7 +148,7 @@ mod tests {
     use crate::{
         ast::{
             self,
-            explode::{Explode, FragmentMap, ScopeId},
+            into_fragments::{FragmentMap, IntoFragments, ScopeId},
         },
         test::{fixture, mock},
         NodeId,
@@ -163,7 +163,7 @@ mod tests {
         ));
 
         assert_eq!(
-            program.explode(),
+            program.into_fragments(),
             FragmentMap::from_iter(
                 [
                     fixture::import::fragments(0, &(vec![0], 0)),

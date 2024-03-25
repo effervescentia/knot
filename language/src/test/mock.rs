@@ -1,17 +1,24 @@
 use crate::{
     ast::{
-        self, explode,
+        self, into_fragments,
         walk::{self, Visit, Walk},
     },
-    FragmentMap, Range,
+    FragmentMap, Node, Range,
 };
 
 impl<Value> walk::Span<Value> {
-    fn mock(x: Value) -> Self {
+    pub fn mock(x: Value) -> Self {
         Self(x, Range::nil())
     }
 }
 
+impl<Value, Meta> Node<Value, Meta> {
+    pub fn mock(v: Value, m: Meta) -> Self {
+        Self(v, Range::nil(), m)
+    }
+}
+
+#[derive(Clone)]
 pub struct Binding(pub walk::Span<ast::Binding>);
 
 impl Binding {
@@ -31,6 +38,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct Expression(pub walk::Span<ast::Expression<Expression, Statement, Component>>);
 
 impl Expression {
@@ -50,6 +58,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct Statement(pub walk::Span<ast::Statement<Expression>>);
 
 impl Statement {
@@ -69,6 +78,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct Component(pub walk::Span<ast::Component<Component, Expression>>);
 
 impl Component {
@@ -88,6 +98,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct TypeExpression(pub walk::Span<ast::TypeExpression<TypeExpression>>);
 
 impl TypeExpression {
@@ -107,6 +118,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct Parameter(pub walk::Span<ast::Parameter<Binding, Expression, TypeExpression>>);
 
 impl Parameter {
@@ -126,6 +138,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct Declaration(
     pub walk::Span<ast::Declaration<Binding, Expression, TypeExpression, Parameter, Module>>,
 );
@@ -149,6 +162,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct Import(pub walk::Span<ast::Import>);
 
 impl Import {
@@ -168,6 +182,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct Module(pub walk::Span<ast::Module<Import, Declaration>>);
 
 impl Module {
@@ -187,8 +202,8 @@ where
     }
 }
 
-impl explode::Explode for Module {
-    fn explode(self) -> FragmentMap {
-        self.walk(explode::Visitor::default()).1.fragments()
+impl into_fragments::IntoFragments for Module {
+    fn into_fragments(self) -> FragmentMap {
+        self.walk(into_fragments::Visitor::default()).1.fragments()
     }
 }

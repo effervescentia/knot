@@ -5,6 +5,39 @@ use lang::{
     NodeId,
 };
 
+fn infer_module<'a, Node>(
+    declarations: &Vec<(String, lang::types::RefKind, &ReferenceType)>,
+    property: &str,
+    node: &Node,
+) -> partial::Action<'a>
+where
+    Node: NodeKind,
+{
+    match declarations.iter().find(|(name, ..)| name == property) {
+        Some((_, declaration_kind, declaration_type))
+            if node.kind().can_accept(declaration_kind) =>
+        {
+            partial::Action::Infer(&Ok(declaration_type))
+        }
+
+        Some(_) | None => partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![]))),
+    }
+}
+
+fn infer_enumerated<'a>(
+    variants: &Vec<(String, Vec<&ReferenceType>)>,
+    property: &str,
+    x: &ReferenceType,
+) -> partial::Action<'a> {
+    match variants.iter().find(|(name, _)| name == property) {
+        Some((_, parameters)) => partial::Action::Infer(&Ok(&ReferenceType(Type::Enumerated(
+            Enumerated::Variant(parameters.clone(), x),
+        )))),
+
+        None => partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![]))),
+    }
+}
+
 pub fn infer<'a, Node>(
     state: &strong::State,
     node: &Node,
@@ -16,25 +49,11 @@ where
 {
     match state.resolve_type(lhs, node.kind()) {
         Some(Ok(ReferenceType(x @ Type::Module(declarations)))) => {
-            match declarations.iter().find(|(name, ..)| name == property) {
-                Some((_, declaration_kind, declaration_type))
-                    if node.kind().can_accept(declaration_kind) =>
-                {
-                    partial::Action::Infer(&Ok(declaration_type))
-                }
-
-                Some(_) | None => partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![]))),
-            }
+            infer_module(declarations, property, node)
         }
 
         Some(Ok(x @ ReferenceType(Type::Enumerated(Enumerated::Declaration(variants))))) => {
-            match variants.iter().find(|(name, _)| name == property) {
-                Some((_, parameters)) => partial::Action::Infer(&Ok(&ReferenceType(
-                    Type::Enumerated(Enumerated::Variant(parameters.clone(), x)),
-                ))),
-
-                None => partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![]))),
-            }
+            infer_enumerated(variants, property, x)
         }
 
         Some(_) => partial::Action::Infer(&Err(ResolveError::NotInferrable(vec![*lhs]))),

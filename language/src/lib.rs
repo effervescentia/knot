@@ -5,8 +5,8 @@ mod fragment;
 mod interface;
 mod node;
 mod range;
-#[cfg(test)]
-mod test;
+#[cfg(feature = "test")]
+pub mod test;
 pub mod types;
 
 pub use fragment::{Fragment, FragmentMap};

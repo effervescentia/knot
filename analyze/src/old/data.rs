@@ -1,4 +1,4 @@
-use crate::{strong, weak};
+// use crate::{strong, weak};
 use lang::{types, Fragment, FragmentMap, ModuleReference, NodeId, ScopeId};
 use std::collections::{BTreeSet, HashMap};
 
@@ -25,11 +25,11 @@ pub trait NodeKind {
 //     }
 // }
 
-pub struct AnalyzeContext<'a> {
-    pub module_reference: &'a ModuleReference,
+// pub struct AnalyzeContext<'a> {
+//     pub module_reference: &'a ModuleReference,
 
-    pub modules: &'a HashMap<ModuleReference, strong::Type<'a>>,
-}
+//     pub modules: &'a HashMap<ModuleReference, strong::Type<'a>>,
+// }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeconstructedModule {
@@ -78,7 +78,7 @@ impl BindingMap {
         Target: ResolveTarget,
     {
         let scope = target.scope();
-        let source_ids = self.0.get(&(*scope, name.to_owned()));
+        let source_ids = self.0.get(&(scope.clone(), name.to_owned()));
 
         if let Some(xs) = source_ids {
             for x in xs.iter().rev() {
@@ -99,14 +99,14 @@ impl BindingMap {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct NodeDescriptor<'a> {
-    pub id: NodeId,
-    pub kind: types::RefKind,
-    pub scope: ScopeId,
-    pub fragment: Fragment,
-    pub weak: weak::Type<'a>,
-}
+// #[derive(Clone, Debug, PartialEq)]
+// pub struct NodeDescriptor<'a> {
+//     pub id: NodeId,
+//     pub kind: types::RefKind,
+//     pub scope: ScopeId,
+//     pub fragment: Fragment,
+//     pub weak: weak::Type<'a>,
+// }
 
 // impl<'a> NodeDescriptor<'a> {
 //     pub fn as_inherit_from(self, from_id: NodeId) -> Self {
@@ -117,21 +117,21 @@ pub struct NodeDescriptor<'a> {
 //     }
 // }
 
-impl<'a> ResolveTarget for NodeDescriptor<'a> {
-    fn id(&self) -> &NodeId {
-        &self.id
-    }
+// impl<'a> ResolveTarget for NodeDescriptor<'a> {
+//     fn id(&self) -> &NodeId {
+//         &self.id
+//     }
 
-    fn scope(&self) -> &ScopeId {
-        &self.scope
-    }
-}
+//     fn scope(&self) -> &ScopeId {
+//         &self.scope
+//     }
+// }
 
-impl<'a> NodeKind for NodeDescriptor<'a> {
-    fn kind(&self) -> &types::RefKind {
-        &self.kind
-    }
-}
+// impl<'a> NodeKind for NodeDescriptor<'a> {
+//     fn kind(&self) -> &types::RefKind {
+//         &self.kind
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -181,7 +181,8 @@ mod tests {
                 BTreeSet::from_iter(vec![NodeId(2)]),
             ),
         ]);
-        let target = NodeTarget(&NodeId(3), &ScopeId(vec![0, 1, 2]));
+        let scope = ScopeId(vec![0, 1, 2]);
+        let target = NodeTarget(&NodeId(3), &scope);
 
         assert_eq!(bindings.resolve(&target, "foo",), Some(NodeId(0)));
         assert_eq!(bindings.resolve(&target, "bar",), Some(NodeId(1)));

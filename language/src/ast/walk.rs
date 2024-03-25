@@ -1,5 +1,6 @@
 use crate::Range;
 
+#[derive(Clone)]
 pub struct Span<Value>(pub Value, pub Range);
 
 pub trait IntoSpan<Value> {

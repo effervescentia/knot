@@ -18,9 +18,12 @@ impl super::ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
                 }),
             ),
 
-            Self::Identifier(..) => (RefKind::Value, super::Type::Infer),
+            Self::Identifier(x) => (
+                RefKind::Value,
+                super::Type::Infer(super::Inference::Resolve(x.clone())),
+            ),
 
-            Self::Group(id) => (RefKind::Value, super::Type::Inherit(**id)),
+            Self::Group(x) => (RefKind::Value, super::Type::Inherit(**x)),
 
             Self::Closure(xs) => (RefKind::Value, {
                 match xs.last() {
@@ -38,7 +41,7 @@ impl super::ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
                 },
             ),
 
-            Self::BinaryOperation(op, ..) => (
+            Self::BinaryOperation(op, lhs, rhs) => (
                 RefKind::Value,
                 match op {
                     ast::BinaryOperator::Equal
@@ -56,13 +59,21 @@ impl super::ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
 
                     ast::BinaryOperator::Add
                     | ast::BinaryOperator::Subtract
-                    | ast::BinaryOperator::Multiply => super::Type::Infer,
+                    | ast::BinaryOperator::Multiply => {
+                        super::Type::Infer(super::Inference::Arithmetic(**lhs, **rhs))
+                    }
                 },
             ),
 
-            Self::PropertyAccess(..) => (RefKind::Value, super::Type::Infer),
+            Self::PropertyAccess(x, property) => (
+                RefKind::Value,
+                super::Type::Infer(super::Inference::Property(**x, property.clone())),
+            ),
 
-            Self::FunctionCall(..) => (RefKind::Value, super::Type::Infer),
+            Self::FunctionCall(x, ..) => (
+                RefKind::Value,
+                super::Type::Infer(super::Inference::FunctionResult(**x)),
+            ),
 
             Self::Style(..) => (RefKind::Value, super::Type::Local(Type::Style)),
 
@@ -111,7 +122,10 @@ mod tests {
     fn identifier() {
         assert_eq!(
             ast::Expression::Identifier(str!("foo")).to_weak(),
-            (RefKind::Value, weak::Type::Infer)
+            (
+                RefKind::Value,
+                weak::Type::Infer(weak::Inference::Resolve(str!("foo")))
+            )
         );
     }
 
@@ -304,7 +318,10 @@ mod tests {
                 Box::new(NodeId(1))
             )
             .to_weak(),
-            (RefKind::Value, weak::Type::Infer)
+            (
+                RefKind::Value,
+                weak::Type::Infer(weak::Inference::Arithmetic(NodeId(0), NodeId(1)))
+            )
         );
     }
 
@@ -317,7 +334,10 @@ mod tests {
                 Box::new(NodeId(1))
             )
             .to_weak(),
-            (RefKind::Value, weak::Type::Infer)
+            (
+                RefKind::Value,
+                weak::Type::Infer(weak::Inference::Arithmetic(NodeId(0), NodeId(1)))
+            )
         );
     }
 
@@ -330,7 +350,10 @@ mod tests {
                 Box::new(NodeId(1))
             )
             .to_weak(),
-            (RefKind::Value, weak::Type::Infer)
+            (
+                RefKind::Value,
+                weak::Type::Infer(weak::Inference::Arithmetic(NodeId(0), NodeId(1)))
+            )
         );
     }
 
@@ -338,7 +361,10 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             ast::Expression::PropertyAccess(Box::new(NodeId(0)), str!("foo")).to_weak(),
-            (RefKind::Value, weak::Type::Infer)
+            (
+                RefKind::Value,
+                weak::Type::Infer(weak::Inference::Property(NodeId(0), str!("foo")))
+            )
         );
     }
 
@@ -346,7 +372,10 @@ mod tests {
     fn function_call() {
         assert_eq!(
             ast::Expression::FunctionCall(Box::new(NodeId(0)), vec![NodeId(1)]).to_weak(),
-            (RefKind::Value, weak::Type::Infer)
+            (
+                RefKind::Value,
+                weak::Type::Infer(weak::Inference::FunctionResult(NodeId(0)))
+            )
         );
     }
 

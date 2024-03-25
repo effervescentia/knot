@@ -1,7 +1,7 @@
 mod component;
 mod declaration;
-pub mod explode;
 mod expression;
+pub mod into_fragments;
 mod module;
 mod operator;
 pub mod shape;

@@ -21,7 +21,11 @@ impl super::ToWeak for ast::TypeExpression<NodeId> {
 
                 Self::Group(id) => super::Type::Inherit(**id),
 
-                Self::Identifier(..) | Self::PropertyAccess(..) => super::Type::Infer,
+                Self::Identifier(x) => super::Type::Infer(super::Inference::Resolve(x.clone())),
+
+                Self::PropertyAccess(x, property) => {
+                    super::Type::Infer(super::Inference::Property(**x, property.clone()))
+                }
 
                 Self::Function(params, x) => {
                     super::Type::Local(Type::Function(params.clone(), **x))
@@ -79,7 +83,10 @@ mod tests {
     fn identifier() {
         assert_eq!(
             ast::TypeExpression::Identifier(str!("foo")).to_weak(),
-            (RefKind::Type, weak::Type::Infer)
+            (
+                RefKind::Type,
+                weak::Type::Infer(weak::Inference::Resolve(str!("foo")))
+            )
         );
     }
 
@@ -95,7 +102,10 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             ast::TypeExpression::PropertyAccess(Box::new(NodeId(0)), str!("foo")).to_weak(),
-            (RefKind::Type, weak::Type::Infer)
+            (
+                RefKind::Type,
+                weak::Type::Infer(weak::Inference::Property(NodeId(0), str!("foo")))
+            )
         );
     }
 

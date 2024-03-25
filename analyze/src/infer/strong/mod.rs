@@ -1,137 +1,135 @@
-mod binary_operation;
-mod function_call;
-mod identifier;
+mod arithmetic;
+mod data;
+mod function_result;
 mod inherit;
 mod module;
-mod partial;
-mod property_access;
+mod property;
+mod reference;
+mod state;
 
-use crate::{data::AnalyzeContext, strong, weak};
-// use kore::invariant;
-// use lang::{types, Fragment, NodeId, ScopeId};
+use super::{
+    weak::{self, Inference},
+    NodeDescriptor,
+};
+use crate::Context;
+use data::{Action, Data};
+pub use data::{Output, Result};
+use kore::invariant;
+use state::State;
 
-// pub struct Visitor<'a> {
-//     next_id: usize,
-//     strong: &'a StrongResult<'a>,
-// }
+pub fn infer_types(ctx: &Context, weak: weak::Result) -> Result {
+    let mut state = State::from_weak(weak);
 
-// impl<'a> Visitor<'a> {
-//     fn next_id(&mut self) -> usize {
-//         let id = self.next_id;
-//         self.next_id += 1;
-//         id
-//     }
-
-//     pub fn next_type(&mut self) -> TypeRef<'a> {
-//         let id = self.next_id();
-//         self.strong
-//             .refs
-//             .get(&NodeId(id))
-//             .unwrap_or_else(|| invariant!("unable to find type reference"))
-//     }
-// }
-
-// impl<'a> walk::Visit for Visitor<'a> {
-//     type Binding = ast::typed::Binding;
-
-//     type Expression = ast::typed::Expression<'a>;
-
-//     type Statement = ast::typed::Statement<'a>;
-
-//     type Component = ast::typed::Component<'a>;
-
-//     type TypeExpression = ast::typed::TypeExpression<'a>;
-
-//     type Parameter = ast::typed::Parameter<'a>;
-
-//     type Declaration = ast::typed::Declaration<'a>;
-
-//     type Import = ast::typed::Import<'a>;
-
-//     type Module = ast::typed::Module<'a>;
-
-//     fn binding(self, x: ast::Binding, r: lang::Range) -> (Self::Binding, Self) {
-//         todo!()
-//     }
-
-//     fn expression(
-//         self,
-//         x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
-//         r: lang::Range,
-//     ) -> (Self::Expression, Self) {
-//         todo!()
-//     }
-
-//     fn statement(
-//         self,
-//         x: ast::Statement<Self::Expression>,
-//         r: lang::Range,
-//     ) -> (Self::Statement, Self) {
-//         todo!()
-//     }
-
-//     fn component(
-//         self,
-//         x: ast::Component<Self::Component, Self::Expression>,
-//         r: lang::Range,
-//     ) -> (Self::Component, Self) {
-//         todo!()
-//     }
-
-//     fn type_expression(
-//         self,
-//         x: ast::TypeExpression<Self::TypeExpression>,
-//         r: lang::Range,
-//     ) -> (Self::TypeExpression, Self) {
-//         todo!()
-//     }
-
-//     fn parameter(
-//         self,
-//         x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-//         r: lang::Range,
-//     ) -> (Self::Parameter, Self) {
-//         todo!()
-//     }
-
-//     fn declaration(
-//         self,
-//         x: ast::Declaration<
-//             Self::Binding,
-//             Self::Expression,
-//             Self::TypeExpression,
-//             Self::Parameter,
-//             Self::Module,
-//         >,
-//         r: lang::Range,
-//     ) -> (Self::Declaration, Self) {
-//         todo!()
-//     }
-
-//     fn import(self, x: ast::Import, r: lang::Range) -> (Self::Import, Self) {
-//         todo!()
-//     }
-
-//     fn module(
-//         self,
-//         x: ast::Module<Self::Import, Self::Declaration>,
-//         r: lang::Range,
-//     ) -> (Self::Module, Self) {
-//         todo!()
-//     }
-// }
-
-// pub trait ToStrong<R> {
-//     fn to_strong(&self, ctx: &StrongResult) -> R;
-// }
-
-pub fn infer_types<'a>(ctx: &AnalyzeContext, weak: weak::Result) -> strong::State<'a> {
-    let mut partial = partial::Result::new(weak.to_descriptors());
-    let mut state = strong::State::new(weak.module);
-
-    while !partial.is_done() {
-        (partial, state) = partial::infer_types(ctx, partial, state);
+    while !state.is_done() {
+        state = partial_infer_types(ctx, state);
     }
 
-    state
+    state.into_result()
+}
+
+fn partial_infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
+    let (remaining, mut next) = State::next(prev);
+    let remaining_count = remaining.len();
+
+    for node in remaining {
+        let action = match &node {
+            // capture local types known during this pass
+            NodeDescriptor {
+                weak: weak::Data::Local(local),
+                ..
+            } => Action::Infer(Data::Local(local.clone())),
+
+            // capture inherited types
+            NodeDescriptor {
+                kind,
+                weak: weak::Data::Inherit(from_id),
+                ..
+            } => inherit::inherit(&next, *from_id, kind),
+
+            // capture inherited types of a particular source kind
+            // used to infer a value's type from a type expression
+            NodeDescriptor {
+                weak: weak::Data::InheritKind(from_id, from_kind),
+                ..
+            } => inherit::inherit(&next, *from_id, from_kind),
+
+            // capture the type referenced by an identifier
+            NodeDescriptor {
+                weak: weak::Data::Infer(Inference::Reference(name)),
+                ..
+            } => reference::infer(&next, name, &node),
+
+            // capture the type of dynamic binary operations
+            NodeDescriptor {
+                weak: weak::Data::Infer(weak::Inference::Arithmetic(lhs, rhs)),
+                ..
+            } => arithmetic::infer(&next, *lhs, *rhs),
+
+            // capture the type of a property by name
+            NodeDescriptor {
+                kind,
+                weak: weak::Data::Infer(weak::Inference::Property(lhs, property)),
+                ..
+            } => property::infer(&next, lhs, property, kind),
+
+            // capture the result of calling a function
+            NodeDescriptor {
+                kind,
+                weak: weak::Data::Infer(Inference::FunctionResult(x)),
+                ..
+            } => function_result::infer(&next, *x, kind),
+
+            // capture the result of a module declaration
+            NodeDescriptor {
+                weak: weak::Data::Infer(Inference::Module(declarations)),
+                ..
+            } => module::infer(&next, declarations),
+
+            // capture a type imported from another file
+            NodeDescriptor {
+                weak: weak::Data::Infer(Inference::Import(import)),
+                ..
+            } => {
+                unimplemented!("import inference not implemented")
+                // let current_path = ctx.namespace.to_path("kn");
+                // let import_reference = ModuleReference::from_import(current_path, &import);
+                // let module = ctx.modules.get(&import_reference);
+
+                // module.map(Action::Infer).unwrap_or_else(|| {
+                //     invariant!(
+                //         "module could not be found with reference {}",
+                //         import_reference.to_path("kn").display()
+                //     )
+                // })
+            }
+
+            NodeDescriptor {
+                weak: weak::Data::Infer(Inference::Parameter),
+                ..
+            } => unimplemented!("parameter inference not implemented"),
+        };
+
+        match action {
+            Action::Infer(x) => {
+                next.types.insert(node.id, (node.kind, Ok(x)));
+            }
+
+            Action::Raise(x) => {
+                next.types.insert(node.id, (node.kind, Err(x)));
+            }
+
+            Action::Inherit(from_id) => next.nodes.push(node.into_inherit_from(from_id)),
+
+            Action::Skip => next.nodes.push(node),
+        }
+    }
+
+    if next.nodes.len() == remaining_count {
+        invariant!(
+            "analysis failed to determine all types: {nodes:?}",
+            nodes = next.nodes
+        );
+    }
+
+    next
 }

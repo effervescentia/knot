@@ -16,7 +16,7 @@ impl super::ToWeak for ast::Parameter<String, NodeId, NodeId> {
                     ..
                 } => super::Type::Inherit(*x),
 
-                Self { .. } => super::Type::Infer,
+                Self { .. } => super::Type::Infer(super::Inference::Parameter),
             },
         )
     }
@@ -35,7 +35,10 @@ mod tests {
     fn unknown_parameter() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), None, None).to_weak(),
-            (RefKind::Value, weak::Type::Infer)
+            (
+                RefKind::Value,
+                weak::Type::Infer(weak::Inference::Parameter)
+            )
         );
     }
 

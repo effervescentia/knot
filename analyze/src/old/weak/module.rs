@@ -3,7 +3,10 @@ use lang::{types::RefKind, NodeId};
 
 impl super::ToWeak for ast::Module<NodeId, NodeId> {
     fn to_weak(&self) -> super::Ref {
-        (RefKind::Mixed, super::Type::Infer)
+        (
+            RefKind::Mixed,
+            super::Type::Infer(super::Inference::Module(self.declarations.clone())),
+        )
     }
 }
 

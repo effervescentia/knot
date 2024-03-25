@@ -7,13 +7,27 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::data::{DeconstructedModule, NodeDescriptor};
+use crate::{
+    ast,
+    data::{DeconstructedModule, NodeDescriptor},
+};
 use lang::{types, Fragment, FragmentMap, NodeId};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq)]
+pub enum Inference<'a> {
+    Resolve(String),
+    Property(NodeId, String),
+    Arithmetic(NodeId, NodeId),
+    FunctionResult(NodeId),
+    Import(&'a ast::Import),
+    Module(Vec<NodeId>),
+    Parameter,
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum Type<'a> {
-    Infer,
+    Infer(Inference<'a>),
     Inherit(NodeId),
     InheritKind(NodeId, types::RefKind),
     Local(types::Type<NodeId>),
@@ -82,7 +96,7 @@ impl<'a> Result<'a> {
         }
     }
 
-    pub fn to_descriptors(&self) -> Vec<NodeDescriptor> {
+    pub fn to_descriptors(&mut self) -> Vec<NodeDescriptor> {
         self.module
             .fragments
             .0

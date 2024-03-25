@@ -17,16 +17,16 @@ where
             Self::TypeAlias { storage, value } => {
                 write!(
                     f,
-                    "{binding} = {value};",
-                    binding = Storage("type", storage)
+                    "{storage} = {value};",
+                    storage = Storage("type", storage)
                 )
             }
 
             Self::Enumerated { storage, variants } => {
                 write!(
                     f,
-                    "{binding} ={variants};",
-                    binding = Storage("enum", storage),
+                    "{storage} ={variants};",
+                    storage = Storage("enum", storage),
                     variants = Variants(variants)
                 )
             }
@@ -38,8 +38,8 @@ where
             } => {
                 write!(
                     f,
-                    "{binding}{typedef} = {value};",
-                    binding = Storage("const", storage),
+                    "{storage}{typedef} = {value};",
+                    storage = Storage("const", storage),
                     typedef = Typedef(value_type)
                 )
             }
@@ -52,9 +52,9 @@ where
             } => {
                 write!(
                     f,
-                    "{binding}{parameters}{typedef} -> {body};",
+                    "{storage}{parameters}{typedef} -> {body};",
                     parameters = Parameters(parameters),
-                    binding = Storage("func", storage),
+                    storage = Storage("func", storage),
                     typedef = Typedef(body_type)
                 )
             }
@@ -66,8 +66,8 @@ where
             } => {
                 write!(
                     f,
-                    "{binding}{parameters} -> {body};",
-                    binding = Storage("view", storage),
+                    "{storage}{parameters} -> {body};",
+                    storage = Storage("view", storage),
                     parameters = Parameters(parameters)
                 )
             }
@@ -75,8 +75,8 @@ where
             Self::Module { storage, value } => {
                 write!(
                     f,
-                    "{binding} {{{module}}}",
-                    binding = Storage("module", storage),
+                    "{storage} {{{module}}}",
+                    storage = Storage("module", storage),
                     module = Indented(Block(value))
                 )
             }
