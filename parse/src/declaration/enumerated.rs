@@ -1,13 +1,13 @@
 use super::storage;
-use crate::{matcher as m, types::type_expression, Position, Range};
+use crate::{ast, matcher as m, types::type_expression};
 use combine::{attempt, choice, optional, sep_end_by, sep_end_by1, Parser, Stream};
 use kore::invariant;
-use lang::ast::{AstNode, Declaration, DeclarationNode, TypeExpressionNode};
+use lang::Range;
 
-fn variant<T>() -> impl Parser<T, Output = (String, Vec<TypeExpressionNode<Range, ()>>, Range)>
+fn variant<T>() -> impl Parser<T, Output = (String, Vec<ast::raw::TypeExpression>, Range)>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     choice((
         attempt((
@@ -23,17 +23,17 @@ where
     ))
 }
 
-pub fn enumerated<T>() -> impl Parser<T, Output = DeclarationNode<Range, ()>>
+pub fn enumerated<T>() -> impl Parser<T, Output = ast::raw::Declaration>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     m::terminated((
         storage::storage("enum"),
         m::symbol('='),
         optional(m::symbol('|')).with(sep_end_by1::<Vec<_>, _, _, _>(variant(), m::symbol('|'))),
     ))
-    .map(|((name, start), _, variants)| {
+    .map(|((storage, start), _, variants)| {
         let end = &variants
             .last()
             .unwrap_or_else(|| {
@@ -42,14 +42,14 @@ where
             .2;
         let range = &start + end;
 
-        DeclarationNode::raw(
-            Declaration::Enumerated {
-                name,
-                variants: variants
+        ast::raw::Declaration::new(
+            ast::Declaration::enumerated(
+                storage,
+                variants
                     .into_iter()
                     .map(|(name, parameters, _)| (name, parameters))
                     .collect(),
-            },
+            ),
             range,
         )
     })

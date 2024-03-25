@@ -1,25 +1,24 @@
-use crate::{matcher as m, Position, Range};
+use crate::{ast, matcher as m};
 use combine::{choice, Parser, Stream};
-use lang::ast::{AstNode, ExpressionNode, Statement, StatementNode};
 
-fn expression<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<Range, ()>>
+fn expression<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Statement>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::Expression>,
 {
     m::terminated(parser).map(|inner| {
-        let range = *inner.node().range();
+        let range = *inner.0.range();
 
-        StatementNode::raw(Statement::Expression(inner), range)
+        ast::raw::Statement::new(ast::Statement::Expression(inner), range)
     })
 }
 
-fn variable<T, P>(parser: P) -> impl Parser<T, Output = StatementNode<Range, ()>>
+fn variable<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Statement>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::Expression>,
 {
     m::terminated((
         m::keyword("let"),
@@ -28,18 +27,18 @@ where
         parser,
     ))
     .map(|((_, start), (name, _), _, value)| {
-        let end = value.node().range();
+        let end = value.0.range();
         let range = &start + end;
 
-        StatementNode::raw(Statement::Variable(name, value), range)
+        ast::raw::Statement::new(ast::Statement::Variable(name, value), range)
     })
 }
 
-pub fn statement<T, P, F>(parser: F) -> impl Parser<T, Output = StatementNode<Range, ()>>
+pub fn statement<T, P, F>(parser: F) -> impl Parser<T, Output = ast::raw::Statement>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = ExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::Expression>,
     F: Fn() -> P,
 {
     choice((variable(parser()), expression(parser())))
@@ -47,12 +46,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{expression, test::fixture as f, Range};
+    use crate::{ast, expression};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::str;
-    use lang::ast::{Expression, Primitive, Statement, StatementNode};
+    use lang::Range;
 
-    fn parse(s: &str) -> crate::Result<StatementNode<Range, ()>> {
+    fn parse(s: &str) -> crate::Result<ast::raw::Statement> {
         super::statement(expression::expression)
             .skip(eof())
             .easy_parse(Stream::new(s))
@@ -62,12 +61,12 @@ mod tests {
     fn expression() {
         assert_eq!(
             parse("nil;").unwrap().0,
-            f::n::sr(
-                Statement::Expression(f::n::xr(
-                    Expression::Primitive(Primitive::Nil),
-                    ((1, 1), (1, 3))
+            ast::raw::Statement::new(
+                ast::Statement::Expression(ast::raw::Expression::new(
+                    ast::Expression::Primitive(ast::Primitive::Nil),
+                    Range::new((1, 1), (1, 3))
                 )),
-                ((1, 1), (1, 3))
+                Range::new((1, 1), (1, 3))
             )
         );
     }
@@ -76,12 +75,15 @@ mod tests {
     fn variable() {
         assert_eq!(
             parse("let foo = nil;").unwrap().0,
-            f::n::sr(
-                Statement::Variable(
+            ast::raw::Statement::new(
+                ast::Statement::Variable(
                     str!("foo"),
-                    f::n::xr(Expression::Primitive(Primitive::Nil), ((1, 11), (1, 13)))
+                    ast::raw::Expression::new(
+                        ast::Expression::Primitive(ast::Primitive::Nil),
+                        Range::new((1, 11), (1, 13))
+                    )
                 ),
-                ((1, 1), (1, 13))
+                Range::new((1, 1), (1, 13))
             )
         );
     }

@@ -1,10 +1,8 @@
-use crate::Node;
+use super::walk;
 use std::fmt::Debug;
 
-use super::AstNode;
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum TypeExpression<T> {
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum TypePrimitive {
     Nil,
     Boolean,
     Integer,
@@ -12,47 +10,64 @@ pub enum TypeExpression<T> {
     String,
     Style,
     Element,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum TypeExpression<TypeExpression_> {
+    Primitive(TypePrimitive),
     Identifier(String),
-    Group(Box<T>),
-    DotAccess(Box<T>, String),
-    Function(Vec<T>, Box<T>),
+    Group(Box<TypeExpression_>),
+    PropertyAccess(Box<TypeExpression_>, String),
+    Function(Vec<TypeExpression_>, Box<TypeExpression_>),
     // View(Vec<(String, TypeExpression)>),
 }
 
-impl<T> TypeExpression<T> {
-    pub fn map<T2>(&self, ft: &impl Fn(&T) -> T2) -> TypeExpression<T2> {
-        match self {
-            Self::Nil => TypeExpression::Nil,
-            Self::Boolean => TypeExpression::Boolean,
-            Self::Integer => TypeExpression::Integer,
-            Self::Float => TypeExpression::Float,
-            Self::String => TypeExpression::String,
-            Self::Style => TypeExpression::Style,
-            Self::Element => TypeExpression::Element,
-            Self::Identifier(x) => TypeExpression::Identifier(x.clone()),
-            Self::Group(x) => TypeExpression::Group(Box::new(ft(x))),
-            Self::DotAccess(lhs, rhs) => TypeExpression::DotAccess(Box::new(ft(lhs)), rhs.clone()),
-            Self::Function(parameters, x) => {
-                TypeExpression::Function(parameters.iter().map(ft).collect(), Box::new(ft(x)))
+impl<Visitor, TypeExpression_> walk::Walk<Visitor> for walk::Span<TypeExpression<TypeExpression_>>
+where
+    Visitor: walk::Visit,
+    TypeExpression_: walk::Walk<Visitor, Output = Visitor::TypeExpression>,
+{
+    type Output = Visitor::TypeExpression;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor)
+    where
+        Visitor: walk::Visit,
+    {
+        let Self(value, range) = self;
+
+        match value {
+            super::TypeExpression::Primitive(x) => {
+                v.type_expression(super::TypeExpression::Primitive(x), range)
+            }
+
+            super::TypeExpression::Identifier(x) => {
+                v.type_expression(super::TypeExpression::Identifier(x), range)
+            }
+
+            super::TypeExpression::Group(x) => {
+                let (x, v) = x.walk(v);
+
+                v.type_expression(super::TypeExpression::Group(Box::new(x)), range)
+            }
+
+            super::TypeExpression::PropertyAccess(x, property) => {
+                let (x, v) = x.walk(v);
+
+                v.type_expression(
+                    super::TypeExpression::PropertyAccess(Box::new(x), property),
+                    range,
+                )
+            }
+
+            super::TypeExpression::Function(parameters, x) => {
+                let (parameters, v) = parameters.walk(v);
+                let (x, v) = x.walk(v);
+
+                v.type_expression(
+                    super::TypeExpression::Function(parameters, Box::new(x)),
+                    range,
+                )
             }
         }
-    }
-}
-
-pub type TypeExpressionNodeValue<R, C> = TypeExpression<TypeExpressionNode<R, C>>;
-
-#[derive(Debug, PartialEq)]
-pub struct TypeExpressionNode<R, C>(pub Node<TypeExpressionNodeValue<R, C>, R, C>);
-
-impl<R, C> AstNode<TypeExpressionNodeValue<R, C>, R, C> for TypeExpressionNode<R, C>
-where
-    R: Copy,
-{
-    fn new(value: TypeExpressionNodeValue<R, C>, range: R, ctx: C) -> Self {
-        Self(Node(value, range, ctx))
-    }
-
-    fn node(&self) -> &Node<TypeExpressionNodeValue<R, C>, R, C> {
-        &self.0
     }
 }

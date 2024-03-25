@@ -1,6 +1,6 @@
 // validating the parse -> format -> parse cycle
 
-fn parse(s: &str) -> knot_parse::Result<lang::Program<knot_parse::Range, ()>> {
+fn parse(s: &str) -> knot_parse::Result<knot_parse::ast::raw::Program> {
     knot_parse::parse(s)
 }
 
@@ -42,7 +42,7 @@ module inner {
 }
 
 #[test]
-fn mixed_ksx() {
+fn mixed_components() {
     let source = "const MIXED = <div>
   hello {name}, how are you doing?
   <div />

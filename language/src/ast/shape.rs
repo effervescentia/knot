@@ -1,107 +1,159 @@
-use super::{
-    Declaration, DeclarationNode, Expression, ExpressionNode, Import, ImportNode, KSXNode, Module,
-    ModuleNode, Parameter, ParameterNode, Statement, StatementNode, TypeExpression,
-    TypeExpressionNode, KSX,
-};
-use crate::Program;
-use std::fmt::Debug;
+use super::walk::{self, Walk};
+use crate::Range;
+use std::fmt::{Display, Formatter};
 
-pub trait ToShape<S> {
-    fn to_shape(&self) -> S;
-}
+pub struct Expression(pub super::Expression<Expression, Statement, Component>);
 
-#[derive(Clone, Debug)]
-pub struct ExpressionShape(pub Expression<ExpressionShape, StatementShape, KSXShape>);
-
-impl<R, C> ToShape<ExpressionShape> for ExpressionNode<R, C> {
-    fn to_shape(&self) -> ExpressionShape {
-        ExpressionShape(self.0.value().map(
-            &mut ToShape::to_shape,
-            &mut ToShape::to_shape,
-            &mut ToShape::to_shape,
-        ))
+impl Display for Expression {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct StatementShape(pub Statement<ExpressionShape>);
+pub struct Statement(pub super::Statement<Expression>);
 
-impl<R, C> ToShape<StatementShape> for StatementNode<R, C> {
-    fn to_shape(&self) -> StatementShape {
-        StatementShape(self.0.value().map(&ToShape::to_shape))
+impl Display for Statement {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct KSXShape(pub KSX<ExpressionShape, KSXShape>);
+pub struct Component(pub super::Component<Component, Expression>);
 
-impl<R, C> ToShape<KSXShape> for KSXNode<R, C> {
-    fn to_shape(&self) -> KSXShape {
-        KSXShape(
-            self.0
-                .value()
-                .map(&mut ToShape::to_shape, &mut ToShape::to_shape),
-        )
+impl Display for Component {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct TypeExpressionShape(pub TypeExpression<TypeExpressionShape>);
+pub struct TypeExpression(pub super::TypeExpression<TypeExpression>);
 
-impl<R, C> ToShape<TypeExpressionShape> for TypeExpressionNode<R, C> {
-    fn to_shape(&self) -> TypeExpressionShape {
-        TypeExpressionShape(self.0.value().map(&ToShape::to_shape))
+impl Display for TypeExpression {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct ParameterShape(pub Parameter<ExpressionShape, TypeExpressionShape>);
+pub struct Parameter(pub super::Parameter<String, Expression, TypeExpression>);
 
-impl<R, C> ToShape<ParameterShape> for ParameterNode<R, C> {
-    fn to_shape(&self) -> ParameterShape {
-        ParameterShape(self.0.value().map(&ToShape::to_shape, &ToShape::to_shape))
+impl Display for Parameter {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct DeclarationShape(
-    pub Declaration<ExpressionShape, ParameterShape, ModuleShape, TypeExpressionShape>,
+pub struct Declaration(
+    pub super::Declaration<String, Expression, TypeExpression, Parameter, Module>,
 );
 
-impl<R, C> ToShape<DeclarationShape> for DeclarationNode<R, C> {
-    fn to_shape(&self) -> DeclarationShape {
-        DeclarationShape(self.0.value().map(
-            &ToShape::to_shape,
-            &ToShape::to_shape,
-            &ToShape::to_shape,
-            &ToShape::to_shape,
-        ))
+impl Display for Declaration {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct ImportShape(pub Import);
+pub struct Import(pub super::Import);
 
-impl<R, C> ToShape<ImportShape> for ImportNode<R, C> {
-    fn to_shape(&self) -> ImportShape {
-        ImportShape(self.0.value().clone())
+impl Display for Import {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct ModuleShape(pub Module<ImportShape, DeclarationShape>);
+pub struct Module(pub super::Module<Import, Declaration>);
 
-impl<R, C> ToShape<ModuleShape> for ModuleNode<R, C> {
-    fn to_shape(&self) -> ModuleShape {
-        ModuleShape(self.0.map(&ToShape::to_shape, &ToShape::to_shape))
+impl Display for Module {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct ProgramShape(pub ModuleShape);
+pub struct Visitor;
 
-impl<R, C> ToShape<ProgramShape> for Program<R, C> {
-    fn to_shape(&self) -> ProgramShape {
-        ProgramShape(self.0.to_shape())
+impl walk::Visit for Visitor {
+    type Binding = String;
+    type Expression = Expression;
+    type Statement = Statement;
+    type Component = Component;
+    type TypeExpression = TypeExpression;
+    type Parameter = Parameter;
+    type Declaration = Declaration;
+    type Import = Import;
+    type Module = Module;
+
+    fn binding(self, x: super::Binding, _: Range) -> (Self::Binding, Self) {
+        (x.0, self)
+    }
+
+    fn expression(
+        self,
+        x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
+        _: Range,
+    ) -> (Self::Expression, Self) {
+        (Expression(x), self)
+    }
+
+    fn statement(self, x: super::Statement<Self::Expression>, _: Range) -> (Self::Statement, Self) {
+        (Statement(x), self)
+    }
+
+    fn component(
+        self,
+        x: super::Component<Self::Component, Self::Expression>,
+        _: Range,
+    ) -> (Self::Component, Self) {
+        (Component(x), self)
+    }
+
+    fn type_expression(
+        self,
+        x: super::TypeExpression<Self::TypeExpression>,
+        _: Range,
+    ) -> (Self::TypeExpression, Self) {
+        (TypeExpression(x), self)
+    }
+
+    fn parameter(
+        self,
+        x: super::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
+        _: Range,
+    ) -> (Self::Parameter, Self) {
+        (Parameter(x), self)
+    }
+
+    fn declaration(
+        self,
+        x: super::Declaration<
+            Self::Binding,
+            Self::Expression,
+            Self::TypeExpression,
+            Self::Parameter,
+            Self::Module,
+        >,
+        _: Range,
+    ) -> (Self::Declaration, Self) {
+        (Declaration(x), self)
+    }
+
+    fn import(self, x: super::Import, _: Range) -> (Self::Import, Self) {
+        (Import(x), self)
+    }
+
+    fn module(
+        self,
+        x: super::Module<Self::Import, Self::Declaration>,
+        _: Range,
+    ) -> (Self::Module, Self) {
+        (Module(x), self)
+    }
+}
+
+impl<Import, Declaration> walk::Span<super::Module<Import, Declaration>>
+where
+    Import: Walk<Visitor, Output = <Visitor as walk::Visit>::Import>,
+    Declaration: Walk<Visitor, Output = <Visitor as walk::Visit>::Declaration>,
+{
+    pub fn to_shape(self) -> Module {
+        self.walk(Visitor).0
     }
 }

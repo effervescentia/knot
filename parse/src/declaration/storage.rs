@@ -1,19 +1,26 @@
-use crate::{matcher as m, Position, Range};
+use crate::{
+    ast,
+    matcher::{self as m, Position},
+};
 use combine::{position, value, Parser, Stream};
-use lang::ast::storage::{Storage, Visibility};
+use lang::Range;
 
-pub fn storage<T>(keyword: &'static str) -> impl Parser<T, Output = (Storage, Range)>
+pub fn storage<T>(keyword: &'static str) -> impl Parser<T, Output = (ast::raw::Storage, Range)>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     (
-        position(),
+        position().map(|x: T::Position| x.to_point()),
         m::keyword("priv")
-            .with(value(Visibility::Private))
-            .or(value(Visibility::Public)),
+            .with(value(ast::Visibility::Private))
+            .or(value(ast::Visibility::Public)),
         m::keyword(keyword),
-        m::standard_identifier(),
+        m::binding(),
     )
-        .map(|(start, visibility, _, (name, end))| (Storage(visibility, name), end.include(&start)))
+        .map(|(start, visibility, _, binding)| {
+            let range = binding.0.range().extend(&start);
+
+            (ast::Storage::new(visibility, binding), range)
+        })
 }

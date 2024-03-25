@@ -1,131 +1,374 @@
-use crate::Range;
-pub use lang::test::fixture::a;
+use crate::ast;
+use kore::str;
+use lang::Range;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct MockRange;
+type Offset = (usize, usize);
 
-#[allow(dead_code)]
-const RANGE: Range = Range((1, 1), (1, 1));
-
-#[allow(dead_code)]
-type InitRange = ((i32, i32), (i32, i32));
-
-/// node factories
-#[allow(dead_code)]
-pub mod n {
+pub mod type_alias {
     use super::*;
-    use lang::ast::{
-        AstNode, DeclarationNode, DeclarationNodeValue, ExpressionNode, ExpressionNodeValue,
-        ImportNode, ImportNodeValue, KSXNode, KSXNodeValue, ModuleNode, ModuleNodeValue,
-        ParameterNode, ParameterNodeValue, StatementNode, StatementNodeValue, TypeExpressionNode,
-        TypeExpressionNodeValue,
-    };
-    pub use lang::test::fixture::n::*;
 
-    pub fn x(x: ExpressionNodeValue<Range, ()>) -> ExpressionNode<Range, ()> {
-        ExpressionNode::raw(x, RANGE)
+    pub const SOURCE: &str = "type MyTypeAlias = nil;";
+
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+        ast::raw::Declaration::new(
+            ast::Declaration::type_alias(
+                ast::Storage::public(ast::raw::Binding::new(
+                    ast::Binding(str!("MyTypeAlias")),
+                    Range::new((1, 6), (1, 17)).offset(offset),
+                )),
+                ast::raw::TypeExpression::new(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                    Range::new((1, 20), (1, 22)).offset(offset),
+                ),
+            ),
+            Range::new((1, 1), (1, 22)).offset(offset),
+        )
     }
+}
 
-    pub fn xr(
-        x: ExpressionNodeValue<Range, ()>,
-        (start, end): InitRange,
-    ) -> ExpressionNode<Range, ()> {
-        ExpressionNode::raw(x, Range(start, end))
+pub mod constant {
+    use super::*;
+
+    pub const SOURCE: &str = "const MY_CONST: string = \"hello, world!\";";
+
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+        ast::raw::Declaration::new(
+            ast::Declaration::constant(
+                ast::Storage::public(ast::raw::Binding::new(
+                    ast::Binding(str!("MY_CONST")),
+                    Range::new((1, 7), (1, 14)).offset(offset),
+                )),
+                Some(ast::raw::TypeExpression::new(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::String),
+                    Range::new((1, 17), (1, 22)).offset(offset),
+                )),
+                ast::raw::Expression::new(
+                    ast::Expression::Primitive(ast::Primitive::String(str!("hello, world!"))),
+                    Range::new((1, 26), (1, 40)).offset(offset),
+                ),
+            ),
+            Range::new((1, 1), (1, 40)).offset(offset),
+        )
     }
+}
 
-    pub fn xc<T>(x: ExpressionNodeValue<Range, T>, ctx: T) -> ExpressionNode<Range, T> {
-        ExpressionNode::new(x, RANGE, ctx)
+pub mod enumerated {
+    use super::*;
+
+    pub const SOURCE: &str = "enum MyEnum =
+  | First
+  | Second(boolean, style);";
+
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+        ast::raw::Declaration::new(
+            ast::Declaration::enumerated(
+                ast::Storage::public(ast::raw::Binding::new(
+                    ast::Binding(str!("MyEnum")),
+                    Range::new((1, 6), (1, 11)).offset(offset),
+                )),
+                vec![
+                    (str!("First"), vec![]),
+                    (
+                        str!("Second"),
+                        vec![
+                            ast::raw::TypeExpression::new(
+                                ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                                Range::new((3, 12), (3, 18)).offset(offset),
+                            ),
+                            ast::raw::TypeExpression::new(
+                                ast::TypeExpression::Primitive(ast::TypePrimitive::Style),
+                                Range::new((3, 21), (3, 25)).offset(offset),
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            Range::new((1, 1), (3, 26)).offset(offset),
+        )
     }
+}
 
-    pub fn s(x: StatementNodeValue<Range, ()>) -> StatementNode<Range, ()> {
-        StatementNode::raw(x, RANGE)
+pub mod function {
+    use super::*;
+
+    pub const SOURCE: &str =
+        "func my_func(first, second: integer, third = true): boolean -> first > second || third;";
+
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+        ast::raw::Declaration::new(
+            ast::Declaration::function(
+                ast::Storage::public(ast::raw::Binding::new(
+                    ast::Binding(str!("my_func")),
+                    Range::new((1, 6), (1, 12)).offset(offset),
+                )),
+                vec![
+                    ast::raw::Parameter::new(
+                        ast::Parameter::new(
+                            ast::raw::Binding::new(
+                                ast::Binding(str!("first")),
+                                Range::new((1, 14), (1, 18)).offset(offset),
+                            ),
+                            None,
+                            None,
+                        ),
+                        Range::new((1, 14), (1, 18)).offset(offset),
+                    ),
+                    ast::raw::Parameter::new(
+                        ast::Parameter::new(
+                            ast::raw::Binding::new(
+                                ast::Binding(str!("second")),
+                                Range::new((1, 29), (1, 35)).offset(offset),
+                            ),
+                            Some(ast::raw::TypeExpression::new(
+                                ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
+                                Range::new((1, 29), (1, 35)).offset(offset),
+                            )),
+                            None,
+                        ),
+                        Range::new((1, 21), (1, 35)).offset(offset),
+                    ),
+                    ast::raw::Parameter::new(
+                        ast::Parameter::new(
+                            ast::raw::Binding::new(
+                                ast::Binding(str!("third")),
+                                Range::new((1, 46), (1, 49)).offset(offset),
+                            ),
+                            None,
+                            Some(ast::raw::Expression::new(
+                                ast::Expression::Primitive(ast::Primitive::Boolean(true)),
+                                Range::new((1, 46), (1, 49)).offset(offset),
+                            )),
+                        ),
+                        Range::new((1, 38), (1, 49)).offset(offset),
+                    ),
+                ],
+                Some(ast::raw::TypeExpression::new(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                    Range::new((1, 53), (1, 59)).offset(offset),
+                )),
+                ast::raw::Expression::new(
+                    ast::Expression::BinaryOperation(
+                        ast::BinaryOperator::Or,
+                        Box::new(ast::raw::Expression::new(
+                            ast::Expression::BinaryOperation(
+                                ast::BinaryOperator::GreaterThan,
+                                Box::new(ast::raw::Expression::new(
+                                    ast::Expression::Identifier(str!("first")),
+                                    Range::new((1, 64), (1, 68)).offset(offset),
+                                )),
+                                Box::new(ast::raw::Expression::new(
+                                    ast::Expression::Identifier(str!("second")),
+                                    Range::new((1, 72), (1, 77)).offset(offset),
+                                )),
+                            ),
+                            Range::new((1, 64), (1, 77)).offset(offset),
+                        )),
+                        Box::new(ast::raw::Expression::new(
+                            ast::Expression::Identifier(str!("third")),
+                            Range::new((1, 82), (1, 86)).offset(offset),
+                        )),
+                    ),
+                    Range::new((1, 64), (1, 86)).offset(offset),
+                ),
+            ),
+            Range::new((1, 1), (1, 86)).offset(offset),
+        )
     }
+}
 
-    pub fn sr(
-        x: StatementNodeValue<Range, ()>,
-        (start, end): InitRange,
-    ) -> StatementNode<Range, ()> {
-        StatementNode::raw(x, Range(start, end))
+pub mod view {
+    use super::*;
+
+    pub const SOURCE: &str = "view MyView(inner: element = <div />) -> {
+  let value = 123 + 45.67;
+
+  <>
+    <h1>Welcome!</h1>
+    <main>{value}: {inner}</main>
+  </>;
+};";
+
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+        ast::raw::Declaration::new(
+            ast::Declaration::view(
+                ast::Storage::public(ast::raw::Binding::new(
+                    ast::Binding(str!("MyView")),
+                    Range::new((1, 6), (1, 11)).offset(offset),
+                )),
+                vec![ast::raw::Parameter::new(
+                    ast::Parameter::new(
+                        ast::raw::Binding::new(
+                            ast::Binding(str!("inner")),
+                            Range::new((1, 13), (1, 17)).offset(offset),
+                        ),
+                        Some(ast::raw::TypeExpression::new(
+                            ast::TypeExpression::Primitive(ast::TypePrimitive::Element),
+                            Range::new((1, 20), (1, 26)).offset(offset),
+                        )),
+                        Some(ast::raw::Expression::new(
+                            ast::Expression::Component(Box::new(ast::raw::Component::new(
+                                ast::Component::ClosedElement(str!("div"), vec![]),
+                                Range::new((1, 30), (1, 36)).offset(offset),
+                            ))),
+                            Range::new((1, 30), (1, 36)).offset(offset),
+                        )),
+                    ),
+                    Range::new((1, 13), (1, 36)).offset(offset),
+                )],
+                ast::raw::Expression::new(
+                    ast::Expression::Closure(vec![
+                        ast::raw::Statement::new(
+                            ast::Statement::Variable(
+                                str!("value"),
+                                ast::raw::Expression::new(
+                                    ast::Expression::BinaryOperation(
+                                        ast::BinaryOperator::Add,
+                                        Box::new(ast::raw::Expression::new(
+                                            ast::Expression::Primitive(ast::Primitive::Integer(
+                                                123,
+                                            )),
+                                            Range::new((2, 15), (2, 17)).offset(offset),
+                                        )),
+                                        Box::new(ast::raw::Expression::new(
+                                            ast::Expression::Primitive(ast::Primitive::Float(
+                                                45.67, 2,
+                                            )),
+                                            Range::new((2, 21), (2, 25)).offset(offset),
+                                        )),
+                                    ),
+                                    Range::new((2, 15), (2, 25)).offset(offset),
+                                ),
+                            ),
+                            Range::new((2, 3), (2, 25)).offset(offset),
+                        ),
+                        ast::raw::Statement::new(
+                            ast::Statement::Expression(ast::raw::Expression::new(
+                                ast::Expression::Component(Box::new(ast::raw::Component::new(
+                                    ast::Component::Fragment(vec![
+                                        ast::raw::Component::new(
+                                            ast::Component::open_element(
+                                                str!("h1"),
+                                                vec![],
+                                                vec![ast::raw::Component::new(
+                                                    ast::Component::Text(str!("Welcome!")),
+                                                    Range::new((5, 9), (5, 16)).offset(offset),
+                                                )],
+                                                str!("h1"),
+                                            ),
+                                            Range::new((5, 5), (5, 21)).offset(offset),
+                                        ),
+                                        ast::raw::Component::new(
+                                            ast::Component::open_element(
+                                                str!("main"),
+                                                vec![],
+                                                vec![
+                                                    ast::raw::Component::new(
+                                                        ast::Component::Expression(
+                                                            ast::raw::Expression::new(
+                                                                ast::Expression::Identifier(str!(
+                                                                    "value"
+                                                                )),
+                                                                Range::new((6, 12), (6, 16))
+                                                                    .offset(offset),
+                                                            ),
+                                                        ),
+                                                        Range::new((6, 11), (6, 17)).offset(offset),
+                                                    ),
+                                                    ast::raw::Component::new(
+                                                        ast::Component::Text(str!(": ")),
+                                                        Range::new((6, 18), (6, 19)).offset(offset),
+                                                    ),
+                                                    ast::raw::Component::new(
+                                                        ast::Component::Expression(
+                                                            ast::raw::Expression::new(
+                                                                ast::Expression::Identifier(str!(
+                                                                    "inner"
+                                                                )),
+                                                                Range::new((6, 21), (6, 25))
+                                                                    .offset(offset),
+                                                            ),
+                                                        ),
+                                                        Range::new((6, 20), (6, 26)).offset(offset),
+                                                    ),
+                                                ],
+                                                str!("main"),
+                                            ),
+                                            Range::new((6, 5), (6, 33)).offset(offset),
+                                        ),
+                                    ]),
+                                    Range::new((4, 3), (7, 5)).offset(offset),
+                                ))),
+                                Range::new((4, 3), (7, 5)).offset(offset),
+                            )),
+                            Range::new((4, 3), (7, 5)).offset(offset),
+                        ),
+                    ]),
+                    Range::new((1, 42), (8, 1)).offset(offset),
+                ),
+            ),
+            Range::new((1, 1), (8, 1)).offset(offset),
+        )
     }
+}
 
-    pub fn sc<T>(x: StatementNodeValue<Range, T>, ctx: T) -> StatementNode<Range, T> {
-        StatementNode::new(x, RANGE, ctx)
-    }
+pub mod module {
+    use super::*;
 
-    pub fn kx(x: KSXNodeValue<Range, ()>) -> KSXNode<Range, ()> {
-        KSXNode::raw(x, RANGE)
-    }
+    pub const SOURCE: &str = "module my_module {
+  const MY_STYLE = style {
+    color: \"red\",
+    display: \"block\",
+  };
+}";
 
-    pub fn kxr(x: KSXNodeValue<Range, ()>, (start, end): InitRange) -> KSXNode<Range, ()> {
-        KSXNode::raw(x, Range(start, end))
-    }
-
-    pub fn kxc<T>(x: KSXNodeValue<Range, T>, ctx: T) -> KSXNode<Range, T> {
-        KSXNode::new(x, RANGE, ctx)
-    }
-
-    pub fn p(x: ParameterNodeValue<Range, ()>) -> ParameterNode<Range, ()> {
-        ParameterNode::raw(x, RANGE)
-    }
-
-    pub fn pr(
-        x: ParameterNodeValue<Range, ()>,
-        (start, end): InitRange,
-    ) -> ParameterNode<Range, ()> {
-        ParameterNode::raw(x, Range(start, end))
-    }
-
-    pub fn pc<T>(x: ParameterNodeValue<Range, T>, ctx: T) -> ParameterNode<Range, T> {
-        ParameterNode::new(x, RANGE, ctx)
-    }
-
-    pub fn tx(x: TypeExpressionNodeValue<Range, ()>) -> TypeExpressionNode<Range, ()> {
-        TypeExpressionNode::raw(x, RANGE)
-    }
-
-    pub fn txr(
-        x: TypeExpressionNodeValue<Range, ()>,
-        (start, end): InitRange,
-    ) -> TypeExpressionNode<Range, ()> {
-        TypeExpressionNode::raw(x, Range(start, end))
-    }
-
-    pub fn txc<T>(x: TypeExpressionNodeValue<Range, T>, ctx: T) -> TypeExpressionNode<Range, T> {
-        TypeExpressionNode::new(x, RANGE, ctx)
-    }
-
-    pub fn d(x: DeclarationNodeValue<Range, ()>) -> DeclarationNode<Range, ()> {
-        DeclarationNode::raw(x, RANGE)
-    }
-
-    pub fn dr(
-        x: DeclarationNodeValue<Range, ()>,
-        (start, end): InitRange,
-    ) -> DeclarationNode<Range, ()> {
-        DeclarationNode::raw(x, Range(start, end))
-    }
-
-    pub fn dc<T>(x: DeclarationNodeValue<Range, T>, ctx: T) -> DeclarationNode<Range, T> {
-        DeclarationNode::new(x, RANGE, ctx)
-    }
-
-    pub fn i(x: ImportNodeValue) -> ImportNode<Range, ()> {
-        ImportNode::<Range, ()>::raw(x, RANGE)
-    }
-
-    pub fn ir(x: ImportNodeValue, (start, end): InitRange) -> ImportNode<Range, ()> {
-        ImportNode::<Range, ()>::raw(x, Range(start, end))
-    }
-
-    pub fn ic<T>(x: ImportNodeValue, ctx: T) -> ImportNode<Range, T> {
-        ImportNode::<Range, T>::new(x, RANGE, ctx)
-    }
-
-    pub const fn m(x: ModuleNodeValue<Range, ()>) -> ModuleNode<Range, ()> {
-        ModuleNode::raw(x)
-    }
-
-    pub const fn mr<R>(x: ModuleNodeValue<R, ()>) -> ModuleNode<R, ()> {
-        ModuleNode::raw(x)
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+        ast::raw::Declaration::new(
+            ast::Declaration::module(
+                ast::Storage::public(ast::raw::Binding::new(
+                    ast::Binding(str!("my_module")),
+                    Range::new((1, 8), (1, 16)).offset(offset),
+                )),
+                ast::raw::Module::new(
+                    ast::Module::new(
+                        vec![],
+                        vec![ast::raw::Declaration::new(
+                            ast::Declaration::constant(
+                                ast::Storage::public(ast::raw::Binding::new(
+                                    ast::Binding(str!("MY_STYLE")),
+                                    Range::new((2, 9), (0, 16)).offset(offset),
+                                )),
+                                None,
+                                ast::raw::Expression::new(
+                                    ast::Expression::Style(vec![
+                                        (
+                                            str!("color"),
+                                            ast::raw::Expression::new(
+                                                ast::Expression::Primitive(ast::Primitive::String(
+                                                    str!("red"),
+                                                )),
+                                                Range::new((3, 12), (3, 16)).offset(offset),
+                                            ),
+                                        ),
+                                        (
+                                            str!("display"),
+                                            ast::raw::Expression::new(
+                                                ast::Expression::Primitive(ast::Primitive::String(
+                                                    str!("block"),
+                                                )),
+                                                Range::new((4, 14), (4, 20)).offset(offset),
+                                            ),
+                                        ),
+                                    ]),
+                                    Range::new((2, 20), (5, 3)).offset(offset),
+                                ),
+                            ),
+                            Range::new((2, 3), (5, 3)).offset(offset),
+                        )],
+                    ),
+                    Range::new((1, 1), (6, 1)).offset(offset),
+                ),
+            ),
+            Range::new((1, 1), (6, 1)).offset(offset),
+        )
     }
 }

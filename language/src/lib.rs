@@ -1,40 +1,41 @@
 pub mod ast;
 #[cfg(feature = "format")]
 pub mod format;
+mod fragment;
 mod interface;
 mod node;
+mod range;
 #[cfg(feature = "test")]
 pub mod test;
+pub mod types;
 
-use ast::{ImportNode, Module, ModuleNode};
+pub use fragment::{Fragment, FragmentMap};
 pub use interface::{ModuleReference, ModuleScope};
 pub use node::Node;
+pub use range::{Point, Range};
 
-pub trait Identity<T> {
-    fn id(&self) -> &T;
+// impl<R, C> Program<R, C> {
+//     pub const fn imports(&self) -> &Vec<ImportNode<R, C>> {
+//         let Self(ModuleNode(Module { imports, .. }, ..)) = self;
+
+//         imports
+//     }
+// }
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct NodeId(pub usize);
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct ScopeId(pub Vec<usize>);
+
+impl ScopeId {
+    fn child(&self, next_id: usize) -> Self {
+        Self([self.0.clone(), vec![next_id]].concat())
+    }
 }
 
-#[derive(Debug, PartialEq)]
-pub struct Program<R, C>(pub ast::ModuleNode<R, C>);
-
-impl<R, C> Program<R, C> {
-    pub const fn imports(&self) -> &Vec<ImportNode<R, C>> {
-        let Self(ModuleNode(Module { imports, .. }, ..)) = self;
-
-        imports
-    }
-
-    pub const fn node(&self) -> &ast::ModuleNode<R, C> {
-        &self.0
-    }
-}
-
-#[cfg(feature = "format")]
-impl<R, C> std::fmt::Display for Program<R, C>
-where
-    R: Copy,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{program}", program = self.0)
+impl Default for ScopeId {
+    fn default() -> Self {
+        Self(vec![0])
     }
 }

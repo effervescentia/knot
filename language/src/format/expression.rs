@@ -1,4 +1,4 @@
-use crate::ast::{AstNode, Expression, ExpressionNode, Primitive};
+use crate::ast;
 use kore::format::{indented, Block, Indented, SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter, Write};
 
@@ -10,32 +10,35 @@ fn escape_string(s: &str) -> String {
         .replace('\r', "\\r")
 }
 
-impl<R, C> Display for ExpressionNode<R, C>
+impl<Expression_, Statement, Component> Display
+    for ast::Expression<Expression_, Statement, Component>
 where
-    R: Copy,
+    Expression_: Display,
+    Statement: Display,
+    Component: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self.node().value() {
-            Expression::Primitive(Primitive::Nil) => write!(f, "nil"),
+        match self {
+            Self::Primitive(ast::Primitive::Nil) => write!(f, "nil"),
 
-            Expression::Primitive(Primitive::Boolean(true)) => write!(f, "true"),
-            Expression::Primitive(Primitive::Boolean(false)) => write!(f, "false"),
+            Self::Primitive(ast::Primitive::Boolean(true)) => write!(f, "true"),
+            Self::Primitive(ast::Primitive::Boolean(false)) => write!(f, "false"),
 
-            Expression::Primitive(Primitive::Integer(x)) => write!(f, "{x}"),
+            Self::Primitive(ast::Primitive::Integer(x)) => write!(f, "{x}"),
 
-            Expression::Primitive(Primitive::Float(x, precision)) => {
+            Self::Primitive(ast::Primitive::Float(x, precision)) => {
                 write!(f, "{x:.0$}", *precision as usize)
             }
 
-            Expression::Primitive(Primitive::String(x)) => {
+            Self::Primitive(ast::Primitive::String(x)) => {
                 write!(f, "\"{escaped}\"", escaped = escape_string(x))
             }
 
-            Expression::Identifier(x) => write!(f, "{x}"),
+            Self::Identifier(x) => write!(f, "{x}"),
 
-            Expression::Group(x) => write!(f, "({x})"),
+            Self::Group(x) => write!(f, "({x})"),
 
-            Expression::Closure(xs) => {
+            Self::Closure(xs) => {
                 write!(
                     f,
                     "{{{statements}}}",
@@ -43,13 +46,13 @@ where
                 )
             }
 
-            Expression::UnaryOperation(op, x) => write!(f, "{op}{x}"),
+            Self::UnaryOperation(op, x) => write!(f, "{op}{x}"),
 
-            Expression::BinaryOperation(op, lhs, rhs) => write!(f, "{lhs} {op} {rhs}"),
+            Self::BinaryOperation(op, lhs, rhs) => write!(f, "{lhs} {op} {rhs}"),
 
-            Expression::DotAccess(lhs, rhs) => write!(f, "{lhs}.{rhs}"),
+            Self::PropertyAccess(lhs, rhs) => write!(f, "{lhs}.{rhs}"),
 
-            Expression::FunctionCall(lhs, arguments) => {
+            Self::FunctionCall(lhs, arguments) => {
                 write!(
                     f,
                     "{lhs}({arguments})",
@@ -57,9 +60,9 @@ where
                 )
             }
 
-            Expression::Style(xs) => write!(f, "style {{{rules}}}", rules = StyleRules(xs)),
+            Self::Style(xs) => write!(f, "style {{{rules}}}", rules = StyleRules(xs)),
 
-            Expression::KSX(x) => write!(f, "{x}"),
+            Self::Component(x) => write!(f, "{x}"),
         }
     }
 }
@@ -87,16 +90,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{BinaryOperator, Expression, Primitive, Statement, UnaryOperator, KSX},
-        test::fixture as f,
-    };
+    use crate::ast;
     use kore::str;
 
     #[test]
     fn nil() {
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::Nil)).to_string(),
+            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)).to_string(),
             "nil"
         );
     }
@@ -104,11 +104,13 @@ mod tests {
     #[test]
     fn boolean() {
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::Boolean(true))).to_string(),
+            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Boolean(true)))
+                .to_string(),
             "true"
         );
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::Boolean(false))).to_string(),
+            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Boolean(false)))
+                .to_string(),
             "false"
         );
     }
@@ -116,7 +118,8 @@ mod tests {
     #[test]
     fn integer() {
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::Integer(123))).to_string(),
+            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Integer(123)))
+                .to_string(),
             "123"
         );
     }
@@ -124,7 +127,8 @@ mod tests {
     #[test]
     fn float() {
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::Float(123.45, 2))).to_string(),
+            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Float(123.45, 2)))
+                .to_string(),
             "123.45"
         );
     }
@@ -132,11 +136,14 @@ mod tests {
     #[test]
     fn string() {
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::String(str!("foo")))).to_string(),
+            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::String(str!(
+                "foo"
+            ))))
+            .to_string(),
             "\"foo\""
         );
         assert_eq!(
-            f::n::x(Expression::Primitive(Primitive::String(str!(
+            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::String(str!(
                 "quotes (\")"
             ))))
             .to_string(),
@@ -147,7 +154,7 @@ mod tests {
     #[test]
     fn identifier() {
         assert_eq!(
-            f::n::x(Expression::Identifier(str!("foo"))).to_string(),
+            ast::shape::Expression(ast::Expression::Identifier(str!("foo"))).to_string(),
             "foo"
         );
     }
@@ -155,9 +162,9 @@ mod tests {
     #[test]
     fn group() {
         assert_eq!(
-            f::n::x(Expression::Group(Box::new(f::n::x(Expression::Primitive(
-                Primitive::Nil
-            )))))
+            ast::shape::Expression(ast::Expression::Group(Box::new(ast::shape::Expression(
+                ast::Expression::Primitive(ast::Primitive::Nil)
+            ))))
             .to_string(),
             "(nil)"
         );
@@ -165,20 +172,23 @@ mod tests {
 
     #[test]
     fn empty_closure() {
-        assert_eq!(f::n::x(Expression::Closure(vec![])).to_string(), "{}");
+        assert_eq!(
+            ast::shape::Expression(ast::Expression::Closure(vec![])).to_string(),
+            "{}"
+        );
     }
 
     #[test]
     fn closure_with_statements() {
         assert_eq!(
-            f::n::x(Expression::Closure(vec![
-                f::n::s(Statement::Variable(
+            ast::shape::Expression(ast::Expression::Closure(vec![
+                ast::shape::Statement(ast::Statement::Variable(
                     str!("x"),
-                    f::n::x(Expression::Primitive(Primitive::Nil))
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                 )),
-                f::n::s(Statement::Expression(f::n::x(Expression::Primitive(
-                    Primitive::Nil
-                ))))
+                ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
+                    ast::Expression::Primitive(ast::Primitive::Nil)
+                )))
             ]))
             .to_string(),
             "{
@@ -191,9 +201,11 @@ mod tests {
     #[test]
     fn unary_not_operation() {
         assert_eq!(
-            f::n::x(Expression::UnaryOperation(
-                UnaryOperator::Not,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::UnaryOperation(
+                ast::UnaryOperator::Not,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "!nil"
@@ -203,9 +215,11 @@ mod tests {
     #[test]
     fn unary_absolute_operation() {
         assert_eq!(
-            f::n::x(Expression::UnaryOperation(
-                UnaryOperator::Absolute,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::UnaryOperation(
+                ast::UnaryOperator::Absolute,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "+nil"
@@ -215,9 +229,11 @@ mod tests {
     #[test]
     fn unary_negate_operation() {
         assert_eq!(
-            f::n::x(Expression::UnaryOperation(
-                UnaryOperator::Negate,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::UnaryOperation(
+                ast::UnaryOperator::Negate,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "-nil"
@@ -227,10 +243,14 @@ mod tests {
     #[test]
     fn binary_and_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::And,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::And,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil && nil"
@@ -240,10 +260,14 @@ mod tests {
     #[test]
     fn binary_or_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::Or,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Or,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil || nil"
@@ -253,10 +277,14 @@ mod tests {
     #[test]
     fn binary_equal_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::Equal,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Equal,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil == nil"
@@ -266,10 +294,14 @@ mod tests {
     #[test]
     fn binary_unequal_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::NotEqual,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::NotEqual,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil != nil"
@@ -279,10 +311,14 @@ mod tests {
     #[test]
     fn binary_add_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::Add,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Add,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil + nil"
@@ -292,10 +328,14 @@ mod tests {
     #[test]
     fn binary_subtract_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::Subtract,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Subtract,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil - nil"
@@ -305,10 +345,14 @@ mod tests {
     #[test]
     fn binary_multiply_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::Multiply,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Multiply,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil * nil"
@@ -318,10 +362,14 @@ mod tests {
     #[test]
     fn binary_divide_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::Divide,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Divide,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil / nil"
@@ -331,10 +379,14 @@ mod tests {
     #[test]
     fn binary_exponent_operation() {
         assert_eq!(
-            f::n::x(Expression::BinaryOperation(
-                BinaryOperator::Exponent,
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil)))
+            ast::shape::Expression(ast::Expression::BinaryOperation(
+                ast::BinaryOperator::Exponent,
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "nil ^ nil"
@@ -344,8 +396,10 @@ mod tests {
     #[test]
     fn dot_access() {
         assert_eq!(
-            f::n::x(Expression::DotAccess(
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
+            ast::shape::Expression(ast::Expression::PropertyAccess(
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
                 str!("foo")
             ))
             .to_string(),
@@ -356,8 +410,10 @@ mod tests {
     #[test]
     fn function_call_no_arguments() {
         assert_eq!(
-            f::n::x(Expression::FunctionCall(
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
+            ast::shape::Expression(ast::Expression::FunctionCall(
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
                 vec![]
             ))
             .to_string(),
@@ -368,11 +424,13 @@ mod tests {
     #[test]
     fn function_call_with_arguments() {
         assert_eq!(
-            f::n::x(Expression::FunctionCall(
-                Box::new(f::n::x(Expression::Primitive(Primitive::Nil))),
+            ast::shape::Expression(ast::Expression::FunctionCall(
+                Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                ))),
                 vec![
-                    f::n::x(Expression::Primitive(Primitive::Nil)),
-                    f::n::x(Expression::Primitive(Primitive::Nil))
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                 ]
             ))
             .to_string(),
@@ -382,15 +440,24 @@ mod tests {
 
     #[test]
     fn empty_style() {
-        assert_eq!(f::n::x(Expression::Style(vec![])).to_string(), "style {}");
+        assert_eq!(
+            ast::shape::Expression(ast::Expression::Style(vec![])).to_string(),
+            "style {}"
+        );
     }
 
     #[test]
     fn style_with_rules() {
         assert_eq!(
-            f::n::x(Expression::Style(vec![
-                (str!("foo"), f::n::x(Expression::Primitive(Primitive::Nil))),
-                (str!("bar"), f::n::x(Expression::Primitive(Primitive::Nil))),
+            ast::shape::Expression(ast::Expression::Style(vec![
+                (
+                    str!("foo"),
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                ),
+                (
+                    str!("bar"),
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                ),
             ]))
             .to_string(),
             "style {
@@ -403,10 +470,9 @@ mod tests {
     #[test]
     fn ksx() {
         assert_eq!(
-            f::n::x(Expression::KSX(Box::new(f::n::kx(KSX::ClosedElement(
-                str!("foo"),
-                vec![]
-            )))))
+            ast::shape::Expression(ast::Expression::Component(Box::new(ast::shape::Component(
+                ast::Component::ClosedElement(str!("foo"), vec![])
+            ))))
             .to_string(),
             "<foo />"
         );

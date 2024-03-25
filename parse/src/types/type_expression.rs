@@ -1,75 +1,91 @@
-use crate::{matcher as m, Position, Range};
+use crate::{ast, matcher as m};
 use combine::{attempt, choice, parser, sep_end_by, Parser, Stream};
-use lang::ast::{AstNode, TypeExpression, TypeExpressionNode, TypeExpressionNodeValue};
 
-fn primitive<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
+fn primitive<T>() -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     fn bind<U>(
         s: &'static str,
-        f: impl Fn() -> TypeExpressionNodeValue<Range, ()>,
-    ) -> impl Parser<U, Output = TypeExpressionNode<Range, ()>>
+        f: impl Fn() -> ast::TypeExpression<ast::raw::TypeExpression>,
+    ) -> impl Parser<U, Output = ast::raw::TypeExpression>
     where
         U: Stream<Token = char>,
-        U::Position: Position,
+        U::Position: m::Position,
     {
-        m::keyword(s).map(move |(_, range)| TypeExpressionNode::raw(f(), range))
+        m::keyword(s).map(move |(_, range)| ast::raw::TypeExpression::new(f(), range))
     }
 
     choice((
-        bind("nil", || TypeExpression::Nil),
-        bind("boolean", || TypeExpression::Boolean),
-        bind("integer", || TypeExpression::Integer),
-        bind("float", || TypeExpression::Float),
-        bind("string", || TypeExpression::String),
-        bind("style", || TypeExpression::Style),
-        bind("element", || TypeExpression::Element),
+        bind("nil", || {
+            ast::TypeExpression::Primitive(ast::TypePrimitive::Nil)
+        }),
+        bind("boolean", || {
+            ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean)
+        }),
+        bind("integer", || {
+            ast::TypeExpression::Primitive(ast::TypePrimitive::Integer)
+        }),
+        bind("float", || {
+            ast::TypeExpression::Primitive(ast::TypePrimitive::Float)
+        }),
+        bind("string", || {
+            ast::TypeExpression::Primitive(ast::TypePrimitive::String)
+        }),
+        bind("style", || {
+            ast::TypeExpression::Primitive(ast::TypePrimitive::Style)
+        }),
+        bind("element", || {
+            ast::TypeExpression::Primitive(ast::TypePrimitive::Element)
+        }),
     ))
 }
 
-fn identifier<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
+fn identifier<T>() -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     m::standard_identifier()
-        .map(|(x, range)| TypeExpressionNode::raw(TypeExpression::Identifier(x), range))
+        .map(|(x, range)| ast::raw::TypeExpression::new(ast::TypeExpression::Identifier(x), range))
 }
 
-fn group<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
+fn group<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = TypeExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::TypeExpression>,
 {
     m::between(m::symbol('('), m::symbol(')'), parser).map(|(inner, range)| {
-        TypeExpressionNode::raw(TypeExpression::Group(Box::new(inner)), range)
+        ast::raw::TypeExpression::new(ast::TypeExpression::Group(Box::new(inner)), range)
     })
 }
 
-fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
+fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = TypeExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::TypeExpression>,
 {
     m::folding(
         parser,
         m::symbol('.').with(m::standard_identifier()),
         |lhs, (rhs, end)| {
-            let range = lhs.node().range() + &end;
-            TypeExpressionNode::raw(TypeExpression::DotAccess(Box::new(lhs), rhs), range)
+            let range = lhs.0.range() + &end;
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::PropertyAccess(Box::new(lhs), rhs),
+                range,
+            )
         },
     )
 }
 
-fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
+fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
-    P: Parser<T, Output = TypeExpressionNode<Range, ()>>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::TypeExpression>,
 {
     (
         attempt(
@@ -83,18 +99,18 @@ where
         parser(),
     )
         .map(|((parameters, start), result)| {
-            let range = &start + result.node().range();
-            TypeExpressionNode::raw(
-                TypeExpression::Function(parameters, Box::new(result)),
+            let range = &start + result.0.range();
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Function(parameters, Box::new(result)),
                 range,
             )
         })
 }
 
-fn type_expression_2<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
+fn type_expression_2<T>() -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     choice((
         function(type_expression),
@@ -104,27 +120,27 @@ where
     ))
 }
 
-fn type_expression_1<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
+fn type_expression_1<T>() -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     dot_access(type_expression_2())
 }
 
 // TODO: use this for lists ([], [][][])
-fn type_expression_0<T>() -> impl Parser<T, Output = TypeExpressionNode<Range, ()>>
+fn type_expression_0<T>() -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     type_expression_1()
 }
 
 parser! {
-    pub fn type_expression[T]()(T) -> TypeExpressionNode<Range, ()>
+    pub fn type_expression[T]()(T) -> ast::raw::TypeExpression
     where
-        [T: Stream<Token = char>, T::Position: Position]
+        [T: Stream<Token = char>, T::Position: m::Position]
     {
         type_expression_0()
     }
@@ -132,12 +148,12 @@ parser! {
 
 #[cfg(test)]
 mod tests {
-    use super::{TypeExpression, TypeExpressionNode};
-    use crate::{test::fixture as f, Range};
+    use crate::ast;
     use combine::{stream::position::Stream, EasyParser};
     use kore::str;
+    use lang::Range;
 
-    fn parse(s: &str) -> crate::Result<TypeExpressionNode<Range, ()>> {
+    fn parse(s: &str) -> crate::Result<ast::raw::TypeExpression> {
         super::type_expression().easy_parse(Stream::new(s))
     }
 
@@ -145,7 +161,10 @@ mod tests {
     fn nil() {
         assert_eq!(
             parse("nil").unwrap().0,
-            f::n::txr(TypeExpression::Nil, ((1, 1), (1, 3)))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                Range::new((1, 1), (1, 3))
+            )
         );
     }
 
@@ -153,7 +172,10 @@ mod tests {
     fn boolean() {
         assert_eq!(
             parse("boolean").unwrap().0,
-            f::n::txr(TypeExpression::Boolean, ((1, 1), (1, 7)))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                Range::new((1, 1), (1, 7))
+            )
         );
     }
 
@@ -161,7 +183,10 @@ mod tests {
     fn integer() {
         assert_eq!(
             parse("integer").unwrap().0,
-            f::n::txr(TypeExpression::Integer, ((1, 1), (1, 7)))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
+                Range::new((1, 1), (1, 7))
+            )
         );
     }
 
@@ -169,7 +194,10 @@ mod tests {
     fn float() {
         assert_eq!(
             parse("float").unwrap().0,
-            f::n::txr(TypeExpression::Float, ((1, 1), (1, 5)))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::Float),
+                Range::new((1, 1), (1, 5))
+            )
         );
     }
 
@@ -177,7 +205,10 @@ mod tests {
     fn string() {
         assert_eq!(
             parse("string").unwrap().0,
-            f::n::txr(TypeExpression::String, ((1, 1), (1, 6)))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::String),
+                Range::new((1, 1), (1, 6))
+            )
         );
     }
 
@@ -185,7 +216,10 @@ mod tests {
     fn style() {
         assert_eq!(
             parse("style").unwrap().0,
-            f::n::txr(TypeExpression::Style, ((1, 1), (1, 5)))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::Style),
+                Range::new((1, 1), (1, 5))
+            )
         );
     }
 
@@ -193,7 +227,10 @@ mod tests {
     fn element() {
         assert_eq!(
             parse("element").unwrap().0,
-            f::n::txr(TypeExpression::Element, ((1, 1), (1, 7)))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::Element),
+                Range::new((1, 1), (1, 7))
+            )
         );
     }
 
@@ -201,7 +238,10 @@ mod tests {
     fn identifier() {
         assert_eq!(
             parse("foo").unwrap().0,
-            f::n::txr(TypeExpression::Identifier(str!("foo")), ((1, 1), (1, 3)))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Identifier(str!("foo")),
+                Range::new((1, 1), (1, 3))
+            )
         );
     }
 
@@ -209,9 +249,12 @@ mod tests {
     fn group() {
         assert_eq!(
             parse("(nil)").unwrap().0,
-            f::n::txr(
-                TypeExpression::Group(Box::new(f::n::txr(TypeExpression::Nil, ((1, 2), (1, 4))))),
-                ((1, 1), (1, 5))
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Group(Box::new(ast::raw::TypeExpression::new(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                    Range::new((1, 2), (1, 4))
+                ))),
+                Range::new((1, 1), (1, 5))
             )
         );
     }
@@ -220,15 +263,24 @@ mod tests {
     fn function() {
         assert_eq!(
             parse("(nil, boolean) -> nil").unwrap().0,
-            f::n::txr(
-                TypeExpression::Function(
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Function(
                     vec![
-                        f::n::txr(TypeExpression::Nil, ((1, 2), (1, 4))),
-                        f::n::txr(TypeExpression::Boolean, ((1, 7), (1, 13)))
+                        ast::raw::TypeExpression::new(
+                            ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                            Range::new((1, 2), (1, 4))
+                        ),
+                        ast::raw::TypeExpression::new(
+                            ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                            Range::new((1, 7), (1, 13))
+                        )
                     ],
-                    Box::new(f::n::txr(TypeExpression::Nil, ((1, 19), (1, 21))))
+                    Box::new(ast::raw::TypeExpression::new(
+                        ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                        Range::new((1, 19), (1, 21))
+                    ))
                 ),
-                ((1, 1), (1, 21))
+                Range::new((1, 1), (1, 21))
             )
         );
     }
@@ -237,12 +289,15 @@ mod tests {
     fn function_empty_parameters() {
         assert_eq!(
             parse("() -> nil").unwrap().0,
-            f::n::txr(
-                TypeExpression::Function(
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::Function(
                     vec![],
-                    Box::new(f::n::txr(TypeExpression::Nil, ((1, 7), (1, 9))))
+                    Box::new(ast::raw::TypeExpression::new(
+                        ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                        Range::new((1, 7), (1, 9))
+                    ))
                 ),
-                ((1, 1), (1, 9))
+                Range::new((1, 1), (1, 9))
             )
         );
     }
@@ -251,12 +306,15 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             parse("nil.foo").unwrap().0,
-            f::n::txr(
-                TypeExpression::DotAccess(
-                    Box::new(f::n::txr(TypeExpression::Nil, ((1, 1), (1, 3)))),
+            ast::raw::TypeExpression::new(
+                ast::TypeExpression::PropertyAccess(
+                    Box::new(ast::raw::TypeExpression::new(
+                        ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                        Range::new((1, 1), (1, 3))
+                    )),
                     str!("foo")
                 ),
-                ((1, 1), (1, 7))
+                Range::new((1, 1), (1, 7))
             )
         );
     }

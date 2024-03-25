@@ -2,7 +2,7 @@ use crate::{link::ImportGraph, Link, Result};
 use analyze::Strong;
 use bimap::BiMap;
 use lang::Program;
-use parse::Range;
+use lang::Range;
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
