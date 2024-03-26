@@ -1,4 +1,5 @@
 // validating the parse -> format -> parse cycle
+use kore::assert_str_eq;
 
 fn parse(s: &str) -> knot_parse::Result<knot_parse::ast::raw::Program> {
     knot_parse::parse(s)
@@ -10,7 +11,7 @@ fn empty_module() {
 
     let ast = parse(source).unwrap().0;
 
-    assert_eq!(ast.to_string(), source);
+    assert_str_eq!(ast.to_shape().to_string(), source);
 }
 
 #[test]
@@ -38,7 +39,7 @@ module inner {
 
     let ast = parse(source).unwrap().0;
 
-    assert_eq!(ast.to_string(), source);
+    assert_str_eq!(ast.to_shape().to_string(), source);
 }
 
 #[test]
@@ -54,5 +55,5 @@ fn mixed_components() {
 
     let ast = parse(source).unwrap().0;
 
-    assert_eq!(ast.to_string(), source);
+    assert_str_eq!(ast.to_shape().to_string(), source);
 }

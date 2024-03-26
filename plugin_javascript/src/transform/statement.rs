@@ -252,6 +252,7 @@ mod tests {
 
     mod statement {
         use super::*;
+        use kore::assert_eq;
 
         #[test]
         fn expression() {
@@ -317,6 +318,7 @@ mod tests {
 
     mod declaration {
         use super::*;
+        use kore::assert_eq;
         use lang::ast;
 
         #[test]
@@ -577,10 +579,10 @@ mod tests {
                     Expression::Closure(vec![
                         Statement::Variable(str!("bar"), Expression::Null),
                         Statement::Variable(str!("fizz"), Expression::Null),
-                        Statement::Return(Some(Expression::Object(vec![(
-                            str!("bar"),
-                            Expression::Identifier(str!("bar"))
-                        )]))),
+                        Statement::Return(Some(Expression::Object(vec![
+                            (str!("bar"), Expression::Identifier(str!("bar"))),
+                            (str!("fizz"), Expression::Identifier(str!("fizz")))
+                        ]))),
                     ])
                 )]
             );

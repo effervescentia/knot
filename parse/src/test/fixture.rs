@@ -14,7 +14,7 @@ pub mod type_alias {
             ast::Declaration::type_alias(
                 ast::Storage::public(ast::raw::Binding::new(
                     ast::Binding(str!("MyTypeAlias")),
-                    Range::new((1, 6), (1, 17)).offset(offset),
+                    Range::new((1, 6), (1, 16)).offset(offset),
                 )),
                 ast::raw::TypeExpression::new(
                     ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
@@ -117,7 +117,7 @@ pub mod function {
                         ast::Parameter::new(
                             ast::raw::Binding::new(
                                 ast::Binding(str!("second")),
-                                Range::new((1, 29), (1, 35)).offset(offset),
+                                Range::new((1, 21), (1, 26)).offset(offset),
                             ),
                             Some(ast::raw::TypeExpression::new(
                                 ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
@@ -131,7 +131,7 @@ pub mod function {
                         ast::Parameter::new(
                             ast::raw::Binding::new(
                                 ast::Binding(str!("third")),
-                                Range::new((1, 46), (1, 49)).offset(offset),
+                                Range::new((1, 38), (1, 42)).offset(offset),
                             ),
                             None,
                             Some(ast::raw::Expression::new(
@@ -335,7 +335,7 @@ pub mod module {
                             ast::Declaration::constant(
                                 ast::Storage::public(ast::raw::Binding::new(
                                     ast::Binding(str!("MY_STYLE")),
-                                    Range::new((2, 9), (0, 16)).offset(offset),
+                                    Range::new((2, 9), (2, 16)).offset(offset),
                                 )),
                                 None,
                                 ast::raw::Expression::new(
@@ -365,7 +365,7 @@ pub mod module {
                             Range::new((2, 3), (5, 3)).offset(offset),
                         )],
                     ),
-                    Range::new((1, 1), (6, 1)).offset(offset),
+                    Range::new((2, 3), (6, 0)).offset(offset),
                 ),
             ),
             Range::new((1, 1), (6, 1)).offset(offset),

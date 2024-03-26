@@ -2,7 +2,6 @@ pub mod import;
 
 use crate::{ast, declaration, matcher as m};
 use combine::{choice, many, Parser, Stream};
-use lang::Range;
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
@@ -16,11 +15,11 @@ where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    many::<Vec<_>, _, _>(choice((
+    m::span(many::<Vec<_>, _, _>(choice((
         import::import().map(Entry::Import),
         declaration::declaration().map(Entry::Declaration),
-    )))
-    .map(|entries| {
+    ))))
+    .map(|(entries, range)| {
         ast::raw::Module::new(
             entries
                 .into_iter()
@@ -36,7 +35,7 @@ where
 
                     acc
                 }),
-            Range::new((0, 0), (0, 0)),
+            range,
         )
     })
 }
@@ -45,7 +44,7 @@ where
 mod tests {
     use crate::{ast, test::fixture};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::str;
+    use kore::{assert_eq, str};
     use lang::{
         ast::{Module, Primitive},
         Range,
@@ -75,7 +74,7 @@ mod tests {
                     )],
                     vec![]
                 ),
-                Range::new((1, 1), (1, 3))
+                Range::new((1, 1), (1, 10))
             )
         );
     }
@@ -91,7 +90,7 @@ mod tests {
                         ast::Declaration::constant(
                             ast::Storage::public(ast::raw::Binding::new(
                                 ast::Binding(str!("foo")),
-                                Range::new((0, 0), (0, 0))
+                                Range::new((1, 7), (1, 9))
                             )),
                             None,
                             ast::raw::Expression::new(
@@ -102,7 +101,7 @@ mod tests {
                         Range::new((1, 1), (1, 15))
                     )]
                 ),
-                Range::new((1, 1), (1, 15))
+                Range::new((1, 1), (1, 16))
             )
         );
     }

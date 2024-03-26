@@ -30,7 +30,7 @@ parser! {
 mod tests {
     use crate::ast;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::str;
+    use kore::{assert_eq, str};
     use lang::Range;
 
     fn parse(s: &str) -> crate::Result<ast::raw::Declaration> {
@@ -45,7 +45,7 @@ mod tests {
                 ast::Declaration::type_alias(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
+                        Range::new((1, 6), (1, 8))
                     )),
                     ast::raw::TypeExpression::new(
                         ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
@@ -65,7 +65,7 @@ mod tests {
                 ast::Declaration::constant(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 8), (1, 10))
+                        Range::new((1, 7), (1, 9))
                     )),
                     None,
                     ast::raw::Expression::new(
@@ -86,7 +86,7 @@ mod tests {
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
+                        Range::new((1, 6), (1, 8))
                     )),
                     vec![(
                         str!("Fizz"),
@@ -109,7 +109,7 @@ mod tests {
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
+                        Range::new((1, 6), (1, 8))
                     )),
                     vec![(str!("Fizz"), vec![])]
                 ),
@@ -126,7 +126,7 @@ mod tests {
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
+                        Range::new((1, 6), (1, 8))
                     )),
                     vec![(str!("Fizz"), vec![])]
                 ),
@@ -143,7 +143,7 @@ mod tests {
                 ast::Declaration::function(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
+                        Range::new((1, 6), (1, 8))
                     )),
                     vec![],
                     None,
@@ -165,7 +165,7 @@ mod tests {
                 ast::Declaration::function(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
+                        Range::new((1, 6), (1, 8))
                     )),
                     vec![],
                     Some(ast::raw::TypeExpression::new(
@@ -190,7 +190,7 @@ mod tests {
                 ast::Declaration::function(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
+                        Range::new((1, 6), (1, 8))
                     )),
                     vec![],
                     None,
@@ -212,7 +212,7 @@ mod tests {
                 ast::Declaration::function(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
+                        Range::new((1, 6), (1, 8))
                     )),
                     vec![],
                     Some(ast::raw::TypeExpression::new(
@@ -283,7 +283,7 @@ mod tests {
                     )),
                     ast::raw::Module::new(
                         ast::Module::new(vec![], vec![]),
-                        Range::new((1, 1), (1, 13))
+                        Range::new((1, 13), (1, 13))
                     )
                 ),
                 Range::new((1, 1), (1, 13))
@@ -308,7 +308,7 @@ mod tests {
                                 ast::Declaration::constant(
                                     ast::Storage::public(ast::raw::Binding::new(
                                         ast::Binding(str!("bar")),
-                                        Range::new((1, 20), (1, 23))
+                                        Range::new((1, 20), (1, 22))
                                     )),
                                     None,
                                     ast::raw::Expression::new(
@@ -319,7 +319,7 @@ mod tests {
                                 Range::new((1, 14), (1, 28))
                             )]
                         ),
-                        Range::new((1, 1), (1, 31))
+                        Range::new((1, 14), (1, 30))
                     )
                 ),
                 Range::new((1, 1), (1, 31))

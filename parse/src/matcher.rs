@@ -22,8 +22,19 @@ where
     T::Position: Position,
     P: Parser<T, Output = R>,
 {
-    attempt((position(), parser, position()))
-        .map(|(start, x, end)| (x, Range(start.to_point(), end.to_point().decrement())))
+    attempt((position(), parser, position())).map(|(start, x, end)| {
+        (
+            x,
+            Range(
+                start.to_point(),
+                if start == end {
+                    end.to_point()
+                } else {
+                    end.to_point().decrement()
+                },
+            ),
+        )
+    })
 }
 
 pub fn lexeme<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
