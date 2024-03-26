@@ -20,7 +20,7 @@ where
         declaration::declaration().map(Entry::Declaration),
     ))))
     .map(|(entries, range)| {
-        ast::raw::Module::new(
+        ast::raw::Module::raw(
             entries
                 .into_iter()
                 .fold(ast::Module::new(vec![], vec![]), |mut acc, el| {
@@ -58,7 +58,7 @@ mod tests {
     fn module_empty() {
         assert_eq!(
             parse("").unwrap().0,
-            ast::raw::Module::new(ast::Module::new(vec![], vec![]), Range::new((1, 1), (1, 1)))
+            ast::raw::Module::raw(ast::Module::new(vec![], vec![]), Range::new((1, 1), (1, 1)))
         );
     }
 
@@ -66,9 +66,9 @@ mod tests {
     fn module_import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            ast::raw::Module::new(
+            ast::raw::Module::raw(
                 ast::Module::new(
-                    vec![ast::raw::Import::new(
+                    vec![ast::raw::Import::raw(
                         ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
                         Range::new((1, 1), (1, 3))
                     )],
@@ -83,17 +83,17 @@ mod tests {
     fn module_declaration() {
         assert_eq!(
             parse("const foo = nil;").unwrap().0,
-            ast::raw::Module::new(
+            ast::raw::Module::raw(
                 Module::new(
                     vec![],
-                    vec![ast::raw::Declaration::new(
+                    vec![ast::raw::Declaration::raw(
                         ast::Declaration::constant(
                             ast::Storage::public(ast::raw::Binding::new(
                                 ast::Binding(str!("foo")),
                                 Range::new((1, 7), (1, 9))
                             )),
                             None,
-                            ast::raw::Expression::new(
+                            ast::raw::Expression::raw(
                                 ast::Expression::Primitive(Primitive::Nil),
                                 Range::new((1, 13), (1, 15))
                             )
@@ -130,7 +130,7 @@ mod tests {
 
         assert_eq!(
             parse(&source).unwrap().0,
-            ast::raw::Module::new(
+            ast::raw::Module::raw(
                 Module::new(
                     vec![],
                     vec![

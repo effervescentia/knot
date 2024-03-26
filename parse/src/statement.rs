@@ -10,7 +10,7 @@ where
     m::terminated(parser).map(|inner| {
         let range = *inner.0.range();
 
-        ast::raw::Statement::new(ast::Statement::Expression(inner), range)
+        ast::raw::Statement::raw(ast::Statement::Expression(inner), range)
     })
 }
 
@@ -30,7 +30,7 @@ where
         let end = value.0.range();
         let range = &start + end;
 
-        ast::raw::Statement::new(ast::Statement::Variable(name, value), range)
+        ast::raw::Statement::raw(ast::Statement::Variable(name, value), range)
     })
 }
 
@@ -61,8 +61,8 @@ mod tests {
     fn expression() {
         assert_eq!(
             parse("nil;").unwrap().0,
-            ast::raw::Statement::new(
-                ast::Statement::Expression(ast::raw::Expression::new(
+            ast::raw::Statement::raw(
+                ast::Statement::Expression(ast::raw::Expression::raw(
                     ast::Expression::Primitive(ast::Primitive::Nil),
                     Range::new((1, 1), (1, 3))
                 )),
@@ -75,10 +75,10 @@ mod tests {
     fn variable() {
         assert_eq!(
             parse("let foo = nil;").unwrap().0,
-            ast::raw::Statement::new(
+            ast::raw::Statement::raw(
                 ast::Statement::Variable(
                     str!("foo"),
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 11), (1, 13))
                     )

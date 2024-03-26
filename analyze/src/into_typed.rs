@@ -1,7 +1,4 @@
-use crate::{
-    ast, infer,
-    typed::{self, ReferenceType},
-};
+use crate::{ast, infer, typed};
 use kore::{invariant, Incrementor};
 use lang::{Node, NodeId, Range};
 use std::{cell::OnceCell, ops::Deref};
@@ -23,7 +20,7 @@ impl Visitor {
         }
     }
 
-    fn next_type(&mut self) -> typed::ReferenceType {
+    fn next_type(&mut self) -> typed::Type {
         let id = NodeId(self.node_id.increment());
 
         self.strong
@@ -37,7 +34,7 @@ impl Visitor {
 
     fn typed<T, R, F>(mut self, x: T, r: Range, f: F) -> (R, Self)
     where
-        F: Fn(Node<T, ReferenceType>) -> R,
+        F: Fn(Node<T, typed::Type>) -> R,
     {
         (f(Node(x, r, self.next_type())), self)
     }
@@ -63,11 +60,11 @@ impl ast::walk::Visit for Visitor {
         x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
         r: Range,
     ) -> (Self::Expression, Self) {
-        self.typed(x, r, typed::Expression)
+        self.typed(x, r, ast::ctx::Expression)
     }
 
     fn statement(self, x: ast::Statement<Self::Expression>, r: Range) -> (Self::Statement, Self) {
-        self.typed(x, r, typed::Statement)
+        self.typed(x, r, ast::ctx::Statement)
     }
 
     fn component(
@@ -75,7 +72,7 @@ impl ast::walk::Visit for Visitor {
         x: ast::Component<Self::Component, Self::Expression>,
         r: Range,
     ) -> (Self::Component, Self) {
-        self.typed(x, r, typed::Component)
+        self.typed(x, r, ast::ctx::Component)
     }
 
     fn type_expression(
@@ -83,7 +80,7 @@ impl ast::walk::Visit for Visitor {
         x: ast::TypeExpression<Self::TypeExpression>,
         r: Range,
     ) -> (Self::TypeExpression, Self) {
-        self.typed(x, r, typed::TypeExpression)
+        self.typed(x, r, ast::ctx::TypeExpression)
     }
 
     fn parameter(
@@ -91,7 +88,7 @@ impl ast::walk::Visit for Visitor {
         x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
         r: Range,
     ) -> (Self::Parameter, Self) {
-        self.typed(x, r, typed::Parameter)
+        self.typed(x, r, ast::ctx::Parameter)
     }
 
     fn declaration(
@@ -105,11 +102,11 @@ impl ast::walk::Visit for Visitor {
         >,
         r: Range,
     ) -> (Self::Declaration, Self) {
-        self.typed(x, r, typed::Declaration)
+        self.typed(x, r, ast::ctx::Declaration)
     }
 
     fn import(self, x: ast::Import, r: Range) -> (Self::Import, Self) {
-        self.typed(x, r, typed::Import)
+        self.typed(x, r, ast::ctx::Import)
     }
 
     fn module(
@@ -117,7 +114,7 @@ impl ast::walk::Visit for Visitor {
         x: ast::Module<Self::Import, Self::Declaration>,
         r: Range,
     ) -> (Self::Module, Self) {
-        self.typed(x, r, typed::Module)
+        self.typed(x, r, ast::ctx::Module)
     }
 }
 

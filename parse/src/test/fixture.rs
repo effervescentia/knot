@@ -10,13 +10,13 @@ pub mod type_alias {
     pub const SOURCE: &str = "type MyTypeAlias = nil;";
 
     pub fn raw(offset: Offset) -> ast::raw::Declaration {
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::type_alias(
                 ast::Storage::public(ast::raw::Binding::new(
                     ast::Binding(str!("MyTypeAlias")),
                     Range::new((1, 6), (1, 16)).offset(offset),
                 )),
-                ast::raw::TypeExpression::new(
+                ast::raw::TypeExpression::raw(
                     ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                     Range::new((1, 20), (1, 22)).offset(offset),
                 ),
@@ -32,17 +32,17 @@ pub mod constant {
     pub const SOURCE: &str = "const MY_CONST: string = \"hello, world!\";";
 
     pub fn raw(offset: Offset) -> ast::raw::Declaration {
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::constant(
                 ast::Storage::public(ast::raw::Binding::new(
                     ast::Binding(str!("MY_CONST")),
                     Range::new((1, 7), (1, 14)).offset(offset),
                 )),
-                Some(ast::raw::TypeExpression::new(
+                Some(ast::raw::TypeExpression::raw(
                     ast::TypeExpression::Primitive(ast::TypePrimitive::String),
                     Range::new((1, 17), (1, 22)).offset(offset),
                 )),
-                ast::raw::Expression::new(
+                ast::raw::Expression::raw(
                     ast::Expression::Primitive(ast::Primitive::String(str!("hello, world!"))),
                     Range::new((1, 26), (1, 40)).offset(offset),
                 ),
@@ -60,7 +60,7 @@ pub mod enumerated {
   | Second(boolean, style);";
 
     pub fn raw(offset: Offset) -> ast::raw::Declaration {
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::enumerated(
                 ast::Storage::public(ast::raw::Binding::new(
                     ast::Binding(str!("MyEnum")),
@@ -71,11 +71,11 @@ pub mod enumerated {
                     (
                         str!("Second"),
                         vec![
-                            ast::raw::TypeExpression::new(
+                            ast::raw::TypeExpression::raw(
                                 ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
                                 Range::new((3, 12), (3, 18)).offset(offset),
                             ),
-                            ast::raw::TypeExpression::new(
+                            ast::raw::TypeExpression::raw(
                                 ast::TypeExpression::Primitive(ast::TypePrimitive::Style),
                                 Range::new((3, 21), (3, 25)).offset(offset),
                             ),
@@ -95,14 +95,14 @@ pub mod function {
         "func my_func(first, second: integer, third = true): boolean -> first > second || third;";
 
     pub fn raw(offset: Offset) -> ast::raw::Declaration {
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::function(
                 ast::Storage::public(ast::raw::Binding::new(
                     ast::Binding(str!("my_func")),
                     Range::new((1, 6), (1, 12)).offset(offset),
                 )),
                 vec![
-                    ast::raw::Parameter::new(
+                    ast::raw::Parameter::raw(
                         ast::Parameter::new(
                             ast::raw::Binding::new(
                                 ast::Binding(str!("first")),
@@ -113,13 +113,13 @@ pub mod function {
                         ),
                         Range::new((1, 14), (1, 18)).offset(offset),
                     ),
-                    ast::raw::Parameter::new(
+                    ast::raw::Parameter::raw(
                         ast::Parameter::new(
                             ast::raw::Binding::new(
                                 ast::Binding(str!("second")),
                                 Range::new((1, 21), (1, 26)).offset(offset),
                             ),
-                            Some(ast::raw::TypeExpression::new(
+                            Some(ast::raw::TypeExpression::raw(
                                 ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
                                 Range::new((1, 29), (1, 35)).offset(offset),
                             )),
@@ -127,14 +127,14 @@ pub mod function {
                         ),
                         Range::new((1, 21), (1, 35)).offset(offset),
                     ),
-                    ast::raw::Parameter::new(
+                    ast::raw::Parameter::raw(
                         ast::Parameter::new(
                             ast::raw::Binding::new(
                                 ast::Binding(str!("third")),
                                 Range::new((1, 38), (1, 42)).offset(offset),
                             ),
                             None,
-                            Some(ast::raw::Expression::new(
+                            Some(ast::raw::Expression::raw(
                                 ast::Expression::Primitive(ast::Primitive::Boolean(true)),
                                 Range::new((1, 46), (1, 49)).offset(offset),
                             )),
@@ -142,28 +142,28 @@ pub mod function {
                         Range::new((1, 38), (1, 49)).offset(offset),
                     ),
                 ],
-                Some(ast::raw::TypeExpression::new(
+                Some(ast::raw::TypeExpression::raw(
                     ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
                     Range::new((1, 53), (1, 59)).offset(offset),
                 )),
-                ast::raw::Expression::new(
+                ast::raw::Expression::raw(
                     ast::Expression::BinaryOperation(
                         ast::BinaryOperator::Or,
-                        Box::new(ast::raw::Expression::new(
+                        Box::new(ast::raw::Expression::raw(
                             ast::Expression::BinaryOperation(
                                 ast::BinaryOperator::GreaterThan,
-                                Box::new(ast::raw::Expression::new(
+                                Box::new(ast::raw::Expression::raw(
                                     ast::Expression::Identifier(str!("first")),
                                     Range::new((1, 64), (1, 68)).offset(offset),
                                 )),
-                                Box::new(ast::raw::Expression::new(
+                                Box::new(ast::raw::Expression::raw(
                                     ast::Expression::Identifier(str!("second")),
                                     Range::new((1, 72), (1, 77)).offset(offset),
                                 )),
                             ),
                             Range::new((1, 64), (1, 77)).offset(offset),
                         )),
-                        Box::new(ast::raw::Expression::new(
+                        Box::new(ast::raw::Expression::raw(
                             ast::Expression::Identifier(str!("third")),
                             Range::new((1, 82), (1, 86)).offset(offset),
                         )),
@@ -189,24 +189,24 @@ pub mod view {
 };";
 
     pub fn raw(offset: Offset) -> ast::raw::Declaration {
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::view(
                 ast::Storage::public(ast::raw::Binding::new(
                     ast::Binding(str!("MyView")),
                     Range::new((1, 6), (1, 11)).offset(offset),
                 )),
-                vec![ast::raw::Parameter::new(
+                vec![ast::raw::Parameter::raw(
                     ast::Parameter::new(
                         ast::raw::Binding::new(
                             ast::Binding(str!("inner")),
                             Range::new((1, 13), (1, 17)).offset(offset),
                         ),
-                        Some(ast::raw::TypeExpression::new(
+                        Some(ast::raw::TypeExpression::raw(
                             ast::TypeExpression::Primitive(ast::TypePrimitive::Element),
                             Range::new((1, 20), (1, 26)).offset(offset),
                         )),
-                        Some(ast::raw::Expression::new(
-                            ast::Expression::Component(Box::new(ast::raw::Component::new(
+                        Some(ast::raw::Expression::raw(
+                            ast::Expression::Component(Box::new(ast::raw::Component::raw(
                                 ast::Component::ClosedElement(str!("div"), vec![]),
                                 Range::new((1, 30), (1, 36)).offset(offset),
                             ))),
@@ -215,21 +215,21 @@ pub mod view {
                     ),
                     Range::new((1, 13), (1, 36)).offset(offset),
                 )],
-                ast::raw::Expression::new(
+                ast::raw::Expression::raw(
                     ast::Expression::Closure(vec![
-                        ast::raw::Statement::new(
+                        ast::raw::Statement::raw(
                             ast::Statement::Variable(
                                 str!("value"),
-                                ast::raw::Expression::new(
+                                ast::raw::Expression::raw(
                                     ast::Expression::BinaryOperation(
                                         ast::BinaryOperator::Add,
-                                        Box::new(ast::raw::Expression::new(
+                                        Box::new(ast::raw::Expression::raw(
                                             ast::Expression::Primitive(ast::Primitive::Integer(
                                                 123,
                                             )),
                                             Range::new((2, 15), (2, 17)).offset(offset),
                                         )),
-                                        Box::new(ast::raw::Expression::new(
+                                        Box::new(ast::raw::Expression::raw(
                                             ast::Expression::Primitive(ast::Primitive::Float(
                                                 45.67, 2,
                                             )),
@@ -241,15 +241,15 @@ pub mod view {
                             ),
                             Range::new((2, 3), (2, 25)).offset(offset),
                         ),
-                        ast::raw::Statement::new(
-                            ast::Statement::Expression(ast::raw::Expression::new(
-                                ast::Expression::Component(Box::new(ast::raw::Component::new(
+                        ast::raw::Statement::raw(
+                            ast::Statement::Expression(ast::raw::Expression::raw(
+                                ast::Expression::Component(Box::new(ast::raw::Component::raw(
                                     ast::Component::Fragment(vec![
-                                        ast::raw::Component::new(
+                                        ast::raw::Component::raw(
                                             ast::Component::open_element(
                                                 str!("h1"),
                                                 vec![],
-                                                vec![ast::raw::Component::new(
+                                                vec![ast::raw::Component::raw(
                                                     ast::Component::Text(str!("Welcome!")),
                                                     Range::new((5, 9), (5, 16)).offset(offset),
                                                 )],
@@ -257,14 +257,14 @@ pub mod view {
                                             ),
                                             Range::new((5, 5), (5, 21)).offset(offset),
                                         ),
-                                        ast::raw::Component::new(
+                                        ast::raw::Component::raw(
                                             ast::Component::open_element(
                                                 str!("main"),
                                                 vec![],
                                                 vec![
-                                                    ast::raw::Component::new(
+                                                    ast::raw::Component::raw(
                                                         ast::Component::Expression(
-                                                            ast::raw::Expression::new(
+                                                            ast::raw::Expression::raw(
                                                                 ast::Expression::Identifier(str!(
                                                                     "value"
                                                                 )),
@@ -274,13 +274,13 @@ pub mod view {
                                                         ),
                                                         Range::new((6, 11), (6, 17)).offset(offset),
                                                     ),
-                                                    ast::raw::Component::new(
+                                                    ast::raw::Component::raw(
                                                         ast::Component::Text(str!(": ")),
                                                         Range::new((6, 18), (6, 19)).offset(offset),
                                                     ),
-                                                    ast::raw::Component::new(
+                                                    ast::raw::Component::raw(
                                                         ast::Component::Expression(
-                                                            ast::raw::Expression::new(
+                                                            ast::raw::Expression::raw(
                                                                 ast::Expression::Identifier(str!(
                                                                     "inner"
                                                                 )),
@@ -322,27 +322,27 @@ pub mod module {
 }";
 
     pub fn raw(offset: Offset) -> ast::raw::Declaration {
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::module(
                 ast::Storage::public(ast::raw::Binding::new(
                     ast::Binding(str!("my_module")),
                     Range::new((1, 8), (1, 16)).offset(offset),
                 )),
-                ast::raw::Module::new(
+                ast::raw::Module::raw(
                     ast::Module::new(
                         vec![],
-                        vec![ast::raw::Declaration::new(
+                        vec![ast::raw::Declaration::raw(
                             ast::Declaration::constant(
                                 ast::Storage::public(ast::raw::Binding::new(
                                     ast::Binding(str!("MY_STYLE")),
                                     Range::new((2, 9), (2, 16)).offset(offset),
                                 )),
                                 None,
-                                ast::raw::Expression::new(
+                                ast::raw::Expression::raw(
                                     ast::Expression::Style(vec![
                                         (
                                             str!("color"),
-                                            ast::raw::Expression::new(
+                                            ast::raw::Expression::raw(
                                                 ast::Expression::Primitive(ast::Primitive::String(
                                                     str!("red"),
                                                 )),
@@ -351,7 +351,7 @@ pub mod module {
                                         ),
                                         (
                                             str!("display"),
-                                            ast::raw::Expression::new(
+                                            ast::raw::Expression::raw(
                                                 ast::Expression::Primitive(ast::Primitive::String(
                                                     str!("block"),
                                                 )),

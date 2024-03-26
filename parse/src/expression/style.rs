@@ -16,7 +16,7 @@ where
         m::symbol('}'),
         sep_end_by(style_rule(), m::symbol(',')),
     )
-    .map(|(xs, range)| ast::raw::Expression::new(ast::Expression::Style(xs), range))
+    .map(|(xs, range)| ast::raw::Expression::raw(ast::Expression::Style(xs), range))
 }
 
 pub fn style<T, P, F>(parser: F) -> impl Parser<T, Output = ast::raw::Expression>
@@ -27,8 +27,8 @@ where
     F: Fn() -> P,
 {
     attempt((m::keyword("style"), style_literal(parser))).map(
-        |((_, start), ast::raw::Expression(node))| {
-            ast::raw::Expression(node.map_range(|end| &start + &end))
+        |((_, start), ast::ctx::Expression(node))| {
+            ast::ctx::Expression(node.map_range(|end| &start + &end))
         },
     )
 }

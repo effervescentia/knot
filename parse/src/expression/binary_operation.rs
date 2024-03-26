@@ -9,7 +9,7 @@ fn binary_operation<U>(
         Box::new(move |lhs, rhs| {
             let range = lhs.0.range() + rhs.0.range();
 
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(o, Box::new(lhs), Box::new(rhs)),
                 range,
             )

@@ -15,7 +15,7 @@ where
         m::span(m::sequence("</>")),
         children().map(ast::Component::Fragment),
     )
-    .map(|(value, range)| ast::raw::Component::new(value, range))
+    .map(|(value, range)| ast::raw::Component::raw(value, range))
 }
 
 fn children<T>() -> impl Parser<T, Output = Vec<ast::raw::Component>>
@@ -42,7 +42,7 @@ where
         xs.into_iter()
             .enumerate()
             .map(|(i, x)| {
-                ast::raw::Component(x.0.map_value(|x| match &x {
+                ast::ctx::Component(x.0.map_value(|x| match &x {
                     ast::Component::Text(s) => match (
                         if i == 0 { None } else { layouts.get(i - 1) },
                         layouts.get(i + 1),
@@ -96,7 +96,7 @@ where
         ),
     ))
     .map(|((name, attributes), range)| {
-        ast::raw::Component::new(ast::Component::ClosedElement(name, attributes), range)
+        ast::raw::Component::raw(ast::Component::ClosedElement(name, attributes), range)
     })
 }
 
@@ -125,7 +125,7 @@ where
     )
         .map(
             |(((start_tag, attributes), start), children, (end_tag, end))| {
-                ast::raw::Component::new(
+                ast::raw::Component::raw(
                     ast::Component::open_element(start_tag, attributes, children, end_tag),
                     &start + &end,
                 )
@@ -152,7 +152,7 @@ where
         m::span(p::char('}')),
         expression::expression().map(ast::Component::Expression),
     )
-    .map(|(value, range)| ast::raw::Component::new(value, range))
+    .map(|(value, range)| ast::raw::Component::raw(value, range))
 }
 
 fn text<T>() -> impl Parser<T, Output = ast::raw::Component>
@@ -161,7 +161,7 @@ where
     T::Position: m::Position,
 {
     m::lexeme(many1(none_of(vec!['<', '{'])).map(ast::Component::Text))
-        .map(|(value, range)| ast::raw::Component::new(value, range))
+        .map(|(value, range)| ast::raw::Component::raw(value, range))
 }
 
 parser! {
@@ -198,7 +198,7 @@ mod tests {
     fn fragment() {
         assert_eq!(
             parse("<></>").unwrap().0,
-            ast::raw::Component::new(ast::Component::Fragment(vec![]), Range::new((1, 1), (1, 5)))
+            ast::raw::Component::raw(ast::Component::Fragment(vec![]), Range::new((1, 1), (1, 5)))
         );
     }
 
@@ -206,7 +206,7 @@ mod tests {
     fn open_element() {
         assert_eq!(
             parse("<foo></foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(str!("foo"), vec![], vec![], str!("foo")),
                 Range::new((1, 1), (1, 11))
             )
@@ -217,7 +217,7 @@ mod tests {
     fn closed_element() {
         assert_eq!(
             parse("<foo />").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::ClosedElement(str!("foo"), vec![]),
                 Range::new((1, 1), (1, 7))
             )
@@ -228,8 +228,8 @@ mod tests {
     fn fragment_in_fragment() {
         assert_eq!(
             parse("<><></></>").unwrap().0,
-            ast::raw::Component::new(
-                ast::Component::Fragment(vec![ast::raw::Component::new(
+            ast::raw::Component::raw(
+                ast::Component::Fragment(vec![ast::raw::Component::raw(
                     ast::Component::Fragment(vec![]),
                     Range::new((1, 3), (1, 7))
                 )]),
@@ -242,8 +242,8 @@ mod tests {
     fn element_in_fragment() {
         assert_eq!(
             parse("<><foo /></>").unwrap().0,
-            ast::raw::Component::new(
-                ast::Component::Fragment(vec![ast::raw::Component::new(
+            ast::raw::Component::raw(
+                ast::Component::Fragment(vec![ast::raw::Component::raw(
                     ast::Component::ClosedElement(str!("foo"), vec![]),
                     Range::new((1, 3), (1, 9))
                 )]),
@@ -256,11 +256,11 @@ mod tests {
     fn fragment_in_element() {
         assert_eq!(
             parse("<foo><></></foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![],
-                    vec![ast::raw::Component::new(
+                    vec![ast::raw::Component::raw(
                         ast::Component::Fragment(vec![]),
                         Range::new((1, 6), (1, 10))
                     )],
@@ -275,11 +275,11 @@ mod tests {
     fn element_in_element() {
         assert_eq!(
             parse("<foo><bar /></foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![],
-                    vec![ast::raw::Component::new(
+                    vec![ast::raw::Component::raw(
                         ast::Component::ClosedElement(str!("bar"), vec![]),
                         Range::new((1, 6), (1, 12))
                     )],
@@ -294,9 +294,9 @@ mod tests {
     fn inline_in_fragment() {
         assert_eq!(
             parse("<>{nil}</>").unwrap().0,
-            ast::raw::Component::new(
-                ast::Component::Fragment(vec![ast::raw::Component::new(
-                    ast::Component::Expression(ast::raw::Expression::new(
+            ast::raw::Component::raw(
+                ast::Component::Fragment(vec![ast::raw::Component::raw(
+                    ast::Component::Expression(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 4), (1, 6))
                     )),
@@ -311,12 +311,12 @@ mod tests {
     fn inline_in_element() {
         assert_eq!(
             parse("<foo>{nil}</foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![],
-                    vec![ast::raw::Component::new(
-                        ast::Component::Expression(ast::raw::Expression::new(
+                    vec![ast::raw::Component::raw(
+                        ast::Component::Expression(ast::raw::Expression::raw(
                             ast::Expression::Primitive(ast::Primitive::Nil),
                             Range::new((1, 7), (1, 9))
                         )),
@@ -333,8 +333,8 @@ mod tests {
     fn text_in_fragment() {
         assert_eq!(
             parse("<>foo</>").unwrap().0,
-            ast::raw::Component::new(
-                ast::Component::Fragment(vec![ast::raw::Component::new(
+            ast::raw::Component::raw(
+                ast::Component::Fragment(vec![ast::raw::Component::raw(
                     ast::Component::Text(str!("foo")),
                     Range::new((1, 3), (1, 5))
                 )]),
@@ -347,11 +347,11 @@ mod tests {
     fn text_in_element() {
         assert_eq!(
             parse("<foo>bar</foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![],
-                    vec![ast::raw::Component::new(
+                    vec![ast::raw::Component::raw(
                         ast::Component::Text(str!("bar")),
                         Range::new((1, 6), (1, 8))
                     )],
@@ -366,12 +366,12 @@ mod tests {
     fn attribute_on_element() {
         assert_eq!(
             parse("<foo bar=nil></foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![(
                         str!("bar"),
-                        Some(ast::raw::Expression::new(
+                        Some(ast::raw::Expression::raw(
                             ast::Expression::Primitive(ast::Primitive::Nil),
                             Range::new((1, 10), (1, 12))
                         ))
@@ -388,12 +388,12 @@ mod tests {
     fn attribute_on_self_closing_element() {
         assert_eq!(
             parse("<foo bar=nil />").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::ClosedElement(
                     str!("foo"),
                     vec![(
                         str!("bar"),
-                        Some(ast::raw::Expression::new(
+                        Some(ast::raw::Expression::raw(
                             ast::Expression::Primitive(ast::Primitive::Nil),
                             Range::new((1, 10), (1, 12))
                         ))
@@ -408,7 +408,7 @@ mod tests {
     fn attribute_punned() {
         assert_eq!(
             parse("<foo bar />").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::ClosedElement(str!("foo"), vec![(str!("bar"), None)],),
                 Range::new((1, 1), (1, 11))
             )
@@ -419,11 +419,11 @@ mod tests {
     fn trim_text() {
         assert_eq!(
             parse("<foo>  \n  \n  bar  \n  \n  </foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![],
-                    vec![ast::raw::Component::new(
+                    vec![ast::raw::Component::raw(
                         ast::Component::Text(str!("bar")),
                         Range::new((1, 6), (5, 2))
                     )],
@@ -438,17 +438,17 @@ mod tests {
     fn trim_start_text() {
         assert_eq!(
             parse("<foo>  \n  \n  bar  {fizz}\n</foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![],
                     vec![
-                        ast::raw::Component::new(
+                        ast::raw::Component::raw(
                             ast::Component::Text(str!("bar  ")),
                             Range::new((1, 6), (3, 7))
                         ),
-                        ast::raw::Component::new(
-                            ast::Component::Expression(ast::raw::Expression::new(
+                        ast::raw::Component::raw(
+                            ast::Component::Expression(ast::raw::Expression::raw(
                                 ast::Expression::Identifier(str!("fizz")),
                                 Range::new((3, 9), (3, 12))
                             )),
@@ -466,19 +466,19 @@ mod tests {
     fn trim_end_text() {
         assert_eq!(
             parse("<foo>\n{fizz}  bar  \n  \n  </foo>").unwrap().0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![],
                     vec![
-                        ast::raw::Component::new(
-                            ast::Component::Expression(ast::raw::Expression::new(
+                        ast::raw::Component::raw(
+                            ast::Component::Expression(ast::raw::Expression::raw(
                                 ast::Expression::Identifier(str!("fizz")),
                                 Range::new((2, 2), (2, 5))
                             )),
                             Range::new((2, 1), (2, 6))
                         ),
-                        ast::raw::Component::new(
+                        ast::raw::Component::raw(
                             ast::Component::Text(str!("  bar")),
                             Range::new((2, 7), (4, 2))
                         )
@@ -501,16 +501,16 @@ mod tests {
             )
             .unwrap()
             .0,
-            ast::raw::Component::new(
+            ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
                     vec![],
                     vec![
-                        ast::raw::Component::new(
+                        ast::raw::Component::raw(
                             ast::Component::ClosedElement(str!("bar"), vec![]),
                             Range::new((2, 3), (2, 9))
                         ),
-                        ast::raw::Component::new(
+                        ast::raw::Component::raw(
                             ast::Component::ClosedElement(str!("fizz"), vec![]),
                             Range::new((3, 3), (3, 10))
                         )

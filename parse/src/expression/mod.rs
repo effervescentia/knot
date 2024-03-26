@@ -16,7 +16,7 @@ where
 {
     // TODO: refactor to only map one time
     m::lexeme(primitive::primitive().map(ast::Expression::Primitive))
-        .map(|(x, range)| ast::raw::Expression::new(x, range))
+        .map(|(x, range)| ast::raw::Expression::raw(x, range))
 }
 
 fn group<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Expression>
@@ -26,7 +26,7 @@ where
     P: Parser<T, Output = ast::raw::Expression>,
 {
     m::between(m::symbol('('), m::symbol(')'), parser)
-        .map(|(x, range)| ast::raw::Expression::new(ast::Expression::Group(Box::new(x)), range))
+        .map(|(x, range)| ast::raw::Expression::raw(ast::Expression::Group(Box::new(x)), range))
 }
 
 fn identifier<T>() -> impl Parser<T, Output = ast::raw::Expression>
@@ -35,7 +35,7 @@ where
     T::Position: m::Position,
 {
     m::standard_identifier()
-        .map(|(x, range)| ast::raw::Expression::new(ast::Expression::Identifier(x), range))
+        .map(|(x, range)| ast::raw::Expression::raw(ast::Expression::Identifier(x), range))
 }
 
 fn closure<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ast::raw::Expression>
@@ -49,7 +49,7 @@ where
         m::symbol('}'),
         many::<Vec<_>, _, _>(statement::statement(parser)),
     )
-    .map(|(xs, range)| ast::raw::Expression::new(ast::Expression::Closure(xs), range))
+    .map(|(xs, range)| ast::raw::Expression::raw(ast::Expression::Closure(xs), range))
 }
 
 fn unary_operation<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ast::raw::Expression>
@@ -62,7 +62,7 @@ where
         (position(), m::symbol(c), parser()).map(move |(start, _, x)| {
             let range = x.0.range().extend(&start.to_point());
 
-            ast::raw::Expression::new(ast::Expression::UnaryOperation(op, Box::new(x)), range)
+            ast::raw::Expression::raw(ast::Expression::UnaryOperation(op, Box::new(x)), range)
         })
     };
 
@@ -86,7 +86,7 @@ where
         |lhs, (rhs, end)| {
             let range = lhs.0.range() + &end;
 
-            ast::raw::Expression::new(ast::Expression::PropertyAccess(Box::new(lhs), rhs), range)
+            ast::raw::Expression::raw(ast::Expression::PropertyAccess(Box::new(lhs), rhs), range)
         },
     )
 }
@@ -108,7 +108,7 @@ where
         |acc, (args, end)| {
             let range = acc.0.range() + &end;
 
-            ast::raw::Expression::new(ast::Expression::FunctionCall(Box::new(acc), args), range)
+            ast::raw::Expression::raw(ast::Expression::FunctionCall(Box::new(acc), args), range)
         },
     )
 }
@@ -121,7 +121,7 @@ where
     component::component().map(|ksx| {
         let range = *ksx.0.range();
 
-        ast::raw::Expression::new(ast::Expression::Component(Box::new(ksx)), range)
+        ast::raw::Expression::raw(ast::Expression::Component(Box::new(ksx)), range)
     })
 }
 
@@ -234,42 +234,42 @@ mod tests {
     fn primitive() {
         assert_eq!(
             parse("nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Primitive(ast::Primitive::Nil),
                 Range::new((1, 1), (1, 3))
             )
         );
         assert_eq!(
             parse("true").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Primitive(ast::Primitive::Boolean(true)),
                 Range::new((1, 1), (1, 4))
             )
         );
         assert_eq!(
             parse("false").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Primitive(ast::Primitive::Boolean(false)),
                 Range::new((1, 1), (1, 5))
             )
         );
         assert_eq!(
             parse("123").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Primitive(ast::Primitive::Integer(123)),
                 Range::new((1, 1), (1, 3))
             )
         );
         assert_eq!(
             parse("123.456").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Primitive(ast::Primitive::Float(123.456, 3)),
                 Range::new((1, 1), (1, 7))
             )
         );
         assert_eq!(
             parse("\"foo\"").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Primitive(ast::Primitive::String(str!("foo"))),
                 Range::new((1, 1), (1, 5))
             )
@@ -280,7 +280,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             parse("foo").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Identifier(str!("foo")),
                 Range::new((1, 1), (1, 3))
             )
@@ -291,8 +291,8 @@ mod tests {
     fn group() {
         assert_eq!(
             parse("(nil)").unwrap().0,
-            ast::raw::Expression::new(
-                ast::Expression::Group(Box::new(ast::raw::Expression::new(
+            ast::raw::Expression::raw(
+                ast::Expression::Group(Box::new(ast::raw::Expression::raw(
                     ast::Expression::Primitive(ast::Primitive::Nil),
                     Range::new((1, 2), (1, 4))
                 ))),
@@ -305,17 +305,17 @@ mod tests {
     fn closure() {
         assert_eq!(
             parse("{ nil; nil }").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Closure(vec![
-                    ast::raw::Statement::new(
-                        ast::Statement::Expression(ast::raw::Expression::new(
+                    ast::raw::Statement::raw(
+                        ast::Statement::Expression(ast::raw::Expression::raw(
                             ast::Expression::Primitive(ast::Primitive::Nil),
                             Range::new((1, 3), (1, 5))
                         )),
                         Range::new((1, 3), (1, 5))
                     ),
-                    ast::raw::Statement::new(
-                        ast::Statement::Expression(ast::raw::Expression::new(
+                    ast::raw::Statement::raw(
+                        ast::Statement::Expression(ast::raw::Expression::raw(
                             ast::Expression::Primitive(ast::Primitive::Nil),
                             Range::new((1, 8), (1, 10))
                         )),
@@ -327,7 +327,7 @@ mod tests {
         );
         assert_eq!(
             parse("{}").unwrap().0,
-            ast::raw::Expression::new(ast::Expression::Closure(vec![]), Range::new((1, 1), (1, 2)))
+            ast::raw::Expression::raw(ast::Expression::Closure(vec![]), Range::new((1, 1), (1, 2)))
         );
     }
 
@@ -335,10 +335,10 @@ mod tests {
     fn unary_not_operation() {
         assert_eq!(
             parse("!nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::UnaryOperation(
                     ast::UnaryOperator::Not,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 2), (1, 4))
                     )),
@@ -352,10 +352,10 @@ mod tests {
     fn unary_absolute_operation() {
         assert_eq!(
             parse("+nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::UnaryOperation(
                     ast::UnaryOperator::Absolute,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 2), (1, 4))
                     )),
@@ -369,10 +369,10 @@ mod tests {
     fn unary_negative_operation() {
         assert_eq!(
             parse("-nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::UnaryOperation(
                     ast::UnaryOperator::Negate,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 2), (1, 4))
                     )),
@@ -386,14 +386,14 @@ mod tests {
     fn binary_add_operation() {
         assert_eq!(
             parse("nil + nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::Add,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 7), (1, 9))
                     )),
@@ -407,14 +407,14 @@ mod tests {
     fn binary_subtract_operation() {
         assert_eq!(
             parse("nil - nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::Subtract,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 7), (1, 9))
                     )),
@@ -428,14 +428,14 @@ mod tests {
     fn binary_multiply_operation() {
         assert_eq!(
             parse("nil * nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::Multiply,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 7), (1, 9))
                     )),
@@ -449,14 +449,14 @@ mod tests {
     fn binary_divide_operation() {
         assert_eq!(
             parse("nil / nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::Divide,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 7), (1, 9))
                     )),
@@ -470,14 +470,14 @@ mod tests {
     fn binary_exponent_operation() {
         assert_eq!(
             parse("nil ^ nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::Exponent,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 7), (1, 9))
                     )),
@@ -491,14 +491,14 @@ mod tests {
     fn binary_less_than_operation() {
         assert_eq!(
             parse("nil < nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::LessThan,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 7), (1, 9))
                     )),
@@ -512,14 +512,14 @@ mod tests {
     fn binary_less_than_or_equal_operation() {
         assert_eq!(
             parse("nil <= nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::LessThanOrEqual,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 8), (1, 10))
                     )),
@@ -533,14 +533,14 @@ mod tests {
     fn binary_greater_than_operation() {
         assert_eq!(
             parse("nil > nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::GreaterThan,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 7), (1, 9))
                     )),
@@ -554,14 +554,14 @@ mod tests {
     fn binary_greater_than_or_equal_operation() {
         assert_eq!(
             parse("nil >= nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::GreaterThanOrEqual,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 8), (1, 10))
                     )),
@@ -575,14 +575,14 @@ mod tests {
     fn binary_equal_operation() {
         assert_eq!(
             parse("nil == nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::Equal,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 8), (1, 10))
                     )),
@@ -596,14 +596,14 @@ mod tests {
     fn binary_unequal_operation() {
         assert_eq!(
             parse("nil != nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::NotEqual,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 8), (1, 10))
                     )),
@@ -617,14 +617,14 @@ mod tests {
     fn binary_and_operation() {
         assert_eq!(
             parse("nil && nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::And,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 8), (1, 10))
                     )),
@@ -638,14 +638,14 @@ mod tests {
     fn binary_or_operation() {
         assert_eq!(
             parse("nil || nil").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::BinaryOperation(
                     ast::BinaryOperator::Or,
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 8), (1, 10))
                     )),
@@ -659,9 +659,9 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             parse("nil.foo").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::PropertyAccess(
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
@@ -676,9 +676,9 @@ mod tests {
     fn function_call_empty() {
         assert_eq!(
             parse("nil()").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::FunctionCall(
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
@@ -693,18 +693,18 @@ mod tests {
     fn function_call() {
         assert_eq!(
             parse("nil(nil, nil)").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::FunctionCall(
-                    Box::new(ast::raw::Expression::new(
+                    Box::new(ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),
                     vec![
-                        ast::raw::Expression::new(
+                        ast::raw::Expression::raw(
                             ast::Expression::Primitive(ast::Primitive::Nil),
                             Range::new((1, 5), (1, 7))
                         ),
-                        ast::raw::Expression::new(
+                        ast::raw::Expression::raw(
                             ast::Expression::Primitive(ast::Primitive::Nil),
                             Range::new((1, 10), (1, 12))
                         )
@@ -719,7 +719,7 @@ mod tests {
     fn style_empty() {
         assert_eq!(
             parse("style {}").unwrap().0,
-            ast::raw::Expression::new(ast::Expression::Style(vec![]), Range::new((1, 1), (1, 8)))
+            ast::raw::Expression::raw(ast::Expression::Style(vec![]), Range::new((1, 1), (1, 8)))
         );
     }
 
@@ -727,10 +727,10 @@ mod tests {
     fn style() {
         assert_eq!(
             parse("style { foo: nil }").unwrap().0,
-            ast::raw::Expression::new(
+            ast::raw::Expression::raw(
                 ast::Expression::Style(vec![(
                     str!("foo"),
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 14), (1, 16))
                     )
@@ -744,8 +744,8 @@ mod tests {
     fn ksx() {
         assert_eq!(
             parse("<foo />").unwrap().0,
-            ast::raw::Expression::new(
-                ast::Expression::Component(Box::new(ast::raw::Component::new(
+            ast::raw::Expression::raw(
+                ast::Expression::Component(Box::new(ast::raw::Component::raw(
                     ast::Component::ClosedElement(str!("foo"), vec![]),
                     Range::new((1, 1), (1, 7))
                 ))),

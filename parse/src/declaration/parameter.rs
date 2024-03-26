@@ -22,7 +22,7 @@ where
                 range = &range + x.0.range();
             }
 
-            ast::raw::Parameter::new(
+            ast::raw::Parameter::raw(
                 ast::Parameter::new(binding, value_type, default_value),
                 range,
             )

@@ -12,6 +12,6 @@ where
         m::between(m::symbol('{'), m::symbol('}'), module::module()),
     )
         .map(|((storage, start), (value, end))| {
-            ast::raw::Declaration::new(ast::Declaration::module(storage, value), &start + &end)
+            ast::raw::Declaration::raw(ast::Declaration::module(storage, value), &start + &end)
         })
 }

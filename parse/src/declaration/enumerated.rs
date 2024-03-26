@@ -42,7 +42,7 @@ where
             .2;
         let range = &start + end;
 
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::enumerated(
                 storage,
                 variants

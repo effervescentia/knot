@@ -34,11 +34,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast,
-        typed::{self, ReferenceType},
-        Context,
-    };
+    use crate::{ast, typed, Context};
     use kore::str;
     use lang::{ast::walk, test::mock, types::Type, ModuleReference, ModuleScope, Node};
     use std::collections::HashMap;
@@ -53,9 +49,9 @@ mod tests {
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(typed::Program(typed::Module(Node::mock(
+            Ok(typed::Program(ast::ctx::Module(Node::mock(
                 ast::Module::new(vec![], vec![]),
-                ReferenceType(Type::Module(vec![]))
+                typed::Type(Type::Module(vec![]))
             ))))
         );
     }

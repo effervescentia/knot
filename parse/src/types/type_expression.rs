@@ -14,7 +14,7 @@ where
         U: Stream<Token = char>,
         U::Position: m::Position,
     {
-        m::keyword(s).map(move |(_, range)| ast::raw::TypeExpression::new(f(), range))
+        m::keyword(s).map(move |(_, range)| ast::raw::TypeExpression::raw(f(), range))
     }
 
     choice((
@@ -48,7 +48,7 @@ where
     T::Position: m::Position,
 {
     m::standard_identifier()
-        .map(|(x, range)| ast::raw::TypeExpression::new(ast::TypeExpression::Identifier(x), range))
+        .map(|(x, range)| ast::raw::TypeExpression::raw(ast::TypeExpression::Identifier(x), range))
 }
 
 fn group<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::TypeExpression>
@@ -58,7 +58,7 @@ where
     P: Parser<T, Output = ast::raw::TypeExpression>,
 {
     m::between(m::symbol('('), m::symbol(')'), parser).map(|(inner, range)| {
-        ast::raw::TypeExpression::new(ast::TypeExpression::Group(Box::new(inner)), range)
+        ast::raw::TypeExpression::raw(ast::TypeExpression::Group(Box::new(inner)), range)
     })
 }
 
@@ -73,7 +73,7 @@ where
         m::symbol('.').with(m::standard_identifier()),
         |lhs, (rhs, end)| {
             let range = lhs.0.range() + &end;
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::PropertyAccess(Box::new(lhs), rhs),
                 range,
             )
@@ -100,7 +100,7 @@ where
     )
         .map(|((parameters, start), result)| {
             let range = &start + result.0.range();
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Function(parameters, Box::new(result)),
                 range,
             )
@@ -161,7 +161,7 @@ mod tests {
     fn nil() {
         assert_eq!(
             parse("nil").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                 Range::new((1, 1), (1, 3))
             )
@@ -172,7 +172,7 @@ mod tests {
     fn boolean() {
         assert_eq!(
             parse("boolean").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
                 Range::new((1, 1), (1, 7))
             )
@@ -183,7 +183,7 @@ mod tests {
     fn integer() {
         assert_eq!(
             parse("integer").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
                 Range::new((1, 1), (1, 7))
             )
@@ -194,7 +194,7 @@ mod tests {
     fn float() {
         assert_eq!(
             parse("float").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Primitive(ast::TypePrimitive::Float),
                 Range::new((1, 1), (1, 5))
             )
@@ -205,7 +205,7 @@ mod tests {
     fn string() {
         assert_eq!(
             parse("string").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Primitive(ast::TypePrimitive::String),
                 Range::new((1, 1), (1, 6))
             )
@@ -216,7 +216,7 @@ mod tests {
     fn style() {
         assert_eq!(
             parse("style").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Primitive(ast::TypePrimitive::Style),
                 Range::new((1, 1), (1, 5))
             )
@@ -227,7 +227,7 @@ mod tests {
     fn element() {
         assert_eq!(
             parse("element").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Primitive(ast::TypePrimitive::Element),
                 Range::new((1, 1), (1, 7))
             )
@@ -238,7 +238,7 @@ mod tests {
     fn identifier() {
         assert_eq!(
             parse("foo").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Identifier(str!("foo")),
                 Range::new((1, 1), (1, 3))
             )
@@ -249,8 +249,8 @@ mod tests {
     fn group() {
         assert_eq!(
             parse("(nil)").unwrap().0,
-            ast::raw::TypeExpression::new(
-                ast::TypeExpression::Group(Box::new(ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
+                ast::TypeExpression::Group(Box::new(ast::raw::TypeExpression::raw(
                     ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                     Range::new((1, 2), (1, 4))
                 ))),
@@ -263,19 +263,19 @@ mod tests {
     fn function() {
         assert_eq!(
             parse("(nil, boolean) -> nil").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Function(
                     vec![
-                        ast::raw::TypeExpression::new(
+                        ast::raw::TypeExpression::raw(
                             ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                             Range::new((1, 2), (1, 4))
                         ),
-                        ast::raw::TypeExpression::new(
+                        ast::raw::TypeExpression::raw(
                             ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
                             Range::new((1, 7), (1, 13))
                         )
                     ],
-                    Box::new(ast::raw::TypeExpression::new(
+                    Box::new(ast::raw::TypeExpression::raw(
                         ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                         Range::new((1, 19), (1, 21))
                     ))
@@ -289,10 +289,10 @@ mod tests {
     fn function_empty_parameters() {
         assert_eq!(
             parse("() -> nil").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::Function(
                     vec![],
-                    Box::new(ast::raw::TypeExpression::new(
+                    Box::new(ast::raw::TypeExpression::raw(
                         ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                         Range::new((1, 7), (1, 9))
                     ))
@@ -306,9 +306,9 @@ mod tests {
     fn dot_access() {
         assert_eq!(
             parse("nil.foo").unwrap().0,
-            ast::raw::TypeExpression::new(
+            ast::raw::TypeExpression::raw(
                 ast::TypeExpression::PropertyAccess(
-                    Box::new(ast::raw::TypeExpression::new(
+                    Box::new(ast::raw::TypeExpression::raw(
                         ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                         Range::new((1, 1), (1, 3))
                     )),

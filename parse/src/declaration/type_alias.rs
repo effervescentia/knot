@@ -15,6 +15,6 @@ where
     .map(|((storage, start), _, value)| {
         let range = &start + value.0.range();
 
-        ast::raw::Declaration::new(ast::Declaration::type_alias(storage, value), range)
+        ast::raw::Declaration::raw(ast::Declaration::type_alias(storage, value), range)
     })
 }

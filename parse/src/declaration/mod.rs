@@ -41,13 +41,13 @@ mod tests {
     fn type_alias() {
         assert_eq!(
             parse("type foo = nil;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::type_alias(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
                         Range::new((1, 6), (1, 8))
                     )),
-                    ast::raw::TypeExpression::new(
+                    ast::raw::TypeExpression::raw(
                         ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                         Range::new((1, 12), (1, 14))
                     )
@@ -61,14 +61,14 @@ mod tests {
     fn constant() {
         assert_eq!(
             parse("const foo = nil;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::constant(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
                         Range::new((1, 7), (1, 9))
                     )),
                     None,
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 13), (1, 15))
                     )
@@ -82,7 +82,7 @@ mod tests {
     fn enumerated() {
         assert_eq!(
             parse("enum foo = | Fizz(nil);").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
@@ -90,7 +90,7 @@ mod tests {
                     )),
                     vec![(
                         str!("Fizz"),
-                        vec![ast::raw::TypeExpression::new(
+                        vec![ast::raw::TypeExpression::raw(
                             ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                             Range::new((1, 19), (1, 21))
                         )]
@@ -105,7 +105,7 @@ mod tests {
     fn enumerated_empty_parameters() {
         assert_eq!(
             parse("enum foo = | Fizz();").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
@@ -122,7 +122,7 @@ mod tests {
     fn enumerated_no_parameters() {
         assert_eq!(
             parse("enum foo = | Fizz;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
@@ -139,7 +139,7 @@ mod tests {
     fn function() {
         assert_eq!(
             parse("func foo -> nil;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::function(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
@@ -147,7 +147,7 @@ mod tests {
                     )),
                     vec![],
                     None,
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 13), (1, 15))
                     )
@@ -161,18 +161,18 @@ mod tests {
     fn function_result_typedef() {
         assert_eq!(
             parse("func foo: nil -> nil;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::function(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
                         Range::new((1, 6), (1, 8))
                     )),
                     vec![],
-                    Some(ast::raw::TypeExpression::new(
+                    Some(ast::raw::TypeExpression::raw(
                         ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                         Range::new((1, 11), (1, 13))
                     )),
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 18), (1, 20))
                     )
@@ -186,7 +186,7 @@ mod tests {
     fn function_empty_parameters() {
         assert_eq!(
             parse("func foo() -> nil;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::function(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
@@ -194,7 +194,7 @@ mod tests {
                     )),
                     vec![],
                     None,
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 15), (1, 17))
                     )
@@ -208,18 +208,18 @@ mod tests {
     fn function_empty_parameters_result_typedef() {
         assert_eq!(
             parse("func foo(): nil -> nil;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::function(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
                         Range::new((1, 6), (1, 8))
                     )),
                     vec![],
-                    Some(ast::raw::TypeExpression::new(
+                    Some(ast::raw::TypeExpression::raw(
                         ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
                         Range::new((1, 13), (1, 15))
                     )),
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 20), (1, 22))
                     )
@@ -233,14 +233,14 @@ mod tests {
     fn view() {
         assert_eq!(
             parse("view foo -> nil;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::view(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
                         Range::new((1, 6), (1, 8))
                     )),
                     vec![],
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 13), (1, 15))
                     )
@@ -254,14 +254,14 @@ mod tests {
     fn view_empty_arguments() {
         assert_eq!(
             parse("view foo() -> nil;").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::view(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
                         Range::new((1, 6), (1, 8))
                     )),
                     vec![],
-                    ast::raw::Expression::new(
+                    ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
                         Range::new((1, 15), (1, 17))
                     )
@@ -275,13 +275,13 @@ mod tests {
     fn module_empty() {
         assert_eq!(
             parse("module foo {}").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::module(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
                         Range::new((1, 8), (1, 10))
                     )),
-                    ast::raw::Module::new(
+                    ast::raw::Module::raw(
                         ast::Module::new(vec![], vec![]),
                         Range::new((1, 13), (1, 13))
                     )
@@ -295,23 +295,23 @@ mod tests {
     fn module() {
         assert_eq!(
             parse("module foo { const bar = nil; }").unwrap().0,
-            ast::raw::Declaration::new(
+            ast::raw::Declaration::raw(
                 ast::Declaration::module(
                     ast::Storage::public(ast::raw::Binding::new(
                         ast::Binding(str!("foo")),
                         Range::new((1, 8), (1, 10))
                     )),
-                    ast::raw::Module::new(
+                    ast::raw::Module::raw(
                         ast::Module::new(
                             vec![],
-                            vec![ast::raw::Declaration::new(
+                            vec![ast::raw::Declaration::raw(
                                 ast::Declaration::constant(
                                     ast::Storage::public(ast::raw::Binding::new(
                                         ast::Binding(str!("bar")),
                                         Range::new((1, 20), (1, 22))
                                     )),
                                     None,
-                                    ast::raw::Expression::new(
+                                    ast::raw::Expression::raw(
                                         ast::Expression::Primitive(ast::Primitive::Nil),
                                         Range::new((1, 26), (1, 28))
                                     )

@@ -28,7 +28,7 @@ where
     ))
     .map(|((storage, start), attributes, _, body)| {
         let range = &start + body.0.range();
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::view(storage, attributes.unwrap_or_default(), body),
             range,
         )

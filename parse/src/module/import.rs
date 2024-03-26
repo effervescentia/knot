@@ -61,7 +61,7 @@ where
         import_alias(),
     ))
     .map(|((_, start), source, path, alias)| {
-        ast::raw::Import::new(
+        ast::raw::Import::raw(
             ast::Import {
                 source,
                 path,
@@ -87,7 +87,7 @@ mod tests {
     fn import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            ast::raw::Import::new(
+            ast::raw::Import::raw(
                 ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
                 Range::new((1, 1), (1, 3))
             )
@@ -98,7 +98,7 @@ mod tests {
     fn import_nested() {
         assert_eq!(
             parse("use @/foo/bar/fizz;").unwrap().0,
-            ast::raw::Import::new(
+            ast::raw::Import::raw(
                 ast::Import::new(
                     ast::ImportSource::Root,
                     vec![str!("foo"), str!("bar"), str!("fizz")],
@@ -113,7 +113,7 @@ mod tests {
     fn import_named_no_alias() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            ast::raw::Import::new(
+            ast::raw::Import::raw(
                 ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
                 Range::new((1, 1), (1, 3))
             )
@@ -124,7 +124,7 @@ mod tests {
     fn import_named_with_alias() {
         assert_eq!(
             parse("use @/foo/fizz as buzz;").unwrap().0,
-            ast::raw::Import::new(
+            ast::raw::Import::raw(
                 ast::Import::new(
                     ast::ImportSource::Root,
                     vec![str!("foo"), str!("fizz")],

@@ -29,7 +29,7 @@ where
     .map(|((storage, start), parameters, body_type, _, body)| {
         let range = &start + body.0.range();
 
-        ast::raw::Declaration::new(
+        ast::raw::Declaration::raw(
             ast::Declaration::function(storage, parameters.unwrap_or_default(), body_type, body),
             range,
         )
