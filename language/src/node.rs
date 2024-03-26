@@ -4,7 +4,7 @@ use crate::{
 };
 use std::fmt::{Debug, Display, Formatter};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Node<Value, Meta>(pub Value, pub Range, pub Meta);
 
 impl<Value, Meta> Node<Value, Meta> {
@@ -30,6 +30,11 @@ impl<Value, Meta> Node<Value, Meta> {
 
     pub fn with_meta<T>(self, meta: T) -> Node<Value, T> {
         Node(self.0, self.1, meta)
+    }
+
+    #[cfg(feature = "test")]
+    pub fn mock(v: Value, m: Meta) -> Self {
+        Self(v, Range::nil(), m)
     }
 }
 

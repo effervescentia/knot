@@ -1,4 +1,3 @@
-use super::mock;
 use crate::{ast, Fragment, NodeId, ScopeId};
 use kore::str;
 
@@ -13,8 +12,8 @@ impl ScopeId {
 pub mod import {
     use super::*;
 
-    pub fn mock() -> mock::Import {
-        mock::Import::new(ast::Import {
+    pub fn mock() -> ast::ctx::Import<()> {
+        ast::ctx::Import::mock(ast::Import {
             source: ast::ImportSource::Local,
             path: vec![str!("foo"), str!("bar"), str!("fizz")],
             alias: None,
@@ -43,10 +42,10 @@ pub mod import {
 pub mod type_alias {
     use super::*;
 
-    pub fn mock() -> mock::Declaration {
-        mock::Declaration::new(ast::Declaration::type_alias(
-            ast::Storage::public(mock::Binding::new("MyType")),
-            mock::TypeExpression::new(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil)),
+    pub fn mock() -> ast::ctx::Declaration<()> {
+        ast::ctx::Declaration::mock(ast::Declaration::type_alias(
+            ast::Storage::public(ast::ctx::Binding::mock("MyType")),
+            ast::ctx::TypeExpression::mock(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil)),
         ))
     }
 
@@ -82,13 +81,13 @@ pub mod type_alias {
 pub mod constant {
     use super::*;
 
-    pub fn mock() -> mock::Declaration {
-        mock::Declaration::new(ast::Declaration::constant(
-            ast::Storage::public(mock::Binding::new("MY_CONSTANT")),
-            Some(mock::TypeExpression::new(ast::TypeExpression::Primitive(
-                ast::TypePrimitive::Boolean,
-            ))),
-            mock::Expression::new(ast::Expression::Primitive(ast::Primitive::Boolean(true))),
+    pub fn mock() -> ast::ctx::Declaration<()> {
+        ast::ctx::Declaration::mock(ast::Declaration::constant(
+            ast::Storage::public(ast::ctx::Binding::mock("MY_CONSTANT")),
+            Some(ast::ctx::TypeExpression::mock(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+            )),
+            ast::ctx::Expression::mock(ast::Expression::Primitive(ast::Primitive::Boolean(true))),
         ))
     }
 
@@ -134,16 +133,16 @@ pub mod constant {
 pub mod enumerated {
     use super::*;
 
-    pub fn mock() -> mock::Declaration {
-        mock::Declaration::new(ast::Declaration::enumerated(
-            ast::Storage::public(mock::Binding::new("MyEnum")),
+    pub fn mock() -> ast::ctx::Declaration<()> {
+        ast::ctx::Declaration::mock(ast::Declaration::enumerated(
+            ast::Storage::public(ast::ctx::Binding::mock("MyEnum")),
             vec![
                 (str!("Empty"), vec![]),
                 (
                     str!("Number"),
-                    vec![mock::TypeExpression::new(ast::TypeExpression::Primitive(
-                        ast::TypePrimitive::Integer,
-                    ))],
+                    vec![ast::ctx::TypeExpression::mock(
+                        ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
+                    )],
                 ),
             ],
         ))
@@ -184,22 +183,22 @@ pub mod enumerated {
 pub mod function {
     use super::*;
 
-    pub fn mock() -> mock::Declaration {
-        mock::Declaration::new(ast::Declaration::function(
-            ast::Storage::public(mock::Binding::new("my_function")),
-            vec![mock::Parameter::new(ast::Parameter::new(
-                mock::Binding::new("zip"),
-                Some(mock::TypeExpression::new(ast::TypeExpression::Primitive(
-                    ast::TypePrimitive::String,
-                ))),
-                Some(mock::Expression::new(ast::Expression::Primitive(
+    pub fn mock() -> ast::ctx::Declaration<()> {
+        ast::ctx::Declaration::mock(ast::Declaration::function(
+            ast::Storage::public(ast::ctx::Binding::mock("my_function")),
+            vec![ast::ctx::Parameter::mock(ast::Parameter::new(
+                ast::ctx::Binding::mock("zip"),
+                Some(ast::ctx::TypeExpression::mock(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::String),
+                )),
+                Some(ast::ctx::Expression::mock(ast::Expression::Primitive(
                     ast::Primitive::String(str!("my string")),
                 ))),
             ))],
-            Some(mock::TypeExpression::new(ast::TypeExpression::Primitive(
-                ast::TypePrimitive::Nil,
-            ))),
-            mock::Expression::new(ast::Expression::Primitive(ast::Primitive::Nil)),
+            Some(ast::ctx::TypeExpression::mock(
+                ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+            )),
+            ast::ctx::Expression::mock(ast::Expression::Primitive(ast::Primitive::Nil)),
         ))
     }
 
@@ -273,19 +272,19 @@ pub mod function {
 pub mod view {
     use super::*;
 
-    pub fn mock() -> mock::Declaration {
-        mock::Declaration::new(ast::Declaration::view(
-            ast::Storage::public(mock::Binding::new("MyView")),
-            vec![mock::Parameter::new(ast::Parameter::new(
-                mock::Binding::new("zap"),
-                Some(mock::TypeExpression::new(ast::TypeExpression::Primitive(
-                    ast::TypePrimitive::Float,
-                ))),
-                Some(mock::Expression::new(ast::Expression::Primitive(
+    pub fn mock() -> ast::ctx::Declaration<()> {
+        ast::ctx::Declaration::mock(ast::Declaration::view(
+            ast::Storage::public(ast::ctx::Binding::mock("MyView")),
+            vec![ast::ctx::Parameter::mock(ast::Parameter::new(
+                ast::ctx::Binding::mock("zap"),
+                Some(ast::ctx::TypeExpression::mock(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::Float),
+                )),
+                Some(ast::ctx::Expression::mock(ast::Expression::Primitive(
                     ast::Primitive::Float(1.432, 4),
                 ))),
             ))],
-            mock::Expression::new(ast::Expression::Primitive(ast::Primitive::Nil)),
+            ast::ctx::Expression::mock(ast::Expression::Primitive(ast::Primitive::Nil)),
         ))
     }
 
@@ -353,18 +352,18 @@ pub mod view {
 pub mod module {
     use super::*;
 
-    pub fn mock() -> mock::Declaration {
-        mock::Declaration::new(ast::Declaration::module(
-            ast::Storage::public(mock::Binding::new("my_module")),
-            mock::Module::new(ast::Module::new(
-                vec![mock::Import::new(ast::Import {
+    pub fn mock() -> ast::ctx::Declaration<()> {
+        ast::ctx::Declaration::mock(ast::Declaration::module(
+            ast::Storage::public(ast::ctx::Binding::mock("my_module")),
+            ast::ctx::Module::mock(ast::Module::new(
+                vec![ast::ctx::Import::mock(ast::Import {
                     source: ast::ImportSource::Local,
                     path: vec![str!("buzz")],
                     alias: Some(str!("Buzz")),
                 })],
-                vec![mock::Declaration::new(ast::Declaration::TypeAlias {
-                    storage: ast::Storage::public(mock::Binding::new("NestedType")),
-                    value: mock::TypeExpression::new(ast::TypeExpression::Primitive(
+                vec![ast::ctx::Declaration::mock(ast::Declaration::TypeAlias {
+                    storage: ast::Storage::public(ast::ctx::Binding::mock("NestedType")),
+                    value: ast::ctx::TypeExpression::mock(ast::TypeExpression::Primitive(
                         ast::TypePrimitive::Nil,
                     )),
                 })],

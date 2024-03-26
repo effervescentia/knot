@@ -1,7 +1,6 @@
-use kore::Incrementor;
-
 use super::walk;
 use crate::{Fragment, FragmentMap, NodeId, Range, ScopeId};
+use kore::Incrementor;
 
 pub trait IntoFragments {
     fn into_fragments(self) -> FragmentMap;
@@ -152,14 +151,14 @@ mod tests {
             self,
             into_fragments::{FragmentMap, IntoFragments, ScopeId},
         },
-        test::{fixture, mock},
+        test::fixture,
         NodeId,
     };
     use kore::assert_eq;
 
     #[test]
     fn collect() {
-        let program = mock::Module::new(ast::Module::new(
+        let program = ast::ctx::Module::mock(ast::Module::new(
             vec![fixture::import::mock()],
             vec![
                 fixture::type_alias::mock(),

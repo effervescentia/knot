@@ -121,10 +121,12 @@ impl ast::walk::Visit for Visitor {
 #[cfg(test)]
 mod tests {
     use super::IntoTyped;
-    use crate::typed;
-    use lang::{ast::walk::Walk, test::mock};
+    use crate::{
+        ast::{self, walk::Walk},
+        typed,
+    };
 
-    impl IntoTyped for mock::Module {
+    impl<Context> IntoTyped for ast::ctx::Module<Context> {
         fn into_typed(self, strong: super::Visitor) -> typed::Program {
             typed::Program(self.walk(strong).0)
         }

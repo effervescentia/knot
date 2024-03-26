@@ -36,7 +36,7 @@ where
 mod tests {
     use crate::{ast, typed, Context};
     use kore::str;
-    use lang::{ast::walk, test::mock, types::Type, ModuleReference, ModuleScope, Node};
+    use lang::{types::Type, ModuleReference, ModuleScope, Node};
     use std::collections::HashMap;
 
     #[test]
@@ -45,7 +45,7 @@ mod tests {
             namespace: ModuleReference(ModuleScope::Source, vec![str!("foo")]),
             modules: HashMap::new(),
         };
-        let raw = mock::Module(walk::Span::mock(ast::Module::new(vec![], vec![])));
+        let raw = ast::ctx::Module::mock(ast::Module::new(vec![], vec![]));
 
         assert_eq!(
             super::analyze(&ctx, raw),
