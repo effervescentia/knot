@@ -13,7 +13,7 @@ impl<Value> IntoSpan<Value> for Span<Value> {
     }
 }
 
-pub trait Visit {
+pub trait Visit: Sized {
     type Binding;
     type Expression;
     type Statement;
@@ -23,6 +23,13 @@ pub trait Visit {
     type Declaration;
     type Import;
     type Module;
+
+    fn scoped<T, F>(self, f: F) -> (T, Self)
+    where
+        F: FnOnce(Self) -> (T, Self),
+    {
+        f(self)
+    }
 
     fn binding(self, x: super::Binding, r: Range) -> (Self::Binding, Self);
 
@@ -83,6 +90,15 @@ where
     fn walk(self, visitor: Visitor) -> (Self::Output, Visitor);
 }
 
+pub trait WalkScoped<Visitor>
+where
+    Visitor: Visit,
+{
+    type Output;
+
+    fn walk_scoped(self, visitor: Visitor) -> (Self::Output, Visitor);
+}
+
 impl<Key, Target, Visitor> Walk<Visitor> for (Key, Target)
 where
     Target: Walk<Visitor>,
@@ -125,6 +141,22 @@ where
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         self.into_iter().fold((vec![], v), |(mut acc, v), x| {
             let (x, v) = x.walk(v);
+            acc.push(x);
+            (acc, v)
+        })
+    }
+}
+
+impl<Target, Visitor> WalkScoped<Visitor> for Vec<Target>
+where
+    Target: Walk<Visitor>,
+    Visitor: Visit,
+{
+    type Output = Vec<Target::Output>;
+
+    fn walk_scoped(self, v: Visitor) -> (Self::Output, Visitor) {
+        self.into_iter().fold((vec![], v), |(mut acc, v), x| {
+            let (x, v) = v.scoped(|v| x.walk(v));
             acc.push(x);
             (acc, v)
         })

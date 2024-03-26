@@ -2,7 +2,7 @@ use crate::{
     ast, infer,
     typed::{self, ReferenceType},
 };
-use kore::invariant;
+use kore::{invariant, Incrementor};
 use lang::{Node, NodeId, Range};
 use std::{cell::OnceCell, ops::Deref};
 
@@ -11,26 +11,20 @@ pub trait IntoTyped: Sized {
 }
 
 pub struct Visitor {
-    next_node_id: usize,
+    node_id: Incrementor,
     strong: infer::strong::Output,
 }
 
 impl Visitor {
-    pub const fn new(strong: infer::strong::Output) -> Self {
+    pub fn new(strong: infer::strong::Output) -> Self {
         Self {
-            next_node_id: 0,
+            node_id: Default::default(),
             strong,
         }
     }
 
-    fn next_node_id(&mut self) -> usize {
-        let id = self.next_node_id;
-        self.next_node_id += 1;
-        id
-    }
-
     fn next_type(&mut self) -> typed::ReferenceType {
-        let id = NodeId(self.next_node_id());
+        let id = NodeId(self.node_id.increment());
 
         self.strong
             .types
@@ -51,21 +45,13 @@ impl Visitor {
 
 impl ast::walk::Visit for Visitor {
     type Binding = typed::Binding;
-
     type Expression = typed::Expression;
-
     type Statement = typed::Statement;
-
     type Component = typed::Component;
-
     type TypeExpression = typed::TypeExpression;
-
     type Parameter = typed::Parameter;
-
     type Declaration = typed::Declaration;
-
     type Import = typed::Import;
-
     type Module = typed::Module;
 
     fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self) {

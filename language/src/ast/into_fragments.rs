@@ -1,3 +1,5 @@
+use kore::Incrementor;
+
 use super::walk;
 use crate::{Fragment, FragmentMap, NodeId, Range, ScopeId};
 
@@ -7,53 +9,33 @@ pub trait IntoFragments {
 
 #[derive(Default)]
 struct State {
-    next_node_id: usize,
-    next_scope_id: usize,
+    node_id: Incrementor,
+    scope_id: Incrementor,
     pub fragments: FragmentMap,
 }
 
-#[derive(Default)]
 pub struct Visitor {
     scope_id: ScopeId,
     state: State,
 }
 
+impl Default for Visitor {
+    fn default() -> Self {
+        let mut state = State::default();
+        Self {
+            scope_id: ScopeId(vec![state.scope_id.increment()]),
+            state,
+        }
+    }
+}
+
 impl Visitor {
-    fn next_node_id(&mut self) -> usize {
-        let id = self.state.next_node_id;
-        self.state.next_node_id += 1;
-        id
-    }
-
-    fn next_scope_id(&mut self) -> usize {
-        let id = self.state.next_scope_id;
-        self.state.next_scope_id += 1;
-        id
-    }
-
-    fn scope<T, F>(mut self, f: F) -> (T, Self)
-    where
-        F: FnOnce(Self) -> (T, Self),
-    {
-        let scope_id = self.next_scope_id();
-        let visitor = Self {
-            scope_id: self.scope_id.child(scope_id),
-            state: self.state,
-        };
-
-        let (result, Self { state, .. }) = f(visitor);
-
-        (
-            result,
-            Self {
-                scope_id: self.scope_id,
-                state,
-            },
-        )
+    fn next_scope_id(&mut self) -> ScopeId {
+        self.scope_id.child(self.state.scope_id.increment())
     }
 
     pub fn capture(mut self, fragment: Fragment) -> (NodeId, Self) {
-        let node_id = NodeId(self.next_node_id());
+        let node_id = NodeId(self.state.node_id.increment());
         let scope_id = self.scope_id.clone();
         self.state.fragments.insert(node_id, (scope_id, fragment));
         (node_id, self)
@@ -74,6 +56,26 @@ impl walk::Visit for Visitor {
     type Declaration = NodeId;
     type Import = NodeId;
     type Module = NodeId;
+
+    fn scoped<T, F>(mut self, f: F) -> (T, Self)
+    where
+        F: FnOnce(Self) -> (T, Self),
+    {
+        let child = Self {
+            scope_id: self.next_scope_id(),
+            state: self.state,
+        };
+
+        let (result, Self { state, .. }) = f(child);
+
+        (
+            result,
+            Self {
+                scope_id: self.scope_id,
+                state,
+            },
+        )
+    }
 
     fn binding(self, x: super::Binding, _: Range) -> (Self::Binding, Self) {
         (x.0, self)
@@ -159,7 +161,14 @@ mod tests {
     fn collect() {
         let program = mock::Module::new(ast::Module::new(
             vec![fixture::import::mock()],
-            vec![fixture::type_alias::mock()],
+            vec![
+                fixture::type_alias::mock(),
+                fixture::constant::mock(),
+                fixture::enumerated::mock(),
+                fixture::function::mock(),
+                fixture::view::mock(),
+                fixture::module::mock(),
+            ],
         ));
 
         assert_eq!(
@@ -167,12 +176,12 @@ mod tests {
             FragmentMap::from_iter(
                 [
                     fixture::import::fragments(0, &(vec![0], 0)),
-                    fixture::type_alias::fragments(1, &(vec![0], 1)),
-                    fixture::constant::fragments(3, &(vec![0], 2)),
-                    fixture::enumerated::fragments(6, &(vec![0], 3)),
-                    fixture::function::fragments(8, &(vec![0], 4)),
-                    fixture::view::fragments(14, &(vec![0], 5)),
-                    fixture::module::fragments(19, &(vec![0], 6)),
+                    fixture::type_alias::fragments(1, &(vec![0], 0)),
+                    fixture::constant::fragments(3, &(vec![0], 1)),
+                    fixture::enumerated::fragments(6, &(vec![0], 2)),
+                    fixture::function::fragments(8, &(vec![0], 3)),
+                    fixture::view::fragments(14, &(vec![0], 4)),
+                    fixture::module::fragments(19, &(vec![0], 5)),
                     vec![(
                         NodeId(24),
                         (

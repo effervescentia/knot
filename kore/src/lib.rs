@@ -1,7 +1,9 @@
 #[cfg(feature = "format")]
 pub mod format;
+mod incrementor;
 mod string;
 
+pub use incrementor::Incrementor;
 #[cfg(feature = "test")]
 pub use pretty_assertions::{assert_eq, assert_ne, assert_str_eq};
 use std::{

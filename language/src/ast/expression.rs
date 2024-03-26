@@ -56,11 +56,11 @@ where
                 v.expression(super::Expression::Group(Box::new(x)), range)
             }
 
-            super::Expression::Closure(xs) => {
+            super::Expression::Closure(xs) => v.scoped(|v| {
                 let (xs, v) = xs.walk(v);
 
                 v.expression(super::Expression::Closure(xs), range)
-            }
+            }),
 
             super::Expression::UnaryOperation(op, x) => {
                 let (x, v) = x.walk(v);

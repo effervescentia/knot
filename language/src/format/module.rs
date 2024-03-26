@@ -15,7 +15,11 @@ where
             f,
             "{imports}{spacer}{declarations}",
             imports = TerminateEach(";\n", &self.imports),
-            spacer = if self.is_empty() { "" } else { "\n" },
+            spacer = if self.imports.is_empty() || self.declarations.is_empty() {
+                ""
+            } else {
+                "\n"
+            },
             declarations = TerminateEach("\n", &self.declarations)
         )
     }
@@ -25,15 +29,28 @@ impl Display for ast::Import {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,
-            "use {source}/{path}",
+            "use {source}/{path}{alias}",
             source = match &self.source {
                 ast::ImportSource::Root => str!("@"),
                 ast::ImportSource::Local => str!("."),
                 ast::ImportSource::Named(name) => name.clone(),
                 ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}"),
             },
-            path = SeparateEach("/", &self.path)
+            path = SeparateEach("/", &self.path),
+            alias = Alias(self.alias.as_deref())
         )
+    }
+}
+
+struct Alias<'a>(Option<&'a str>);
+
+impl<'a> Display for Alias<'a> {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        if let Some(x) = &self.0 {
+            write!(f, " as {x}")
+        } else {
+            Ok(())
+        }
     }
 }
 

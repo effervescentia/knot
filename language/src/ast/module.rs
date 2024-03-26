@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use super::walk;
+use super::walk::{self, WalkScoped};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ImportSource {
@@ -67,10 +67,6 @@ impl<Import, Declaration> Module<Import, Declaration> {
             declarations,
         }
     }
-
-    pub fn is_empty(&self) -> bool {
-        self.imports.is_empty() && self.declarations.is_empty()
-    }
 }
 
 impl<Visitor, Import, Declaration> walk::Walk<Visitor> for walk::Span<Module<Import, Declaration>>
@@ -90,7 +86,7 @@ where
             range,
         ) = self;
         let (imports, v) = imports.walk(v);
-        let (declarations, v) = declarations.walk(v);
+        let (declarations, v) = declarations.walk_scoped(v);
 
         v.module(
             super::Module {

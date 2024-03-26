@@ -4,15 +4,12 @@ use kore::str;
 
 #[allow(clippy::multiple_inherent_impl)]
 impl ScopeId {
-    const fn empty() -> Self {
-        Self(vec![])
-    }
-
     fn offset(self, (prefix, offset): &(Vec<usize>, usize)) -> Self {
         Self([prefix.clone(), self.0.iter().map(|x| x + offset).collect()].concat())
     }
 }
 
+/// use ./foo/bar/fizz;
 pub mod import {
     use super::*;
 
@@ -31,7 +28,7 @@ pub mod import {
         vec![(
             NodeId(node),
             (
-                ScopeId::empty().offset(scope),
+                ScopeId::default().offset(scope),
                 Fragment::Import(ast::Import {
                     source: ast::ImportSource::Local,
                     path: vec![str!("foo"), str!("bar"), str!("fizz")],
@@ -42,6 +39,7 @@ pub mod import {
     }
 }
 
+/// type MyType = nil;
 pub mod type_alias {
     use super::*;
 
@@ -80,6 +78,7 @@ pub mod type_alias {
     }
 }
 
+/// const MY_CONSTANT = true;
 pub mod constant {
     use super::*;
 
@@ -129,6 +128,9 @@ pub mod constant {
     }
 }
 
+/// enum MyEnum =
+///   | Empty
+///   | Number(integer);
 pub mod enumerated {
     use super::*;
 
@@ -155,7 +157,7 @@ pub mod enumerated {
             (
                 NodeId(node),
                 (
-                    ScopeId(vec![1]).offset(&scope),
+                    ScopeId(vec![1]).offset(scope),
                     Fragment::TypeExpression(ast::TypeExpression::Primitive(
                         ast::TypePrimitive::Integer,
                     )),
@@ -164,7 +166,7 @@ pub mod enumerated {
             (
                 NodeId(node + 1),
                 (
-                    ScopeId(vec![1]).offset(&scope),
+                    ScopeId(vec![1]).offset(scope),
                     Fragment::Declaration(ast::Declaration::Enumerated {
                         storage: ast::Storage::public(str!("MyEnum")),
                         variants: vec![
@@ -178,6 +180,7 @@ pub mod enumerated {
     }
 }
 
+/// func my_function(zip: string = "my string"): nil -> nil;
 pub mod function {
     use super::*;
 
@@ -246,7 +249,7 @@ pub mod function {
             (
                 NodeId(node + 4),
                 (
-                    ScopeId(vec![1, 2]).offset(scope),
+                    ScopeId(vec![1]).offset(scope),
                     Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
                 ),
             ),
@@ -266,6 +269,7 @@ pub mod function {
     }
 }
 
+/// view MyView(zap: float = 0.1432) -> nil;
 pub mod view {
     use super::*;
 
@@ -322,7 +326,7 @@ pub mod view {
             (
                 NodeId(node + 3),
                 (
-                    ScopeId(vec![1, 2]).offset(scope),
+                    ScopeId(vec![1]).offset(scope),
                     Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
                 ),
             ),
@@ -341,6 +345,11 @@ pub mod view {
     }
 }
 
+/// module my_module {
+///   use ./buzz as Buzz;
+///
+///   type NestedType = nil;
+/// }
 pub mod module {
     use super::*;
 
@@ -371,7 +380,7 @@ pub mod module {
             (
                 NodeId(node),
                 (
-                    ScopeId(vec![1, 2]).offset(scope),
+                    ScopeId(vec![1]).offset(scope),
                     Fragment::Import(ast::Import {
                         source: ast::ImportSource::Local,
                         path: vec![str!("buzz")],
@@ -401,7 +410,7 @@ pub mod module {
             (
                 NodeId(node + 3),
                 (
-                    ScopeId(vec![1, 2]).offset(scope),
+                    ScopeId(vec![1]).offset(scope),
                     Fragment::Module(ast::Module::new(vec![NodeId(node)], vec![NodeId(node + 2)])),
                 ),
             ),
