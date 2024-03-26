@@ -1,8 +1,8 @@
 mod component;
-pub mod ctx;
 mod declaration;
 mod expression;
 pub mod into_fragments;
+pub mod meta;
 mod module;
 mod operator;
 pub mod shape;

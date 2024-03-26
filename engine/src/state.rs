@@ -1,8 +1,7 @@
 use crate::{link::ImportGraph, Link, Result};
-use analyze::Strong;
+use analyze::typed;
 use bimap::BiMap;
-use lang::Program;
-use lang::Range;
+use lang::ast;
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
@@ -18,11 +17,11 @@ pub trait Modules<'a> {
 pub struct Module<T> {
     pub id: usize,
     pub text: String,
-    pub ast: Program<Range, T>,
+    pub ast: ast::meta::Program<T>,
 }
 
 impl<T> Module<T> {
-    pub const fn new(id: usize, text: String, ast: Program<Range, T>) -> Self {
+    pub const fn new(id: usize, text: String, ast: ast::meta::Program<T>) -> Self {
         Self { id, text, ast }
     }
 }
@@ -124,13 +123,13 @@ impl<'a> Modules<'a> for Result<Linked> {
 }
 
 pub struct Analyzed {
-    pub modules: HashMap<Link, Module<Strong>>,
+    pub modules: HashMap<Link, Module<typed::Type>>,
     pub lookup: BiMap<Link, usize>,
     pub graph: ImportGraph,
 }
 
 impl<'a> Modules<'a> for Analyzed {
-    type Context = Strong;
+    type Context = typed::Type;
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {
@@ -139,7 +138,7 @@ impl<'a> Modules<'a> for Analyzed {
 }
 
 impl<'a> Modules<'a> for Result<Analyzed> {
-    type Context = Strong;
+    type Context = typed::Type;
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {

@@ -30,7 +30,7 @@ where
 {
     spaces()
         .with(module::module())
-        .map(ast::raw::Program)
+        .map(ast::meta::Program)
         .skip(eof())
 }
 

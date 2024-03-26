@@ -11,9 +11,9 @@ use std::collections::HashMap;
 
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, ResolveError)>>;
 
-pub struct Context {
-    pub namespace: ModuleReference,
-    pub modules: HashMap<String, ()>,
+pub struct Context<'a> {
+    pub namespace: &'a ModuleReference,
+    pub modules: &'a HashMap<ModuleReference, &'a typed::Type>,
 }
 
 pub fn analyze<Raw>(ctx: &Context, raw: Raw) -> Result<typed::Program>
@@ -42,14 +42,14 @@ mod tests {
     #[test]
     fn empty() {
         let ctx = Context {
-            namespace: ModuleReference(ModuleScope::Source, vec![str!("foo")]),
-            modules: HashMap::new(),
+            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            modules: &HashMap::new(),
         };
-        let raw = ast::ctx::Module::mock(ast::Module::new(vec![], vec![]));
+        let raw = ast::meta::Program(ast::meta::Module::mock(ast::Module::new(vec![], vec![])));
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(typed::Program(ast::ctx::Module(Node::mock(
+            Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![]),
                 typed::Type(Type::Module(vec![]))
             ))))

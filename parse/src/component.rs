@@ -42,7 +42,7 @@ where
         xs.into_iter()
             .enumerate()
             .map(|(i, x)| {
-                ast::ctx::Component(x.0.map_value(|x| match &x {
+                ast::meta::Component(x.0.map_value(|x| match &x {
                     ast::Component::Text(s) => match (
                         if i == 0 { None } else { layouts.get(i - 1) },
                         layouts.get(i + 1),

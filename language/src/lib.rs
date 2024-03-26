@@ -14,14 +14,6 @@ pub use interface::{ModuleReference, ModuleScope};
 pub use node::Node;
 pub use range::{Point, Range};
 
-// impl<R, C> Program<R, C> {
-//     pub const fn imports(&self) -> &Vec<ImportNode<R, C>> {
-//         let Self(ModuleNode(Module { imports, .. }, ..)) = self;
-
-//         imports
-//     }
-// }
-
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NodeId(pub usize);
 

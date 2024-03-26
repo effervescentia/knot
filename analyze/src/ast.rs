@@ -1,7 +1,7 @@
 pub use lang::ast::*;
 
 pub mod typed {
-    pub use super::ctx::Binding;
+    pub use super::meta::Binding;
     use lang::types;
     use std::rc::Rc;
 
@@ -9,15 +9,13 @@ pub mod typed {
     pub struct Type(pub types::Type<Rc<Type>>);
 
     pub type Storage = super::Storage<Binding>;
-    pub type Expression = super::ctx::Expression<Type>;
-    pub type Statement = super::ctx::Statement<Type>;
-    pub type Component = super::ctx::Component<Type>;
-    pub type TypeExpression = super::ctx::TypeExpression<Type>;
-    pub type Parameter = super::ctx::Parameter<Type>;
-    pub type Declaration = super::ctx::Declaration<Type>;
-    pub type Import = super::ctx::Import<Type>;
-    pub type Module = super::ctx::Module<Type>;
-
-    #[derive(Debug, PartialEq)]
-    pub struct Program(pub Module);
+    pub type Expression = super::meta::Expression<Type>;
+    pub type Statement = super::meta::Statement<Type>;
+    pub type Component = super::meta::Component<Type>;
+    pub type TypeExpression = super::meta::TypeExpression<Type>;
+    pub type Parameter = super::meta::Parameter<Type>;
+    pub type Declaration = super::meta::Declaration<Type>;
+    pub type Import = super::meta::Import<Type>;
+    pub type Module = super::meta::Module<Type>;
+    pub type Program = super::meta::Program<Type>;
 }

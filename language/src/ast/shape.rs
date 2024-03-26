@@ -1,4 +1,4 @@
-use super::walk::{self, Walk};
+use super::walk;
 use crate::Range;
 use std::fmt::{Display, Formatter};
 
@@ -63,6 +63,14 @@ impl Display for Import {
 pub struct Module(pub super::Module<Import, Declaration>);
 
 impl Display for Module {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+pub struct Program(pub Module);
+
+impl Display for Program {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         self.0.fmt(f)
     }
@@ -145,15 +153,5 @@ impl walk::Visit for Visitor {
         _: Range,
     ) -> (Self::Module, Self) {
         (Module(x), self)
-    }
-}
-
-impl<Import, Declaration> walk::Span<super::Module<Import, Declaration>>
-where
-    Import: Walk<Visitor, Output = <Visitor as walk::Visit>::Import>,
-    Declaration: Walk<Visitor, Output = <Visitor as walk::Visit>::Declaration>,
-{
-    pub fn to_shape(self) -> Module {
-        self.walk(Visitor).0
     }
 }

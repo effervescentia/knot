@@ -27,8 +27,8 @@ where
     F: Fn() -> P,
 {
     attempt((m::keyword("style"), style_literal(parser))).map(
-        |((_, start), ast::ctx::Expression(node))| {
-            ast::ctx::Expression(node.map_range(|end| &start + &end))
+        |((_, start), ast::meta::Expression(node))| {
+            ast::meta::Expression(node.map_range(|end| &start + &end))
         },
     )
 }

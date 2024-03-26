@@ -18,6 +18,7 @@ pub struct Range(pub Point, pub Point);
 
 impl Range {
     /// invalid range for use in tests
+    #[cfg(feature = "test")]
     pub const fn nil() -> Self {
         Self::new((0, 0), (0, 0))
     }

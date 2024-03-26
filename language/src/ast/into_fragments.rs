@@ -1,9 +1,18 @@
-use super::walk;
+use super::walk::{self, Walk};
 use crate::{Fragment, FragmentMap, NodeId, Range, ScopeId};
 use kore::Incrementor;
 
 pub trait IntoFragments {
     fn into_fragments(self) -> FragmentMap;
+}
+
+impl<Context> super::into_fragments::IntoFragments for super::meta::Program<Context> {
+    fn into_fragments(self) -> FragmentMap {
+        self.0
+            .walk(super::into_fragments::Visitor::default())
+            .1
+            .fragments()
+    }
 }
 
 #[derive(Default)]
@@ -158,7 +167,7 @@ mod tests {
 
     #[test]
     fn collect() {
-        let program = ast::ctx::Module::mock(ast::Module::new(
+        let program = ast::meta::Program(ast::meta::Module::mock(ast::Module::new(
             vec![fixture::import::mock()],
             vec![
                 fixture::type_alias::mock(),
@@ -168,7 +177,7 @@ mod tests {
                 fixture::view::mock(),
                 fixture::module::mock(),
             ],
-        ));
+        )));
 
         assert_eq!(
             program.into_fragments(),

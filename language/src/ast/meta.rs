@@ -1,5 +1,9 @@
-use super::walk::{IntoSpan, Walk};
-use crate::{FragmentMap, Node, Range};
+use super::{
+    shape,
+    walk::{IntoSpan, Walk},
+};
+use crate::{Node, Range};
+use std::fmt::Display;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Binding(pub Node<super::Binding, ()>);
@@ -49,7 +53,7 @@ impl Expression<()> {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor> for Expression<Context>
+impl<Visitor, Meta> Walk<Visitor> for Expression<Meta>
 where
     Visitor: super::walk::Visit,
 {
@@ -61,7 +65,7 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Statement<Context>(pub Node<super::Statement<Expression<Context>>, Context>);
+pub struct Statement<Meta>(pub Node<super::Statement<Expression<Meta>>, Meta>);
 
 impl Statement<()> {
     pub const fn raw(x: super::Statement<Expression<()>>, range: Range) -> Self {
@@ -74,7 +78,7 @@ impl Statement<()> {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor> for Statement<Context>
+impl<Visitor, Meta> Walk<Visitor> for Statement<Meta>
 where
     Visitor: super::walk::Visit,
 {
@@ -86,9 +90,7 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Component<Context>(
-    pub Node<super::Component<Component<Context>, Expression<Context>>, Context>,
-);
+pub struct Component<Meta>(pub Node<super::Component<Component<Meta>, Expression<Meta>>, Meta>);
 
 impl Component<()> {
     pub const fn raw(x: super::Component<Self, Expression<()>>, range: Range) -> Self {
@@ -101,7 +103,7 @@ impl Component<()> {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor> for Component<Context>
+impl<Visitor, Meta> Walk<Visitor> for Component<Meta>
 where
     Visitor: super::walk::Visit,
 {
@@ -113,9 +115,7 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct TypeExpression<Context>(
-    pub Node<super::TypeExpression<TypeExpression<Context>>, Context>,
-);
+pub struct TypeExpression<Meta>(pub Node<super::TypeExpression<TypeExpression<Meta>>, Meta>);
 
 impl TypeExpression<()> {
     pub const fn raw(x: super::TypeExpression<Self>, range: Range) -> Self {
@@ -128,7 +128,7 @@ impl TypeExpression<()> {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor> for TypeExpression<Context>
+impl<Visitor, Meta> Walk<Visitor> for TypeExpression<Meta>
 where
     Visitor: super::walk::Visit,
 {
@@ -140,8 +140,8 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Parameter<Context>(
-    pub Node<super::Parameter<Binding, Expression<Context>, TypeExpression<Context>>, Context>,
+pub struct Parameter<Meta>(
+    pub Node<super::Parameter<Binding, Expression<Meta>, TypeExpression<Meta>>, Meta>,
 );
 
 impl Parameter<()> {
@@ -158,7 +158,7 @@ impl Parameter<()> {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor> for Parameter<Context>
+impl<Visitor, Meta> Walk<Visitor> for Parameter<Meta>
 where
     Visitor: super::walk::Visit,
 {
@@ -171,16 +171,16 @@ where
 
 #[allow(clippy::type_complexity)]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Declaration<Context>(
+pub struct Declaration<Meta>(
     pub  Node<
         super::Declaration<
             Binding,
-            Expression<Context>,
-            TypeExpression<Context>,
-            Parameter<Context>,
-            Module<Context>,
+            Expression<Meta>,
+            TypeExpression<Meta>,
+            Parameter<Meta>,
+            Module<Meta>,
         >,
-        Context,
+        Meta,
     >,
 );
 
@@ -212,7 +212,7 @@ impl Declaration<()> {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor> for Declaration<Context>
+impl<Visitor, Meta> Walk<Visitor> for Declaration<Meta>
 where
     Visitor: super::walk::Visit,
 {
@@ -224,7 +224,7 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Import<Context>(pub Node<super::Import, Context>);
+pub struct Import<Meta>(pub Node<super::Import, Meta>);
 
 impl Import<()> {
     pub const fn raw(x: super::Import, range: Range) -> Self {
@@ -237,7 +237,7 @@ impl Import<()> {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor> for Import<Context>
+impl<Visitor, Meta> Walk<Visitor> for Import<Meta>
 where
     Visitor: super::walk::Visit,
 {
@@ -249,7 +249,7 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Module<Context>(pub Node<super::Module<Import<Context>, Declaration<Context>>, Context>);
+pub struct Module<Meta>(pub Node<super::Module<Import<Meta>, Declaration<Meta>>, Meta>);
 
 impl Module<()> {
     pub const fn raw(x: super::Module<Import<()>, Declaration<()>>, range: Range) -> Self {
@@ -262,7 +262,7 @@ impl Module<()> {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor> for Module<Context>
+impl<Visitor, Meta> Walk<Visitor> for Module<Meta>
 where
     Visitor: super::walk::Visit,
 {
@@ -273,10 +273,31 @@ where
     }
 }
 
-impl<Context> super::into_fragments::IntoFragments for Module<Context> {
-    fn into_fragments(self) -> FragmentMap {
-        self.walk(super::into_fragments::Visitor::default())
-            .1
-            .fragments()
+#[derive(Clone, Debug, PartialEq)]
+pub struct Program<Meta>(pub Module<Meta>);
+
+impl<Meta> Program<Meta> {
+    pub const fn node(&self) -> &Node<super::Module<Import<Meta>, Declaration<Meta>>, Meta> {
+        let Self(module) = self;
+        &module.0
+    }
+
+    pub const fn imports(&self) -> &Vec<Import<Meta>> {
+        let Self(Module(Node(super::Module { imports, .. }, ..), ..)) = self;
+
+        imports
+    }
+
+    pub fn to_shape(self) -> shape::Program {
+        shape::Program(self.0.walk(super::shape::Visitor).0)
+    }
+}
+
+impl<Meta> Display for Program<Meta>
+where
+    Meta: Clone,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        self.0.clone().walk(super::shape::Visitor).0.fmt(f)
     }
 }

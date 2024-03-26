@@ -1,10 +1,19 @@
-use crate::{ast, infer, typed};
+use crate::{
+    ast::{self, walk::Walk},
+    infer, typed,
+};
 use kore::{invariant, Incrementor};
 use lang::{Node, NodeId, Range};
 use std::{cell::OnceCell, ops::Deref};
 
 pub trait IntoTyped: Sized {
     fn into_typed(self, strong: Visitor) -> typed::Program;
+}
+
+impl<Context> IntoTyped for ast::meta::Program<Context> {
+    fn into_typed(self, strong: super::Visitor) -> typed::Program {
+        ast::meta::Program(self.0.walk(strong).0)
+    }
 }
 
 pub struct Visitor {
@@ -60,11 +69,11 @@ impl ast::walk::Visit for Visitor {
         x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
         r: Range,
     ) -> (Self::Expression, Self) {
-        self.typed(x, r, ast::ctx::Expression)
+        self.typed(x, r, ast::meta::Expression)
     }
 
     fn statement(self, x: ast::Statement<Self::Expression>, r: Range) -> (Self::Statement, Self) {
-        self.typed(x, r, ast::ctx::Statement)
+        self.typed(x, r, ast::meta::Statement)
     }
 
     fn component(
@@ -72,7 +81,7 @@ impl ast::walk::Visit for Visitor {
         x: ast::Component<Self::Component, Self::Expression>,
         r: Range,
     ) -> (Self::Component, Self) {
-        self.typed(x, r, ast::ctx::Component)
+        self.typed(x, r, ast::meta::Component)
     }
 
     fn type_expression(
@@ -80,7 +89,7 @@ impl ast::walk::Visit for Visitor {
         x: ast::TypeExpression<Self::TypeExpression>,
         r: Range,
     ) -> (Self::TypeExpression, Self) {
-        self.typed(x, r, ast::ctx::TypeExpression)
+        self.typed(x, r, ast::meta::TypeExpression)
     }
 
     fn parameter(
@@ -88,7 +97,7 @@ impl ast::walk::Visit for Visitor {
         x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
         r: Range,
     ) -> (Self::Parameter, Self) {
-        self.typed(x, r, ast::ctx::Parameter)
+        self.typed(x, r, ast::meta::Parameter)
     }
 
     fn declaration(
@@ -102,11 +111,11 @@ impl ast::walk::Visit for Visitor {
         >,
         r: Range,
     ) -> (Self::Declaration, Self) {
-        self.typed(x, r, ast::ctx::Declaration)
+        self.typed(x, r, ast::meta::Declaration)
     }
 
     fn import(self, x: ast::Import, r: Range) -> (Self::Import, Self) {
-        self.typed(x, r, ast::ctx::Import)
+        self.typed(x, r, ast::meta::Import)
     }
 
     fn module(
@@ -114,21 +123,6 @@ impl ast::walk::Visit for Visitor {
         x: ast::Module<Self::Import, Self::Declaration>,
         r: Range,
     ) -> (Self::Module, Self) {
-        self.typed(x, r, ast::ctx::Module)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::IntoTyped;
-    use crate::{
-        ast::{self, walk::Walk},
-        typed,
-    };
-
-    impl<Context> IntoTyped for ast::ctx::Module<Context> {
-        fn into_typed(self, strong: super::Visitor) -> typed::Program {
-            typed::Program(self.walk(strong).0)
-        }
+        self.typed(x, r, ast::meta::Module)
     }
 }
