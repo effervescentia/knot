@@ -42,11 +42,12 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast, test::fixture};
+    use crate::ast;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::{assert_eq, str};
     use lang::{
         ast::{Module, Primitive},
+        test::fixture,
         Range,
     };
 
@@ -107,20 +108,11 @@ mod tests {
     }
 
     #[test]
-    fn enumerated_declaration() {
-        assert_eq!(
-            parse(lang::test::fixture::enumerated::SOURCE).unwrap().0,
-            ast::raw::Module::raw(
-                Module::new(vec![], vec![lang::test::fixture::enumerated::raw((0, 0))]),
-                Range::new((1, 1), (3, 27))
-            )
-        );
-    }
-
-    #[test]
     fn multiple_declarations() {
         let source = format!(
-            "{type_alias}
+            "{import}
+
+{type_alias}
 
 {enumerated}
 
@@ -131,29 +123,30 @@ mod tests {
 {view}
 
 {module}",
-            type_alias = lang::test::fixture::type_alias::SOURCE,
-            enumerated = lang::test::fixture::enumerated::SOURCE,
-            constant = lang::test::fixture::constant::SOURCE,
+            import = fixture::import::SOURCE,
+            type_alias = fixture::type_alias::SOURCE,
+            enumerated = fixture::enumerated::SOURCE,
+            constant = fixture::constant::SOURCE,
             function = fixture::function::SOURCE,
             view = fixture::view::SOURCE,
-            module = lang::test::fixture::module::SOURCE,
+            module = fixture::module::SOURCE,
         );
 
         assert_eq!(
             parse(&source).unwrap().0,
             ast::raw::Module::raw(
                 Module::new(
-                    vec![],
+                    vec![fixture::import::raw((0, 0))],
                     vec![
-                        lang::test::fixture::type_alias::raw((0, 0)),
-                        lang::test::fixture::enumerated::raw((2, 0)),
-                        lang::test::fixture::constant::raw((6, 0)),
-                        fixture::function::raw((8, 0)),
-                        fixture::view::raw((10, 0)),
-                        lang::test::fixture::module::raw((19, 0))
+                        fixture::type_alias::raw((2, 0)),
+                        fixture::enumerated::raw((4, 0)),
+                        fixture::constant::raw((8, 0)),
+                        fixture::function::raw((10, 0)),
+                        fixture::view::raw((12, 0)),
+                        fixture::module::raw((21, 0))
                     ]
                 ),
-                Range::new((1, 1), (27, 1))
+                Range::new((1, 1), (29, 1))
             )
         );
     }

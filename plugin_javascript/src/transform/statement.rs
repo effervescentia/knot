@@ -397,13 +397,11 @@ mod tests {
             assert_eq!(
                 Statement::from_declaration(
                     ".",
-                    &ast::shape::Declaration(ast::Declaration::Constant {
-                        storage: ast::Storage::public(str!("foo")),
-                        value_type: None,
-                        value: ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))
-                    }),
+                    &ast::shape::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("foo")),
+                        None,
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                    )),
                     &OPTIONS
                 ),
                 vec![Statement::Variable(str!("foo"), Expression::Null)]
@@ -555,20 +553,20 @@ mod tests {
                         value: ast::shape::Module(ast::Module {
                             imports: vec![],
                             declarations: vec![
-                                ast::shape::Declaration(ast::Declaration::Constant {
-                                    storage: ast::Storage::public(str!("bar")),
-                                    value_type: None,
-                                    value: ast::shape::Expression(ast::Expression::Primitive(
+                                ast::shape::Declaration(ast::Declaration::constant(
+                                    ast::Storage::public(str!("bar")),
+                                    None,
+                                    ast::shape::Expression(ast::Expression::Primitive(
                                         ast::Primitive::Nil
                                     ))
-                                }),
-                                ast::shape::Declaration(ast::Declaration::Constant {
-                                    storage: ast::Storage::public(str!("fizz")),
-                                    value_type: None,
-                                    value: ast::shape::Expression(ast::Expression::Primitive(
+                                )),
+                                ast::shape::Declaration(ast::Declaration::constant(
+                                    ast::Storage::public(str!("fizz")),
+                                    None,
+                                    ast::shape::Expression(ast::Expression::Primitive(
                                         ast::Primitive::Nil
                                     ))
-                                })
+                                ))
                             ]
                         })
                     }),

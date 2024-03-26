@@ -55,26 +55,22 @@ mod tests {
                 &ast::shape::Module(ast::Module::new(
                     vec![],
                     vec![
-                        ast::shape::Declaration(ast::Declaration::TypeAlias {
-                            storage: ast::Storage::public(str!("foo")),
-                            value: ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::shape::Declaration(ast::Declaration::type_alias(
+                            ast::Storage::public(str!("foo")),
+                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
                                 ast::TypePrimitive::Nil
                             ))
-                        }),
-                        ast::shape::Declaration(ast::Declaration::Constant {
-                            storage: ast::Storage::private(str!("bar")),
-                            value_type: None,
-                            value: ast::shape::Expression(ast::Expression::Primitive(
-                                ast::Primitive::Nil
-                            ))
-                        }),
-                        ast::shape::Declaration(ast::Declaration::Constant {
-                            storage: ast::Storage::public(str!("fizz")),
-                            value_type: None,
-                            value: ast::shape::Expression(ast::Expression::Primitive(
-                                ast::Primitive::Nil
-                            ))
-                        }),
+                        )),
+                        ast::shape::Declaration(ast::Declaration::constant(
+                            ast::Storage::private(str!("bar")),
+                            None,
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                        )),
+                        ast::shape::Declaration(ast::Declaration::constant(
+                            ast::Storage::public(str!("fizz")),
+                            None,
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                        )),
                     ]
                 )),
                 &OPTIONS
@@ -95,13 +91,11 @@ mod tests {
                 ".",
                 &ast::shape::Module(ast::Module::new(
                     vec![],
-                    vec![ast::shape::Declaration(ast::Declaration::Constant {
-                        storage: ast::Storage::public(str!("bar")),
-                        value_type: None,
-                        value: ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))
-                    })]
+                    vec![ast::shape::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("bar")),
+                        None,
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                    ))]
                 )),
                 &OPTIONS
             ),
@@ -120,13 +114,11 @@ mod tests {
                 ".",
                 &ast::shape::Module(ast::Module::new(
                     vec![],
-                    vec![ast::shape::Declaration(ast::Declaration::Constant {
-                        storage: ast::Storage::public(str!("bar")),
-                        value_type: None,
-                        value: ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))
-                    })]
+                    vec![ast::shape::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("bar")),
+                        None,
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                    ))]
                 )),
                 &Options {
                     mode: Mode::Prod,
