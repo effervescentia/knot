@@ -40,7 +40,7 @@ mod tests {
     use std::collections::HashMap;
 
     #[test]
-    fn empty() {
+    fn empty_module() {
         let ctx = Context {
             namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
             modules: &HashMap::new(),
@@ -55,4 +55,21 @@ mod tests {
             ))))
         );
     }
+
+    // #[test]
+    // fn module_declarations() {
+    //     let ctx = Context {
+    //         namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+    //         modules: &HashMap::new(),
+    //     };
+    //     let raw = ast::meta::Program(ast::meta::Module::mock(ast::Module::new(vec![], vec![])));
+
+    //     assert_eq!(
+    //         super::analyze(&ctx, raw),
+    //         Ok(ast::meta::Program(ast::meta::Module(Node::mock(
+    //             ast::Module::new(vec![], vec![]),
+    //             typed::Type(Type::Module(vec![]))
+    //         ))))
+    //     );
+    // }
 }

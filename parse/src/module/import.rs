@@ -1,5 +1,6 @@
 use crate::{ast, matcher as m};
 use combine::{choice, many1, not_followed_by, optional, parser::char as p, value, Parser, Stream};
+use lang::Range;
 
 // use @/x;
 // use @/x as xx;
@@ -25,28 +26,26 @@ where
     ))
 }
 
-fn import_path<T>() -> impl Parser<T, Output = Vec<String>>
+fn import_path<T>() -> impl Parser<T, Output = (Vec<String>, Range)>
 where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    many1(
-        m::symbol('/')
-            .with(m::standard_identifier())
-            .map(|(x, _)| x),
-    )
+    many1(m::symbol('/').with(m::standard_identifier())).map(|xs: Vec<_>| {
+        let (paths, ranges): (Vec<_>, Vec<_>) = xs.into_iter().unzip();
+        // `unwrap()` is safe here because we are using `many1()`
+        let range = ranges.into_iter().reduce(|acc, x| &acc + &x).unwrap();
+
+        (paths, range)
+    })
 }
 
-fn import_alias<T>() -> impl Parser<T, Output = Option<String>>
+fn import_alias<T>() -> impl Parser<T, Output = Option<(String, Range)>>
 where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    optional(
-        m::keyword("as")
-            .with(m::standard_identifier())
-            .map(|(x, _)| x),
-    )
+    optional(m::keyword("as").with(m::standard_identifier()))
 }
 
 pub fn import<T>() -> impl Parser<T, Output = ast::raw::Import>
@@ -60,15 +59,30 @@ where
         import_path(),
         import_alias(),
     ))
-    .map(|((_, start), source, path, alias)| {
-        ast::raw::Import::raw(
-            ast::Import {
-                source,
-                path,
-                alias,
-            },
-            start,
-        )
+    .map(|((_, start), source, (path, path_range), alias)| {
+        if let Some((alias, alias_range)) = alias {
+            let range = &start + &alias_range;
+
+            ast::raw::Import::raw(
+                ast::Import {
+                    source,
+                    path,
+                    alias: Some(alias),
+                },
+                range,
+            )
+        } else {
+            let range = &start + &path_range;
+
+            ast::raw::Import::raw(
+                ast::Import {
+                    source,
+                    path,
+                    alias: None,
+                },
+                range,
+            )
+        }
     })
 }
 
@@ -76,7 +90,7 @@ where
 mod tests {
     use crate::ast;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::str;
+    use kore::{assert_eq, str};
     use lang::Range;
 
     fn parse(s: &str) -> crate::Result<ast::raw::Import> {
@@ -89,7 +103,7 @@ mod tests {
             parse("use @/foo;").unwrap().0,
             ast::raw::Import::raw(
                 ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
-                Range::new((1, 1), (1, 3))
+                Range::new((1, 1), (1, 9))
             )
         );
     }
@@ -104,7 +118,7 @@ mod tests {
                     vec![str!("foo"), str!("bar"), str!("fizz")],
                     None
                 ),
-                Range::new((1, 1), (1, 3))
+                Range::new((1, 1), (1, 18))
             )
         );
     }
@@ -115,7 +129,7 @@ mod tests {
             parse("use @/foo;").unwrap().0,
             ast::raw::Import::raw(
                 ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
-                Range::new((1, 1), (1, 3))
+                Range::new((1, 1), (1, 9))
             )
         );
     }
@@ -130,7 +144,7 @@ mod tests {
                     vec![str!("foo"), str!("fizz")],
                     Some(str!("buzz"))
                 ),
-                Range::new((1, 1), (1, 3))
+                Range::new((1, 1), (1, 22))
             )
         );
     }

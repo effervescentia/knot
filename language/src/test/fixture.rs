@@ -1,5 +1,7 @@
-use crate::{ast, Fragment, NodeId, ScopeId};
+use crate::{ast, Fragment, NodeId, Range, ScopeId};
 use kore::str;
+
+type Offset = (usize, usize);
 
 #[allow(clippy::multiple_inherent_impl)]
 impl ScopeId {
@@ -42,9 +44,27 @@ pub mod import {
 pub mod type_alias {
     use super::*;
 
+    pub const SOURCE: &str = "type MyTypeAlias = nil;";
+
+    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+        ast::meta::Declaration::raw(
+            ast::Declaration::type_alias(
+                ast::Storage::public(ast::meta::Binding::new(
+                    ast::Binding(str!("MyTypeAlias")),
+                    Range::new((1, 6), (1, 16)).offset(offset),
+                )),
+                ast::meta::TypeExpression::raw(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                    Range::new((1, 20), (1, 22)).offset(offset),
+                ),
+            ),
+            Range::new((1, 1), (1, 22)).offset(offset),
+        )
+    }
+
     pub fn mock() -> ast::meta::Declaration<()> {
         ast::meta::Declaration::mock(ast::Declaration::type_alias(
-            ast::Storage::public(ast::meta::Binding::mock("MyType")),
+            ast::Storage::public(ast::meta::Binding::mock("MyTypeAlias")),
             ast::meta::TypeExpression::mock(ast::TypeExpression::Primitive(
                 ast::TypePrimitive::Nil,
             )),
@@ -70,7 +90,7 @@ pub mod type_alias {
                 (
                     ScopeId(vec![1]).offset(scope),
                     Fragment::Declaration(ast::Declaration::TypeAlias {
-                        storage: ast::Storage::public(str!("MyType")),
+                        storage: ast::Storage::public(str!("MyTypeAlias")),
                         value: NodeId(node),
                     }),
                 ),
@@ -79,17 +99,133 @@ pub mod type_alias {
     }
 }
 
-/// const MY_CONSTANT = true;
 pub mod constant {
     use super::*;
+
+    pub const SOURCE: &str = "const MY_CONSTANT: string = \"hello, world!\";";
+
+    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+        ast::meta::Declaration::raw(
+            ast::Declaration::constant(
+                ast::Storage::public(ast::meta::Binding::new(
+                    ast::Binding(str!("MY_CONSTANT")),
+                    Range::new((1, 7), (1, 17)).offset(offset),
+                )),
+                Some(ast::meta::TypeExpression::raw(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::String),
+                    Range::new((1, 20), (1, 25)).offset(offset),
+                )),
+                ast::meta::Expression::raw(
+                    ast::Expression::Primitive(ast::Primitive::String(str!("hello, world!"))),
+                    Range::new((1, 29), (1, 43)).offset(offset),
+                ),
+            ),
+            Range::new((1, 1), (1, 43)).offset(offset),
+        )
+    }
 
     pub fn mock() -> ast::meta::Declaration<()> {
         ast::meta::Declaration::mock(ast::Declaration::constant(
             ast::Storage::public(ast::meta::Binding::mock("MY_CONSTANT")),
             Some(ast::meta::TypeExpression::mock(
-                ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                ast::TypeExpression::Primitive(ast::TypePrimitive::String),
             )),
-            ast::meta::Expression::mock(ast::Expression::Primitive(ast::Primitive::Boolean(true))),
+            ast::meta::Expression::mock(ast::Expression::Primitive(ast::Primitive::String(str!(
+                "hello, world!"
+            )))),
+        ))
+    }
+
+    pub fn fragments(
+        node: usize,
+        scope: &(Vec<usize>, usize),
+    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
+        vec![
+            (
+                NodeId(node),
+                (
+                    ScopeId(vec![1]).offset(scope),
+                    Fragment::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::String,
+                    )),
+                ),
+            ),
+            (
+                NodeId(node + 1),
+                (
+                    ScopeId(vec![1]).offset(scope),
+                    Fragment::Expression(ast::Expression::Primitive(ast::Primitive::String(str!(
+                        "hello, world!"
+                    )))),
+                ),
+            ),
+            (
+                NodeId(node + 2),
+                (
+                    ScopeId(vec![1]).offset(scope),
+                    Fragment::Declaration(ast::Declaration::Constant {
+                        storage: ast::Storage::public(str!("MY_CONSTANT")),
+                        value_type: Some(NodeId(node)),
+                        value: NodeId(node + 1),
+                    }),
+                ),
+            ),
+        ]
+    }
+}
+
+pub mod enumerated {
+    use super::*;
+
+    pub const SOURCE: &str = "enum MyEnum =
+  | Empty
+  | Render(boolean, style);";
+
+    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+        ast::meta::Declaration::raw(
+            ast::Declaration::enumerated(
+                ast::Storage::public(ast::meta::Binding::new(
+                    ast::Binding(str!("MyEnum")),
+                    Range::new((1, 6), (1, 11)).offset(offset),
+                )),
+                vec![
+                    (str!("Empty"), vec![]),
+                    (
+                        str!("Render"),
+                        vec![
+                            ast::meta::TypeExpression::raw(
+                                ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                                Range::new((3, 12), (3, 18)).offset(offset),
+                            ),
+                            ast::meta::TypeExpression::raw(
+                                ast::TypeExpression::Primitive(ast::TypePrimitive::Style),
+                                Range::new((3, 21), (3, 25)).offset(offset),
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            Range::new((1, 1), (3, 26)).offset(offset),
+        )
+    }
+
+    pub fn mock() -> ast::meta::Declaration<()> {
+        ast::meta::Declaration::mock(ast::Declaration::enumerated(
+            ast::Storage::public(ast::meta::Binding::mock("MyEnum")),
+            vec![
+                (str!("Empty"), vec![]),
+                (
+                    str!("Render"),
+                    vec![
+                        ast::meta::TypeExpression::mock(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Boolean,
+                        )),
+                        ast::meta::TypeExpression::mock(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Style,
+                        )),
+                    ],
+                ),
+            ],
         ))
     }
 
@@ -111,68 +247,20 @@ pub mod constant {
                 NodeId(node + 1),
                 (
                     ScopeId(vec![1]).offset(scope),
-                    Fragment::Expression(ast::Expression::Primitive(ast::Primitive::Boolean(true))),
+                    Fragment::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Style,
+                    )),
                 ),
             ),
             (
                 NodeId(node + 2),
                 (
                     ScopeId(vec![1]).offset(scope),
-                    Fragment::Declaration(ast::Declaration::Constant {
-                        storage: ast::Storage::public(str!("MY_CONSTANT")),
-                        value_type: Some(NodeId(node)),
-                        value: NodeId(node + 1),
-                    }),
-                ),
-            ),
-        ]
-    }
-}
-
-/// enum MyEnum =
-///   | Empty
-///   | Number(integer);
-pub mod enumerated {
-    use super::*;
-
-    pub fn mock() -> ast::meta::Declaration<()> {
-        ast::meta::Declaration::mock(ast::Declaration::enumerated(
-            ast::Storage::public(ast::meta::Binding::mock("MyEnum")),
-            vec![
-                (str!("Empty"), vec![]),
-                (
-                    str!("Number"),
-                    vec![ast::meta::TypeExpression::mock(
-                        ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
-                    )],
-                ),
-            ],
-        ))
-    }
-
-    pub fn fragments(
-        node: usize,
-        scope: &(Vec<usize>, usize),
-    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
-        vec![
-            (
-                NodeId(node),
-                (
-                    ScopeId(vec![1]).offset(scope),
-                    Fragment::TypeExpression(ast::TypeExpression::Primitive(
-                        ast::TypePrimitive::Integer,
-                    )),
-                ),
-            ),
-            (
-                NodeId(node + 1),
-                (
-                    ScopeId(vec![1]).offset(scope),
                     Fragment::Declaration(ast::Declaration::Enumerated {
                         storage: ast::Storage::public(str!("MyEnum")),
                         variants: vec![
                             (str!("Empty"), vec![]),
-                            (str!("Number"), vec![NodeId(node)]),
+                            (str!("Render"), vec![NodeId(node), NodeId(node + 1)]),
                         ],
                     }),
                 ),
@@ -346,13 +434,75 @@ pub mod view {
     }
 }
 
-/// module my_module {
-///   use ./buzz as Buzz;
-///
-///   type NestedType = nil;
-/// }
 pub mod module {
     use super::*;
+
+    pub const SOURCE: &str = "module my_module {
+  use ./buzz as Buzz;
+
+  const MY_STYLE = style {
+    color: \"red\",
+    display: \"block\",
+  };
+}";
+
+    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+        ast::meta::Declaration::raw(
+            ast::Declaration::module(
+                ast::Storage::public(ast::meta::Binding::new(
+                    ast::Binding(str!("my_module")),
+                    Range::new((1, 8), (1, 16)).offset(offset),
+                )),
+                ast::meta::Module::raw(
+                    ast::Module::new(
+                        vec![ast::meta::Import::raw(
+                            ast::Import::new(
+                                ast::ImportSource::Local,
+                                vec![str!("buzz")],
+                                Some(str!("Buzz")),
+                            ),
+                            Range::new((2, 3), (2, 20)).offset(offset),
+                        )],
+                        vec![ast::meta::Declaration::raw(
+                            ast::Declaration::constant(
+                                ast::Storage::public(ast::meta::Binding::new(
+                                    ast::Binding(str!("MY_STYLE")),
+                                    Range::new((4, 9), (4, 16)).offset(offset),
+                                )),
+                                None,
+                                ast::meta::Expression::raw(
+                                    ast::Expression::Style(vec![
+                                        (
+                                            str!("color"),
+                                            ast::meta::Expression::raw(
+                                                ast::Expression::Primitive(ast::Primitive::String(
+                                                    str!("red"),
+                                                )),
+                                                Range::new((5, 12), (5, 16)).offset(offset),
+                                            ),
+                                        ),
+                                        (
+                                            str!("display"),
+                                            ast::meta::Expression::raw(
+                                                ast::Expression::Primitive(ast::Primitive::String(
+                                                    str!("block"),
+                                                )),
+                                                Range::new((6, 14), (6, 20)).offset(offset),
+                                            ),
+                                        ),
+                                    ]),
+                                    Range::new((4, 20), (7, 3)).offset(offset),
+                                ),
+                            ),
+                            Range::new((4, 3), (7, 3)).offset(offset),
+                        )],
+                    ),
+                    Range::new((2, 3), (8, 0)).offset(offset),
+                ),
+            ),
+            Range::new((1, 1), (8, 1)).offset(offset),
+        )
+    }
 
     pub fn mock() -> ast::meta::Declaration<()> {
         ast::meta::Declaration::mock(ast::Declaration::module(
@@ -363,11 +513,23 @@ pub mod module {
                     path: vec![str!("buzz")],
                     alias: Some(str!("Buzz")),
                 })],
-                vec![ast::meta::Declaration::mock(ast::Declaration::TypeAlias {
-                    storage: ast::Storage::public(ast::meta::Binding::mock("NestedType")),
-                    value: ast::meta::TypeExpression::mock(ast::TypeExpression::Primitive(
-                        ast::TypePrimitive::Nil,
-                    )),
+                vec![ast::meta::Declaration::mock(ast::Declaration::Constant {
+                    storage: ast::Storage::public(ast::meta::Binding::mock("MY_STYLE")),
+                    value_type: None,
+                    value: ast::meta::Expression::mock(ast::Expression::Style(vec![
+                        (
+                            str!("color"),
+                            ast::meta::Expression::mock(ast::Expression::Primitive(
+                                ast::Primitive::String(str!("red")),
+                            )),
+                        ),
+                        (
+                            str!("display"),
+                            ast::meta::Expression::mock(ast::Expression::Primitive(
+                                ast::Primitive::String(str!("block")),
+                            )),
+                        ),
+                    ])),
                 })],
             )),
         ))
@@ -393,35 +555,55 @@ pub mod module {
                 NodeId(node + 1),
                 (
                     ScopeId(vec![1, 2]).offset(scope),
-                    Fragment::TypeExpression(ast::TypeExpression::Primitive(
-                        ast::TypePrimitive::Nil,
-                    )),
+                    Fragment::Expression(ast::Expression::Primitive(ast::Primitive::String(str!(
+                        "red"
+                    )))),
                 ),
             ),
             (
                 NodeId(node + 2),
                 (
                     ScopeId(vec![1, 2]).offset(scope),
-                    Fragment::Declaration(ast::Declaration::type_alias(
-                        ast::Storage::public(str!("NestedType")),
-                        NodeId(node + 1),
-                    )),
+                    Fragment::Expression(ast::Expression::Primitive(ast::Primitive::String(str!(
+                        "block"
+                    )))),
                 ),
             ),
             (
                 NodeId(node + 3),
                 (
-                    ScopeId(vec![1]).offset(scope),
-                    Fragment::Module(ast::Module::new(vec![NodeId(node)], vec![NodeId(node + 2)])),
+                    ScopeId(vec![1, 2]).offset(scope),
+                    Fragment::Expression(ast::Expression::Style(vec![
+                        (str!("color"), NodeId(node + 1)),
+                        (str!("display"), NodeId(node + 2)),
+                    ])),
                 ),
             ),
             (
                 NodeId(node + 4),
                 (
+                    ScopeId(vec![1, 2]).offset(scope),
+                    Fragment::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("MY_STYLE")),
+                        None,
+                        NodeId(node + 3),
+                    )),
+                ),
+            ),
+            (
+                NodeId(node + 5),
+                (
+                    ScopeId(vec![1]).offset(scope),
+                    Fragment::Module(ast::Module::new(vec![NodeId(node)], vec![NodeId(node + 4)])),
+                ),
+            ),
+            (
+                NodeId(node + 6),
+                (
                     ScopeId(vec![1]).offset(scope),
                     Fragment::Declaration(ast::Declaration::module(
                         ast::Storage::public(str!("my_module")),
-                        NodeId(node + 3),
+                        NodeId(node + 5),
                     )),
                 ),
             ),

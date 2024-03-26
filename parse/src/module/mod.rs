@@ -70,7 +70,7 @@ mod tests {
                 ast::Module::new(
                     vec![ast::raw::Import::raw(
                         ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
-                        Range::new((1, 1), (1, 3))
+                        Range::new((1, 1), (1, 9))
                     )],
                     vec![]
                 ),
@@ -107,6 +107,17 @@ mod tests {
     }
 
     #[test]
+    fn enumerated_declaration() {
+        assert_eq!(
+            parse(lang::test::fixture::enumerated::SOURCE).unwrap().0,
+            ast::raw::Module::raw(
+                Module::new(vec![], vec![lang::test::fixture::enumerated::raw((0, 0))]),
+                Range::new((1, 1), (3, 27))
+            )
+        );
+    }
+
+    #[test]
     fn multiple_declarations() {
         let source = format!(
             "{type_alias}
@@ -120,12 +131,12 @@ mod tests {
 {view}
 
 {module}",
-            type_alias = fixture::type_alias::SOURCE,
-            enumerated = fixture::enumerated::SOURCE,
-            constant = fixture::constant::SOURCE,
+            type_alias = lang::test::fixture::type_alias::SOURCE,
+            enumerated = lang::test::fixture::enumerated::SOURCE,
+            constant = lang::test::fixture::constant::SOURCE,
             function = fixture::function::SOURCE,
             view = fixture::view::SOURCE,
-            module = fixture::module::SOURCE,
+            module = lang::test::fixture::module::SOURCE,
         );
 
         assert_eq!(
@@ -134,15 +145,15 @@ mod tests {
                 Module::new(
                     vec![],
                     vec![
-                        fixture::type_alias::raw((0, 0)),
-                        fixture::enumerated::raw((2, 0)),
-                        fixture::constant::raw((6, 0)),
+                        lang::test::fixture::type_alias::raw((0, 0)),
+                        lang::test::fixture::enumerated::raw((2, 0)),
+                        lang::test::fixture::constant::raw((6, 0)),
                         fixture::function::raw((8, 0)),
                         fixture::view::raw((10, 0)),
-                        fixture::module::raw((19, 0))
+                        lang::test::fixture::module::raw((19, 0))
                     ]
                 ),
-                Range::new((1, 1), (25, 1))
+                Range::new((1, 1), (27, 1))
             )
         );
     }

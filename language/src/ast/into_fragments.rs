@@ -187,11 +187,11 @@ mod tests {
                     fixture::type_alias::fragments(1, &(vec![0], 0)),
                     fixture::constant::fragments(3, &(vec![0], 1)),
                     fixture::enumerated::fragments(6, &(vec![0], 2)),
-                    fixture::function::fragments(8, &(vec![0], 3)),
-                    fixture::view::fragments(14, &(vec![0], 4)),
-                    fixture::module::fragments(19, &(vec![0], 5)),
+                    fixture::function::fragments(9, &(vec![0], 3)),
+                    fixture::view::fragments(15, &(vec![0], 4)),
+                    fixture::module::fragments(20, &(vec![0], 5)),
                     vec![(
-                        NodeId(24),
+                        NodeId(27),
                         (
                             ScopeId(vec![0]),
                             Fragment::Module(ast::Module {
@@ -199,10 +199,10 @@ mod tests {
                                 declarations: vec![
                                     NodeId(2),
                                     NodeId(5),
-                                    NodeId(7),
-                                    NodeId(13),
-                                    NodeId(18),
-                                    NodeId(23),
+                                    NodeId(8),
+                                    NodeId(14),
+                                    NodeId(19),
+                                    NodeId(26),
                                 ]
                             })
                         )
