@@ -210,23 +210,7 @@ pub mod enumerated {
     }
 
     pub fn mock() -> ast::meta::Declaration<()> {
-        ast::meta::Declaration::mock(ast::Declaration::enumerated(
-            ast::Storage::public(ast::meta::Binding::mock("MyEnum")),
-            vec![
-                (str!("Empty"), vec![]),
-                (
-                    str!("Render"),
-                    vec![
-                        ast::meta::TypeExpression::mock(ast::TypeExpression::Primitive(
-                            ast::TypePrimitive::Boolean,
-                        )),
-                        ast::meta::TypeExpression::mock(ast::TypeExpression::Primitive(
-                            ast::TypePrimitive::Style,
-                        )),
-                    ],
-                ),
-            ],
-        ))
+        raw((0, 0))
     }
 
     pub fn fragments(
@@ -505,34 +489,7 @@ pub mod module {
     }
 
     pub fn mock() -> ast::meta::Declaration<()> {
-        ast::meta::Declaration::mock(ast::Declaration::module(
-            ast::Storage::public(ast::meta::Binding::mock("my_module")),
-            ast::meta::Module::mock(ast::Module::new(
-                vec![ast::meta::Import::mock(ast::Import {
-                    source: ast::ImportSource::Local,
-                    path: vec![str!("buzz")],
-                    alias: Some(str!("Buzz")),
-                })],
-                vec![ast::meta::Declaration::mock(ast::Declaration::Constant {
-                    storage: ast::Storage::public(ast::meta::Binding::mock("MY_STYLE")),
-                    value_type: None,
-                    value: ast::meta::Expression::mock(ast::Expression::Style(vec![
-                        (
-                            str!("color"),
-                            ast::meta::Expression::mock(ast::Expression::Primitive(
-                                ast::Primitive::String(str!("red")),
-                            )),
-                        ),
-                        (
-                            str!("display"),
-                            ast::meta::Expression::mock(ast::Expression::Primitive(
-                                ast::Primitive::String(str!("block")),
-                            )),
-                        ),
-                    ])),
-                })],
-            )),
-        ))
+        raw((0, 0))
     }
 
     pub fn fragments(
