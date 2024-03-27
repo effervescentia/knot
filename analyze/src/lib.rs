@@ -190,7 +190,7 @@ mod tests {
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::module::typed()]),
                 ast::typed::Type(Type::Module(vec![(
-                    str!("MyEnum"),
+                    str!("my_module"),
                     Kind::Mixed,
                     Rc::new(fixture::module::type_of())
                 )]))
