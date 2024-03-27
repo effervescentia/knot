@@ -5,6 +5,8 @@ use super::{
 use crate::{Node, Range};
 use std::fmt::Display;
 
+/* binding */
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Binding(pub Node<super::Binding, ()>);
 
@@ -30,25 +32,27 @@ where
     }
 }
 
+/* expression */
+
+type ExpressionValue<Meta> = super::Expression<Expression<Meta>, Statement<Meta>, Component<Meta>>;
+
 #[allow(clippy::type_complexity)]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Expression<Context>(
-    pub  Node<
-        super::Expression<Expression<Context>, Statement<Context>, Component<Context>>,
-        Context,
-    >,
-);
+pub struct Expression<Meta>(pub Node<ExpressionValue<Meta>, Meta>);
+
+impl<Meta> Expression<Meta> {
+    pub fn typed(v: ExpressionValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
 
 impl Expression<()> {
-    pub const fn raw(
-        x: super::Expression<Self, Statement<()>, Component<()>>,
-        range: Range,
-    ) -> Self {
+    pub const fn raw(x: ExpressionValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::Expression<Self, Statement<()>, Component<()>>) -> Self {
+    pub fn mock(x: ExpressionValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -64,16 +68,26 @@ where
     }
 }
 
+/* statement */
+
+type StatementValue<Meta> = super::Statement<Expression<Meta>>;
+
 #[derive(Clone, Debug, PartialEq)]
-pub struct Statement<Meta>(pub Node<super::Statement<Expression<Meta>>, Meta>);
+pub struct Statement<Meta>(pub Node<StatementValue<Meta>, Meta>);
+
+impl<Meta> Statement<Meta> {
+    pub fn typed(v: StatementValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
 
 impl Statement<()> {
-    pub const fn raw(x: super::Statement<Expression<()>>, range: Range) -> Self {
+    pub const fn raw(x: StatementValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::Statement<Expression<()>>) -> Self {
+    pub fn mock(x: StatementValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -89,16 +103,26 @@ where
     }
 }
 
+/* component */
+
+type ComponentValue<Meta> = super::Component<Component<Meta>, Expression<Meta>>;
+
 #[derive(Clone, Debug, PartialEq)]
-pub struct Component<Meta>(pub Node<super::Component<Component<Meta>, Expression<Meta>>, Meta>);
+pub struct Component<Meta>(pub Node<ComponentValue<Meta>, Meta>);
+
+impl<Meta> Component<Meta> {
+    pub fn typed(v: ComponentValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
 
 impl Component<()> {
-    pub const fn raw(x: super::Component<Self, Expression<()>>, range: Range) -> Self {
+    pub const fn raw(x: ComponentValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::Component<Self, Expression<()>>) -> Self {
+    pub fn mock(x: ComponentValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -114,8 +138,18 @@ where
     }
 }
 
+/* type expression */
+
+// type TypeExpressionValue<Meta> = super::TypeExpression<TypeExpression<Meta>>;
+
 #[derive(Clone, Debug, PartialEq)]
-pub struct TypeExpression<Meta>(pub Node<super::TypeExpression<TypeExpression<Meta>>, Meta>);
+pub struct TypeExpression<Meta>(pub Node<super::TypeExpression<Self>, Meta>);
+
+impl<Meta> TypeExpression<Meta> {
+    pub fn typed(v: super::TypeExpression<Self>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
 
 impl TypeExpression<()> {
     pub const fn raw(x: super::TypeExpression<Self>, range: Range) -> Self {
@@ -139,21 +173,26 @@ where
     }
 }
 
+/* parameter */
+
+type ParameterValue<Meta> = super::Parameter<Binding, Expression<Meta>, TypeExpression<Meta>>;
+
 #[derive(Clone, Debug, PartialEq)]
-pub struct Parameter<Meta>(
-    pub Node<super::Parameter<Binding, Expression<Meta>, TypeExpression<Meta>>, Meta>,
-);
+pub struct Parameter<Meta>(pub Node<ParameterValue<Meta>, Meta>);
+
+impl<Meta> Parameter<Meta> {
+    pub fn typed(v: ParameterValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
 
 impl Parameter<()> {
-    pub const fn raw(
-        x: super::Parameter<Binding, Expression<()>, TypeExpression<()>>,
-        range: Range,
-    ) -> Self {
+    pub const fn raw(x: ParameterValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::Parameter<Binding, Expression<()>, TypeExpression<()>>) -> Self {
+    pub fn mock(x: ParameterValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -169,45 +208,33 @@ where
     }
 }
 
+/* declaration */
+
+type DeclarationValue<Meta> = super::Declaration<
+    Binding,
+    Expression<Meta>,
+    TypeExpression<Meta>,
+    Parameter<Meta>,
+    Module<Meta>,
+>;
+
 #[allow(clippy::type_complexity)]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Declaration<Meta>(
-    pub  Node<
-        super::Declaration<
-            Binding,
-            Expression<Meta>,
-            TypeExpression<Meta>,
-            Parameter<Meta>,
-            Module<Meta>,
-        >,
-        Meta,
-    >,
-);
+pub struct Declaration<Meta>(pub Node<DeclarationValue<Meta>, Meta>);
+
+impl<Meta> Declaration<Meta> {
+    pub fn typed(v: DeclarationValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
 
 impl Declaration<()> {
-    pub const fn raw(
-        x: super::Declaration<
-            Binding,
-            Expression<()>,
-            TypeExpression<()>,
-            Parameter<()>,
-            Module<()>,
-        >,
-        range: Range,
-    ) -> Self {
+    pub const fn raw(x: DeclarationValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(
-        x: super::Declaration<
-            Binding,
-            Expression<()>,
-            TypeExpression<()>,
-            Parameter<()>,
-            Module<()>,
-        >,
-    ) -> Self {
+    pub fn mock(x: DeclarationValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -223,8 +250,16 @@ where
     }
 }
 
+/* import */
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Import<Meta>(pub Node<super::Import, Meta>);
+
+impl<Meta> Import<Meta> {
+    pub fn typed(v: super::Import, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
 
 impl Import<()> {
     pub const fn raw(x: super::Import, range: Range) -> Self {
@@ -248,16 +283,26 @@ where
     }
 }
 
+/* module */
+
+type ModuleValue<Meta> = super::Module<Import<Meta>, Declaration<Meta>>;
+
 #[derive(Clone, Debug, PartialEq)]
-pub struct Module<Meta>(pub Node<super::Module<Import<Meta>, Declaration<Meta>>, Meta>);
+pub struct Module<Meta>(pub Node<ModuleValue<Meta>, Meta>);
+
+impl<Meta> Module<Meta> {
+    pub fn typed(v: ModuleValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
 
 impl Module<()> {
-    pub const fn raw(x: super::Module<Import<()>, Declaration<()>>, range: Range) -> Self {
+    pub const fn raw(x: ModuleValue<()>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::Module<Import<()>, Declaration<()>>) -> Self {
+    pub fn mock(x: ModuleValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }

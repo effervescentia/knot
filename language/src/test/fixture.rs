@@ -1,5 +1,7 @@
-use crate::{ast, Fragment, NodeId, Range, ScopeId};
+use super::nil_range::NilRange;
+use crate::{ast, types, Fragment, NodeId, Range, ScopeId};
 use kore::str;
+use std::rc::Rc;
 
 type Offset = (usize, usize);
 
@@ -15,7 +17,7 @@ pub mod import {
 
     pub const SOURCE: &str = "use ./foo/bar/fizz;";
 
-    pub fn raw(offset: Offset) -> ast::meta::Import<()> {
+    pub fn raw(offset: Offset) -> ast::raw::Import {
         ast::meta::Import::raw(
             ast::Import {
                 source: ast::ImportSource::Local,
@@ -26,12 +28,8 @@ pub mod import {
         )
     }
 
-    pub fn mock() -> ast::meta::Import<()> {
-        ast::meta::Import::mock(ast::Import {
-            source: ast::ImportSource::Local,
-            path: vec![str!("foo"), str!("bar"), str!("fizz")],
-            alias: None,
-        })
+    pub fn mock() -> ast::raw::Import {
+        raw((0, 0)).nil_range()
     }
 
     pub fn fragments(
@@ -57,7 +55,7 @@ pub mod type_alias {
 
     pub const SOURCE: &str = "type MyTypeAlias = nil;";
 
-    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::type_alias(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -73,8 +71,8 @@ pub mod type_alias {
         )
     }
 
-    pub fn mock() -> ast::meta::Declaration<()> {
-        raw((0, 0))
+    pub fn mock() -> ast::raw::Declaration {
+        raw((0, 0)).nil_range()
     }
 
     pub fn fragments(
@@ -103,6 +101,23 @@ pub mod type_alias {
             ),
         ]
     }
+
+    pub const fn type_of() -> ast::typed::Type {
+        ast::typed::Type(types::Type::Nil)
+    }
+
+    pub fn typed() -> ast::typed::Declaration {
+        ast::meta::Declaration::typed(
+            ast::Declaration::type_alias(
+                ast::Storage::public(ast::meta::Binding::mock("MyTypeAlias")),
+                ast::meta::TypeExpression::typed(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                    ast::typed::Type(types::Type::Nil),
+                ),
+            ),
+            type_of(),
+        )
+    }
 }
 
 pub mod constant {
@@ -110,7 +125,7 @@ pub mod constant {
 
     pub const SOURCE: &str = "const MY_CONSTANT: string = \"hello, world!\";";
 
-    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::constant(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -130,8 +145,8 @@ pub mod constant {
         )
     }
 
-    pub fn mock() -> ast::meta::Declaration<()> {
-        raw((0, 0))
+    pub fn mock() -> ast::raw::Declaration {
+        raw((0, 0)).nil_range()
     }
 
     pub fn fragments(
@@ -170,6 +185,27 @@ pub mod constant {
             ),
         ]
     }
+
+    pub const fn type_of() -> ast::typed::Type {
+        ast::typed::Type(types::Type::String)
+    }
+
+    pub fn typed() -> ast::typed::Declaration {
+        ast::meta::Declaration::typed(
+            ast::Declaration::constant(
+                ast::Storage::public(ast::meta::Binding::mock("MY_CONSTANT")),
+                Some(ast::meta::TypeExpression::typed(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::String),
+                    ast::typed::Type(types::Type::String),
+                )),
+                ast::meta::Expression::typed(
+                    ast::Expression::Primitive(ast::Primitive::String(str!("hello, world!"))),
+                    ast::typed::Type(types::Type::String),
+                ),
+            ),
+            type_of(),
+        )
+    }
 }
 
 pub mod enumerated {
@@ -179,7 +215,7 @@ pub mod enumerated {
   | Empty
   | Render(boolean, style);";
 
-    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::enumerated(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -207,8 +243,8 @@ pub mod enumerated {
         )
     }
 
-    pub fn mock() -> ast::meta::Declaration<()> {
-        raw((0, 0))
+    pub fn mock() -> ast::raw::Declaration {
+        raw((0, 0)).nil_range()
     }
 
     pub fn fragments(
@@ -249,6 +285,46 @@ pub mod enumerated {
             ),
         ]
     }
+
+    pub fn type_of() -> ast::typed::Type {
+        ast::typed::Type(types::Type::Enumerated(types::Enumerated::Declaration(
+            vec![
+                (str!("Empty"), vec![]),
+                (
+                    str!("Render"),
+                    vec![
+                        Rc::new(ast::typed::Type(types::Type::Boolean)),
+                        Rc::new(ast::typed::Type(types::Type::Style)),
+                    ],
+                ),
+            ],
+        )))
+    }
+
+    pub fn typed() -> ast::typed::Declaration {
+        ast::meta::Declaration::typed(
+            ast::Declaration::enumerated(
+                ast::Storage::public(ast::meta::Binding::mock("MyEnum")),
+                vec![
+                    (str!("Empty"), vec![]),
+                    (
+                        str!("Render"),
+                        vec![
+                            ast::meta::TypeExpression::typed(
+                                ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                                ast::typed::Type(types::Type::Boolean),
+                            ),
+                            ast::meta::TypeExpression::typed(
+                                ast::TypeExpression::Primitive(ast::TypePrimitive::Style),
+                                ast::typed::Type(types::Type::Style),
+                            ),
+                        ],
+                    ),
+                ],
+            ),
+            type_of(),
+        )
+    }
 }
 
 pub mod function {
@@ -257,7 +333,7 @@ pub mod function {
     pub const SOURCE: &str =
         "func my_function(first, second: integer, third = true): boolean -> first > second || third;";
 
-    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::function(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -338,8 +414,8 @@ pub mod function {
         )
     }
 
-    pub fn mock() -> ast::meta::Declaration<()> {
-        raw((0, 0))
+    pub fn mock() -> ast::raw::Declaration {
+        raw((0, 0)).nil_range()
     }
 
     pub fn fragments(
@@ -458,6 +534,55 @@ pub mod function {
             ),
         ]
     }
+
+    pub fn type_of() -> ast::typed::Type {
+        ast::typed::Type(types::Type::Function(
+            vec![
+                Rc::new(ast::typed::Type(types::Type::Integer)),
+                Rc::new(ast::typed::Type(types::Type::Integer)),
+                Rc::new(ast::typed::Type(types::Type::Boolean)),
+            ],
+            Rc::new(ast::typed::Type(types::Type::Boolean)),
+        ))
+    }
+
+    pub fn typed() -> ast::typed::Declaration {
+        ast::meta::Declaration::typed(
+            ast::Declaration::function(
+                ast::Storage::public(ast::meta::Binding::mock("my_function")),
+                vec![],
+                Some(ast::meta::TypeExpression::typed(
+                    ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                    ast::typed::Type(types::Type::Boolean),
+                )),
+                ast::meta::Expression::typed(
+                    ast::Expression::BinaryOperation(
+                        ast::BinaryOperator::Or,
+                        Box::new(ast::meta::Expression::typed(
+                            ast::Expression::BinaryOperation(
+                                ast::BinaryOperator::GreaterThan,
+                                Box::new(ast::meta::Expression::typed(
+                                    ast::Expression::Identifier(str!("first")),
+                                    ast::typed::Type(types::Type::Integer),
+                                )),
+                                Box::new(ast::meta::Expression::typed(
+                                    ast::Expression::Identifier(str!("second")),
+                                    ast::typed::Type(types::Type::Integer),
+                                )),
+                            ),
+                            ast::typed::Type(types::Type::Boolean),
+                        )),
+                        Box::new(ast::meta::Expression::typed(
+                            ast::Expression::Identifier(str!("third")),
+                            ast::typed::Type(types::Type::Boolean),
+                        )),
+                    ),
+                    ast::typed::Type(types::Type::Boolean),
+                ),
+            ),
+            type_of(),
+        )
+    }
 }
 
 pub mod view {
@@ -472,7 +597,7 @@ pub mod view {
   </>;
 };";
 
-    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::view(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -594,8 +719,8 @@ pub mod view {
         )
     }
 
-    pub fn mock() -> ast::meta::Declaration<()> {
-        raw((0, 0))
+    pub fn mock() -> ast::raw::Declaration {
+        raw((0, 0)).nil_range()
     }
 
     pub fn fragments(
@@ -784,9 +909,135 @@ pub mod view {
             ),
         ]
     }
+
+    pub fn type_of() -> ast::typed::Type {
+        ast::typed::Type(types::Type::View(vec![Rc::new(ast::typed::Type(
+            types::Type::Element,
+        ))]))
+    }
+
+    pub fn typed() -> ast::typed::Declaration {
+        ast::typed::Declaration::typed(
+            ast::Declaration::view(
+                ast::Storage::public(ast::meta::Binding::mock("MyView")),
+                vec![ast::typed::Parameter::typed(
+                    ast::Parameter::new(
+                        ast::typed::Binding::mock("inner"),
+                        Some(ast::typed::TypeExpression::typed(
+                            ast::TypeExpression::Primitive(ast::TypePrimitive::Element),
+                            ast::typed::Type(types::Type::Element),
+                        )),
+                        Some(ast::typed::Expression::typed(
+                            ast::Expression::Component(Box::new(ast::typed::Component::typed(
+                                ast::Component::ClosedElement(str!("div"), vec![]),
+                                ast::typed::Type(types::Type::Element),
+                            ))),
+                            ast::typed::Type(types::Type::Element),
+                        )),
+                    ),
+                    ast::typed::Type(types::Type::Element),
+                )],
+                ast::typed::Expression::typed(
+                    ast::Expression::Closure(vec![
+                        ast::typed::Statement::typed(
+                            ast::Statement::Variable(
+                                str!("value"),
+                                ast::typed::Expression::typed(
+                                    ast::Expression::BinaryOperation(
+                                        ast::BinaryOperator::Add,
+                                        Box::new(ast::typed::Expression::typed(
+                                            ast::Expression::Primitive(ast::Primitive::Integer(
+                                                123,
+                                            )),
+                                            ast::typed::Type(types::Type::Integer),
+                                        )),
+                                        Box::new(ast::typed::Expression::typed(
+                                            ast::Expression::Primitive(ast::Primitive::Float(
+                                                45.67, 2,
+                                            )),
+                                            ast::typed::Type(types::Type::Integer),
+                                        )),
+                                    ),
+                                    ast::typed::Type(types::Type::Float),
+                                ),
+                            ),
+                            ast::typed::Type(types::Type::Float),
+                        ),
+                        ast::typed::Statement::typed(
+                            ast::Statement::Expression(ast::typed::Expression::typed(
+                                ast::Expression::Component(Box::new(ast::typed::Component::typed(
+                                    ast::Component::Fragment(vec![
+                                        ast::typed::Component::typed(
+                                            ast::Component::open_element(
+                                                str!("h1"),
+                                                vec![],
+                                                vec![ast::typed::Component::typed(
+                                                    ast::Component::Text(str!("Welcome!")),
+                                                    ast::typed::Type(types::Type::String),
+                                                )],
+                                                str!("h1"),
+                                            ),
+                                            ast::typed::Type(types::Type::Element),
+                                        ),
+                                        ast::typed::Component::typed(
+                                            ast::Component::open_element(
+                                                str!("main"),
+                                                vec![],
+                                                vec![
+                                                    ast::typed::Component::typed(
+                                                        ast::Component::Expression(
+                                                            ast::typed::Expression::typed(
+                                                                ast::Expression::Identifier(str!(
+                                                                    "value"
+                                                                )),
+                                                                ast::typed::Type(
+                                                                    types::Type::Float,
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        ast::typed::Type(types::Type::Float),
+                                                    ),
+                                                    ast::typed::Component::typed(
+                                                        ast::Component::Text(str!(": ")),
+                                                        ast::typed::Type(types::Type::String),
+                                                    ),
+                                                    ast::typed::Component::typed(
+                                                        ast::Component::Expression(
+                                                            ast::typed::Expression::typed(
+                                                                ast::Expression::Identifier(str!(
+                                                                    "inner"
+                                                                )),
+                                                                ast::typed::Type(
+                                                                    types::Type::Element,
+                                                                ),
+                                                            ),
+                                                        ),
+                                                        ast::typed::Type(types::Type::Element),
+                                                    ),
+                                                ],
+                                                str!("main"),
+                                            ),
+                                            ast::typed::Type(types::Type::Element),
+                                        ),
+                                    ]),
+                                    ast::typed::Type(types::Type::Element),
+                                ))),
+                                ast::typed::Type(types::Type::Float),
+                            )),
+                            ast::typed::Type(types::Type::Float),
+                        ),
+                    ]),
+                    ast::typed::Type(types::Type::Element),
+                ),
+            ),
+            type_of(),
+        )
+    }
 }
 
 pub mod module {
+    use self::types::Kind;
+
     use super::*;
 
     pub const SOURCE: &str = "module my_module {
@@ -798,7 +1049,7 @@ pub mod module {
   };
 }";
 
-    pub fn raw(offset: Offset) -> ast::meta::Declaration<()> {
+    pub fn raw(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::module(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -856,8 +1107,8 @@ pub mod module {
         )
     }
 
-    pub fn mock() -> ast::meta::Declaration<()> {
-        raw((0, 0))
+    pub fn mock() -> ast::raw::Declaration {
+        raw((0, 0)).nil_range()
     }
 
     pub fn fragments(
@@ -933,5 +1184,46 @@ pub mod module {
                 ),
             ),
         ]
+    }
+
+    pub fn type_of() -> ast::typed::Type {
+        ast::typed::Type(types::Type::Module(vec![(
+            str!("MY_STYLE"),
+            Kind::Value,
+            Rc::new(ast::typed::Type(types::Type::Style)),
+        )]))
+    }
+
+    pub fn typed() -> ast::typed::Declaration {
+        ast::meta::Declaration::typed(
+            ast::Declaration::module(
+                ast::Storage::public(ast::meta::Binding::mock("my_module")),
+                ast::typed::Module::typed(
+                    ast::Module::new(
+                        vec![ast::typed::Import::typed(
+                            ast::Import::new(
+                                ast::ImportSource::Local,
+                                vec![str!("buzz")],
+                                Some(str!("Buzz")),
+                            ),
+                            ast::typed::Type(types::Type::Style),
+                        )],
+                        vec![ast::typed::Declaration::typed(
+                            ast::Declaration::constant(
+                                ast::Storage::public(ast::meta::Binding::mock("MY_STYLE")),
+                                None,
+                                ast::typed::Expression::typed(
+                                    ast::Expression::Style(vec![]),
+                                    ast::typed::Type(types::Type::Style),
+                                ),
+                            ),
+                            ast::typed::Type(types::Type::Style),
+                        )],
+                    ),
+                    type_of(),
+                ),
+            ),
+            type_of(),
+        )
     }
 }

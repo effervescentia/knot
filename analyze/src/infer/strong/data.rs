@@ -1,5 +1,5 @@
-use crate::{error::ResolveError, typed};
-use lang::{types, NodeId};
+use crate::error::ResolveError;
+use lang::{ast, types, NodeId};
 use std::{cell::OnceCell, collections::HashMap, rc::Rc};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -12,7 +12,7 @@ pub enum Data {
 pub type Strong = (types::Kind, std::result::Result<Data, ResolveError>);
 
 pub struct Output {
-    pub types: HashMap<NodeId, OnceCell<Rc<typed::Type>>>,
+    pub types: HashMap<NodeId, OnceCell<Rc<ast::typed::Type>>>,
 
     pub inherits: HashMap<NodeId, NodeId>,
 }

@@ -8,6 +8,10 @@ use std::fmt::{Debug, Display, Formatter};
 pub struct Node<Value, Meta>(pub Value, pub Range, pub Meta);
 
 impl<Value, Meta> Node<Value, Meta> {
+    pub fn typed(v: Value, m: Meta) -> Self {
+        Self(v, Range::nil(), m)
+    }
+
     pub const fn value(&self) -> &Value {
         &self.0
     }

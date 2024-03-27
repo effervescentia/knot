@@ -1,8 +1,8 @@
-use crate::ast;
 use combine::{
     attempt, between, choice, many, many1, none_of, parser::char as p, token, value, Parser, Stream,
 };
 use kore::invariant;
+use lang::ast;
 
 fn nil<T>() -> impl Parser<T, Output = ast::Primitive>
 where
@@ -79,9 +79,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::primitive;
-    use crate::ast;
     use combine::{eof, error::StringStreamError, Parser};
     use kore::str;
+    use lang::ast;
 
     fn parse(s: &str) -> Result<(ast::Primitive, &str), StringStreamError> {
         primitive().skip(eof()).parse(s)

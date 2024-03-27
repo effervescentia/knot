@@ -62,7 +62,7 @@ where
             .collect::<Vec<_>>()
     }
 
-    fn parse_one(resolver: &mut R, link: &Link) -> Result<(String, ast::meta::Program<()>)> {
+    fn parse_one(resolver: &mut R, link: &Link) -> Result<(String, ast::raw::Program)> {
         let path = link.to_path();
 
         let input = resolver

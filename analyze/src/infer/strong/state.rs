@@ -2,10 +2,10 @@ use super::data::{Data, Output, Result, Strong};
 use crate::{
     error::ResolveError,
     infer::{weak, BindingMap, NodeDescriptor},
-    typed,
 };
 use kore::invariant;
 use lang::{
+    ast,
     types::{self, Enumerated, Kind, Type},
     FragmentMap, NodeId,
 };
@@ -88,7 +88,7 @@ impl<'a> State<'a> {
         self.resolve(id, &Kind::Mixed)
     }
 
-    fn finalize_type(x: Type<NodeId>, output: &Output) -> Rc<typed::Type> {
+    fn finalize_type(x: Type<NodeId>, output: &Output) -> Rc<ast::typed::Type> {
         let get_type = |id| {
             Rc::clone(
                 output
@@ -100,15 +100,15 @@ impl<'a> State<'a> {
         };
 
         match x {
-            Type::Nil => Rc::new(typed::Type(Type::Nil)),
-            Type::Boolean => Rc::new(typed::Type(Type::Boolean)),
-            Type::Integer => Rc::new(typed::Type(Type::Integer)),
-            Type::Float => Rc::new(typed::Type(Type::Float)),
-            Type::String => Rc::new(typed::Type(Type::String)),
-            Type::Style => Rc::new(typed::Type(Type::Style)),
-            Type::Element => Rc::new(typed::Type(Type::Element)),
+            Type::Nil => Rc::new(ast::typed::Type(Type::Nil)),
+            Type::Boolean => Rc::new(ast::typed::Type(Type::Boolean)),
+            Type::Integer => Rc::new(ast::typed::Type(Type::Integer)),
+            Type::Float => Rc::new(ast::typed::Type(Type::Float)),
+            Type::String => Rc::new(ast::typed::Type(Type::String)),
+            Type::Style => Rc::new(ast::typed::Type(Type::Style)),
+            Type::Element => Rc::new(ast::typed::Type(Type::Element)),
 
-            Type::Enumerated(x) => Rc::new(typed::Type(Type::Enumerated(match x {
+            Type::Enumerated(x) => Rc::new(ast::typed::Type(Type::Enumerated(match x {
                 Enumerated::Declaration(variants) => Enumerated::Declaration(
                     variants
                         .iter()
@@ -124,16 +124,16 @@ impl<'a> State<'a> {
                 Enumerated::Instance(x) => Enumerated::Instance(get_type(&x)),
             }))),
 
-            Type::Function(parameters, x) => Rc::new(typed::Type(Type::Function(
+            Type::Function(parameters, x) => Rc::new(ast::typed::Type(Type::Function(
                 parameters.iter().map(get_type).collect(),
                 get_type(&x),
             ))),
 
-            Type::View(parameters) => Rc::new(typed::Type(Type::View(
+            Type::View(parameters) => Rc::new(ast::typed::Type(Type::View(
                 parameters.iter().map(get_type).collect(),
             ))),
 
-            Type::Module(declarations) => Rc::new(typed::Type(Type::Module(
+            Type::Module(declarations) => Rc::new(ast::typed::Type(Type::Module(
                 declarations
                     .iter()
                     .map(|(name, kind, x)| (name.clone(), *kind, get_type(x)))

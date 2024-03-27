@@ -5,8 +5,10 @@ pub mod into_fragments;
 pub mod meta;
 mod module;
 mod operator;
+pub mod raw;
 pub mod shape;
 mod type_expression;
+pub mod typed;
 pub mod walk;
 
 pub use component::Component;

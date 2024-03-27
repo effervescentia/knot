@@ -1,5 +1,6 @@
-use crate::{ast, matcher as m};
+use crate::matcher as m;
 use combine::{chainl1, chainr1, choice, Parser, Stream};
+use lang::ast;
 
 fn binary_operation<U>(
     o: ast::BinaryOperator,

@@ -1,4 +1,3 @@
-pub mod ast;
 mod component;
 mod declaration;
 mod expression;
@@ -16,6 +15,7 @@ use combine::{
     stream::position::{SourcePosition, Stream},
     EasyParser, Parser,
 };
+use lang::ast;
 use matcher as m;
 
 pub type Result<'a, T> = std::result::Result<

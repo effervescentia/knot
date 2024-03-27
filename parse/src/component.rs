@@ -1,7 +1,8 @@
-use crate::{ast, expression, matcher as m};
+use crate::{expression, matcher as m};
 use combine::{
     attempt, choice, many, many1, none_of, optional, parser, parser::char as p, Parser, Stream,
 };
+use lang::ast;
 
 fn fragment<T>() -> impl Parser<T, Output = ast::raw::Component>
 where
@@ -185,10 +186,9 @@ parser! {
 #[cfg(test)]
 mod tests {
     use super::component;
-    use crate::ast;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::str;
-    use lang::Range;
+    use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::Component> {
         component().skip(eof()).easy_parse(Stream::new(s))

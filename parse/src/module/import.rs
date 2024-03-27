@@ -1,6 +1,6 @@
-use crate::{ast, matcher as m};
+use crate::matcher as m;
 use combine::{choice, many1, not_followed_by, optional, parser::char as p, value, Parser, Stream};
-use lang::Range;
+use lang::{ast, Range};
 
 // use @/x;
 // use @/x as xx;
@@ -88,10 +88,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::ast;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::{assert_eq, str};
-    use lang::Range;
+    use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::Import> {
         super::import().skip(eof()).easy_parse(Stream::new(s))

@@ -1,7 +1,8 @@
 // validating the parse -> format -> parse cycle
 use kore::assert_str_eq;
+use lang::ast;
 
-fn parse(s: &str) -> knot_parse::Result<knot_parse::ast::raw::Program> {
+fn parse(s: &str) -> knot_parse::Result<ast::raw::Program> {
     knot_parse::parse(s)
 }
 

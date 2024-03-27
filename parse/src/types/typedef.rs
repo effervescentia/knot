@@ -1,6 +1,7 @@
 use super::type_expression;
-use crate::{ast, matcher as m};
+use crate::matcher as m;
 use combine::{optional, Parser, Stream};
+use lang::ast;
 
 pub fn typedef<T>() -> impl Parser<T, Output = Option<ast::raw::TypeExpression>>
 where

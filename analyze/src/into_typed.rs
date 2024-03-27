@@ -1,17 +1,17 @@
 use crate::{
     ast::{self, walk::Walk},
-    infer, typed,
+    infer,
 };
 use kore::{invariant, Incrementor};
 use lang::{Node, NodeId, Range};
 use std::{cell::OnceCell, ops::Deref};
 
 pub trait IntoTyped: Sized {
-    fn into_typed(self, strong: Visitor) -> typed::Program;
+    fn into_typed(self, strong: Visitor) -> ast::typed::Program;
 }
 
 impl<Context> IntoTyped for ast::meta::Program<Context> {
-    fn into_typed(self, strong: super::Visitor) -> typed::Program {
+    fn into_typed(self, strong: super::Visitor) -> ast::typed::Program {
         ast::meta::Program(self.0.walk(strong).0)
     }
 }
@@ -29,7 +29,7 @@ impl Visitor {
         }
     }
 
-    fn next_type(&mut self) -> typed::Type {
+    fn next_type(&mut self) -> ast::typed::Type {
         let id = NodeId(self.node_id.increment());
 
         self.strong
@@ -43,25 +43,25 @@ impl Visitor {
 
     fn typed<T, R, F>(mut self, x: T, r: Range, f: F) -> (R, Self)
     where
-        F: Fn(Node<T, typed::Type>) -> R,
+        F: Fn(Node<T, ast::typed::Type>) -> R,
     {
         (f(Node(x, r, self.next_type())), self)
     }
 }
 
 impl ast::walk::Visit for Visitor {
-    type Binding = typed::Binding;
-    type Expression = typed::Expression;
-    type Statement = typed::Statement;
-    type Component = typed::Component;
-    type TypeExpression = typed::TypeExpression;
-    type Parameter = typed::Parameter;
-    type Declaration = typed::Declaration;
-    type Import = typed::Import;
-    type Module = typed::Module;
+    type Binding = ast::typed::Binding;
+    type Expression = ast::typed::Expression;
+    type Statement = ast::typed::Statement;
+    type Component = ast::typed::Component;
+    type TypeExpression = ast::typed::TypeExpression;
+    type Parameter = ast::typed::Parameter;
+    type Declaration = ast::typed::Declaration;
+    type Import = ast::typed::Import;
+    type Module = ast::typed::Module;
 
     fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self) {
-        (typed::Binding(Node::raw(x, r)), self)
+        (ast::typed::Binding(Node::raw(x, r)), self)
     }
 
     fn expression(

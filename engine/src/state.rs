@@ -1,5 +1,4 @@
 use crate::{link::ImportGraph, Link, Result};
-use analyze::typed;
 use bimap::BiMap;
 use lang::ast;
 use std::{
@@ -123,13 +122,13 @@ impl<'a> Modules<'a> for Result<Linked> {
 }
 
 pub struct Analyzed {
-    pub modules: HashMap<Link, Module<typed::Type>>,
+    pub modules: HashMap<Link, Module<ast::typed::Type>>,
     pub lookup: BiMap<Link, usize>,
     pub graph: ImportGraph,
 }
 
 impl<'a> Modules<'a> for Analyzed {
-    type Context = typed::Type;
+    type Context = ast::typed::Type;
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {
@@ -138,7 +137,7 @@ impl<'a> Modules<'a> for Analyzed {
 }
 
 impl<'a> Modules<'a> for Result<Analyzed> {
-    type Context = typed::Type;
+    type Context = ast::typed::Type;
     type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {

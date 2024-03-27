@@ -468,7 +468,7 @@ mod tests {
     }
 
     #[test]
-    fn ksx() {
+    fn element() {
         assert_eq!(
             ast::shape::Expression(ast::Expression::Component(Box::new(ast::shape::Component(
                 ast::Component::ClosedElement(str!("foo"), vec![])

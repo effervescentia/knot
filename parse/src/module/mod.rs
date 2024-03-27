@@ -1,7 +1,8 @@
 pub mod import;
 
-use crate::{ast, declaration, matcher as m};
+use crate::{declaration, matcher as m};
 use combine::{choice, many, Parser, Stream};
+use lang::ast;
 use std::fmt::Debug;
 
 #[derive(Debug, PartialEq)]
@@ -42,14 +43,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::ast;
+
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::{assert_eq, str};
-    use lang::{
-        ast::{Module, Primitive},
-        test::fixture,
-        Range,
-    };
+    use lang::{ast, test::fixture, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::Module> {
         super::module().skip(eof()).easy_parse(Stream::new(s))
@@ -85,7 +82,7 @@ mod tests {
         assert_eq!(
             parse("const foo = nil;").unwrap().0,
             ast::raw::Module::raw(
-                Module::new(
+                ast::Module::new(
                     vec![],
                     vec![ast::raw::Declaration::raw(
                         ast::Declaration::constant(
@@ -95,7 +92,7 @@ mod tests {
                             )),
                             None,
                             ast::raw::Expression::raw(
-                                ast::Expression::Primitive(Primitive::Nil),
+                                ast::Expression::Primitive(ast::Primitive::Nil),
                                 Range::new((1, 13), (1, 15))
                             )
                         ),
@@ -135,7 +132,7 @@ mod tests {
         assert_eq!(
             parse(&source).unwrap().0,
             ast::raw::Module::raw(
-                Module::new(
+                ast::Module::new(
                     vec![fixture::import::raw((0, 0))],
                     vec![
                         fixture::type_alias::raw((2, 0)),

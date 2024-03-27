@@ -3,11 +3,12 @@ pub mod primitive;
 pub mod style;
 
 use crate::{
-    ast, component,
+    component,
     matcher::{self as m, Position},
     statement,
 };
 use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
+use lang::ast;
 
 fn primitive<T>() -> impl Parser<T, Output = ast::raw::Expression>
 where
@@ -118,10 +119,10 @@ where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    component::component().map(|ksx| {
-        let range = *ksx.0.range();
+    component::component().map(|x| {
+        let range = *x.0.range();
 
-        ast::raw::Expression::raw(ast::Expression::Component(Box::new(ksx)), range)
+        ast::raw::Expression::raw(ast::Expression::Component(Box::new(x)), range)
     })
 }
 
@@ -221,10 +222,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::ast;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::str;
-    use lang::Range;
+    use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::Expression> {
         super::expression().skip(eof()).easy_parse(Stream::new(s))
@@ -741,7 +741,7 @@ mod tests {
     }
 
     #[test]
-    fn ksx() {
+    fn element() {
         assert_eq!(
             parse("<foo />").unwrap().0,
             ast::raw::Expression::raw(
