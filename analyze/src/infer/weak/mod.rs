@@ -46,16 +46,13 @@ mod tests {
 
     #[test]
     fn import() {
-        let fragments = BTreeMap::from_iter(fixture::import::fragments(0, &(vec![0], 0)));
+        let fragments = BTreeMap::from_iter(fixture::import::fragments());
 
         assert_eq!(
             super::infer_types(&fragments),
             Result {
                 fragments: &fragments,
-                bindings: BindingMap(HashMap::from_iter(vec![(
-                    (ScopeId(vec![0]), str!("fizz")),
-                    BTreeSet::from_iter(vec![NodeId(0)])
-                )])),
+                bindings: BindingMap(fixture::import::bindings()),
                 types: HashMap::from_iter(vec![(
                     NodeId(0),
                     (
@@ -73,16 +70,13 @@ mod tests {
 
     #[test]
     fn type_alias() {
-        let fragments = BTreeMap::from_iter(fixture::type_alias::fragments(0, &(vec![0], 0)));
+        let fragments = BTreeMap::from_iter(fixture::type_alias::fragments());
 
         assert_eq!(
             super::infer_types(&fragments),
             Result {
                 fragments: &fragments,
-                bindings: BindingMap(HashMap::from_iter(vec![(
-                    (ScopeId(vec![0]), str!("MyTypeAlias")),
-                    BTreeSet::from_iter(vec![NodeId(1)])
-                )])),
+                bindings: BindingMap(fixture::type_alias::bindings()),
                 types: HashMap::from_iter(vec![
                     (NodeId(0), (Kind::Type, Data::Local(Type::Nil))),
                     (NodeId(1), (Kind::Type, Data::Inherit(NodeId(0)))),
@@ -93,16 +87,13 @@ mod tests {
 
     #[test]
     fn constant() {
-        let fragments = BTreeMap::from_iter(fixture::constant::fragments(0, &(vec![0], 0)));
+        let fragments = BTreeMap::from_iter(fixture::constant::fragments());
 
         assert_eq!(
             super::infer_types(&fragments),
             Result {
                 fragments: &fragments,
-                bindings: BindingMap(HashMap::from_iter(vec![(
-                    (ScopeId(vec![0]), str!("MY_CONSTANT")),
-                    BTreeSet::from_iter(vec![NodeId(2)])
-                )])),
+                bindings: BindingMap(fixture::constant::bindings()),
                 types: HashMap::from_iter(vec![
                     (NodeId(0), (Kind::Type, Data::Local(Type::String))),
                     (NodeId(1), (Kind::Value, Data::Local(Type::String))),
@@ -117,16 +108,13 @@ mod tests {
 
     #[test]
     fn enumerated() {
-        let fragments = BTreeMap::from_iter(fixture::enumerated::fragments(0, &(vec![0], 0)));
+        let fragments = BTreeMap::from_iter(fixture::enumerated::fragments());
 
         assert_eq!(
             super::infer_types(&fragments),
             Result {
                 fragments: &fragments,
-                bindings: BindingMap(HashMap::from_iter(vec![(
-                    (ScopeId(vec![0]), str!("MyEnum")),
-                    BTreeSet::from_iter(vec![NodeId(2)])
-                )])),
+                bindings: BindingMap(fixture::enumerated::bindings()),
                 types: HashMap::from_iter(vec![
                     (NodeId(0), (Kind::Type, Data::Local(Type::Boolean))),
                     (NodeId(1), (Kind::Type, Data::Local(Type::Style))),
@@ -147,30 +135,13 @@ mod tests {
 
     #[test]
     fn function() {
-        let fragments = BTreeMap::from_iter(fixture::function::fragments(0, &(vec![0], 0)));
+        let fragments = BTreeMap::from_iter(fixture::function::fragments());
 
         assert_eq!(
             super::infer_types(&fragments),
             Result {
                 fragments: &fragments,
-                bindings: BindingMap(HashMap::from_iter(vec![
-                    (
-                        (ScopeId(vec![0, 1]), str!("first")),
-                        BTreeSet::from_iter(vec![NodeId(0)])
-                    ),
-                    (
-                        (ScopeId(vec![0, 1]), str!("second")),
-                        BTreeSet::from_iter(vec![NodeId(2)])
-                    ),
-                    (
-                        (ScopeId(vec![0, 1]), str!("third")),
-                        BTreeSet::from_iter(vec![NodeId(4)])
-                    ),
-                    (
-                        (ScopeId(vec![0]), str!("my_function")),
-                        BTreeSet::from_iter(vec![NodeId(11)])
-                    )
-                ])),
+                bindings: BindingMap(fixture::function::bindings()),
                 types: HashMap::from_iter(vec![
                     (NodeId(0), (Kind::Value, Data::Infer(Inference::Parameter))),
                     (NodeId(1), (Kind::Type, Data::Local(Type::Integer))),
@@ -221,26 +192,13 @@ mod tests {
 
     #[test]
     fn view() {
-        let fragments = BTreeMap::from_iter(fixture::view::fragments(0, &(vec![0], 0)));
+        let fragments = BTreeMap::from_iter(fixture::view::fragments());
 
         assert_eq!(
             super::infer_types(&fragments),
             Result {
                 fragments: &fragments,
-                bindings: BindingMap(HashMap::from_iter(vec![
-                    (
-                        (ScopeId(vec![0, 1]), str!("inner")),
-                        BTreeSet::from_iter(vec![NodeId(3)])
-                    ),
-                    (
-                        (ScopeId(vec![0, 1, 2]), str!("value")),
-                        BTreeSet::from_iter(vec![NodeId(7)])
-                    ),
-                    (
-                        (ScopeId(vec![0]), str!("MyView")),
-                        BTreeSet::from_iter(vec![NodeId(20)])
-                    ),
-                ])),
+                bindings: BindingMap(fixture::view::bindings()),
                 types: HashMap::from_iter(vec![
                     (NodeId(0), (Kind::Type, Data::Local(Type::Element))),
                     (NodeId(1), (Kind::Value, Data::Local(Type::Element))),
@@ -294,26 +252,13 @@ mod tests {
 
     #[test]
     fn module() {
-        let fragments = BTreeMap::from_iter(fixture::module::fragments(0, &(vec![0], 0)));
+        let fragments = BTreeMap::from_iter(fixture::module::fragments());
 
         assert_eq!(
             super::infer_types(&fragments),
             Result {
                 fragments: &fragments,
-                bindings: BindingMap(HashMap::from_iter(vec![
-                    (
-                        (ScopeId(vec![0, 1]), str!("Buzz")),
-                        BTreeSet::from_iter(vec![NodeId(0)])
-                    ),
-                    (
-                        (ScopeId(vec![0, 1]), str!("MY_STYLE")),
-                        BTreeSet::from_iter(vec![NodeId(4)])
-                    ),
-                    (
-                        (ScopeId(vec![0]), str!("my_module")),
-                        BTreeSet::from_iter(vec![NodeId(6)])
-                    ),
-                ])),
+                bindings: BindingMap(fixture::module::bindings()),
                 types: HashMap::from_iter(vec![
                     (
                         NodeId(0),

@@ -1,9 +1,14 @@
 use super::nil_range::NilRange;
 use crate::{ast, types, Fragment, NodeId, Range, ScopeId};
 use kore::str;
-use std::rc::Rc;
+use std::{
+    collections::{BTreeSet, HashMap},
+    rc::Rc,
+};
 
 type Offset = (usize, usize);
+type Fragments = Vec<(NodeId, (ScopeId, Fragment))>;
+type Bindings = HashMap<(ScopeId, String), BTreeSet<NodeId>>;
 
 #[allow(clippy::multiple_inherent_impl)]
 impl ScopeId {
@@ -32,10 +37,7 @@ pub mod import {
         raw((0, 0)).nil_range()
     }
 
-    pub fn fragments(
-        node: usize,
-        scope: &(Vec<usize>, usize),
-    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
+    pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
         vec![(
             NodeId(node),
             (
@@ -47,6 +49,21 @@ pub mod import {
                 }),
             ),
         )]
+    }
+
+    pub fn fragments() -> Fragments {
+        fragments_at(0, &(vec![0], 0))
+    }
+
+    pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
+        HashMap::from_iter(vec![(
+            (ScopeId::default().offset(scope), str!("fizz")),
+            BTreeSet::from_iter(vec![NodeId(node)]),
+        )])
+    }
+
+    pub fn bindings() -> Bindings {
+        bindings_at(0, &(vec![0], 0))
     }
 }
 
@@ -75,10 +92,7 @@ pub mod type_alias {
         raw((0, 0)).nil_range()
     }
 
-    pub fn fragments(
-        node: usize,
-        scope: &(Vec<usize>, usize),
-    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
+    pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
         vec![
             (
                 NodeId(node),
@@ -100,6 +114,21 @@ pub mod type_alias {
                 ),
             ),
         ]
+    }
+
+    pub fn fragments() -> Fragments {
+        fragments_at(0, &(vec![0], 0))
+    }
+
+    pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
+        HashMap::from_iter(vec![(
+            (ScopeId::default().offset(scope), str!("MyTypeAlias")),
+            BTreeSet::from_iter(vec![NodeId(node + 1)]),
+        )])
+    }
+
+    pub fn bindings() -> Bindings {
+        bindings_at(0, &(vec![0], 0))
     }
 
     pub const fn type_of() -> ast::typed::Type {
@@ -149,10 +178,7 @@ pub mod constant {
         raw((0, 0)).nil_range()
     }
 
-    pub fn fragments(
-        node: usize,
-        scope: &(Vec<usize>, usize),
-    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
+    pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
         vec![
             (
                 NodeId(node),
@@ -184,6 +210,21 @@ pub mod constant {
                 ),
             ),
         ]
+    }
+
+    pub fn fragments() -> Fragments {
+        fragments_at(0, &(vec![0], 0))
+    }
+
+    pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
+        HashMap::from_iter(vec![(
+            (ScopeId::default().offset(scope), str!("MY_CONSTANT")),
+            BTreeSet::from_iter(vec![NodeId(node + 2)]),
+        )])
+    }
+
+    pub fn bindings() -> Bindings {
+        bindings_at(0, &(vec![0], 0))
     }
 
     pub const fn type_of() -> ast::typed::Type {
@@ -247,10 +288,7 @@ pub mod enumerated {
         raw((0, 0)).nil_range()
     }
 
-    pub fn fragments(
-        node: usize,
-        scope: &(Vec<usize>, usize),
-    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
+    pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
         vec![
             (
                 NodeId(node),
@@ -284,6 +322,21 @@ pub mod enumerated {
                 ),
             ),
         ]
+    }
+
+    pub fn fragments() -> Fragments {
+        fragments_at(0, &(vec![0], 0))
+    }
+
+    pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
+        HashMap::from_iter(vec![(
+            (ScopeId::default().offset(scope), str!("MyEnum")),
+            BTreeSet::from_iter(vec![NodeId(node + 2)]),
+        )])
+    }
+
+    pub fn bindings() -> Bindings {
+        bindings_at(0, &(vec![0], 0))
     }
 
     pub fn type_of() -> ast::typed::Type {
@@ -418,10 +471,7 @@ pub mod function {
         raw((0, 0)).nil_range()
     }
 
-    pub fn fragments(
-        node: usize,
-        scope: &(Vec<usize>, usize),
-    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
+    pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
         vec![
             (
                 NodeId(node),
@@ -533,6 +583,35 @@ pub mod function {
                 ),
             ),
         ]
+    }
+
+    pub fn fragments() -> Fragments {
+        fragments_at(0, &(vec![0], 0))
+    }
+
+    pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
+        HashMap::from_iter(vec![
+            (
+                (ScopeId(vec![1]).offset(scope), str!("first")),
+                BTreeSet::from_iter(vec![NodeId(node)]),
+            ),
+            (
+                (ScopeId(vec![1]).offset(scope), str!("second")),
+                BTreeSet::from_iter(vec![NodeId(node + 2)]),
+            ),
+            (
+                (ScopeId(vec![1]).offset(scope), str!("third")),
+                BTreeSet::from_iter(vec![NodeId(node + 4)]),
+            ),
+            (
+                (ScopeId::default().offset(scope), str!("my_function")),
+                BTreeSet::from_iter(vec![NodeId(node + 11)]),
+            ),
+        ])
+    }
+
+    pub fn bindings() -> Bindings {
+        bindings_at(0, &(vec![0], 0))
     }
 
     pub fn type_of() -> ast::typed::Type {
@@ -723,10 +802,7 @@ pub mod view {
         raw((0, 0)).nil_range()
     }
 
-    pub fn fragments(
-        node: usize,
-        scope: &(Vec<usize>, usize),
-    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
+    pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
         vec![
             (
                 NodeId(node),
@@ -908,6 +984,31 @@ pub mod view {
                 ),
             ),
         ]
+    }
+
+    pub fn fragments() -> Fragments {
+        fragments_at(0, &(vec![0], 0))
+    }
+
+    pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
+        HashMap::from_iter(vec![
+            (
+                (ScopeId(vec![1]).offset(scope), str!("inner")),
+                BTreeSet::from_iter(vec![NodeId(node + 3)]),
+            ),
+            (
+                (ScopeId(vec![1, 2]).offset(scope), str!("value")),
+                BTreeSet::from_iter(vec![NodeId(node + 7)]),
+            ),
+            (
+                (ScopeId::default().offset(scope), str!("MyView")),
+                BTreeSet::from_iter(vec![NodeId(node + 20)]),
+            ),
+        ])
+    }
+
+    pub fn bindings() -> Bindings {
+        bindings_at(0, &(vec![0], 0))
     }
 
     pub fn type_of() -> ast::typed::Type {
@@ -1110,10 +1211,7 @@ pub mod module {
         raw((0, 0)).nil_range()
     }
 
-    pub fn fragments(
-        node: usize,
-        scope: &(Vec<usize>, usize),
-    ) -> Vec<(NodeId, (ScopeId, Fragment))> {
+    pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
         vec![
             (
                 NodeId(node),
@@ -1183,6 +1281,31 @@ pub mod module {
                 ),
             ),
         ]
+    }
+
+    pub fn fragments() -> Fragments {
+        fragments_at(0, &(vec![0], 0))
+    }
+
+    pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
+        HashMap::from_iter(vec![
+            (
+                (ScopeId(vec![1]).offset(scope), str!("Buzz")),
+                BTreeSet::from_iter(vec![NodeId(node)]),
+            ),
+            (
+                (ScopeId(vec![1]).offset(scope), str!("MY_STYLE")),
+                BTreeSet::from_iter(vec![NodeId(node + 4)]),
+            ),
+            (
+                (ScopeId::default().offset(scope), str!("my_module")),
+                BTreeSet::from_iter(vec![NodeId(node + 6)]),
+            ),
+        ])
+    }
+
+    pub fn bindings() -> Bindings {
+        bindings_at(0, &(vec![0], 0))
     }
 
     pub fn type_of() -> ast::typed::Type {

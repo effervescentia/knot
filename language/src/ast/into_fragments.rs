@@ -183,13 +183,13 @@ mod tests {
             program.into_fragments(),
             FragmentMap::from_iter(
                 [
-                    fixture::import::fragments(0, &(vec![0], 0)),
-                    fixture::type_alias::fragments(1, &(vec![0], 0)),
-                    fixture::constant::fragments(3, &(vec![0], 1)),
-                    fixture::enumerated::fragments(6, &(vec![0], 2)),
-                    fixture::function::fragments(9, &(vec![0], 3)),
-                    fixture::view::fragments(21, &(vec![0], 4)),
-                    fixture::module::fragments(42, &(vec![0], 6)),
+                    fixture::import::fragments_at(0, &(vec![0], 0)),
+                    fixture::type_alias::fragments_at(1, &(vec![0], 0)),
+                    fixture::constant::fragments_at(3, &(vec![0], 1)),
+                    fixture::enumerated::fragments_at(6, &(vec![0], 2)),
+                    fixture::function::fragments_at(9, &(vec![0], 3)),
+                    fixture::view::fragments_at(21, &(vec![0], 4)),
+                    fixture::module::fragments_at(42, &(vec![0], 6)),
                     vec![(
                         NodeId(49),
                         (
