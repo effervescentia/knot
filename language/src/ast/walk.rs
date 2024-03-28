@@ -90,21 +90,12 @@ where
     fn walk(self, visitor: Visitor) -> (Self::Output, Visitor);
 }
 
-pub trait WalkScoped<Visitor>
-where
-    Visitor: Visit,
-{
-    type Output;
-
-    fn walk_scoped(self, visitor: Visitor) -> (Self::Output, Visitor);
-}
-
-impl<Key, Target, Visitor> Walk<Visitor> for (Key, Target)
+impl<Target, Visitor> Walk<Visitor> for (String, Target)
 where
     Target: Walk<Visitor>,
     Visitor: Visit,
 {
-    type Output = (Key, Target::Output);
+    type Output = (String, Target::Output);
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let (key, x) = self;
@@ -147,18 +138,68 @@ where
     }
 }
 
-impl<Target, Visitor> WalkScoped<Visitor> for Vec<Target>
+pub trait WalkEach<Visitor>
 where
-    Target: Walk<Visitor>,
     Visitor: Visit,
 {
-    type Output = Vec<Target::Output>;
+    type Output;
 
-    fn walk_scoped(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.into_iter().fold((vec![], v), |(mut acc, v), x| {
-            let (x, v) = v.scoped(|v| x.walk(v));
-            acc.push(x);
-            (acc, v)
+    fn walk_each(self, visitor: Visitor) -> (Self::Output, Visitor);
+}
+
+impl<T1, T2, Visitor> WalkEach<Visitor> for (T1, T2)
+where
+    T1: Walk<Visitor>,
+    T2: Walk<Visitor>,
+    Visitor: Visit,
+{
+    type Output = (T1::Output, T2::Output);
+
+    fn walk_each(self, v: Visitor) -> (Self::Output, Visitor) {
+        v.scoped(|v| {
+            let (r1, v) = self.0.walk(v);
+            let (r2, v) = self.1.walk(v);
+            ((r1, r2), v)
+        })
+    }
+}
+
+impl<T1, T2, T3, Visitor> WalkEach<Visitor> for (T1, T2, T3)
+where
+    T1: Walk<Visitor>,
+    T2: Walk<Visitor>,
+    T3: Walk<Visitor>,
+    Visitor: Visit,
+{
+    type Output = (T1::Output, T2::Output, T3::Output);
+
+    fn walk_each(self, v: Visitor) -> (Self::Output, Visitor) {
+        v.scoped(|v| {
+            let (r1, v) = self.0.walk(v);
+            let (r2, v) = self.1.walk(v);
+            let (r3, v) = self.2.walk(v);
+            ((r1, r2, r3), v)
+        })
+    }
+}
+
+impl<T1, T2, T3, T4, Visitor> WalkEach<Visitor> for (T1, T2, T3, T4)
+where
+    T1: Walk<Visitor>,
+    T2: Walk<Visitor>,
+    T3: Walk<Visitor>,
+    T4: Walk<Visitor>,
+    Visitor: Visit,
+{
+    type Output = (T1::Output, T2::Output, T3::Output, T4::Output);
+
+    fn walk_each(self, v: Visitor) -> (Self::Output, Visitor) {
+        v.scoped(|v| {
+            let (r1, v) = self.0.walk(v);
+            let (r2, v) = self.1.walk(v);
+            let (r3, v) = self.2.walk(v);
+            let (r4, v) = self.3.walk(v);
+            ((r1, r2, r3, r4), v)
         })
     }
 }
