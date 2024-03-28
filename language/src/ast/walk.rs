@@ -156,11 +156,9 @@ where
     type Output = (T1::Output, T2::Output);
 
     fn walk_each(self, v: Visitor) -> (Self::Output, Visitor) {
-        v.scoped(|v| {
-            let (r1, v) = self.0.walk(v);
-            let (r2, v) = self.1.walk(v);
-            ((r1, r2), v)
-        })
+        let (r1, v) = self.0.walk(v);
+        let (r2, v) = self.1.walk(v);
+        ((r1, r2), v)
     }
 }
 
@@ -174,12 +172,9 @@ where
     type Output = (T1::Output, T2::Output, T3::Output);
 
     fn walk_each(self, v: Visitor) -> (Self::Output, Visitor) {
-        v.scoped(|v| {
-            let (r1, v) = self.0.walk(v);
-            let (r2, v) = self.1.walk(v);
-            let (r3, v) = self.2.walk(v);
-            ((r1, r2, r3), v)
-        })
+        let ((r1, r2), v) = (self.0, self.1).walk_each(v);
+        let (r3, v) = self.2.walk(v);
+        ((r1, r2, r3), v)
     }
 }
 
@@ -194,12 +189,8 @@ where
     type Output = (T1::Output, T2::Output, T3::Output, T4::Output);
 
     fn walk_each(self, v: Visitor) -> (Self::Output, Visitor) {
-        v.scoped(|v| {
-            let (r1, v) = self.0.walk(v);
-            let (r2, v) = self.1.walk(v);
-            let (r3, v) = self.2.walk(v);
-            let (r4, v) = self.3.walk(v);
-            ((r1, r2, r3, r4), v)
-        })
+        let ((r1, r2, r3), v) = (self.0, self.1, self.2).walk_each(v);
+        let (r4, v) = self.3.walk(v);
+        ((r1, r2, r3, r4), v)
     }
 }

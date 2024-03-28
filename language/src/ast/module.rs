@@ -1,4 +1,4 @@
-use super::walk;
+use super::walk::{self, WalkEach};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -84,8 +84,7 @@ where
             },
             range,
         ) = self;
-        let (imports, v) = imports.walk(v);
-        let (declarations, v) = declarations.walk(v);
+        let ((imports, declarations), v) = (imports, declarations).walk_each(v);
 
         v.module(
             super::Module {

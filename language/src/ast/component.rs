@@ -1,4 +1,4 @@
-use super::walk;
+use super::walk::{self, WalkEach};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -73,8 +73,7 @@ where
                 children,
                 end_tag,
             } => {
-                let (attributes, v) = attributes.walk(v);
-                let (children, v) = children.walk(v);
+                let ((attributes, children), v) = (attributes, children).walk_each(v);
 
                 v.component(
                     Component::OpenElement {

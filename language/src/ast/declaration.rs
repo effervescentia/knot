@@ -106,9 +106,8 @@ where
             },
             range,
         ) = self;
-        let (binding, v) = binding.walk(v);
-        let (value_type, v) = value_type.walk(v);
-        let (default_value, v) = default_value.walk(v);
+        let ((binding, value_type, default_value), v) =
+            (binding, value_type, default_value).walk_each(v);
 
         v.parameter(
             super::Parameter {
@@ -258,7 +257,7 @@ where
 
         match value {
             super::Declaration::TypeAlias { storage, value } => {
-                let ((storage, value), v) = (storage, value).walk_each(v);
+                let ((storage, value), v) = v.scoped(|v| (storage, value).walk_each(v));
 
                 v.declaration(super::Declaration::TypeAlias { storage, value }, range)
             }
@@ -268,7 +267,8 @@ where
                 value_type,
                 value,
             } => {
-                let ((storage, value_type, value), v) = (storage, value_type, value).walk_each(v);
+                let ((storage, value_type, value), v) =
+                    v.scoped(|v| (storage, value_type, value).walk_each(v));
 
                 v.declaration(
                     super::Declaration::Constant {
@@ -281,7 +281,7 @@ where
             }
 
             super::Declaration::Enumerated { storage, variants } => {
-                let ((storage, variants), v) = (storage, variants).walk_each(v);
+                let ((storage, variants), v) = v.scoped(|v| (storage, variants).walk_each(v));
 
                 v.declaration(super::Declaration::Enumerated { storage, variants }, range)
             }
@@ -293,7 +293,7 @@ where
                 body,
             } => {
                 let ((storage, parameters, body_type, body), v) =
-                    (storage, parameters, body_type, body).walk_each(v);
+                    v.scoped(|v| (storage, parameters, body_type, body).walk_each(v));
 
                 v.declaration(
                     super::Declaration::Function {
@@ -311,7 +311,8 @@ where
                 parameters,
                 body,
             } => {
-                let ((storage, parameters, body), v) = (storage, parameters, body).walk_each(v);
+                let ((storage, parameters, body), v) =
+                    v.scoped(|v| (storage, parameters, body).walk_each(v));
 
                 v.declaration(
                     super::Declaration::View {
@@ -324,7 +325,7 @@ where
             }
 
             super::Declaration::Module { storage, value } => {
-                let ((storage, value), v) = (storage, value).walk_each(v);
+                let ((storage, value), v) = v.scoped(|v| (storage, value).walk_each(v));
 
                 v.declaration(super::Declaration::Module { storage, value }, range)
             }
