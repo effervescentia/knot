@@ -77,7 +77,7 @@ impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
 
             Self::Style(..) => (Kind::Value, Data::Local(Type::Style)),
 
-            Self::Component(..) => (Kind::Value, Data::Local(Type::Element)),
+            Self::Component(x) => (Kind::Value, Data::Inherit(**x)),
         }
     }
 }
@@ -367,7 +367,7 @@ mod tests {
     fn expression_component() {
         assert_eq!(
             ast::Expression::Component(Box::new(NodeId(1))).to_weak(),
-            (Kind::Value, Data::Local(Type::Element))
+            (Kind::Value, Data::Inherit(NodeId(1)))
         );
     }
 

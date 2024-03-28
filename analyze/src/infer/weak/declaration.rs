@@ -101,15 +101,37 @@ impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
 
 #[cfg(test)]
 mod tests {
-    use std::vec;
-
     use super::{Data, Inference, ToWeak};
-    use kore::str;
+    use kore::{assert_eq, str};
     use lang::{
         ast,
         types::{Enumerated, Kind, Type},
         NodeId,
     };
+
+    #[test]
+    fn parameter_with_type() {
+        assert_eq!(
+            ast::Parameter::new(str!("foo"), Some(NodeId(1)), None).to_weak(),
+            (Kind::Value, Data::InheritKind(NodeId(1), Kind::Type))
+        );
+    }
+
+    #[test]
+    fn parameter_with_default() {
+        assert_eq!(
+            ast::Parameter::new(str!("foo"), None, Some(NodeId(1))).to_weak(),
+            (Kind::Value, Data::Inherit(NodeId(1)))
+        );
+    }
+
+    #[test]
+    fn parameter_inference() {
+        assert_eq!(
+            ast::Parameter::new(str!("foo"), None, None).to_weak(),
+            (Kind::Value, Data::Infer(Inference::Parameter))
+        );
+    }
 
     #[test]
     fn type_expression_primitive() {
