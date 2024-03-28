@@ -36,20 +36,149 @@ fn infer_enumerated(
     }
 }
 
-pub fn infer(state: &State, lhs: &NodeId, property: &str, allowed_kind: &Kind) -> Action {
-    match state.resolve_any(lhs) {
+pub fn infer(state: &State, lhs: NodeId, property: &str, allowed_kind: &Kind) -> Action {
+    match state.resolve_any(&lhs) {
         Some(Ok(x)) => match x {
             Type::Module(declarations) => infer_module(declarations, property, allowed_kind),
 
             Type::Enumerated(Enumerated::Declaration(variants)) => {
-                infer_enumerated(variants, property, lhs)
+                infer_enumerated(variants, property, &lhs)
             }
 
             _ => Action::Raise(ResolveError::NotInferrable(vec![])),
         },
 
-        Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![*lhs])),
+        Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![lhs])),
 
         None => Action::Skip,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        error::ResolveError,
+        infer::strong::{
+            data::{Action, Data},
+            state::State,
+        },
+    };
+    use kore::{assert_eq, str};
+    use lang::{
+        types::{Enumerated, Kind, Type},
+        NodeId,
+    };
+
+    #[test]
+    fn infer_enum_variant() {
+        let state = State::from_types(vec![(
+            NodeId(1),
+            (
+                Kind::Value,
+                Ok(Data::Local(Type::Enumerated(Enumerated::Declaration(
+                    vec![(str!("foo"), vec![NodeId(2), NodeId(3)])],
+                )))),
+            ),
+        )]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            Action::Infer(Data::Local(Type::Enumerated(Enumerated::Variant(
+                vec![NodeId(2), NodeId(3)],
+                NodeId(1)
+            ))))
+        );
+    }
+
+    #[test]
+    fn infer_enum_variant_not_inferrable() {
+        let state = State::from_types(vec![(
+            NodeId(1),
+            (
+                Kind::Value,
+                Ok(Data::Local(Type::Enumerated(Enumerated::Declaration(
+                    vec![],
+                )))),
+            ),
+        )]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            Action::Raise(ResolveError::NotInferrable(vec![]))
+        );
+    }
+
+    #[test]
+    fn infer_module_entry() {
+        let state = State::from_types(vec![(
+            NodeId(1),
+            (
+                Kind::Value,
+                Ok(Data::Local(Type::Module(vec![(
+                    str!("foo"),
+                    Kind::Value,
+                    NodeId(2),
+                )]))),
+            ),
+        )]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            Action::Infer(Data::Inherit(NodeId(2)))
+        );
+    }
+
+    #[test]
+    fn infer_module_entry_not_inferrable() {
+        let state = State::from_types(vec![(
+            NodeId(1),
+            (
+                Kind::Value,
+                Ok(Data::Local(Type::Module(vec![(
+                    str!("foo"),
+                    Kind::Type,
+                    NodeId(2),
+                )]))),
+            ),
+        )]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            Action::Raise(ResolveError::NotInferrable(vec![]))
+        );
+        assert_eq!(
+            super::infer(&state, NodeId(1), "bar", &Kind::Value),
+            Action::Raise(ResolveError::NotInferrable(vec![]))
+        );
+    }
+
+    #[test]
+    fn skip() {
+        let state = State::from_types(vec![]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            Action::Skip
+        );
+    }
+
+    #[test]
+    fn not_inferrable() {
+        let state = State::from_types(vec![
+            (
+                NodeId(1),
+                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
+            ),
+            (NodeId(2), (Kind::Value, Ok(Data::Local(Type::String)))),
+        ]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            Action::Raise(ResolveError::NotInferrable(vec![NodeId(1)]))
+        );
+        assert_eq!(
+            super::infer(&state, NodeId(2), "foo", &Kind::Value),
+            Action::Raise(ResolveError::NotInferrable(vec![]))
+        );
     }
 }

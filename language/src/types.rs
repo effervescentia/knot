@@ -9,7 +9,7 @@ pub enum Kind {
 
 impl Kind {
     pub fn can_accept(&self, other: &Self) -> bool {
-        other == self || other == &Self::Mixed
+        self == other || self == &Self::Mixed
     }
 }
 

@@ -1,8 +1,5 @@
-use crate::{
-    ast,
-    infer::{BindingMap, NodeDescriptor},
-};
-use lang::{types, FragmentMap, NodeId};
+use crate::infer::{BindingMap, NodeDescriptor};
+use lang::{ast, types, FragmentMap, NodeId};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq)]

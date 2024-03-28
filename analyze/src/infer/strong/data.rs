@@ -33,8 +33,15 @@ pub type Result = crate::Result<Output>;
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
+    /// try to infer the type on the next pass
     Skip,
+
+    /// infer a success result based on the data
     Infer(Data),
-    Inherit(NodeId),
+
+    /// used when inheriting can resolve further
+    InheritAndSkip(NodeId),
+
+    /// infer an error result based on the data
     Raise(ResolveError),
 }

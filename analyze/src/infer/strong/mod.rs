@@ -2,6 +2,8 @@ mod arithmetic;
 mod data;
 mod function_result;
 mod inherit;
+#[cfg(test)]
+mod mock;
 mod module;
 mod property;
 mod reference;
@@ -70,7 +72,7 @@ fn partial_infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
                 kind,
                 weak: weak::Data::Infer(weak::Inference::Property(lhs, property)),
                 ..
-            } => property::infer(&next, lhs, property, kind),
+            } => property::infer(&next, *lhs, property, kind),
 
             // capture the result of calling a function
             NodeDescriptor {
@@ -118,7 +120,7 @@ fn partial_infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
                 next.types.insert(node.id, (node.kind, Err(x)));
             }
 
-            Action::Inherit(from_id) => next.nodes.push(node.into_inherit_from(from_id)),
+            Action::InheritAndSkip(from_id) => next.nodes.push(node.into_inherit_from(from_id)),
 
             Action::Skip => next.nodes.push(node),
         }

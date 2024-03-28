@@ -2,8 +2,8 @@ use super::{
     data::{Data, Inference, Weak},
     ToWeak,
 };
-use crate::ast;
 use lang::{
+    ast,
     types::{Kind, Type},
     NodeId,
 };

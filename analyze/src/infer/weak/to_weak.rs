@@ -2,8 +2,7 @@ use super::{
     data::{Data, Inference, Weak},
     ToWeak,
 };
-use crate::ast;
-use lang::{types::Kind, Fragment, NodeId};
+use lang::{ast, types::Kind, Fragment, NodeId};
 
 impl ToWeak for Fragment {
     fn to_weak(&self) -> Weak {

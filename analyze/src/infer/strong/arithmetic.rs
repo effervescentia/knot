@@ -23,3 +23,93 @@ pub fn infer(state: &State, lhs: NodeId, rhs: NodeId) -> Action {
         (Some(_), Some(_)) => Action::Raise(ResolveError::NotInferrable(vec![])),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        error::ResolveError,
+        infer::strong::{
+            data::{Action, Data},
+            state::State,
+        },
+    };
+    use kore::assert_eq;
+    use lang::{
+        types::{Kind, Type},
+        NodeId,
+    };
+
+    #[test]
+    fn infer_integer() {
+        let state = State::from_types(vec![(
+            NodeId(1),
+            (Kind::Value, Ok(Data::Local(Type::Integer))),
+        )]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), NodeId(1)),
+            Action::Infer(Data::Local(Type::Integer))
+        );
+    }
+
+    #[test]
+    fn infer_float() {
+        let state = State::from_types(vec![
+            (NodeId(1), (Kind::Value, Ok(Data::Local(Type::Integer)))),
+            (NodeId(2), (Kind::Value, Ok(Data::Local(Type::Float)))),
+        ]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), NodeId(2)),
+            Action::Infer(Data::Local(Type::Float))
+        );
+        assert_eq!(
+            super::infer(&state, NodeId(2), NodeId(1)),
+            Action::Infer(Data::Local(Type::Float))
+        );
+        assert_eq!(
+            super::infer(&state, NodeId(2), NodeId(2)),
+            Action::Infer(Data::Local(Type::Float))
+        );
+    }
+
+    #[test]
+    fn skip() {
+        let state = State::from_types(vec![(
+            NodeId(1),
+            (Kind::Value, Ok(Data::Local(Type::Integer))),
+        )]);
+
+        assert_eq!(super::infer(&state, NodeId(1), NodeId(3)), Action::Skip);
+        assert_eq!(super::infer(&state, NodeId(3), NodeId(1)), Action::Skip);
+    }
+
+    #[test]
+    fn not_inferrable() {
+        let state = State::from_types(vec![
+            (NodeId(1), (Kind::Value, Ok(Data::Local(Type::Integer)))),
+            (NodeId(2), (Kind::Value, Ok(Data::Local(Type::Boolean)))),
+            (
+                NodeId(3),
+                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
+            ),
+        ]);
+
+        assert_eq!(
+            super::infer(&state, NodeId(1), NodeId(3)),
+            Action::Raise(ResolveError::NotInferrable(vec![NodeId(3)]))
+        );
+        assert_eq!(
+            super::infer(&state, NodeId(3), NodeId(1)),
+            Action::Raise(ResolveError::NotInferrable(vec![NodeId(3)]))
+        );
+        assert_eq!(
+            super::infer(&state, NodeId(3), NodeId(3)),
+            Action::Raise(ResolveError::NotInferrable(vec![NodeId(3), NodeId(3)]))
+        );
+        assert_eq!(
+            super::infer(&state, NodeId(2), NodeId(2)),
+            Action::Raise(ResolveError::NotInferrable(vec![]))
+        );
+    }
+}
