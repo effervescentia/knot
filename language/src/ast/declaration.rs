@@ -258,8 +258,11 @@ where
 
         match value {
             super::Declaration::TypeAlias { storage, value } => {
-                let (storage, v) = storage.walk(v);
-                let (value, v) = value.walk(v);
+                let ((storage, value), v) = v.scoped(|v| {
+                    let (storage, v) = storage.walk(v);
+                    let (value, v) = value.walk(v);
+                    ((storage, value), v)
+                });
 
                 v.declaration(super::Declaration::TypeAlias { storage, value }, range)
             }
@@ -269,9 +272,12 @@ where
                 value_type,
                 value,
             } => {
-                let (storage, v) = storage.walk(v);
-                let (value_type, v) = value_type.walk(v);
-                let (value, v) = value.walk(v);
+                let ((storage, value_type, value), v) = v.scoped(|v| {
+                    let (storage, v) = storage.walk(v);
+                    let (value_type, v) = value_type.walk(v);
+                    let (value, v) = value.walk(v);
+                    ((storage, value_type, value), v)
+                });
 
                 v.declaration(
                     super::Declaration::Constant {
@@ -284,8 +290,11 @@ where
             }
 
             super::Declaration::Enumerated { storage, variants } => {
-                let (storage, v) = storage.walk(v);
-                let (variants, v) = variants.walk(v);
+                let ((storage, variants), v) = v.scoped(|v| {
+                    let (storage, v) = storage.walk(v);
+                    let (variants, v) = variants.walk(v);
+                    ((storage, variants), v)
+                });
 
                 v.declaration(super::Declaration::Enumerated { storage, variants }, range)
             }
@@ -296,10 +305,13 @@ where
                 body_type,
                 body,
             } => {
-                let (storage, v) = storage.walk(v);
-                let (parameters, v) = parameters.walk(v);
-                let (body_type, v) = body_type.walk(v);
-                let (body, v) = body.walk(v);
+                let ((storage, parameters, body_type, body), v) = v.scoped(|v| {
+                    let (storage, v) = storage.walk(v);
+                    let (parameters, v) = parameters.walk(v);
+                    let (body_type, v) = body_type.walk(v);
+                    let (body, v) = body.walk(v);
+                    ((storage, parameters, body_type, body), v)
+                });
 
                 v.declaration(
                     super::Declaration::Function {
@@ -317,9 +329,12 @@ where
                 parameters,
                 body,
             } => {
-                let (storage, v) = storage.walk(v);
-                let (parameters, v) = parameters.walk(v);
-                let (body, v) = body.walk(v);
+                let ((storage, parameters, body), v) = v.scoped(|v| {
+                    let (storage, v) = storage.walk(v);
+                    let (parameters, v) = parameters.walk(v);
+                    let (body, v) = body.walk(v);
+                    ((storage, parameters, body), v)
+                });
 
                 v.declaration(
                     super::Declaration::View {
@@ -332,8 +347,11 @@ where
             }
 
             super::Declaration::Module { storage, value } => {
-                let (storage, v) = storage.walk(v);
-                let (value, v) = value.walk(v);
+                let ((storage, value), v) = v.scoped(|v| {
+                    let (storage, v) = storage.walk(v);
+                    let (value, v) = value.walk(v);
+                    ((storage, value), v)
+                });
 
                 v.declaration(super::Declaration::Module { storage, value }, range)
             }

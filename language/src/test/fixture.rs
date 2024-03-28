@@ -92,7 +92,7 @@ pub mod type_alias {
             (
                 NodeId(node + 1),
                 (
-                    ScopeId(vec![1]).offset(scope),
+                    ScopeId::default().offset(scope),
                     Fragment::Declaration(ast::Declaration::TypeAlias {
                         storage: ast::Storage::public(str!("MyTypeAlias")),
                         value: NodeId(node),
@@ -175,7 +175,7 @@ pub mod constant {
             (
                 NodeId(node + 2),
                 (
-                    ScopeId(vec![1]).offset(scope),
+                    ScopeId::default().offset(scope),
                     Fragment::Declaration(ast::Declaration::constant(
                         ast::Storage::public(str!("MY_CONSTANT")),
                         Some(NodeId(node)),
@@ -273,7 +273,7 @@ pub mod enumerated {
             (
                 NodeId(node + 2),
                 (
-                    ScopeId(vec![1]).offset(scope),
+                    ScopeId::default().offset(scope),
                     Fragment::Declaration(ast::Declaration::Enumerated {
                         storage: ast::Storage::public(str!("MyEnum")),
                         variants: vec![
@@ -523,7 +523,7 @@ pub mod function {
             (
                 NodeId(node + 11),
                 (
-                    ScopeId(vec![1]).offset(scope),
+                    ScopeId::default().offset(scope),
                     Fragment::Declaration(ast::Declaration::function(
                         ast::Storage::public(str!("my_function")),
                         vec![NodeId(node), NodeId(node + 2), NodeId(node + 4)],
@@ -899,7 +899,7 @@ pub mod view {
             (
                 NodeId(node + 20),
                 (
-                    ScopeId(vec![1]).offset(scope),
+                    ScopeId::default().offset(scope),
                     Fragment::Declaration(ast::Declaration::view(
                         ast::Storage::public(str!("MyView")),
                         vec![NodeId(node + 3)],
@@ -1037,7 +1037,6 @@ pub mod view {
 
 pub mod module {
     use self::types::Kind;
-
     use super::*;
 
     pub const SOURCE: &str = "module my_module {
@@ -1158,7 +1157,7 @@ pub mod module {
             (
                 NodeId(node + 4),
                 (
-                    ScopeId(vec![1, 2]).offset(scope),
+                    ScopeId(vec![1]).offset(scope),
                     Fragment::Declaration(ast::Declaration::constant(
                         ast::Storage::public(str!("MY_STYLE")),
                         None,
@@ -1176,7 +1175,7 @@ pub mod module {
             (
                 NodeId(node + 6),
                 (
-                    ScopeId(vec![1]).offset(scope),
+                    ScopeId::default().offset(scope),
                     Fragment::Declaration(ast::Declaration::module(
                         ast::Storage::public(str!("my_module")),
                         NodeId(node + 5),

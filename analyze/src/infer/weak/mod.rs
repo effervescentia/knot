@@ -80,7 +80,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(HashMap::from_iter(vec![(
-                    (ScopeId(vec![0, 1]), str!("MyTypeAlias")),
+                    (ScopeId(vec![0]), str!("MyTypeAlias")),
                     BTreeSet::from_iter(vec![NodeId(1)])
                 )])),
                 types: HashMap::from_iter(vec![
@@ -100,7 +100,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(HashMap::from_iter(vec![(
-                    (ScopeId(vec![0, 1]), str!("MY_CONSTANT")),
+                    (ScopeId(vec![0]), str!("MY_CONSTANT")),
                     BTreeSet::from_iter(vec![NodeId(2)])
                 )])),
                 types: HashMap::from_iter(vec![
@@ -124,7 +124,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(HashMap::from_iter(vec![(
-                    (ScopeId(vec![0, 1]), str!("MyEnum")),
+                    (ScopeId(vec![0]), str!("MyEnum")),
                     BTreeSet::from_iter(vec![NodeId(2)])
                 )])),
                 types: HashMap::from_iter(vec![
@@ -167,7 +167,7 @@ mod tests {
                         BTreeSet::from_iter(vec![NodeId(4)])
                     ),
                     (
-                        (ScopeId(vec![0, 1]), str!("my_function")),
+                        (ScopeId(vec![0]), str!("my_function")),
                         BTreeSet::from_iter(vec![NodeId(11)])
                     )
                 ])),
@@ -237,7 +237,7 @@ mod tests {
                         BTreeSet::from_iter(vec![NodeId(7)])
                     ),
                     (
-                        (ScopeId(vec![0, 1]), str!("MyView")),
+                        (ScopeId(vec![0]), str!("MyView")),
                         BTreeSet::from_iter(vec![NodeId(20)])
                     ),
                 ])),
@@ -306,11 +306,11 @@ mod tests {
                         BTreeSet::from_iter(vec![NodeId(0)])
                     ),
                     (
-                        (ScopeId(vec![0, 1, 2]), str!("MY_STYLE")),
+                        (ScopeId(vec![0, 1]), str!("MY_STYLE")),
                         BTreeSet::from_iter(vec![NodeId(4)])
                     ),
                     (
-                        (ScopeId(vec![0, 1]), str!("my_module")),
+                        (ScopeId(vec![0]), str!("my_module")),
                         BTreeSet::from_iter(vec![NodeId(6)])
                     ),
                 ])),
