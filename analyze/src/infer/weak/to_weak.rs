@@ -21,7 +21,14 @@ impl ToWeak for Fragment {
 
 impl ToWeak for ast::Import {
     fn to_weak(&self) -> Weak {
-        (Kind::Mixed, Data::Infer(Inference::Import(self)))
+        (
+            Kind::Mixed,
+            Data::Infer(Inference::Import(
+                self.source.clone(),
+                self.path.clone(),
+                self.alias.clone(),
+            )),
+        )
     }
 }
 
@@ -51,11 +58,11 @@ mod tests {
             .to_weak(),
             (
                 Kind::Mixed,
-                Data::Infer(Inference::Import(&ast::Import::new(
+                Data::Infer(Inference::Import(
                     ast::ImportSource::Local,
                     vec![str!("foo")],
                     Some(str!("Foo"))
-                )))
+                ))
             )
         );
     }

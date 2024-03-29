@@ -3,26 +3,26 @@ use lang::{ast, types, FragmentMap, NodeId};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Inference<'a> {
+pub enum Inference {
     Reference(String),
     Property(NodeId, String),
     Arithmetic(NodeId, NodeId),
     FunctionResult(NodeId),
-    Import(&'a ast::Import),
+    Import(ast::ImportSource, Vec<String>, Option<String>),
     Module(Vec<NodeId>),
     Parameter,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Data<'a> {
-    Infer(Inference<'a>),
+pub enum Data {
+    Infer(Inference),
     Inherit(NodeId),
     InheritKind(NodeId, types::Kind),
     Local(types::Type<NodeId>),
     // Remote(&'a types::ReferenceType<'a>),
 }
 
-pub type Weak<'a> = (types::Kind, Data<'a>);
+pub type Weak<'a> = (types::Kind, Data);
 
 pub type TypeMap<'a> = HashMap<NodeId, Weak<'a>>;
 
@@ -44,7 +44,7 @@ impl<'a> Result<'a> {
         }
     }
 
-    pub fn build_descriptors(&mut self) -> Vec<NodeDescriptor<'a>> {
+    pub fn build_descriptors(&mut self) -> Vec<NodeDescriptor> {
         self.fragments
             .iter()
             .filter_map(|(id, (scope, ..))| {

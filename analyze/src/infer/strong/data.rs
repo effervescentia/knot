@@ -11,7 +11,10 @@ pub enum Data {
 
 pub type Strong = (types::Kind, std::result::Result<Data, ResolveError>);
 
+#[derive(Debug, PartialEq)]
 pub struct Output {
+    // might be able to refactor this to avoid the need for
+    // inherit types thanks to Rc container
     pub types: HashMap<NodeId, OnceCell<Rc<ast::typed::Type>>>,
 
     pub inherits: HashMap<NodeId, NodeId>,

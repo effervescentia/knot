@@ -1,4 +1,6 @@
 mod error;
+#[cfg(test)]
+mod fixture;
 mod infer;
 mod into_typed;
 
@@ -11,6 +13,7 @@ pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, ResolveError)>>
 
 pub struct Context<'a> {
     pub namespace: &'a ModuleReference,
+
     pub modules: &'a HashMap<ModuleReference, &'a ast::typed::Type>,
 }
 
@@ -32,11 +35,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::Context;
+    use crate::{fixture, Context};
     use kore::{assert_eq, str};
     use lang::{
         ast,
-        test::fixture,
         types::{Kind, Type},
         ModuleReference, ModuleScope, Node,
     };
@@ -68,6 +70,10 @@ mod tests {
             ))))
         );
     }
+
+    #[ignore = "not implemented"]
+    #[test]
+    fn import() {}
 
     #[test]
     fn type_alias() {
@@ -167,11 +173,7 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::view::typed()]),
-                ast::typed::Type(Type::Module(vec![(
-                    str!("MyEnum"),
-                    Kind::Mixed,
-                    Rc::new(fixture::view::type_of())
-                )]))
+                ast::typed::Type(Type::View(vec![Rc::new(ast::typed::Type(Type::Element))]))
             ))))
         );
     }

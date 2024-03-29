@@ -1,4 +1,4 @@
-mod data;
+pub mod data;
 mod declaration;
 mod expression;
 mod to_weak;
@@ -16,13 +16,13 @@ pub fn infer_types(fragments: &FragmentMap) -> Result {
     for (id, (scope, fragment)) in fragments {
         result.types.insert(*id, fragment.to_weak());
 
-        if let Some(name) = fragment.to_binding() {
+        if let Some((name, from_id)) = fragment.to_binding() {
             result
                 .bindings
                 .0
                 .entry((scope.clone(), name))
                 .or_default()
-                .insert(*id);
+                .insert(from_id.unwrap_or(*id));
         }
     }
 
@@ -31,18 +31,12 @@ pub fn infer_types(fragments: &FragmentMap) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use crate::infer::{
-        weak::{Data, Inference, Result},
-        BindingMap,
+    use crate::{
+        fixture,
+        infer::{weak::Result, BindingMap},
     };
-    use kore::{assert_eq, str};
-    use lang::{
-        ast,
-        test::fixture,
-        types::{Enumerated, Kind, Type},
-        NodeId, ScopeId,
-    };
-    use std::collections::{BTreeMap, BTreeSet, HashMap};
+    use kore::assert_eq;
+    use std::collections::BTreeMap;
 
     #[test]
     fn import() {
@@ -53,17 +47,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::import::bindings()),
-                types: HashMap::from_iter(vec![(
-                    NodeId(0),
-                    (
-                        Kind::Mixed,
-                        Data::Infer(Inference::Import(&ast::Import {
-                            source: ast::ImportSource::Local,
-                            path: vec![str!("foo"), str!("bar"), str!("fizz")],
-                            alias: None,
-                        }))
-                    )
-                ),]),
+                types: fixture::import::weak_types(),
             }
         );
     }
@@ -77,10 +61,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::type_alias::bindings()),
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), (Kind::Type, Data::Local(Type::Nil))),
-                    (NodeId(1), (Kind::Type, Data::Inherit(NodeId(0)))),
-                ]),
+                types: fixture::type_alias::weak_types(),
             }
         );
     }
@@ -94,14 +75,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::constant::bindings()),
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), (Kind::Type, Data::Local(Type::String))),
-                    (NodeId(1), (Kind::Value, Data::Local(Type::String))),
-                    (
-                        NodeId(2),
-                        (Kind::Value, Data::InheritKind(NodeId(0), Kind::Type))
-                    ),
-                ]),
+                types: fixture::constant::weak_types(),
             }
         );
     }
@@ -115,20 +89,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::enumerated::bindings()),
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), (Kind::Type, Data::Local(Type::Boolean))),
-                    (NodeId(1), (Kind::Type, Data::Local(Type::Style))),
-                    (
-                        NodeId(2),
-                        (
-                            Kind::Mixed,
-                            Data::Local(Type::Enumerated(Enumerated::Declaration(vec![
-                                (str!("Empty"), vec![]),
-                                (str!("Render"), vec![NodeId(0), NodeId(1)]),
-                            ])))
-                        )
-                    ),
-                ]),
+                types: fixture::enumerated::weak_types()
             }
         );
     }
@@ -142,50 +103,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::function::bindings()),
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), (Kind::Value, Data::Infer(Inference::Parameter))),
-                    (NodeId(1), (Kind::Type, Data::Local(Type::Integer))),
-                    (
-                        NodeId(2),
-                        (Kind::Value, Data::InheritKind(NodeId(1), Kind::Type))
-                    ),
-                    (NodeId(3), (Kind::Value, Data::Local(Type::Boolean))),
-                    (NodeId(4), (Kind::Value, Data::Inherit(NodeId(3)))),
-                    (NodeId(5), (Kind::Type, Data::Local(Type::Boolean))),
-                    (
-                        NodeId(6),
-                        (
-                            Kind::Value,
-                            Data::Infer(Inference::Reference(str!("first")))
-                        )
-                    ),
-                    (
-                        NodeId(7),
-                        (
-                            Kind::Value,
-                            Data::Infer(Inference::Reference(str!("second")))
-                        )
-                    ),
-                    (NodeId(8), (Kind::Value, Data::Local(Type::Boolean))),
-                    (
-                        NodeId(9),
-                        (
-                            Kind::Value,
-                            Data::Infer(Inference::Reference(str!("third")))
-                        )
-                    ),
-                    (NodeId(10), (Kind::Value, Data::Local(Type::Boolean))),
-                    (
-                        NodeId(11),
-                        (
-                            Kind::Value,
-                            Data::Local(Type::Function(
-                                vec![NodeId(0), NodeId(2), NodeId(4)],
-                                NodeId(5)
-                            ))
-                        )
-                    ),
-                ]),
+                types: fixture::function::weak_types()
             }
         );
     }
@@ -199,53 +117,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::view::bindings()),
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), (Kind::Type, Data::Local(Type::Element))),
-                    (NodeId(1), (Kind::Value, Data::Local(Type::Element))),
-                    (NodeId(2), (Kind::Value, Data::Inherit(NodeId(1)))),
-                    (
-                        NodeId(3),
-                        (Kind::Value, Data::InheritKind(NodeId(0), Kind::Type))
-                    ),
-                    (NodeId(4), (Kind::Value, Data::Local(Type::Integer))),
-                    (NodeId(5), (Kind::Value, Data::Local(Type::Float))),
-                    (
-                        NodeId(6),
-                        (
-                            Kind::Value,
-                            Data::Infer(Inference::Arithmetic(NodeId(4), NodeId(5)))
-                        )
-                    ),
-                    (NodeId(7), (Kind::Value, Data::Local(Type::Nil))),
-                    (NodeId(8), (Kind::Value, Data::Local(Type::String))),
-                    (NodeId(9), (Kind::Value, Data::Local(Type::Element))),
-                    (
-                        NodeId(10),
-                        (
-                            Kind::Value,
-                            Data::Infer(Inference::Reference(str!("value")))
-                        )
-                    ),
-                    (NodeId(11), (Kind::Value, Data::Inherit(NodeId(10)))),
-                    (NodeId(12), (Kind::Value, Data::Local(Type::String))),
-                    (
-                        NodeId(13),
-                        (
-                            Kind::Value,
-                            Data::Infer(Inference::Reference(str!("inner")))
-                        )
-                    ),
-                    (NodeId(14), (Kind::Value, Data::Inherit(NodeId(13)))),
-                    (NodeId(15), (Kind::Value, Data::Local(Type::Element))),
-                    (NodeId(16), (Kind::Value, Data::Local(Type::Element))),
-                    (NodeId(17), (Kind::Value, Data::Inherit(NodeId(16)))),
-                    (NodeId(18), (Kind::Value, Data::Inherit(NodeId(17)))),
-                    (NodeId(19), (Kind::Value, Data::Inherit(NodeId(18)))),
-                    (
-                        NodeId(20),
-                        (Kind::Value, Data::Local(Type::View(vec![NodeId(3)])))
-                    ),
-                ]),
+                types: fixture::view::weak_types(),
             }
         );
     }
@@ -259,28 +131,7 @@ mod tests {
             Result {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::module::bindings()),
-                types: HashMap::from_iter(vec![
-                    (
-                        NodeId(0),
-                        (
-                            Kind::Mixed,
-                            Data::Infer(Inference::Import(&ast::Import::new(
-                                ast::ImportSource::Local,
-                                vec![str!("buzz")],
-                                Some(str!("Buzz")),
-                            )))
-                        )
-                    ),
-                    (NodeId(1), (Kind::Value, Data::Local(Type::String))),
-                    (NodeId(2), (Kind::Value, Data::Local(Type::String))),
-                    (NodeId(3), (Kind::Value, Data::Local(Type::Style))),
-                    (NodeId(4), (Kind::Value, Data::Inherit(NodeId(3)))),
-                    (
-                        NodeId(5),
-                        (Kind::Mixed, Data::Infer(Inference::Module(vec![NodeId(4)])))
-                    ),
-                    (NodeId(6), (Kind::Mixed, Data::Inherit(NodeId(5)))),
-                ]),
+                types: fixture::module::weak_types(),
             }
         );
     }

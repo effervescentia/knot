@@ -14,20 +14,23 @@ pub enum Fragment {
 }
 
 impl Fragment {
-    pub fn to_binding(&self) -> Option<String> {
+    pub fn to_binding(&self) -> Option<(String, Option<NodeId>)> {
         match self {
-            Self::Statement(ast::Statement::Variable(binding, ..))
-            | Self::Parameter(ast::Parameter { binding, .. }) => Some(binding.clone()),
+            Self::Statement(ast::Statement::Variable(binding, x)) => {
+                Some((binding.clone(), Some(*x)))
+            }
 
-            Self::Declaration(x) => Some(x.binding().clone()),
+            Self::Parameter(ast::Parameter { binding, .. }) => Some((binding.clone(), None)),
+
+            Self::Declaration(x) => Some((x.binding().clone(), None)),
 
             Self::Import(ast::Import {
                 path, alias: None, ..
-            }) => path.last().cloned(),
+            }) => path.last().cloned().map(|x| (x, None)),
 
             Self::Import(ast::Import {
                 alias: Some(alias), ..
-            }) => Some(alias.clone()),
+            }) => Some((alias.clone(), None)),
 
             _ => None,
         }

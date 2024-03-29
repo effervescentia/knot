@@ -14,14 +14,15 @@ use std::{cell::OnceCell, collections::BTreeMap, rc::Rc};
 /// type resolved from the `State` during inference
 type Resolved<'a> = std::result::Result<&'a types::Type<NodeId>, &'a ResolveError>;
 
-type Warning<'a> = (&'a NodeDescriptor<'a>, String);
+type Warning<'a> = (&'a NodeDescriptor, String);
 
+#[derive(Debug, PartialEq)]
 pub struct State<'a> {
     pub fragments: &'a FragmentMap,
 
     pub bindings: BindingMap,
 
-    pub nodes: Vec<NodeDescriptor<'a>>,
+    pub nodes: Vec<NodeDescriptor>,
 
     pub types: BTreeMap<NodeId, Strong>,
 
@@ -41,7 +42,7 @@ impl<'a> State<'a> {
         }
     }
 
-    pub fn next(prev: Self) -> (Vec<NodeDescriptor<'a>>, Self) {
+    pub fn next(prev: Self) -> (Vec<NodeDescriptor>, Self) {
         (
             prev.nodes,
             Self {

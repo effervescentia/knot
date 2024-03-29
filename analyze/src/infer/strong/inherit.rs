@@ -7,7 +7,7 @@ use lang::{types::Kind, NodeId};
 
 pub fn inherit(state: &State, from_id: NodeId, from_kind: &Kind) -> Action {
     match state.get_type(&from_id, from_kind) {
-        Some(Ok(Data::Inherit(next_from_id))) => inherit(state, *next_from_id, from_kind),
+        Some(Ok(Data::Inherit(next_from_id))) => inherit(state, *next_from_id, &Kind::Mixed),
 
         Some(Ok(_)) => Action::Infer(Data::Inherit(from_id)),
 

@@ -22,7 +22,7 @@ pub mod import {
 
     pub const SOURCE: &str = "use ./foo/bar/fizz;";
 
-    pub fn raw(offset: Offset) -> ast::raw::Import {
+    pub fn raw_at(offset: Offset) -> ast::raw::Import {
         ast::meta::Import::raw(
             ast::Import {
                 source: ast::ImportSource::Local,
@@ -34,7 +34,7 @@ pub mod import {
     }
 
     pub fn mock() -> ast::raw::Import {
-        raw((0, 0)).nil_range()
+        raw_at((0, 0)).nil_range()
     }
 
     pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
@@ -72,7 +72,7 @@ pub mod type_alias {
 
     pub const SOURCE: &str = "type MyTypeAlias = nil;";
 
-    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+    pub fn raw_at(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::type_alias(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -89,7 +89,7 @@ pub mod type_alias {
     }
 
     pub fn mock() -> ast::raw::Declaration {
-        raw((0, 0)).nil_range()
+        raw_at((0, 0)).nil_range()
     }
 
     pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
@@ -154,7 +154,7 @@ pub mod constant {
 
     pub const SOURCE: &str = "const MY_CONSTANT: string = \"hello, world!\";";
 
-    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+    pub fn raw_at(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::constant(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -175,7 +175,7 @@ pub mod constant {
     }
 
     pub fn mock() -> ast::raw::Declaration {
-        raw((0, 0)).nil_range()
+        raw_at((0, 0)).nil_range()
     }
 
     pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
@@ -256,7 +256,7 @@ pub mod enumerated {
   | Empty
   | Render(boolean, style);";
 
-    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+    pub fn raw_at(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::enumerated(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -285,7 +285,7 @@ pub mod enumerated {
     }
 
     pub fn mock() -> ast::raw::Declaration {
-        raw((0, 0)).nil_range()
+        raw_at((0, 0)).nil_range()
     }
 
     pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
@@ -386,7 +386,7 @@ pub mod function {
     pub const SOURCE: &str =
         "func my_function(first, second: integer, third = true): boolean -> first > second || third;";
 
-    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+    pub fn raw_at(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::function(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -468,7 +468,7 @@ pub mod function {
     }
 
     pub fn mock() -> ast::raw::Declaration {
-        raw((0, 0)).nil_range()
+        raw_at((0, 0)).nil_range()
     }
 
     pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
@@ -676,7 +676,7 @@ pub mod view {
   </>;
 };";
 
-    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+    pub fn raw_at(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::view(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -799,7 +799,7 @@ pub mod view {
     }
 
     pub fn mock() -> ast::raw::Declaration {
-        raw((0, 0)).nil_range()
+        raw_at((0, 0)).nil_range()
     }
 
     pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {
@@ -998,7 +998,7 @@ pub mod view {
             ),
             (
                 (ScopeId(vec![1, 2]).offset(scope), str!("value")),
-                BTreeSet::from_iter(vec![NodeId(node + 7)]),
+                BTreeSet::from_iter(vec![NodeId(node + 6)]),
             ),
             (
                 (ScopeId::default().offset(scope), str!("MyView")),
@@ -1149,7 +1149,7 @@ pub mod module {
   };
 }";
 
-    pub fn raw(offset: Offset) -> ast::raw::Declaration {
+    pub fn raw_at(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::module(
                 ast::Storage::public(ast::meta::Binding::new(
@@ -1208,7 +1208,7 @@ pub mod module {
     }
 
     pub fn mock() -> ast::raw::Declaration {
-        raw((0, 0)).nil_range()
+        raw_at((0, 0)).nil_range()
     }
 
     pub fn fragments_at(node: usize, scope: &(Vec<usize>, usize)) -> Fragments {

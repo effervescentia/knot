@@ -133,14 +133,14 @@ mod tests {
             parse(&source).unwrap().0,
             ast::raw::Module::raw(
                 ast::Module::new(
-                    vec![fixture::import::raw((0, 0))],
+                    vec![fixture::import::raw_at((0, 0))],
                     vec![
-                        fixture::type_alias::raw((2, 0)),
-                        fixture::enumerated::raw((4, 0)),
-                        fixture::constant::raw((8, 0)),
-                        fixture::function::raw((10, 0)),
-                        fixture::view::raw((12, 0)),
-                        fixture::module::raw((21, 0))
+                        fixture::type_alias::raw_at((2, 0)),
+                        fixture::enumerated::raw_at((4, 0)),
+                        fixture::constant::raw_at((8, 0)),
+                        fixture::function::raw_at((10, 0)),
+                        fixture::view::raw_at((12, 0)),
+                        fixture::module::raw_at((21, 0))
                     ]
                 ),
                 Range::new((1, 1), (29, 1))
