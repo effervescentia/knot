@@ -128,19 +128,10 @@ mod tests {
     };
     use kore::{assert_eq, str};
     use lang::{
-        ast,
         types::{Enumerated, Kind, Type},
         ModuleReference, ModuleScope, NodeId,
     };
-    use std::{
-        cell::OnceCell,
-        collections::{BTreeMap, HashMap},
-        rc::Rc,
-    };
-
-    fn type_(type_: Type<Rc<ast::typed::Type>>) -> Rc<ast::typed::Type> {
-        Rc::new(ast::typed::Type(type_))
-    }
+    use std::collections::{BTreeMap, HashMap};
 
     // #[ignore = "import inference not implemented"]
     // #[test]
