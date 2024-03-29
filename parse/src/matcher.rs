@@ -1,8 +1,20 @@
-use crate::{Position, Range};
+use crate::ast;
 use combine::{
-    attempt, many, optional, parser, parser::char as p, position, value, Parser, Stream,
+    attempt, many, optional, parser, parser::char as p, position, stream::position::SourcePosition,
+    value, Parser, Stream,
 };
 use kore::invariant;
+use lang::{Point, Range};
+
+pub trait Position {
+    fn to_point(&self) -> Point;
+}
+
+impl Position for SourcePosition {
+    fn to_point(&self) -> Point {
+        Point(self.line as usize, self.column as usize)
+    }
+}
 
 pub fn span<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
 where
@@ -10,8 +22,19 @@ where
     T::Position: Position,
     P: Parser<T, Output = R>,
 {
-    attempt((position(), parser, position()))
-        .map(|(start, x, end)| (x, Range::from(&start, &end.decrement())))
+    attempt((position(), parser, position())).map(|(start, x, end)| {
+        (
+            x,
+            Range(
+                start.to_point(),
+                if start == end {
+                    end.to_point()
+                } else {
+                    end.to_point().decrement()
+                },
+            ),
+        )
+    })
 }
 
 pub fn lexeme<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
@@ -129,12 +152,19 @@ where
     identifier(p::alpha_num().or(p::char('_')))
 }
 
+pub fn binding<T>() -> impl Parser<T, Output = ast::raw::Binding>
+where
+    T: Stream<Token = char>,
+    T::Position: Position,
+{
+    standard_identifier().map(|(name, range)| ast::raw::Binding::new(ast::Binding(name), range))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
         matcher,
         test::mock::{mock, MockResult, MOCK_TOKEN},
-        Range,
     };
     use combine::{
         easy::{Error, Errors, Info},
@@ -143,6 +173,7 @@ mod tests {
         EasyParser, Parser,
     };
     use kore::str;
+    use lang::Range;
 
     #[test]
     fn lexeme() {
@@ -150,13 +181,13 @@ mod tests {
 
         assert_eq!(
             parse(MOCK_TOKEN).unwrap().0,
-            (MockResult, Range((1, 1), (1, 8)))
+            (MockResult, Range::new((1, 1), (1, 8)))
         );
 
         let with_trailing_space = format!("{} ", MOCK_TOKEN);
         assert_eq!(
             parse(&with_trailing_space).unwrap().0,
-            (MockResult, Range((1, 1), (1, 8)))
+            (MockResult, Range::new((1, 1), (1, 8)))
         );
     }
 
@@ -180,7 +211,7 @@ mod tests {
         let input = format!(">{}<", MOCK_TOKEN);
         assert_eq!(
             parse(input.as_str()).unwrap().0,
-            (MockResult, Range((1, 1), (1, 10)))
+            (MockResult, Range::new((1, 1), (1, 10)))
         );
     }
 
@@ -219,7 +250,7 @@ mod tests {
                     MockResult,
                     Box::new(Stack::Next(MockResult, Box::new(Stack::Empty)))
                 ),
-                Range((1, 1), (1, 18))
+                Range::new((1, 1), (1, 18))
             )
         );
     }
@@ -228,8 +259,8 @@ mod tests {
     fn symbol() {
         let parse = |s| matcher::symbol('+').easy_parse(Stream::new(s));
 
-        assert_eq!(parse("+").unwrap().0, ('+', Range((1, 1), (1, 1))));
-        assert_eq!(parse("+ ").unwrap().0, ('+', Range((1, 1), (1, 1))));
+        assert_eq!(parse("+").unwrap().0, ('+', Range::new((1, 1), (1, 1))));
+        assert_eq!(parse("+ ").unwrap().0, ('+', Range::new((1, 1), (1, 1))));
         assert_eq!(
             parse("-"),
             Err(Errors::from_errors(
@@ -246,8 +277,8 @@ mod tests {
     fn glyph() {
         let parse = |s| matcher::glyph("&&").easy_parse(Stream::new(s));
 
-        assert_eq!(parse("&&").unwrap().0, ("&&", Range((1, 1), (1, 2))));
-        assert_eq!(parse("& & ").unwrap().0, ("&&", Range((1, 1), (1, 3))));
+        assert_eq!(parse("&&").unwrap().0, ("&&", Range::new((1, 1), (1, 2))));
+        assert_eq!(parse("& & ").unwrap().0, ("&&", Range::new((1, 1), (1, 3))));
         assert_eq!(
             parse("||"),
             Err(Errors::from_errors(
@@ -264,8 +295,11 @@ mod tests {
     fn keyword() {
         let parse = |s| matcher::keyword("foo").easy_parse(Stream::new(s));
 
-        assert_eq!(parse("foo").unwrap().0, ("foo", Range((1, 1), (1, 3))));
-        assert_eq!(parse("foo ").unwrap().0, ("foo", Range((1, 1), (1, 3))));
+        assert_eq!(parse("foo").unwrap().0, ("foo", Range::new((1, 1), (1, 3))));
+        assert_eq!(
+            parse("foo ").unwrap().0,
+            ("foo", Range::new((1, 1), (1, 3)))
+        );
         assert_eq!(
             parse("bar"),
             Err(Errors::from_errors(
@@ -284,9 +318,12 @@ mod tests {
 
         assert_eq!(
             parse("$foo_").unwrap().0,
-            (str!("$foo_"), Range((1, 1), (1, 5)))
+            (str!("$foo_"), Range::new((1, 1), (1, 5)))
         );
-        assert_eq!(parse("$").unwrap().0, (str!("$"), Range((1, 1), (1, 1))));
+        assert_eq!(
+            parse("$").unwrap().0,
+            (str!("$"), Range::new((1, 1), (1, 1)))
+        );
         assert_eq!(
             parse(""),
             Err(Errors::from_errors(
@@ -302,11 +339,11 @@ mod tests {
 
         assert_eq!(
             parse("foo").unwrap().0,
-            (str!("foo"), Range((1, 1), (1, 3)))
+            (str!("foo"), Range::new((1, 1), (1, 3)))
         );
         assert_eq!(
             parse("_foo").unwrap().0,
-            (str!("_foo"), Range((1, 1), (1, 4)))
+            (str!("_foo"), Range::new((1, 1), (1, 4)))
         );
     }
 }

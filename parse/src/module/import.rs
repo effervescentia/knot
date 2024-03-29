@@ -1,6 +1,6 @@
-use crate::{matcher as m, Position, Range};
+use crate::matcher as m;
 use combine::{choice, many1, not_followed_by, optional, parser::char as p, value, Parser, Stream};
-use lang::ast::{AstNode, Import, ImportNode, ImportSource};
+use lang::{ast, Range};
 
 // use @/x;
 // use @/x as xx;
@@ -11,49 +11,47 @@ use lang::ast::{AstNode, Import, ImportNode, ImportSource};
 // use @scope/external/z;
 // use @scope/external/z as zz;
 
-fn import_source<T>() -> impl Parser<T, Output = ImportSource>
+fn import_source<T>() -> impl Parser<T, Output = ast::ImportSource>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     choice((
         m::symbol('@')
             .skip(not_followed_by(p::alpha_num().or(p::char('_'))))
-            .with(value(ImportSource::Root)),
-        m::symbol('.').with(value(ImportSource::Local)),
+            .with(value(ast::ImportSource::Root)),
+        m::symbol('.').with(value(ast::ImportSource::Local)),
         choice((m::identifier(p::char('@')), m::standard_identifier()))
-            .map(|(x, _)| ImportSource::Named(x)),
+            .map(|(x, _)| ast::ImportSource::Named(x)),
     ))
 }
 
-fn import_path<T>() -> impl Parser<T, Output = Vec<String>>
+fn import_path<T>() -> impl Parser<T, Output = (Vec<String>, Range)>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
-    many1(
-        m::symbol('/')
-            .with(m::standard_identifier())
-            .map(|(x, _)| x),
-    )
+    many1(m::symbol('/').with(m::standard_identifier())).map(|xs: Vec<_>| {
+        let (paths, ranges): (Vec<_>, Vec<_>) = xs.into_iter().unzip();
+        // `unwrap()` is safe here because we are using `many1()`
+        let range = ranges.into_iter().reduce(|acc, x| &acc + &x).unwrap();
+
+        (paths, range)
+    })
 }
 
-fn import_alias<T>() -> impl Parser<T, Output = Option<String>>
+fn import_alias<T>() -> impl Parser<T, Output = Option<(String, Range)>>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
-    optional(
-        m::keyword("as")
-            .with(m::standard_identifier())
-            .map(|(x, _)| x),
-    )
+    optional(m::keyword("as").with(m::standard_identifier()))
 }
 
-pub fn import<T>() -> impl Parser<T, Output = ImportNode<Range, ()>>
+pub fn import<T>() -> impl Parser<T, Output = ast::raw::Import>
 where
     T: Stream<Token = char>,
-    T::Position: Position,
+    T::Position: m::Position,
 {
     m::terminated((
         m::keyword("use"),
@@ -61,27 +59,40 @@ where
         import_path(),
         import_alias(),
     ))
-    .map(|((_, start), source, path, alias)| {
-        ImportNode::<Range, ()>::raw(
-            Import {
-                source,
-                path,
-                alias,
-            },
-            start,
-        )
+    .map(|((_, start), source, (path, path_range), alias)| {
+        if let Some((alias, alias_range)) = alias {
+            let range = &start + &alias_range;
+
+            ast::raw::Import::raw(
+                ast::Import {
+                    source,
+                    path,
+                    alias: Some(alias),
+                },
+                range,
+            )
+        } else {
+            let range = &start + &path_range;
+
+            ast::raw::Import::raw(
+                ast::Import {
+                    source,
+                    path,
+                    alias: None,
+                },
+                range,
+            )
+        }
     })
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Import, ImportSource};
-    use crate::{test::fixture as f, Range};
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::str;
-    use lang::ast::ImportNode;
+    use kore::{assert_eq, str};
+    use lang::{ast, Range};
 
-    fn parse(s: &str) -> crate::Result<ImportNode<Range, ()>> {
+    fn parse(s: &str) -> crate::Result<ast::raw::Import> {
         super::import().skip(eof()).easy_parse(Stream::new(s))
     }
 
@@ -89,9 +100,9 @@ mod tests {
     fn import() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            f::n::ir(
-                Import::new(ImportSource::Root, vec![str!("foo")], None),
-                ((1, 1), (1, 3))
+            ast::raw::Import::raw(
+                ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
+                Range::new((1, 1), (1, 9))
             )
         );
     }
@@ -100,13 +111,13 @@ mod tests {
     fn import_nested() {
         assert_eq!(
             parse("use @/foo/bar/fizz;").unwrap().0,
-            f::n::ir(
-                Import::new(
-                    ImportSource::Root,
+            ast::raw::Import::raw(
+                ast::Import::new(
+                    ast::ImportSource::Root,
                     vec![str!("foo"), str!("bar"), str!("fizz")],
                     None
                 ),
-                ((1, 1), (1, 3))
+                Range::new((1, 1), (1, 18))
             )
         );
     }
@@ -115,9 +126,9 @@ mod tests {
     fn import_named_no_alias() {
         assert_eq!(
             parse("use @/foo;").unwrap().0,
-            f::n::ir(
-                Import::new(ImportSource::Root, vec![str!("foo")], None),
-                ((1, 1), (1, 3))
+            ast::raw::Import::raw(
+                ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
+                Range::new((1, 1), (1, 9))
             )
         );
     }
@@ -126,13 +137,13 @@ mod tests {
     fn import_named_with_alias() {
         assert_eq!(
             parse("use @/foo/fizz as buzz;").unwrap().0,
-            f::n::ir(
-                Import::new(
-                    ImportSource::Root,
+            ast::raw::Import::raw(
+                ast::Import::new(
+                    ast::ImportSource::Root,
                     vec![str!("foo"), str!("fizz")],
                     Some(str!("buzz"))
                 ),
-                ((1, 1), (1, 3))
+                Range::new((1, 1), (1, 22))
             )
         );
     }

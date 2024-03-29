@@ -2,7 +2,10 @@ use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum UnaryOperator {
+    /* logical */
     Not,
+
+    /* numeric */
     Absolute,
     Negate,
 }
@@ -11,6 +14,7 @@ impl Display for UnaryOperator {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Not => write!(f, "!"),
+
             Self::Absolute => write!(f, "+"),
             Self::Negate => write!(f, "-"),
         }
@@ -19,17 +23,21 @@ impl Display for UnaryOperator {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BinaryOperator {
+    /* logical */
     And,
     Or,
 
+    /* comparative */
     Equal,
     NotEqual,
 
+    /* relational */
     LessThan,
     LessThanOrEqual,
     GreaterThan,
     GreaterThanOrEqual,
 
+    /* arithmetic */
     Add,
     Subtract,
     Multiply,

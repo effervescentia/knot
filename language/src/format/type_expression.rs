@@ -1,28 +1,28 @@
-use crate::ast::{AstNode, TypeExpression, TypeExpressionNode};
+use crate::ast;
 use kore::format::SeparateEach;
 use std::fmt::{Display, Formatter};
 
-impl<R, C> Display for TypeExpressionNode<R, C>
+impl<TypeExpression_> Display for ast::TypeExpression<TypeExpression_>
 where
-    R: Copy,
+    TypeExpression_: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self.node().value() {
-            TypeExpression::Nil => write!(f, "nil"),
-            TypeExpression::Boolean => write!(f, "boolean"),
-            TypeExpression::Integer => write!(f, "integer"),
-            TypeExpression::Float => write!(f, "float"),
-            TypeExpression::String => write!(f, "string"),
-            TypeExpression::Style => write!(f, "style"),
-            TypeExpression::Element => write!(f, "element"),
+        match self {
+            Self::Primitive(ast::TypePrimitive::Nil) => write!(f, "nil"),
+            Self::Primitive(ast::TypePrimitive::Boolean) => write!(f, "boolean"),
+            Self::Primitive(ast::TypePrimitive::Integer) => write!(f, "integer"),
+            Self::Primitive(ast::TypePrimitive::Float) => write!(f, "float"),
+            Self::Primitive(ast::TypePrimitive::String) => write!(f, "string"),
+            Self::Primitive(ast::TypePrimitive::Style) => write!(f, "style"),
+            Self::Primitive(ast::TypePrimitive::Element) => write!(f, "element"),
 
-            TypeExpression::Identifier(x) => write!(f, "{x}"),
+            Self::Identifier(x) => write!(f, "{x}"),
 
-            TypeExpression::Group(x) => write!(f, "({x})"),
+            Self::Group(x) => write!(f, "({x})"),
 
-            TypeExpression::DotAccess(lhs, rhs) => write!(f, "{lhs}.{rhs}"),
+            Self::PropertyAccess(lhs, rhs) => write!(f, "{lhs}.{rhs}"),
 
-            TypeExpression::Function(parameters, result) => {
+            Self::Function(parameters, result) => {
                 write!(
                     f,
                     "({parameters}) -> {result}",
@@ -35,48 +35,76 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast::TypeExpression, test::fixture as f};
+    use crate::ast;
     use kore::str;
 
     #[test]
     fn nil() {
-        assert_eq!(f::n::tx(TypeExpression::Nil).to_string(), "nil");
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil))
+                .to_string(),
+            "nil"
+        );
     }
 
     #[test]
     fn boolean() {
-        assert_eq!(f::n::tx(TypeExpression::Boolean).to_string(), "boolean");
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean))
+                .to_string(),
+            "boolean"
+        );
     }
 
     #[test]
     fn integer() {
-        assert_eq!(f::n::tx(TypeExpression::Integer).to_string(), "integer");
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Integer))
+                .to_string(),
+            "integer"
+        );
     }
 
     #[test]
     fn float() {
-        assert_eq!(f::n::tx(TypeExpression::Float).to_string(), "float");
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Float))
+                .to_string(),
+            "float"
+        );
     }
 
     #[test]
     fn string() {
-        assert_eq!(f::n::tx(TypeExpression::String).to_string(), "string");
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::String))
+                .to_string(),
+            "string"
+        );
     }
 
     #[test]
     fn style() {
-        assert_eq!(f::n::tx(TypeExpression::Style).to_string(), "style");
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Style))
+                .to_string(),
+            "style"
+        );
     }
 
     #[test]
     fn element() {
-        assert_eq!(f::n::tx(TypeExpression::Element).to_string(), "element");
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Element))
+                .to_string(),
+            "element"
+        );
     }
 
     #[test]
     fn identifier() {
         assert_eq!(
-            f::n::tx(TypeExpression::Identifier(str!("foo"))).to_string(),
+            ast::shape::TypeExpression(ast::TypeExpression::Identifier(str!("foo"))).to_string(),
             "foo"
         );
     }
@@ -84,9 +112,9 @@ mod tests {
     #[test]
     fn group() {
         assert_eq!(
-            f::n::tx(TypeExpression::Group(Box::new(f::n::tx(
-                TypeExpression::Nil
-            ))))
+            ast::shape::TypeExpression(ast::TypeExpression::Group(Box::new(
+                ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil))
+            )))
             .to_string(),
             "(nil)"
         );
@@ -95,8 +123,10 @@ mod tests {
     #[test]
     fn dot_access() {
         assert_eq!(
-            f::n::tx(TypeExpression::DotAccess(
-                Box::new(f::n::tx(TypeExpression::Nil)),
+            ast::shape::TypeExpression(ast::TypeExpression::PropertyAccess(
+                Box::new(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                    ast::TypePrimitive::Nil
+                ))),
                 str!("foo")
             ))
             .to_string(),
@@ -107,9 +137,11 @@ mod tests {
     #[test]
     fn function_no_parameters() {
         assert_eq!(
-            f::n::tx(TypeExpression::Function(
+            ast::shape::TypeExpression(ast::TypeExpression::Function(
                 vec![],
-                Box::new(f::n::tx(TypeExpression::Nil)),
+                Box::new(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                    ast::TypePrimitive::Nil
+                ))),
             ))
             .to_string(),
             "() -> nil"
@@ -119,9 +151,18 @@ mod tests {
     #[test]
     fn function_with_parameters() {
         assert_eq!(
-            f::n::tx(TypeExpression::Function(
-                vec![f::n::tx(TypeExpression::Nil), f::n::tx(TypeExpression::Nil)],
-                Box::new(f::n::tx(TypeExpression::Nil)),
+            ast::shape::TypeExpression(ast::TypeExpression::Function(
+                vec![
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Nil
+                    )),
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Nil
+                    ))
+                ],
+                Box::new(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                    ast::TypePrimitive::Nil
+                ))),
             ))
             .to_string(),
             "(nil, nil) -> nil"

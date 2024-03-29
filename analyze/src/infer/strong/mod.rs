@@ -1,461 +1,277 @@
-mod binary_operation;
-mod dot_access;
-mod function_call;
-mod identifier;
+mod arithmetic;
+mod data;
+mod function_result;
+mod inherit;
+#[cfg(test)]
+mod mock;
 mod module;
+mod partial;
+mod property;
+mod reference;
+mod state;
 
-use super::weak::Weak;
-use crate::{
-    context::{BindingMap, FragmentMap, NodeDescriptor, StrongContext},
-    fragment::Fragment,
-    ModuleTypeMap, RefKind, Type,
-};
-use kore::invariant;
-use lang::{
-    ast::{Declaration, Expression, Module, Parameter, TypeExpression},
-    ModuleReference,
-};
+use super::{weak, NodeDescriptor};
+use crate::Context;
+pub use data::{Output, Result};
+use state::State;
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum ExpectedType {
-    Type(Type<usize>),
-    Union(Vec<Type<usize>>),
-}
+pub fn infer_types(ctx: &Context, weak: weak::Result) -> Result {
+    let mut state = State::from_weak(weak);
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum SemanticError {
-    NotInferrable(Vec<usize>),
-
-    NotFound(String),
-
-    IllegalValueAccess((Type<usize>, usize), String),
-    IllegalTypeAccess((Type<usize>, usize), String),
-
-    ShapeMismatch((Type<usize>, usize), (Type<usize>, usize)),
-    UnexpectedShape((Type<usize>, usize), ExpectedType),
-
-    VariantNotFound((Type<usize>, usize), String),
-
-    DeclarationNotFound((Type<usize>, usize), String),
-
-    NotIndexable((Type<usize>, usize), String),
-
-    NotCallable(Type<usize>, usize),
-    MissingArguments((Type<usize>, usize), Vec<(Type<usize>, usize)>),
-    UnexpectedArguments((Type<usize>, usize), Vec<(Type<usize>, usize)>),
-    InvalidArguments(
-        (Type<usize>, usize),
-        #[allow(clippy::type_complexity)] Vec<((Type<usize>, usize), (Type<usize>, usize))>,
-    ),
-}
-
-pub type Strong = Result<Type<usize>, SemanticError>;
-
-pub type StrongRef = (RefKind, Strong);
-
-pub trait ToStrong<R> {
-    fn to_strong(&self, ctx: &StrongContext) -> R;
-}
-
-fn partial_infer_types<'a>(
-    module_reference: &ModuleReference,
-    nodes: Vec<&'a NodeDescriptor>,
-    mut ctx: StrongContext,
-    modules: &ModuleTypeMap,
-) -> (
-    Vec<&'a NodeDescriptor>,
-    Vec<(&'a NodeDescriptor, String)>,
-    StrongContext,
-) {
-    let mut unhandled = vec![];
-    let mut warnings = vec![];
-
-    nodes.into_iter().for_each(|node| match node {
-        NodeDescriptor {
-            id,
-            kind,
-            weak: Weak::Type(x),
-            ..
-        } => {
-            ctx.refs.insert(*id, (*kind, Ok(x.clone())));
-        }
-
-        NodeDescriptor {
-            weak: Weak::Inherit(inherit_id),
-            fragment:
-                Fragment::Declaration(Declaration::Constant {
-                    value_type: Some(_),
-                    ..
-                })
-                | Fragment::Parameter(Parameter {
-                    value_type: Some(_),
-                    ..
-                }),
-            ..
-        } => {
-            if !ctx.inherit_as((*inherit_id, &RefKind::Type), (node.id, &node.kind)) {
-                unhandled.push(node);
-            }
-        }
-
-        NodeDescriptor {
-            weak: Weak::Inherit(inherit_id),
-            ..
-        } => {
-            if !ctx.inherit(node, *inherit_id) {
-                unhandled.push(node);
-            }
-        }
-
-        NodeDescriptor {
-            id,
-            scope,
-            kind: kind @ RefKind::Type,
-            fragment: Fragment::TypeExpression(TypeExpression::Identifier(name)),
-            weak: Weak::Infer,
-        }
-        | NodeDescriptor {
-            id,
-            scope,
-            kind: kind @ RefKind::Value,
-            fragment: Fragment::Expression(Expression::Identifier(name)),
-            weak: Weak::Infer,
-        } => match identifier::infer(scope, id, name, kind, &ctx) {
-            Some(x) => {
-                ctx.refs.insert(*id, (*kind, x));
-            }
-
-            None => unhandled.push(node),
-        },
-
-        NodeDescriptor {
-            id,
-            kind: RefKind::Value,
-            fragment: Fragment::Expression(Expression::BinaryOperation(op, lhs, rhs)),
-            weak: Weak::Infer,
-            ..
-        } => match binary_operation::infer(op, **lhs, **rhs, &ctx) {
-            Some(x) => {
-                ctx.refs.insert(*id, (RefKind::Value, x));
-            }
-
-            None => unhandled.push(node),
-        },
-
-        NodeDescriptor {
-            id,
-            kind: kind @ RefKind::Type,
-            fragment: Fragment::TypeExpression(TypeExpression::DotAccess(lhs, rhs)),
-            weak: Weak::Infer,
-            ..
-        }
-        | NodeDescriptor {
-            id,
-            kind: kind @ RefKind::Value,
-            fragment: Fragment::Expression(Expression::DotAccess(lhs, rhs)),
-            weak: Weak::Infer,
-            ..
-        } => match dot_access::infer(**lhs, rhs.clone(), kind, &ctx) {
-            Some(x) => {
-                ctx.refs.insert(*id, (*kind, x));
-            }
-
-            None => unhandled.push(node),
-        },
-
-        NodeDescriptor {
-            id,
-            kind: RefKind::Value,
-            fragment: Fragment::Expression(Expression::FunctionCall(lhs, arguments)),
-            weak: Weak::Infer,
-            ..
-        } => match function_call::infer(**lhs, arguments, &ctx) {
-            Some(x) => {
-                ctx.refs.insert(*id, (RefKind::Value, x));
-            }
-
-            None => unhandled.push(node),
-        },
-
-        NodeDescriptor {
-            id,
-            kind: kind @ RefKind::Mixed,
-            fragment: Fragment::Module(Module { declarations, .. }),
-            weak: Weak::Infer,
-            ..
-        } => match module::infer(declarations, &ctx) {
-            Some(x) => {
-                ctx.refs.insert(*id, (*kind, x));
-            }
-
-            None => unhandled.push(node),
-        },
-
-        NodeDescriptor {
-            id,
-            kind: kind @ RefKind::Mixed,
-            fragment: Fragment::Import(import),
-            weak: Weak::Infer,
-            ..
-        } => {
-            let current_path = module_reference.to_path("kn");
-            let import_reference = ModuleReference::from_import(current_path, import);
-            let module = modules.get(&import_reference);
-
-            if let Some(x) = module {
-                ctx.refs.insert(*id, (*kind, x.clone()));
-            } else {
-                invariant!(
-                    "module could not be found with reference {}",
-                    import_reference.to_path("kn").display()
-                );
-            }
-        }
-
-        NodeDescriptor {
-            weak: Weak::Infer,
-            fragment: Fragment::Parameter(_),
-            ..
-        } => unimplemented!(),
-
-        NodeDescriptor {
-            weak: Weak::Infer, ..
-        } => invariant!("all other inference should be done already"),
-    });
-
-    (unhandled, warnings, ctx)
-}
-
-pub fn infer_types(
-    module_reference: &ModuleReference,
-    nodes: &[NodeDescriptor],
-    fragments: FragmentMap,
-    bindings: BindingMap,
-    modules: &ModuleTypeMap,
-) -> StrongContext {
-    let mut unhandled = nodes.iter().collect::<Vec<_>>();
-    let mut ctx = StrongContext::new(fragments, bindings);
-
-    while !unhandled.is_empty() {
-        let unhandled_length = unhandled.len();
-        let (next_unhandled, _, next_ctx) =
-            partial_infer_types(module_reference, unhandled, ctx, modules);
-
-        if next_unhandled.is_empty() {
-            return next_ctx;
-        } else if next_unhandled.len() == unhandled_length {
-            invariant!("analysis failed to determine all types: {next_unhandled:?}");
-        } else {
-            unhandled = next_unhandled;
-            ctx = next_ctx;
-        }
+    while !state.is_done() {
+        state = partial::infer_types(ctx, state);
     }
 
-    ctx
+    state.into_result()
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        context::{BindingMap, FragmentMap, NodeDescriptor, StrongContext},
-        fragment::Fragment,
-        infer::weak::Weak,
-        RefKind, Type,
+        fixture,
+        infer::{weak, BindingMap},
     };
-    use kore::str;
+    use kore::{assert_eq, str};
     use lang::{
-        ast::{Expression, Primitive, Statement, TypeExpression},
-        test::fixture as f,
-        ModuleReference, ModuleScope,
+        ast,
+        types::{Enumerated, Type},
+        ModuleReference, ModuleScope, NodeId,
     };
-    use std::collections::{BTreeSet, HashMap};
+    use std::{
+        cell::OnceCell,
+        collections::{BTreeMap, HashMap},
+        rc::Rc,
+    };
 
-    fn mock_reference(name: &str) -> ModuleReference {
-        ModuleReference(ModuleScope::Source, vec![name.to_owned()])
+    fn type_(type_: Type<Rc<ast::typed::Type>>) -> Rc<ast::typed::Type> {
+        Rc::new(ast::typed::Type(type_))
     }
 
+    #[ignore = "import inference not implemented"]
     #[test]
-    fn infer_types() {
-        let nodes = vec![
-            NodeDescriptor {
-                id: 0,
-                kind: RefKind::Type,
-                scope: vec![0, 1],
-                fragment: Fragment::TypeExpression(TypeExpression::Nil),
-                weak: Weak::Type(Type::Nil),
-            },
-            NodeDescriptor {
-                id: 1,
-                kind: RefKind::Type,
-                scope: vec![0],
-                fragment: Fragment::Declaration(f::a::type_("MyType", 0)),
-                weak: Weak::Inherit(0),
-            },
-        ];
-        let bindings = BindingMap::from_iter(vec![(
-            (vec![0], str!("MyType")),
-            (BTreeSet::from_iter(vec![1])),
-        )]);
-        let modules = HashMap::from_iter(vec![]);
-
-        let (.., ctx) = super::partial_infer_types(
-            &mock_reference("foo"),
-            nodes.iter().collect(),
-            StrongContext::new(FragmentMap::new(), bindings),
-            &modules,
-        );
+    fn import() {
+        let fragments = BTreeMap::from_iter(fixture::import::fragments());
+        let ctx = crate::Context {
+            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            modules: &HashMap::new(),
+        };
+        let weak = weak::Result {
+            fragments: &fragments,
+            bindings: BindingMap(fixture::import::bindings()),
+            types: fixture::import::weak_types(),
+        };
 
         assert_eq!(
-            ctx.refs,
-            HashMap::from_iter(vec![
-                (0, (RefKind::Type, Ok(Type::Nil))),
-                (1, (RefKind::Type, Ok(Type::Nil)))
-            ])
+            super::infer_types(&ctx, weak),
+            Ok(super::Output {
+                types: HashMap::from_iter(vec![(NodeId(0), OnceCell::from(type_(Type::Integer)))]),
+                inherits: HashMap::from_iter(vec![]),
+            })
         );
     }
 
     #[test]
-    fn type_inheritance() {
-        let nodes = vec![
-            NodeDescriptor {
-                id: 0,
-                kind: RefKind::Value,
-                scope: vec![0, 1],
-                fragment: Fragment::Expression(Expression::Primitive(Primitive::Nil)),
-                weak: Weak::Type(Type::Nil),
-            },
-            NodeDescriptor {
-                id: 1,
-                kind: RefKind::Value,
-                scope: vec![0],
-                fragment: Fragment::Declaration(f::a::const_("FOO", None, 0)),
-                weak: Weak::Inherit(0),
-            },
-            NodeDescriptor {
-                id: 2,
-                kind: RefKind::Value,
-                scope: vec![0, 2],
-                fragment: Fragment::Expression(Expression::Identifier(str!("FOO"))),
-                weak: Weak::Type(Type::Nil),
-            },
-            NodeDescriptor {
-                id: 3,
-                kind: RefKind::Value,
-                scope: vec![0],
-                fragment: Fragment::Declaration(f::a::const_("BAR", None, 2)),
-                weak: Weak::Inherit(2),
-            },
-        ];
-        let bindings = BindingMap::from_iter(vec![
-            ((vec![0], str!("FOO")), (BTreeSet::from_iter(vec![1]))),
-            ((vec![0], str!("BAR")), (BTreeSet::from_iter(vec![3]))),
-        ]);
-        let modules = HashMap::from_iter(vec![]);
-
-        let (.., ctx) = super::partial_infer_types(
-            &mock_reference("foo"),
-            nodes.iter().collect(),
-            StrongContext::new(FragmentMap::new(), bindings),
-            &modules,
-        );
+    fn type_alias() {
+        let fragments = BTreeMap::from_iter(fixture::type_alias::fragments());
+        let ctx = crate::Context {
+            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            modules: &HashMap::new(),
+        };
+        let weak = weak::Result {
+            fragments: &fragments,
+            bindings: BindingMap(fixture::type_alias::bindings()),
+            types: fixture::type_alias::weak_types(),
+        };
 
         assert_eq!(
-            ctx.refs,
-            HashMap::from_iter(vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Nil))),
-                (2, (RefKind::Value, Ok(Type::Nil))),
-                (3, (RefKind::Value, Ok(Type::Nil))),
-            ])
+            super::infer_types(&ctx, weak),
+            Ok(super::Output {
+                types: HashMap::from_iter(vec![
+                    (NodeId(0), OnceCell::from(type_(Type::Nil))),
+                    (NodeId(1), OnceCell::from(type_(Type::Nil)))
+                ]),
+                inherits: HashMap::from_iter(vec![]),
+            })
         );
     }
 
     #[test]
-    fn scope_inheritance() {
-        let nodes = vec![
-            NodeDescriptor {
-                id: 0,
-                kind: RefKind::Value,
-                scope: vec![0, 1],
-                fragment: Fragment::Expression(Expression::Primitive(Primitive::Nil)),
-                weak: Weak::Type(Type::Nil),
-            },
-            NodeDescriptor {
-                id: 1,
-                kind: RefKind::Value,
-                scope: vec![0],
-                fragment: Fragment::Declaration(f::a::const_("FOO", None, 0)),
-                weak: Weak::Inherit(0),
-            },
-            NodeDescriptor {
-                id: 2,
-                kind: RefKind::Value,
-                scope: vec![0, 2, 3],
-                fragment: Fragment::Expression(Expression::Identifier(str!("FOO"))),
-                weak: Weak::Infer,
-            },
-            NodeDescriptor {
-                id: 3,
-                kind: RefKind::Value,
-                scope: vec![0, 2, 3],
-                fragment: Fragment::Statement(Statement::Variable(str!("bar"), 2)),
-                weak: Weak::Inherit(2),
-            },
-            NodeDescriptor {
-                id: 4,
-                kind: RefKind::Value,
-                scope: vec![0, 2, 3],
-                fragment: Fragment::Expression(Expression::Identifier(str!("bar"))),
-                weak: Weak::Infer,
-            },
-            NodeDescriptor {
-                id: 5,
-                kind: RefKind::Value,
-                scope: vec![0, 2, 3],
-                fragment: Fragment::Statement(Statement::Expression(4)),
-                weak: Weak::Inherit(4),
-            },
-            NodeDescriptor {
-                id: 6,
-                kind: RefKind::Value,
-                scope: vec![0, 2],
-                fragment: Fragment::Expression(Expression::Closure(vec![3, 5])),
-                weak: Weak::Inherit(5),
-            },
-            NodeDescriptor {
-                id: 7,
-                kind: RefKind::Value,
-                scope: vec![0],
-                fragment: Fragment::Declaration(f::a::const_("FIZZ", None, 6)),
-                weak: Weak::Inherit(6),
-            },
-        ];
-        let bindings = BindingMap::from_iter(vec![
-            ((vec![0], str!("FOO")), (BTreeSet::from_iter(vec![1]))),
-            ((vec![0, 2, 3], str!("bar")), (BTreeSet::from_iter(vec![3]))),
-            ((vec![0], str!("FIZZ")), (BTreeSet::from_iter(vec![7]))),
-        ]);
-        let modules = HashMap::from_iter(vec![]);
-
-        let (.., ctx) = super::partial_infer_types(
-            &mock_reference("foo"),
-            nodes.iter().collect(),
-            StrongContext::new(FragmentMap::new(), bindings),
-            &modules,
-        );
+    fn constant() {
+        let fragments = BTreeMap::from_iter(fixture::constant::fragments());
+        let ctx = crate::Context {
+            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            modules: &HashMap::new(),
+        };
+        let weak = weak::Result {
+            fragments: &fragments,
+            bindings: BindingMap(fixture::constant::bindings()),
+            types: fixture::constant::weak_types(),
+        };
 
         assert_eq!(
-            ctx.refs,
-            HashMap::from_iter(vec![
-                (0, (RefKind::Value, Ok(Type::Nil))),
-                (1, (RefKind::Value, Ok(Type::Nil))),
-                (2, (RefKind::Value, Ok(Type::Nil))),
-                (3, (RefKind::Value, Ok(Type::Nil))),
-                (4, (RefKind::Value, Ok(Type::Nil))),
-                (5, (RefKind::Value, Ok(Type::Nil))),
-                (6, (RefKind::Value, Ok(Type::Nil))),
-                (7, (RefKind::Value, Ok(Type::Nil))),
-            ])
+            super::infer_types(&ctx, weak),
+            Ok(super::Output {
+                types: HashMap::from_iter(vec![
+                    (NodeId(0), OnceCell::from(type_(Type::String))),
+                    (NodeId(1), OnceCell::from(type_(Type::String))),
+                    (NodeId(2), OnceCell::from(type_(Type::String)))
+                ]),
+                inherits: HashMap::from_iter(vec![]),
+            })
+        );
+    }
+
+    #[test]
+    fn enumerated() {
+        let fragments = BTreeMap::from_iter(fixture::enumerated::fragments());
+        let ctx = crate::Context {
+            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            modules: &HashMap::new(),
+        };
+        let weak = weak::Result {
+            fragments: &fragments,
+            bindings: BindingMap(fixture::enumerated::bindings()),
+            types: fixture::enumerated::weak_types(),
+        };
+
+        assert_eq!(
+            super::infer_types(&ctx, weak),
+            Ok(super::Output {
+                types: HashMap::from_iter(vec![
+                    (NodeId(0), OnceCell::from(type_(Type::Boolean))),
+                    (NodeId(1), OnceCell::from(type_(Type::Style))),
+                    (
+                        NodeId(2),
+                        OnceCell::from(type_(Type::Enumerated(Enumerated::Declaration(vec![
+                            (str!("Empty"), vec![]),
+                            (
+                                str!("Render"),
+                                vec![type_(Type::Boolean), type_(Type::Style)]
+                            ),
+                        ]))))
+                    ),
+                ]),
+                inherits: HashMap::from_iter(vec![]),
+            })
+        );
+    }
+
+    #[ignore = "parameter inference not implemented"]
+    #[test]
+    fn function() {
+        let fragments = BTreeMap::from_iter(fixture::function::fragments());
+        let ctx = crate::Context {
+            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            modules: &HashMap::new(),
+        };
+        let weak = weak::Result {
+            fragments: &fragments,
+            bindings: BindingMap(fixture::function::bindings()),
+            types: fixture::function::weak_types(),
+        };
+
+        assert_eq!(
+            super::infer_types(&ctx, weak),
+            Ok(super::Output {
+                types: HashMap::from_iter(vec![
+                    (NodeId(0), OnceCell::from(type_(Type::Boolean))),
+                    (NodeId(1), OnceCell::from(type_(Type::Style))),
+                    (
+                        NodeId(2),
+                        OnceCell::from(type_(Type::Enumerated(Enumerated::Declaration(vec![
+                            (str!("Empty"), vec![]),
+                            (
+                                str!("Render"),
+                                vec![type_(Type::Boolean), type_(Type::Style)]
+                            ),
+                        ]))))
+                    ),
+                ]),
+                inherits: HashMap::from_iter(vec![]),
+            })
+        );
+    }
+
+    #[test]
+    fn view() {
+        let fragments = BTreeMap::from_iter(fixture::view::fragments());
+        let ctx = crate::Context {
+            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            modules: &HashMap::new(),
+        };
+        let weak = weak::Result {
+            fragments: &fragments,
+            bindings: BindingMap(fixture::view::bindings()),
+            types: fixture::view::weak_types(),
+        };
+
+        assert_eq!(
+            super::infer_types(&ctx, weak),
+            Ok(super::Output {
+                types: HashMap::from_iter(vec![
+                    (NodeId(0), OnceCell::from(type_(Type::Element))),
+                    (NodeId(1), OnceCell::from(type_(Type::Element))),
+                    (NodeId(2), OnceCell::from(type_(Type::Element))),
+                    (NodeId(3), OnceCell::from(type_(Type::Element))),
+                    (NodeId(4), OnceCell::from(type_(Type::Integer))),
+                    (NodeId(5), OnceCell::from(type_(Type::Float))),
+                    (NodeId(6), OnceCell::from(type_(Type::Float))),
+                    (NodeId(7), OnceCell::from(type_(Type::Nil))),
+                    (NodeId(8), OnceCell::from(type_(Type::String))),
+                    (NodeId(9), OnceCell::from(type_(Type::Element))),
+                    (NodeId(10), OnceCell::from(type_(Type::Float))),
+                    (NodeId(11), OnceCell::from(type_(Type::Float))),
+                    (NodeId(12), OnceCell::from(type_(Type::String))),
+                    (NodeId(13), OnceCell::from(type_(Type::Element))),
+                    (NodeId(14), OnceCell::from(type_(Type::Element))),
+                    (NodeId(15), OnceCell::from(type_(Type::Element))),
+                    (NodeId(16), OnceCell::from(type_(Type::Element))),
+                    (NodeId(17), OnceCell::from(type_(Type::Element))),
+                    (NodeId(18), OnceCell::from(type_(Type::Element))),
+                    (NodeId(19), OnceCell::from(type_(Type::Element))),
+                    (
+                        NodeId(20),
+                        OnceCell::from(type_(Type::View(vec![type_(Type::Element)])))
+                    ),
+                ]),
+                inherits: HashMap::from_iter(vec![]),
+            })
+        );
+    }
+
+    #[ignore = "import inference not implemented"]
+    #[test]
+    fn module() {
+        let fragments = BTreeMap::from_iter(fixture::module::fragments());
+        let ctx = crate::Context {
+            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            modules: &HashMap::new(),
+        };
+        let weak = weak::Result {
+            fragments: &fragments,
+            bindings: BindingMap(fixture::module::bindings()),
+            types: fixture::module::weak_types(),
+        };
+
+        assert_eq!(
+            super::infer_types(&ctx, weak),
+            Ok(super::Output {
+                types: HashMap::from_iter(vec![
+                    (NodeId(0), OnceCell::from(type_(Type::Boolean))),
+                    (NodeId(1), OnceCell::from(type_(Type::Style))),
+                    (
+                        NodeId(2),
+                        OnceCell::from(type_(Type::Enumerated(Enumerated::Declaration(vec![
+                            (str!("Empty"), vec![]),
+                            (
+                                str!("Render"),
+                                vec![type_(Type::Boolean), type_(Type::Style)]
+                            ),
+                        ]))))
+                    ),
+                ]),
+                inherits: HashMap::from_iter(vec![]),
+            })
         );
     }
 }

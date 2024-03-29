@@ -15,7 +15,7 @@ where
 
 pub fn command<G>(opts: &Options<G>) -> engine::Result<()>
 where
-    G: Generator<Input = ast::ProgramShape>,
+    G: Generator<Input = ast::shape::Program>,
 {
     let resolver = FileSystem(opts.source_dir);
     let engine = Engine::new(Reporter::new(false), resolver);

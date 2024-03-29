@@ -1,97 +1,135 @@
-use crate::{context::StrongContext, fragment::Fragment, types::Type};
-use lang::ast::Declaration;
+use super::{
+    data::{Action, Data},
+    state::State,
+};
+use kore::invariant;
+use lang::{types::Type, Fragment, NodeId};
 
-use super::Strong;
-
-pub fn infer(declarations: &[usize], ctx: &StrongContext) -> Option<Strong> {
+pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
     let typed_declarations = declarations
         .iter()
-        .map(|x| match ctx.fragments.0.get(x)? {
-            (
-                _,
-                Fragment::Declaration(
-                    Declaration::TypeAlias { name, .. }
-                    | Declaration::Enumerated { name, .. }
-                    | Declaration::Constant { name, .. }
-                    | Declaration::Function { name, .. }
-                    | Declaration::View { name, .. }
-                    | Declaration::Module { name, .. },
-                ),
-            ) => {
-                let (kind, _) = ctx.refs.get(x)?;
+        .map(|x| match state.fragments.get(x)? {
+            (_, Fragment::Declaration(declaration)) => {
+                let (kind, _) = state.types.get(x)?;
 
-                Some((name.1.clone(), *kind, *x))
+                Some((declaration.binding().clone(), *kind, *x))
             }
 
-            _ => None,
+            _ => invariant!("fragment should not appear as a child of module"),
         })
-        .collect::<Option<Vec<_>>>()?;
+        .collect::<Option<Vec<_>>>();
 
-    Some(Ok(Type::Module(typed_declarations)))
+    typed_declarations
+        .map(|xs| Action::Infer(Data::Local(Type::Module(xs))))
+        .unwrap_or(Action::Skip)
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        context::StrongContext, fragment::Fragment, infer::strong::Strong,
-        test::fixture::strong_ctx_from, types::Type, RefKind,
+        error::ResolveError,
+        infer::{
+            strong::{
+                data::{Action, Data},
+                state::State,
+            },
+            BindingMap,
+        },
     };
-    use kore::str;
-    use lang::ast::{
-        storage::{Storage, Visibility},
-        Declaration,
+    use kore::{assert_eq, str};
+    use lang::{
+        ast,
+        types::{Kind, Type},
+        Fragment, NodeId, ScopeId,
     };
+    use std::collections::BTreeMap;
 
-    fn infer(declarations: &[usize], ctx: &StrongContext) -> Option<Strong> {
-        super::infer(declarations, ctx)
+    #[allow(clippy::type_complexity)]
+    fn mock_state(
+        fragments: &BTreeMap<NodeId, (ScopeId, Fragment)>,
+        types: Vec<(NodeId, (Kind, Result<Data, ResolveError>))>,
+    ) -> State {
+        State {
+            fragments,
+            bindings: BindingMap::default(),
+            nodes: vec![],
+            types: BTreeMap::from_iter(types),
+            warnings: vec![],
+        }
     }
 
     #[test]
-    fn none_result() {
-        let ctx = strong_ctx_from(vec![], vec![], vec![]);
-
-        assert_eq!(infer(&[0], &ctx), None);
-    }
-
-    #[test]
-    fn declarations() {
-        let ctx = strong_ctx_from(
-            vec![
+    fn infer_module() {
+        let fragments = BTreeMap::from_iter(vec![
+            (
+                NodeId(1),
                 (
-                    0,
-                    (
-                        vec![0],
-                        Fragment::Declaration(Declaration::Constant {
-                            name: Storage(Visibility::Public, str!("foo")),
-                            value_type: None,
-                            value: 0,
-                        }),
-                    ),
+                    ScopeId(vec![]),
+                    Fragment::Declaration(ast::Declaration::type_alias(
+                        ast::Storage::public(str!("Foo")),
+                        NodeId(2),
+                    )),
                 ),
+            ),
+            (
+                NodeId(3),
                 (
-                    1,
-                    (
-                        vec![0],
-                        Fragment::Declaration(Declaration::TypeAlias {
-                            name: Storage(Visibility::Public, str!("bar")),
-                            value: 2,
-                        }),
-                    ),
+                    ScopeId(vec![]),
+                    Fragment::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("BAR")),
+                        None,
+                        NodeId(4),
+                    )),
                 ),
-            ],
+            ),
+        ]);
+        let state = mock_state(
+            &fragments,
             vec![
-                (0, (RefKind::Value, Ok(Type::Boolean))),
-                (1, (RefKind::Type, Ok(Type::Integer))),
+                (NodeId(1), (Kind::Type, Ok(Data::Local(Type::Boolean)))),
+                (NodeId(3), (Kind::Value, Ok(Data::Local(Type::Integer)))),
             ],
-            vec![],
         );
 
         assert_eq!(
-            infer(&[0, 1], &ctx),
-            Some(Ok(Type::Module(vec![
-                (str!("foo"), RefKind::Value, 0),
-                (str!("bar"), RefKind::Type, 1)
+            super::infer(&state, &[NodeId(1), NodeId(3)]),
+            Action::Infer(Data::Local(Type::Module(vec![
+                (str!("Foo"), Kind::Type, NodeId(1)),
+                (str!("BAR"), Kind::Value, NodeId(3))
             ])))
         );
+    }
+
+    #[test]
+    fn skip() {
+        let fragments = BTreeMap::from_iter(vec![
+            (
+                NodeId(1),
+                (
+                    ScopeId(vec![]),
+                    Fragment::Declaration(ast::Declaration::type_alias(
+                        ast::Storage::public(str!("Foo")),
+                        NodeId(2),
+                    )),
+                ),
+            ),
+            (
+                NodeId(3),
+                (
+                    ScopeId(vec![]),
+                    Fragment::Declaration(ast::Declaration::type_alias(
+                        ast::Storage::public(str!("Bar")),
+                        NodeId(4),
+                    )),
+                ),
+            ),
+        ]);
+        let state = mock_state(
+            &fragments,
+            vec![(NodeId(3), (Kind::Type, Ok(Data::Local(Type::Integer))))],
+        );
+
+        assert_eq!(super::infer(&state, &[NodeId(1)]), Action::Skip);
+        assert_eq!(super::infer(&state, &[NodeId(1), NodeId(3)]), Action::Skip);
     }
 }

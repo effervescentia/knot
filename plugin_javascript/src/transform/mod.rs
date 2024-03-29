@@ -9,7 +9,7 @@ use kore::str;
 use lang::ast;
 
 impl JavaScript {
-    pub fn from_module(path_to_root: &str, value: &ast::ModuleShape, opts: &Options) -> Self {
+    pub fn from_module(path_to_root: &str, value: &ast::shape::Module, opts: &Options) -> Self {
         let statements = [
             Statement::import("@knot/runtime", vec![(str!("$knot"), None)], opts),
             Statement::from_module(path_to_root, value, opts),
@@ -21,7 +21,7 @@ impl JavaScript {
                     // type aliases are dropped in JavaScript
                     (ast::Declaration::TypeAlias { .. }, _) => None,
 
-                    (_, true) => Some(Statement::export(x.0.name(), opts)),
+                    (_, true) => Some(Statement::export(x.0.binding(), opts)),
 
                     _ => None,
                 })
@@ -40,10 +40,7 @@ mod tests {
         Mode, Module, Options,
     };
     use kore::str;
-    use lang::ast::{
-        self,
-        storage::{Storage, Visibility},
-    };
+    use lang::ast;
 
     const OPTIONS: Options = Options {
         mode: Mode::Prod,
@@ -55,27 +52,25 @@ mod tests {
         assert_eq!(
             JavaScript::from_module(
                 ".",
-                &ast::ModuleShape(ast::Module::new(
+                &ast::shape::Module(ast::Module::new(
                     vec![],
                     vec![
-                        ast::DeclarationShape(ast::Declaration::TypeAlias {
-                            name: Storage(Visibility::Public, str!("foo")),
-                            value: ast::TypeExpressionShape(ast::TypeExpression::Nil)
-                        }),
-                        ast::DeclarationShape(ast::Declaration::Constant {
-                            name: Storage(Visibility::Private, str!("bar")),
-                            value_type: None,
-                            value: ast::ExpressionShape(ast::Expression::Primitive(
-                                ast::Primitive::Nil
+                        ast::shape::Declaration(ast::Declaration::type_alias(
+                            ast::Storage::public(str!("foo")),
+                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                                ast::TypePrimitive::Nil
                             ))
-                        }),
-                        ast::DeclarationShape(ast::Declaration::Constant {
-                            name: Storage(Visibility::Public, str!("fizz")),
-                            value_type: None,
-                            value: ast::ExpressionShape(ast::Expression::Primitive(
-                                ast::Primitive::Nil
-                            ))
-                        }),
+                        )),
+                        ast::shape::Declaration(ast::Declaration::constant(
+                            ast::Storage::private(str!("bar")),
+                            None,
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                        )),
+                        ast::shape::Declaration(ast::Declaration::constant(
+                            ast::Storage::public(str!("fizz")),
+                            None,
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                        )),
                     ]
                 )),
                 &OPTIONS
@@ -94,15 +89,13 @@ mod tests {
         assert_eq!(
             JavaScript::from_module(
                 ".",
-                &ast::ModuleShape(ast::Module::new(
+                &ast::shape::Module(ast::Module::new(
                     vec![],
-                    vec![ast::DeclarationShape(ast::Declaration::Constant {
-                        name: Storage(Visibility::Public, str!("bar")),
-                        value_type: None,
-                        value: ast::ExpressionShape(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))
-                    })]
+                    vec![ast::shape::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("bar")),
+                        None,
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                    ))]
                 )),
                 &OPTIONS
             ),
@@ -119,15 +112,13 @@ mod tests {
         assert_eq!(
             JavaScript::from_module(
                 ".",
-                &ast::ModuleShape(ast::Module::new(
+                &ast::shape::Module(ast::Module::new(
                     vec![],
-                    vec![ast::DeclarationShape(ast::Declaration::Constant {
-                        name: Storage(Visibility::Public, str!("bar")),
-                        value_type: None,
-                        value: ast::ExpressionShape(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))
-                    })]
+                    vec![ast::shape::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("bar")),
+                        None,
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                    ))]
                 )),
                 &Options {
                     mode: Mode::Prod,

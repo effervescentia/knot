@@ -7,13 +7,9 @@ mod write;
 
 use bimap::BiMap;
 use kore::{invariant, Generator};
-use lang::{
-    ast::{self, AstNode, ToShape},
-    Program,
-};
+use lang::ast;
 use link::ImportGraph;
 pub use link::Link;
-use parse::Range;
 pub use report::{CodeFrame, Error, Reporter};
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 use std::{
@@ -57,16 +53,16 @@ where
         }
     }
 
-    fn to_links<U>(link: &Link, ast: &Program<Range, U>) -> Vec<Link> {
+    fn to_links<U>(link: &Link, ast: &ast::meta::Program<U>) -> Vec<Link> {
         let path = link.to_path();
 
         ast.imports()
             .iter()
-            .map(|x| Link::from_import(&path, x.node().value()))
+            .map(|x| Link::from_import(&path, x.0.value()))
             .collect::<Vec<_>>()
     }
 
-    fn parse_one(resolver: &mut R, link: &Link) -> Result<(String, Program<Range, ()>)> {
+    fn parse_one(resolver: &mut R, link: &Link) -> Result<(String, ast::raw::Program)> {
         let path = link.to_path();
 
         let input = resolver
@@ -212,10 +208,11 @@ where
 impl<'a, S, R> Engine<S, R>
 where
     S: state::Modules<'a>,
+    S::Context: Clone,
     R: Resolver,
 {
     /// generate output files by formatting the loaded modules
-    pub fn format(&'a self) -> Writer<&Program<Range, S::Context>> {
+    pub fn format(&'a self) -> Writer<&ast::meta::Program<S::Context>> {
         Writer(self.state.modules().map(|modules| {
             modules
                 .map(|(link, state::Module { ast, .. })| (link.to_path(), ast))
@@ -294,15 +291,20 @@ where
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
         self.then(|state, _| {
             let mut analyzed = HashMap::new();
-            let mut module_types = HashMap::new();
+            let module_types = HashMap::new();
 
             for id in state.graph.iter() {
                 let (link, state::Module { id, text, ast }) = Self::get_module(&state, &id);
                 let module_reference = link.clone().to_module_reference();
-                let typed = analyze::analyze(&module_reference, ast, &module_types);
-                let module_type = typed.node().context().clone();
+                let context = analyze::Context {
+                    namespace: &module_reference,
+                    modules: &module_types,
+                };
+                let typed = analyze::analyze(&context, ast.clone())
+                    .unwrap_or_else(|_| unimplemented!("need to handle errors"));
+                // let module_type = typed.node().meta();
 
-                module_types.insert(module_reference, module_type);
+                // module_types.insert(module_reference, module_type);
                 analyzed.insert(link.clone(), state::Module::new(*id, text.clone(), typed));
             }
 
@@ -322,14 +324,14 @@ where
     /// generate output files using the provided generator
     pub fn generate<T>(&self, generator: &T) -> Writer<T::Output>
     where
-        T: Generator<Input = ast::ProgramShape>,
+        T: Generator<Input = ast::shape::Program>,
     {
         Writer(match &self.state {
             Ok(state) => Ok(state
                 .modules
                 .iter()
                 .map(|(key, state::Module { ast, .. })| {
-                    generator.generate(&key.to_path(), ast.to_shape())
+                    generator.generate(&key.to_path(), ast.clone().to_shape())
                 })
                 .collect()),
 

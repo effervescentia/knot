@@ -1,6 +1,5 @@
-use parse::Range;
-
 use crate::Link;
+use lang::Range;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CodeFrame {

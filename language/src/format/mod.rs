@@ -1,20 +1,19 @@
+mod component;
 mod declaration;
 mod expression;
-mod ksx;
 mod module;
 mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::ast::TypeExpressionNode;
 use kore::format::SeparateEach;
 use std::fmt::{Display, Formatter};
 
-struct Typedef<'a, R, C>(&'a Option<TypeExpressionNode<R, C>>);
+struct Typedef<'a, TypeExpression>(&'a Option<TypeExpression>);
 
-impl<'a, R, C> Display for Typedef<'a, R, C>
+impl<'a, TypeExpression> Display for Typedef<'a, TypeExpression>
 where
-    R: Copy,
+    TypeExpression: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         if let Some(typedef) = self.0 {

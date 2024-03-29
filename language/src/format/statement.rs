@@ -1,32 +1,29 @@
-use crate::ast::{AstNode, Statement, StatementNode};
+use crate::ast;
 use std::fmt::{Display, Formatter};
 
-impl<R, C> Display for StatementNode<R, C>
+impl<Expression> Display for ast::Statement<Expression>
 where
-    R: Copy,
+    Expression: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        match self.node().value() {
-            Statement::Expression(x) => write!(f, "{x};"),
-            Statement::Variable(name, x) => write!(f, "let {name} = {x};"),
+        match self {
+            Self::Expression(x) => write!(f, "{x};"),
+            Self::Variable(name, x) => write!(f, "let {name} = {x};"),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{Expression, Primitive, Statement},
-        test::fixture as f,
-    };
+    use crate::ast;
     use kore::str;
 
     #[test]
     fn expression() {
         assert_eq!(
-            f::n::s(Statement::Expression(f::n::x(Expression::Primitive(
-                Primitive::Nil
-            ))))
+            ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
+                ast::Expression::Primitive(ast::Primitive::Nil)
+            )))
             .to_string(),
             "nil;"
         );
@@ -35,9 +32,9 @@ mod tests {
     #[test]
     fn variable() {
         assert_eq!(
-            f::n::s(Statement::Variable(
+            ast::shape::Statement(ast::Statement::Variable(
                 str!("x"),
-                f::n::x(Expression::Primitive(Primitive::Nil))
+                ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
             "let x = nil;"

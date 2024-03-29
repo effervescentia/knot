@@ -1,21 +1,24 @@
 use super::Typedef;
-use crate::ast::{AstNode, Parameter, ParameterNode};
+use crate::ast;
 use std::fmt::{Display, Formatter};
 
-impl<R, C> Display for ParameterNode<R, C>
+impl<Binding, Expression, TypeExpression> Display
+    for ast::Parameter<Binding, Expression, TypeExpression>
 where
-    R: Copy,
+    Binding: Display,
+    Expression: Display,
+    TypeExpression: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        let Parameter {
-            name,
+        let Self {
+            binding,
             value_type,
             default_value,
-        } = self.node().value();
+        } = self;
 
         write!(
             f,
-            "{name}{typedef}{default}",
+            "{binding}{typedef}{default}",
             typedef = Typedef(value_type),
             default = FormatDefault(default_value)
         )
@@ -41,16 +44,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{Expression, Parameter, Primitive, TypeExpression},
-        test::fixture as f,
-    };
+    use crate::ast;
     use kore::str;
 
     #[test]
     fn untyped() {
         assert_eq!(
-            f::n::p(Parameter::new(str!("foo"), None, None)).to_string(),
+            ast::shape::Parameter(ast::Parameter::new(str!("foo"), None, None)).to_string(),
             "foo"
         );
     }
@@ -58,9 +58,11 @@ mod tests {
     #[test]
     fn with_typedef() {
         assert_eq!(
-            f::n::p(Parameter::new(
+            ast::shape::Parameter(ast::Parameter::new(
                 str!("foo"),
-                Some(f::n::tx(TypeExpression::Nil)),
+                Some(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                    ast::TypePrimitive::Nil
+                ))),
                 None
             ))
             .to_string(),
@@ -71,10 +73,12 @@ mod tests {
     #[test]
     fn with_default() {
         assert_eq!(
-            f::n::p(Parameter::new(
+            ast::shape::Parameter(ast::Parameter::new(
                 str!("foo"),
                 None,
-                Some(f::n::x(Expression::Primitive(Primitive::Nil)))
+                Some(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "foo = nil"
@@ -84,10 +88,14 @@ mod tests {
     #[test]
     fn with_typedef_and_default() {
         assert_eq!(
-            f::n::p(Parameter::new(
+            ast::shape::Parameter(ast::Parameter::new(
                 str!("foo"),
-                Some(f::n::tx(TypeExpression::Nil)),
-                Some(f::n::x(Expression::Primitive(Primitive::Nil)))
+                Some(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                    ast::TypePrimitive::Nil
+                ))),
+                Some(ast::shape::Expression(ast::Expression::Primitive(
+                    ast::Primitive::Nil
+                )))
             ))
             .to_string(),
             "foo: nil = nil"
