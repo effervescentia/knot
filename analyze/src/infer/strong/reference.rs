@@ -19,7 +19,7 @@ mod tests {
         error::ResolveError,
         infer::{
             strong::{
-                data::{Action, Data},
+                data::{Action, Type},
                 mock::FRAGMENTS,
                 state::State,
             },
@@ -28,7 +28,7 @@ mod tests {
     };
     use kore::{assert_eq, str};
     use lang::{
-        types::{Kind, Type},
+        types::{self, Kind},
         NodeId, ScopeId,
     };
     use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -36,7 +36,7 @@ mod tests {
     #[allow(clippy::type_complexity)]
     fn mock_state<'a>(
         bindings: Vec<((ScopeId, String), BTreeSet<NodeId>)>,
-        types: Vec<(NodeId, (Kind, Result<Data, ResolveError>))>,
+        types: Vec<(NodeId, (Kind, Result<Type, ResolveError>))>,
     ) -> State<'a> {
         State {
             fragments: FRAGMENTS,
@@ -53,19 +53,22 @@ mod tests {
             id: NodeId(2),
             scope: ScopeId(vec![0]),
             kind: Kind::Value,
-            weak: weak::Data::Infer(weak::Inference::Reference(str!("foo"))),
+            weak: weak::Type::Infer(weak::Inference::Reference(str!("foo"))),
         };
         let state = mock_state(
             vec![(
                 (ScopeId(vec![0]), str!("foo")),
                 BTreeSet::from_iter(vec![NodeId(1)]),
             )],
-            vec![(NodeId(1), (Kind::Value, Ok(Data::Local(Type::Integer))))],
+            vec![(
+                NodeId(1),
+                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+            )],
         );
 
         assert_eq!(
             super::infer(&state, "foo", &node),
-            Action::Infer(Data::Inherit(NodeId(1)))
+            Action::Infer(Type::Inherit(NodeId(1)))
         );
     }
 
@@ -75,7 +78,7 @@ mod tests {
             id: NodeId(1),
             scope: ScopeId(vec![0]),
             kind: Kind::Value,
-            weak: weak::Data::Infer(weak::Inference::Reference(str!("foo"))),
+            weak: weak::Type::Infer(weak::Inference::Reference(str!("foo"))),
         };
         let state = mock_state(vec![], vec![]);
 

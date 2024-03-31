@@ -1,6 +1,7 @@
 mod arithmetic;
 mod data;
 mod function_result;
+mod import;
 mod inherit;
 #[cfg(test)]
 mod mock;
@@ -35,7 +36,7 @@ mod tests {
     use lang::{
         ast,
         types::{Enumerated, Type},
-        ModuleReference, ModuleScope, NodeId,
+        Namespace, NamespaceKind, NodeId,
     };
     use std::{
         cell::OnceCell,
@@ -52,7 +53,7 @@ mod tests {
     fn import() {
         let fragments = BTreeMap::from_iter(fixture::import::fragments());
         let ctx = crate::Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let weak = weak::Result {
@@ -65,7 +66,6 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![(NodeId(0), OnceCell::from(type_(Type::Integer)))]),
-                inherits: HashMap::from_iter(vec![]),
             })
         );
     }
@@ -74,7 +74,7 @@ mod tests {
     fn type_alias() {
         let fragments = BTreeMap::from_iter(fixture::type_alias::fragments());
         let ctx = crate::Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let weak = weak::Result {
@@ -90,7 +90,6 @@ mod tests {
                     (NodeId(0), OnceCell::from(type_(Type::Nil))),
                     (NodeId(1), OnceCell::from(type_(Type::Nil)))
                 ]),
-                inherits: HashMap::from_iter(vec![]),
             })
         );
     }
@@ -99,7 +98,7 @@ mod tests {
     fn constant() {
         let fragments = BTreeMap::from_iter(fixture::constant::fragments());
         let ctx = crate::Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let weak = weak::Result {
@@ -116,7 +115,6 @@ mod tests {
                     (NodeId(1), OnceCell::from(type_(Type::String))),
                     (NodeId(2), OnceCell::from(type_(Type::String)))
                 ]),
-                inherits: HashMap::from_iter(vec![]),
             })
         );
     }
@@ -125,7 +123,7 @@ mod tests {
     fn enumerated() {
         let fragments = BTreeMap::from_iter(fixture::enumerated::fragments());
         let ctx = crate::Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let weak = weak::Result {
@@ -151,7 +149,6 @@ mod tests {
                         ]))))
                     ),
                 ]),
-                inherits: HashMap::from_iter(vec![]),
             })
         );
     }
@@ -161,7 +158,7 @@ mod tests {
     fn function() {
         let fragments = BTreeMap::from_iter(fixture::function::fragments());
         let ctx = crate::Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let weak = weak::Result {
@@ -187,7 +184,6 @@ mod tests {
                         ]))))
                     ),
                 ]),
-                inherits: HashMap::from_iter(vec![]),
             })
         );
     }
@@ -196,7 +192,7 @@ mod tests {
     fn view() {
         let fragments = BTreeMap::from_iter(fixture::view::fragments());
         let ctx = crate::Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let weak = weak::Result {
@@ -234,7 +230,6 @@ mod tests {
                         OnceCell::from(type_(Type::View(vec![type_(Type::Element)])))
                     ),
                 ]),
-                inherits: HashMap::from_iter(vec![]),
             })
         );
     }
@@ -244,7 +239,7 @@ mod tests {
     fn module() {
         let fragments = BTreeMap::from_iter(fixture::module::fragments());
         let ctx = crate::Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let weak = weak::Result {
@@ -270,7 +265,6 @@ mod tests {
                         ]))))
                     ),
                 ]),
-                inherits: HashMap::from_iter(vec![]),
             })
         );
     }

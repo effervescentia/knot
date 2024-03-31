@@ -1,9 +1,9 @@
 use super::{
-    data::{Action, Data},
+    data::{Action, Type},
     state::State,
 };
 use kore::invariant;
-use lang::{types::Type, Fragment, NodeId};
+use lang::{types, Fragment, NodeId};
 
 pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
     let typed_declarations = declarations
@@ -20,7 +20,7 @@ pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
         .collect::<Option<Vec<_>>>();
 
     typed_declarations
-        .map(|xs| Action::Infer(Data::Local(Type::Module(xs))))
+        .map(|xs| Action::Infer(Type::Local(types::Type::Module(xs))))
         .unwrap_or(Action::Skip)
 }
 
@@ -30,7 +30,7 @@ mod tests {
         error::ResolveError,
         infer::{
             strong::{
-                data::{Action, Data},
+                data::{Action, Type},
                 state::State,
             },
             BindingMap,
@@ -39,7 +39,7 @@ mod tests {
     use kore::{assert_eq, str};
     use lang::{
         ast,
-        types::{Kind, Type},
+        types::{self, Kind},
         Fragment, NodeId, ScopeId,
     };
     use std::collections::BTreeMap;
@@ -47,7 +47,7 @@ mod tests {
     #[allow(clippy::type_complexity)]
     fn mock_state(
         fragments: &BTreeMap<NodeId, (ScopeId, Fragment)>,
-        types: Vec<(NodeId, (Kind, Result<Data, ResolveError>))>,
+        types: Vec<(NodeId, (Kind, Result<Type, ResolveError>))>,
     ) -> State {
         State {
             fragments,
@@ -86,14 +86,20 @@ mod tests {
         let state = mock_state(
             &fragments,
             vec![
-                (NodeId(1), (Kind::Type, Ok(Data::Local(Type::Boolean)))),
-                (NodeId(3), (Kind::Value, Ok(Data::Local(Type::Integer)))),
+                (
+                    NodeId(1),
+                    (Kind::Type, Ok(Type::Local(types::Type::Boolean))),
+                ),
+                (
+                    NodeId(3),
+                    (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                ),
             ],
         );
 
         assert_eq!(
             super::infer(&state, &[NodeId(1), NodeId(3)]),
-            Action::Infer(Data::Local(Type::Module(vec![
+            Action::Infer(Type::Local(types::Type::Module(vec![
                 (str!("Foo"), Kind::Type, NodeId(1)),
                 (str!("BAR"), Kind::Value, NodeId(3))
             ])))
@@ -126,7 +132,10 @@ mod tests {
         ]);
         let state = mock_state(
             &fragments,
-            vec![(NodeId(3), (Kind::Type, Ok(Data::Local(Type::Integer))))],
+            vec![(
+                NodeId(3),
+                (Kind::Type, Ok(Type::Local(types::Type::Integer))),
+            )],
         );
 
         assert_eq!(super::infer(&state, &[NodeId(1)]), Action::Skip);

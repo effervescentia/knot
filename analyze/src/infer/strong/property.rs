@@ -1,10 +1,10 @@
 use super::{
-    data::{Action, Data},
+    data::{Action, Type},
     state::State,
 };
 use crate::error::ResolveError;
 use lang::{
-    types::{Enumerated, Kind, Type},
+    types::{self, Enumerated, Kind},
     NodeId,
 };
 
@@ -15,7 +15,7 @@ fn infer_module(
 ) -> Action {
     match declarations.iter().find(|(name, ..)| name == property) {
         // TODO: `inherit::inherit`
-        Some((_, kind, id)) if allowed_kind.can_accept(kind) => Action::Infer(Data::Inherit(*id)),
+        Some((_, kind, id)) if allowed_kind.can_accept(kind) => Action::Infer(Type::Inherit(*id)),
 
         Some(_) | None => Action::Raise(ResolveError::NotInferrable(vec![])),
     }
@@ -27,10 +27,9 @@ fn infer_enumerated(
     enumerated: &NodeId,
 ) -> Action {
     match variants.iter().find(|(name, _)| name == property) {
-        Some((_, parameters)) => Action::Infer(Data::Local(Type::Enumerated(Enumerated::Variant(
-            parameters.clone(),
-            *enumerated,
-        )))),
+        Some((_, parameters)) => Action::Infer(Type::Local(types::Type::Enumerated(
+            Enumerated::Variant(parameters.clone(), *enumerated),
+        ))),
 
         None => Action::Raise(ResolveError::NotInferrable(vec![])),
     }
@@ -59,13 +58,13 @@ mod tests {
     use crate::{
         error::ResolveError,
         infer::strong::{
-            data::{Action, Data},
+            data::{Action, Type},
             state::State,
         },
     };
     use kore::{assert_eq, str};
     use lang::{
-        types::{Enumerated, Kind, Type},
+        types::{self, Enumerated, Kind},
         NodeId,
     };
 
@@ -75,15 +74,15 @@ mod tests {
             NodeId(1),
             (
                 Kind::Value,
-                Ok(Data::Local(Type::Enumerated(Enumerated::Declaration(
-                    vec![(str!("foo"), vec![NodeId(2), NodeId(3)])],
-                )))),
+                Ok(Type::Local(types::Type::Enumerated(
+                    Enumerated::Declaration(vec![(str!("foo"), vec![NodeId(2), NodeId(3)])]),
+                ))),
             ),
         )]);
 
         assert_eq!(
             super::infer(&state, NodeId(1), "foo", &Kind::Value),
-            Action::Infer(Data::Local(Type::Enumerated(Enumerated::Variant(
+            Action::Infer(Type::Local(types::Type::Enumerated(Enumerated::Variant(
                 vec![NodeId(2), NodeId(3)],
                 NodeId(1)
             ))))
@@ -96,9 +95,9 @@ mod tests {
             NodeId(1),
             (
                 Kind::Value,
-                Ok(Data::Local(Type::Enumerated(Enumerated::Declaration(
-                    vec![],
-                )))),
+                Ok(Type::Local(types::Type::Enumerated(
+                    Enumerated::Declaration(vec![]),
+                ))),
             ),
         )]);
 
@@ -114,7 +113,7 @@ mod tests {
             NodeId(1),
             (
                 Kind::Value,
-                Ok(Data::Local(Type::Module(vec![(
+                Ok(Type::Local(types::Type::Module(vec![(
                     str!("foo"),
                     Kind::Value,
                     NodeId(2),
@@ -124,7 +123,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, NodeId(1), "foo", &Kind::Value),
-            Action::Infer(Data::Inherit(NodeId(2)))
+            Action::Infer(Type::Inherit(NodeId(2)))
         );
     }
 
@@ -134,7 +133,7 @@ mod tests {
             NodeId(1),
             (
                 Kind::Value,
-                Ok(Data::Local(Type::Module(vec![(
+                Ok(Type::Local(types::Type::Module(vec![(
                     str!("foo"),
                     Kind::Type,
                     NodeId(2),
@@ -169,7 +168,10 @@ mod tests {
                 NodeId(1),
                 (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
             ),
-            (NodeId(2), (Kind::Value, Ok(Data::Local(Type::String)))),
+            (
+                NodeId(2),
+                (Kind::Value, Ok(Type::Local(types::Type::String))),
+            ),
         ]);
 
         assert_eq!(

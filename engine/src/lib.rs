@@ -295,7 +295,7 @@ where
 
             for id in state.graph.iter() {
                 let (link, state::Module { id, text, ast }) = Self::get_module(&state, &id);
-                let module_reference = link.clone().to_module_reference();
+                let module_reference = link.clone().to_namespace();
                 let context = analyze::Context {
                     namespace: &module_reference,
                     modules: &module_types,

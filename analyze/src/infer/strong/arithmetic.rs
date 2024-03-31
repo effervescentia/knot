@@ -1,19 +1,20 @@
 use super::{
-    data::{Action, Data},
+    data::{Action, Type},
     state::State,
 };
 use crate::error::ResolveError;
-use lang::{types::Type, NodeId};
+use lang::{types, NodeId};
 
 pub fn infer(state: &State, lhs: NodeId, rhs: NodeId) -> Action {
     match (state.resolve_value(&lhs), state.resolve_value(&rhs)) {
-        (Some(Ok(Type::Integer)), Some(Ok(Type::Integer))) => {
-            Action::Infer(Data::Local(Type::Integer))
+        (Some(Ok(types::Type::Integer)), Some(Ok(types::Type::Integer))) => {
+            Action::Infer(Type::Local(types::Type::Integer))
         }
 
-        (Some(Ok(Type::Integer | Type::Float)), Some(Ok(Type::Integer | Type::Float))) => {
-            Action::Infer(Data::Local(Type::Float))
-        }
+        (
+            Some(Ok(types::Type::Integer | types::Type::Float)),
+            Some(Ok(types::Type::Integer | types::Type::Float)),
+        ) => Action::Infer(Type::Local(types::Type::Float)),
 
         (None, _) | (_, None) => Action::Skip,
 
@@ -29,13 +30,13 @@ mod tests {
     use crate::{
         error::ResolveError,
         infer::strong::{
-            data::{Action, Data},
+            data::{Action, Type},
             state::State,
         },
     };
     use kore::assert_eq;
     use lang::{
-        types::{Kind, Type},
+        types::{self, Kind},
         NodeId,
     };
 
@@ -43,33 +44,39 @@ mod tests {
     fn infer_integer() {
         let state = State::from_types(vec![(
             NodeId(1),
-            (Kind::Value, Ok(Data::Local(Type::Integer))),
+            (Kind::Value, Ok(Type::Local(types::Type::Integer))),
         )]);
 
         assert_eq!(
             super::infer(&state, NodeId(1), NodeId(1)),
-            Action::Infer(Data::Local(Type::Integer))
+            Action::Infer(Type::Local(types::Type::Integer))
         );
     }
 
     #[test]
     fn infer_float() {
         let state = State::from_types(vec![
-            (NodeId(1), (Kind::Value, Ok(Data::Local(Type::Integer)))),
-            (NodeId(2), (Kind::Value, Ok(Data::Local(Type::Float)))),
+            (
+                NodeId(1),
+                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+            ),
+            (
+                NodeId(2),
+                (Kind::Value, Ok(Type::Local(types::Type::Float))),
+            ),
         ]);
 
         assert_eq!(
             super::infer(&state, NodeId(1), NodeId(2)),
-            Action::Infer(Data::Local(Type::Float))
+            Action::Infer(Type::Local(types::Type::Float))
         );
         assert_eq!(
             super::infer(&state, NodeId(2), NodeId(1)),
-            Action::Infer(Data::Local(Type::Float))
+            Action::Infer(Type::Local(types::Type::Float))
         );
         assert_eq!(
             super::infer(&state, NodeId(2), NodeId(2)),
-            Action::Infer(Data::Local(Type::Float))
+            Action::Infer(Type::Local(types::Type::Float))
         );
     }
 
@@ -77,7 +84,7 @@ mod tests {
     fn skip() {
         let state = State::from_types(vec![(
             NodeId(1),
-            (Kind::Value, Ok(Data::Local(Type::Integer))),
+            (Kind::Value, Ok(Type::Local(types::Type::Integer))),
         )]);
 
         assert_eq!(super::infer(&state, NodeId(1), NodeId(3)), Action::Skip);
@@ -87,8 +94,14 @@ mod tests {
     #[test]
     fn not_inferrable() {
         let state = State::from_types(vec![
-            (NodeId(1), (Kind::Value, Ok(Data::Local(Type::Integer)))),
-            (NodeId(2), (Kind::Value, Ok(Data::Local(Type::Boolean)))),
+            (
+                NodeId(1),
+                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+            ),
+            (
+                NodeId(2),
+                (Kind::Value, Ok(Type::Local(types::Type::Boolean))),
+            ),
             (
                 NodeId(3),
                 (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),

@@ -2,7 +2,7 @@ pub mod ast;
 #[cfg(feature = "format")]
 pub mod format;
 mod fragment;
-mod interface;
+mod namespace;
 mod node;
 mod range;
 #[cfg(feature = "test")]
@@ -10,7 +10,7 @@ pub mod test;
 pub mod types;
 
 pub use fragment::{Fragment, FragmentMap};
-pub use interface::{ModuleReference, ModuleScope};
+pub use namespace::{Namespace, NamespaceKind};
 pub use node::Node;
 pub use range::{Point, Range};
 

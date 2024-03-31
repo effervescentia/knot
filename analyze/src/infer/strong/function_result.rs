@@ -1,11 +1,11 @@
 use super::{
-    data::{Action, Data},
+    data::{Action, Type},
     inherit,
     state::State,
 };
 use crate::error::ResolveError;
 use lang::{
-    types::{Enumerated, Kind, Type},
+    types::{self, Enumerated, Kind},
     NodeId,
 };
 
@@ -13,8 +13,8 @@ pub fn infer(state: &State, x: NodeId, kind: &Kind) -> Action {
     match state.resolve_any(&x) {
         Some(Ok(Type::Function(_, result))) => inherit::inherit(state, *result, kind),
 
-        Some(Ok(Type::Enumerated(Enumerated::Variant(_, instance)))) => Action::Infer(Data::Local(
-            Type::Enumerated(Enumerated::Instance(*instance)),
+        Some(Ok(Type::Enumerated(Enumerated::Variant(_, instance)))) => Action::Infer(Type::Local(
+            types::Type::Enumerated(Enumerated::Instance(*instance)),
         )),
 
         Some(Ok(_)) => Action::Raise(ResolveError::NotInferrable(vec![])),
@@ -29,13 +29,13 @@ mod tests {
     use crate::{
         error::ResolveError,
         infer::strong::{
-            data::{Action, Data},
+            data::{Action, Type},
             state::State,
         },
     };
     use kore::assert_eq;
     use lang::{
-        types::{Enumerated, Kind, Type},
+        types::{self, Enumerated, Kind},
         NodeId,
     };
 
@@ -46,15 +46,18 @@ mod tests {
                 NodeId(1),
                 (
                     Kind::Value,
-                    Ok(Data::Local(Type::Function(vec![], NodeId(2)))),
+                    Ok(Type::Local(types::Type::Function(vec![], NodeId(2)))),
                 ),
             ),
-            (NodeId(2), (Kind::Value, Ok(Data::Local(Type::Integer)))),
+            (
+                NodeId(2),
+                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+            ),
         ]);
 
         assert_eq!(
             super::infer(&state, NodeId(1), &Kind::Value),
-            Action::Infer(Data::Inherit(NodeId(2)))
+            Action::Infer(Type::Inherit(NodeId(2)))
         );
     }
 
@@ -65,7 +68,7 @@ mod tests {
                 NodeId(1),
                 (
                     Kind::Value,
-                    Ok(Data::Local(Type::Enumerated(Enumerated::Variant(
+                    Ok(Type::Local(types::Type::Enumerated(Enumerated::Variant(
                         vec![],
                         NodeId(2),
                     )))),
@@ -75,18 +78,18 @@ mod tests {
                 NodeId(2),
                 (
                     Kind::Value,
-                    Ok(Data::Local(Type::Enumerated(Enumerated::Declaration(
-                        vec![],
-                    )))),
+                    Ok(Type::Local(types::Type::Enumerated(
+                        Enumerated::Declaration(vec![]),
+                    ))),
                 ),
             ),
         ]);
 
         assert_eq!(
             super::infer(&state, NodeId(1), &Kind::Value),
-            Action::Infer(Data::Local(Type::Enumerated(Enumerated::Instance(NodeId(
-                2
-            )))))
+            Action::Infer(Type::Local(types::Type::Enumerated(Enumerated::Instance(
+                NodeId(2)
+            ))))
         );
     }
 
@@ -100,7 +103,10 @@ mod tests {
     #[test]
     fn not_inferrable() {
         let state = State::from_types(vec![
-            (NodeId(1), (Kind::Value, Ok(Data::Local(Type::Integer)))),
+            (
+                NodeId(1),
+                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+            ),
             (
                 NodeId(2),
                 (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),

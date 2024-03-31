@@ -14,7 +14,7 @@ pub enum Inference {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Data {
+pub enum Type {
     Infer(Inference),
     Inherit(NodeId),
     InheritKind(NodeId, types::Kind),
@@ -22,7 +22,7 @@ pub enum Data {
     // Remote(&'a types::ReferenceType<'a>),
 }
 
-pub type Weak<'a> = (types::Kind, Data);
+pub type Weak<'a> = (types::Kind, Type);
 
 pub type TypeMap<'a> = HashMap<NodeId, Weak<'a>>;
 

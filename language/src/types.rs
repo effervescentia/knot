@@ -20,6 +20,27 @@ pub enum Enumerated<T> {
     Instance(T),
 }
 
+impl<T> Enumerated<T> {
+    pub fn to_shape(&self) -> Enumerated<()> {
+        match self {
+            Self::Declaration(variants) => Enumerated::Declaration(
+                variants
+                    .iter()
+                    .map(|(name, parameters)| {
+                        (name.clone(), parameters.iter().map(|_| ()).collect())
+                    })
+                    .collect(),
+            ),
+
+            Self::Variant(parameters, _) => {
+                Enumerated::Variant(parameters.iter().map(|_| ()).collect(), ())
+            }
+
+            Self::Instance(_) => Enumerated::Instance(()),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Type<T> {
     Nil,
@@ -34,4 +55,33 @@ pub enum Type<T> {
     Function(Vec<T>, T),
     View(Vec<T>),
     Module(Vec<(String, Kind, T)>),
+}
+
+impl<T> Type<T> {
+    pub fn to_shape(&self) -> Type<()> {
+        match self {
+            Self::Nil => Type::Nil,
+            Self::Boolean => Type::Boolean,
+            Self::Integer => Type::Integer,
+            Self::Float => Type::Float,
+            Self::String => Type::String,
+            Self::Style => Type::Style,
+            Self::Element => Type::Element,
+
+            Self::Enumerated(x) => Type::Enumerated(x.to_shape()),
+
+            Self::Function(parameters, _) => {
+                Type::Function(parameters.iter().map(|_| ()).collect(), ())
+            }
+
+            Self::View(parameters) => Type::View(parameters.iter().map(|_| ()).collect()),
+
+            Self::Module(entities) => Type::Module(
+                entities
+                    .iter()
+                    .map(|(name, kind, _)| (name.clone(), *kind, ()))
+                    .collect(),
+            ),
+        }
+    }
 }

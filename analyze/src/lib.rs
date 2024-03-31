@@ -6,15 +6,15 @@ mod into_typed;
 
 use error::ResolveError;
 use into_typed::Visitor;
-use lang::{ast, ModuleReference, NodeId};
-use std::collections::HashMap;
+use lang::{ast, Namespace, NodeId};
+use std::{collections::HashMap, rc::Rc};
 
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, ResolveError)>>;
 
 pub struct Context<'a> {
-    pub namespace: &'a ModuleReference,
+    pub namespace: &'a Namespace,
 
-    pub modules: &'a HashMap<ModuleReference, &'a ast::typed::Type>,
+    pub modules: &'a HashMap<Namespace, Rc<ast::typed::Type>>,
 }
 
 pub fn analyze<Raw>(ctx: &Context, raw: Raw) -> Result<ast::typed::Program>
@@ -40,7 +40,7 @@ mod tests {
     use lang::{
         ast,
         types::{Kind, Type},
-        ModuleReference, ModuleScope, Node,
+        Namespace, NamespaceKind, Node,
     };
     use std::{collections::HashMap, rc::Rc};
 
@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn empty_module() {
         let ctx = Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let raw = program(vec![], vec![]);
@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn type_alias() {
         let ctx = Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let raw = program(vec![], vec![fixture::type_alias::mock()]);
@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn constant() {
         let ctx = Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let raw = program(vec![], vec![fixture::constant::mock()]);
@@ -120,7 +120,7 @@ mod tests {
     #[test]
     fn enumerated() {
         let ctx = Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let raw = program(vec![], vec![fixture::enumerated::mock()]);
@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn function() {
         let ctx = Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let raw = program(vec![], vec![fixture::function::mock()]);
@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn view() {
         let ctx = Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let raw = program(vec![], vec![fixture::view::mock()]);
@@ -182,7 +182,7 @@ mod tests {
     #[test]
     fn module() {
         let ctx = Context {
-            namespace: &ModuleReference(ModuleScope::Source, vec![str!("foo")]),
+            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             modules: &HashMap::new(),
         };
         let raw = program(vec![], vec![fixture::module::mock()]);

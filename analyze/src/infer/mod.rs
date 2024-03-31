@@ -13,13 +13,13 @@ pub struct NodeDescriptor {
 
     pub kind: Kind,
 
-    pub weak: weak::Data,
+    pub weak: weak::Type,
 }
 
 impl NodeDescriptor {
     pub fn into_inherit_from(self, from_id: NodeId) -> Self {
         Self {
-            weak: weak::Data::Inherit(from_id),
+            weak: weak::Type::Inherit(from_id),
             ..self
         }
     }

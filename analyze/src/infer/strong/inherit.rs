@@ -1,5 +1,5 @@
 use super::{
-    data::{Action, Data},
+    data::{Action, Type},
     state::State,
 };
 use crate::error::ResolveError;
@@ -7,9 +7,9 @@ use lang::{types::Kind, NodeId};
 
 pub fn inherit(state: &State, from_id: NodeId, from_kind: &Kind) -> Action {
     match state.get_type(&from_id, from_kind) {
-        Some(Ok(Data::Inherit(next_from_id))) => inherit(state, *next_from_id, &Kind::Mixed),
+        Some(Ok(Type::Inherit(next_from_id))) => inherit(state, *next_from_id, &Kind::Mixed),
 
-        Some(Ok(_)) => Action::Infer(Data::Inherit(from_id)),
+        Some(Ok(_)) => Action::Infer(Type::Inherit(from_id)),
 
         Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![from_id])),
 
@@ -22,13 +22,13 @@ mod tests {
     use crate::{
         error::ResolveError,
         infer::strong::{
-            data::{Action, Data},
+            data::{Action, Type},
             state::State,
         },
     };
     use kore::assert_eq;
     use lang::{
-        types::{Kind, Type},
+        types::{self, Kind},
         NodeId,
     };
 
@@ -46,26 +46,29 @@ mod tests {
     fn inherit() {
         let state = State::from_types(vec![(
             NodeId(1),
-            (Kind::Value, Ok(Data::Local(Type::Integer))),
+            (Kind::Value, Ok(Type::Local(types::Type::Integer))),
         )]);
 
         assert_eq!(
             super::inherit(&state, NodeId(1), &Kind::Value),
-            Action::Infer(Data::Inherit(NodeId(1)))
+            Action::Infer(Type::Inherit(NodeId(1)))
         );
     }
 
     #[test]
     fn recursive_inherit() {
         let state = State::from_types(vec![
-            (NodeId(1), (Kind::Value, Ok(Data::Inherit(NodeId(2))))),
-            (NodeId(2), (Kind::Value, Ok(Data::Inherit(NodeId(3))))),
-            (NodeId(3), (Kind::Value, Ok(Data::Local(Type::Integer)))),
+            (NodeId(1), (Kind::Value, Ok(Type::Inherit(NodeId(2))))),
+            (NodeId(2), (Kind::Value, Ok(Type::Inherit(NodeId(3))))),
+            (
+                NodeId(3),
+                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+            ),
         ]);
 
         assert_eq!(
             super::inherit(&state, NodeId(1), &Kind::Value),
-            Action::Infer(Data::Inherit(NodeId(3)))
+            Action::Infer(Type::Inherit(NodeId(3)))
         );
     }
 

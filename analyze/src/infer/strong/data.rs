@@ -3,21 +3,19 @@ use lang::{ast, types, NodeId};
 use std::{cell::OnceCell, collections::HashMap, rc::Rc};
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Data {
+pub enum Type {
     Inherit(NodeId),
     Local(types::Type<NodeId>),
-    // Remote(&'a types::ReferenceType<'a>),
+    Remote(Rc<ast::typed::Type>),
 }
 
-pub type Strong = (types::Kind, std::result::Result<Data, ResolveError>);
+pub type Strong = (types::Kind, std::result::Result<Type, ResolveError>);
 
 #[derive(Debug, PartialEq)]
 pub struct Output {
     // might be able to refactor this to avoid the need for
     // inherit types thanks to Rc container
     pub types: HashMap<NodeId, OnceCell<Rc<ast::typed::Type>>>,
-
-    pub inherits: HashMap<NodeId, NodeId>,
 }
 
 impl Output {
@@ -27,7 +25,6 @@ impl Output {
     {
         Self {
             types: keys.into_iter().map(|id| (*id, OnceCell::new())).collect(),
-            inherits: Default::default(),
         }
     }
 }
@@ -40,7 +37,7 @@ pub enum Action {
     Skip,
 
     /// infer a success result based on the data
-    Infer(Data),
+    Infer(Type),
 
     /// used when inheriting can resolve further
     InheritAndSkip(NodeId),

@@ -1,4 +1,4 @@
-use super::data::{Data, Output, Result, Strong};
+use super::data::{Output, Result, Strong, Type};
 use crate::{
     error::ResolveError,
     infer::{weak, BindingMap, NodeDescriptor},
@@ -6,13 +6,27 @@ use crate::{
 use kore::invariant;
 use lang::{
     ast,
-    types::{self, Enumerated, Kind, Type},
+    types::{self, Enumerated, Kind},
     FragmentMap, NodeId,
 };
 use std::{cell::OnceCell, collections::BTreeMap, rc::Rc};
 
+pub enum ResolvedType<'a> {
+    Local(&'a types::Type<NodeId>),
+    Remote(Rc<ast::typed::Type>),
+}
+
+// impl<'a> ResolvedType<'a> {
+//     pub fn to_shape(&self) -> types::Type<()> {
+//         match self {
+//             ResolvedType::Local(x) => x.to_shape(),
+//             ResolvedType::Remote(x) => x.0.to_shape(),
+//         }
+//     }
+// }
+
 /// type resolved from the `State` during inference
-type Resolved<'a> = std::result::Result<&'a types::Type<NodeId>, &'a ResolveError>;
+type ResolvedResult<'a> = std::result::Result<ResolvedType<'a>, &'a ResolveError>;
 
 type Warning<'a> = (&'a NodeDescriptor, String);
 
@@ -60,7 +74,7 @@ impl<'a> State<'a> {
         &self,
         id: &NodeId,
         allowed_kind: &Kind,
-    ) -> Option<&std::result::Result<Data, ResolveError>> {
+    ) -> Option<&std::result::Result<Type, ResolveError>> {
         self.types.get(id).and_then(|(kind, strong)| {
             if !allowed_kind.can_accept(kind) {
                 return None;
@@ -70,26 +84,28 @@ impl<'a> State<'a> {
         })
     }
 
-    pub fn resolve(&self, id: &NodeId, allowed_kind: &Kind) -> Option<Resolved> {
+    pub fn resolve(&self, id: &NodeId, allowed_kind: &Kind) -> Option<ResolvedResult> {
         self.get_type(id, allowed_kind)
             .and_then(|strong| match strong {
-                Ok(Data::Local(local)) => Some(Ok(local)),
+                Ok(Type::Local(local)) => Some(Ok(ResolvedType::Local(local))),
 
-                Ok(Data::Inherit(from_id)) => self.resolve_any(from_id),
+                Ok(Type::Remote(remote)) => Some(Ok(ResolvedType::Remote(Rc::clone(remote)))),
+
+                Ok(Type::Inherit(from_id)) => self.resolve_any(from_id),
 
                 Err(err) => Some(Err(err)),
             })
     }
 
-    pub fn resolve_value(&self, id: &NodeId) -> Option<Resolved> {
+    pub fn resolve_value(&self, id: &NodeId) -> Option<ResolvedResult> {
         self.resolve(id, &Kind::Value)
     }
 
-    pub fn resolve_any(&self, id: &NodeId) -> Option<Resolved> {
+    pub fn resolve_any(&self, id: &NodeId) -> Option<ResolvedResult> {
         self.resolve(id, &Kind::Mixed)
     }
 
-    fn finalize_type(x: Type<NodeId>, output: &Output) -> Rc<ast::typed::Type> {
+    fn finalize_type(x: types::Type<NodeId>, output: &Output) -> Rc<ast::typed::Type> {
         let get_type = |id| {
             Rc::clone(
                 output
@@ -101,40 +117,41 @@ impl<'a> State<'a> {
         };
 
         match x {
-            Type::Nil => Rc::new(ast::typed::Type(Type::Nil)),
-            Type::Boolean => Rc::new(ast::typed::Type(Type::Boolean)),
-            Type::Integer => Rc::new(ast::typed::Type(Type::Integer)),
-            Type::Float => Rc::new(ast::typed::Type(Type::Float)),
-            Type::String => Rc::new(ast::typed::Type(Type::String)),
-            Type::Style => Rc::new(ast::typed::Type(Type::Style)),
-            Type::Element => Rc::new(ast::typed::Type(Type::Element)),
+            types::Type::Nil => Rc::new(ast::typed::Type(types::Type::Nil)),
+            types::Type::Boolean => Rc::new(ast::typed::Type(types::Type::Boolean)),
+            types::Type::Integer => Rc::new(ast::typed::Type(types::Type::Integer)),
+            types::Type::Float => Rc::new(ast::typed::Type(types::Type::Float)),
+            types::Type::String => Rc::new(ast::typed::Type(types::Type::String)),
+            types::Type::Style => Rc::new(ast::typed::Type(types::Type::Style)),
+            types::Type::Element => Rc::new(ast::typed::Type(types::Type::Element)),
 
-            Type::Enumerated(x) => Rc::new(ast::typed::Type(Type::Enumerated(match x {
-                Enumerated::Declaration(variants) => Enumerated::Declaration(
-                    variants
-                        .iter()
-                        .map(|(name, xs)| (name.clone(), xs.iter().map(get_type).collect()))
-                        .collect(),
-                ),
+            types::Type::Enumerated(x) => {
+                Rc::new(ast::typed::Type(types::Type::Enumerated(match x {
+                    Enumerated::Declaration(variants) => Enumerated::Declaration(
+                        variants
+                            .iter()
+                            .map(|(name, xs)| (name.clone(), xs.iter().map(get_type).collect()))
+                            .collect(),
+                    ),
 
-                Enumerated::Variant(parameters, instance) => Enumerated::Variant(
-                    parameters.iter().map(get_type).collect(),
-                    get_type(&instance),
-                ),
+                    Enumerated::Variant(parameters, instance) => Enumerated::Variant(
+                        parameters.iter().map(get_type).collect(),
+                        get_type(&instance),
+                    ),
 
-                Enumerated::Instance(x) => Enumerated::Instance(get_type(&x)),
-            }))),
+                    Enumerated::Instance(x) => Enumerated::Instance(get_type(&x)),
+                })))
+            }
 
-            Type::Function(parameters, x) => Rc::new(ast::typed::Type(Type::Function(
+            types::Type::Function(parameters, x) => Rc::new(ast::typed::Type(
+                types::Type::Function(parameters.iter().map(get_type).collect(), get_type(&x)),
+            )),
+
+            types::Type::View(parameters) => Rc::new(ast::typed::Type(types::Type::View(
                 parameters.iter().map(get_type).collect(),
-                get_type(&x),
             ))),
 
-            Type::View(parameters) => Rc::new(ast::typed::Type(Type::View(
-                parameters.iter().map(get_type).collect(),
-            ))),
-
-            Type::Module(declarations) => Rc::new(ast::typed::Type(Type::Module(
+            types::Type::Module(declarations) => Rc::new(ast::typed::Type(types::Type::Module(
                 declarations
                     .iter()
                     .map(|(name, kind, x)| (name.clone(), *kind, get_type(x)))
@@ -156,13 +173,13 @@ impl<'a> State<'a> {
 
         for (id, (_, x)) in self.types {
             match x {
-                Ok(Data::Local(x)) => {
+                Ok(Type::Local(x)) => {
                     let cell = get_cell(id);
 
                     cell.set(State::finalize_type(x, &output)).ok();
                 }
 
-                Ok(Data::Inherit(from_id)) => {
+                Ok(Type::Inherit(from_id)) => {
                     let cell = get_cell(id);
                     let from_cell = get_cell(from_id);
 
@@ -172,6 +189,10 @@ impl<'a> State<'a> {
                             .unwrap_or_else(|| invariant!("inherited cell is empty")),
                     ))
                     .ok();
+                }
+
+                Ok(Type::Remote(x)) => {
+                    get_cell(id).set(Rc::clone(&x)).ok();
                 }
 
                 Err(err) => errors.push((id, err)),
