@@ -21,6 +21,8 @@ pub fn infer(state: &State, lhs: CanonicalId, rhs: CanonicalId) -> Action {
         (Some(Err(_)), Some(Err(_))) => Action::Raise(ResolveError::NotInferrable(vec![lhs, rhs])),
         (Some(Err(_)), _) => Action::Raise(ResolveError::NotInferrable(vec![lhs])),
         (_, Some(Err(_))) => Action::Raise(ResolveError::NotInferrable(vec![rhs])),
+
+        // TODO: surface the underlying error (types not valid for arithmetic)
         (Some(_), Some(_)) => Action::Raise(ResolveError::NotInferrable(vec![])),
     }
 }

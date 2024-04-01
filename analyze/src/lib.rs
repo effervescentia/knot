@@ -4,6 +4,7 @@ mod error;
 mod fixture;
 mod infer;
 mod into_typed;
+mod semantic;
 
 pub use context::{Context, ModuleMap};
 use error::ResolveError;

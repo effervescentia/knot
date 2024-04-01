@@ -11,6 +11,7 @@ pub fn infer(state: &State, name: &str, node: &NodeDescriptor) -> Action {
     match state.bindings.resolve(node, name) {
         Some(from_id) => inherit::inherit(state, state.canonicalize(from_id), &node.kind),
 
+        // TODO: surface the underlying error (not found in scope)
         None => Action::Raise(ResolveError::NotFound(name.to_owned(), node.id)),
     }
 }

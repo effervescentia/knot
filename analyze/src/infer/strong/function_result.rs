@@ -17,8 +17,10 @@ pub fn infer(state: &State, x: CanonicalId, kind: &Kind) -> Action {
             Type::Local(types::Type::Enumerated(Enumerated::Instance(instance))),
         ),
 
-        Some(Ok(_)) => Action::Raise(ResolveError::NotInferrable(vec![])),
         Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![x])),
+
+        // TODO: surface the underlying error (not a callable type)
+        Some(Ok(_)) => Action::Raise(ResolveError::NotInferrable(vec![])),
 
         None => Action::Skip,
     }

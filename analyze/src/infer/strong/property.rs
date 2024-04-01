@@ -17,7 +17,11 @@ fn infer_module(
         // TODO: `inherit::inherit`
         Some((_, kind, id)) if allowed_kind.can_accept(kind) => Action::Infer(Type::Inherit(*id)),
 
-        Some(_) | None => Action::Raise(ResolveError::NotInferrable(vec![])),
+        // TODO: surface the underlying error (declaration is of the wrong kind)
+        Some(_) => Action::Raise(ResolveError::NotInferrable(vec![])),
+
+        // TODO: surface the underlying error (declaration does not exist)
+        None => Action::Raise(ResolveError::NotInferrable(vec![])),
     }
 }
 
@@ -31,6 +35,7 @@ fn infer_enumerated(
             Enumerated::Variant(parameters.clone(), *enumerated),
         ))),
 
+        // TODO: surface the underlying error (variant does not exist)
         None => Action::Raise(ResolveError::NotInferrable(vec![])),
     }
 }
