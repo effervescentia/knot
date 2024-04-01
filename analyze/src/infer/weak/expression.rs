@@ -1,6 +1,6 @@
 use super::{
     data::{Inference, Type, Weak},
-    ToWeak,
+    to_weak::ToWeak,
 };
 use lang::{
     ast,

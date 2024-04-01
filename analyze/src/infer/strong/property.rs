@@ -5,11 +5,11 @@ use super::{
 use crate::error::ResolveError;
 use lang::{
     types::{self, Enumerated, Kind},
-    NodeId,
+    CanonicalId,
 };
 
 fn infer_module(
-    declarations: &[(String, Kind, NodeId)],
+    declarations: &[(String, Kind, CanonicalId)],
     property: &str,
     allowed_kind: &Kind,
 ) -> Action {
@@ -22,9 +22,9 @@ fn infer_module(
 }
 
 fn infer_enumerated(
-    variants: &[(String, Vec<NodeId>)],
+    variants: &[(String, Vec<CanonicalId>)],
     property: &str,
-    enumerated: &NodeId,
+    enumerated: &CanonicalId,
 ) -> Action {
     match variants.iter().find(|(name, _)| name == property) {
         Some((_, parameters)) => Action::Infer(Type::Local(types::Type::Enumerated(
@@ -35,13 +35,15 @@ fn infer_enumerated(
     }
 }
 
-pub fn infer(state: &State, lhs: NodeId, property: &str, allowed_kind: &Kind) -> Action {
+pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kind) -> Action {
     match state.resolve_any(&lhs) {
         Some(Ok(x)) => match x {
-            Type::Module(declarations) => infer_module(declarations, property, allowed_kind),
+            types::Type::Module(declarations) => {
+                infer_module(&declarations, property, allowed_kind)
+            }
 
-            Type::Enumerated(Enumerated::Declaration(variants)) => {
-                infer_enumerated(variants, property, &lhs)
+            types::Type::Enumerated(Enumerated::Declaration(variants)) => {
+                infer_enumerated(&variants, property, &lhs)
             }
 
             _ => Action::Raise(ResolveError::NotInferrable(vec![])),
@@ -61,125 +63,156 @@ mod tests {
             data::{Action, Type},
             state::State,
         },
+        Context, ModuleMap,
     };
     use kore::{assert_eq, str};
     use lang::{
         types::{self, Enumerated, Kind},
-        NodeId,
+        CanonicalId, NodeId,
     };
 
     #[test]
     fn infer_enum_variant() {
-        let state = State::from_types(vec![(
-            NodeId(1),
-            (
-                Kind::Value,
-                Ok(Type::Local(types::Type::Enumerated(
-                    Enumerated::Declaration(vec![(str!("foo"), vec![NodeId(2), NodeId(3)])]),
-                ))),
-            ),
-        )]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (
+                    Kind::Value,
+                    Ok(Type::Local(types::Type::Enumerated(
+                        Enumerated::Declaration(vec![(
+                            str!("foo"),
+                            vec![CanonicalId::mock(2), CanonicalId::mock(3)],
+                        )]),
+                    ))),
+                ),
+            )],
+        );
 
         assert_eq!(
-            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
             Action::Infer(Type::Local(types::Type::Enumerated(Enumerated::Variant(
-                vec![NodeId(2), NodeId(3)],
-                NodeId(1)
+                vec![CanonicalId::mock(2), CanonicalId::mock(3)],
+                CanonicalId::mock(1)
             ))))
         );
     }
 
     #[test]
     fn infer_enum_variant_not_inferrable() {
-        let state = State::from_types(vec![(
-            NodeId(1),
-            (
-                Kind::Value,
-                Ok(Type::Local(types::Type::Enumerated(
-                    Enumerated::Declaration(vec![]),
-                ))),
-            ),
-        )]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (
+                    Kind::Value,
+                    Ok(Type::Local(types::Type::Enumerated(
+                        Enumerated::Declaration(vec![]),
+                    ))),
+                ),
+            )],
+        );
 
         assert_eq!(
-            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
             Action::Raise(ResolveError::NotInferrable(vec![]))
         );
     }
 
     #[test]
     fn infer_module_entry() {
-        let state = State::from_types(vec![(
-            NodeId(1),
-            (
-                Kind::Value,
-                Ok(Type::Local(types::Type::Module(vec![(
-                    str!("foo"),
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (
                     Kind::Value,
-                    NodeId(2),
-                )]))),
-            ),
-        )]);
+                    Ok(Type::Local(types::Type::Module(vec![(
+                        str!("foo"),
+                        Kind::Value,
+                        CanonicalId::mock(2),
+                    )]))),
+                ),
+            )],
+        );
 
         assert_eq!(
-            super::infer(&state, NodeId(1), "foo", &Kind::Value),
-            Action::Infer(Type::Inherit(NodeId(2)))
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
+            Action::Infer(Type::Inherit(CanonicalId::mock(2)))
         );
     }
 
     #[test]
     fn infer_module_entry_not_inferrable() {
-        let state = State::from_types(vec![(
-            NodeId(1),
-            (
-                Kind::Value,
-                Ok(Type::Local(types::Type::Module(vec![(
-                    str!("foo"),
-                    Kind::Type,
-                    NodeId(2),
-                )]))),
-            ),
-        )]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (
+                    Kind::Value,
+                    Ok(Type::Local(types::Type::Module(vec![(
+                        str!("foo"),
+                        Kind::Type,
+                        CanonicalId::mock(2),
+                    )]))),
+                ),
+            )],
+        );
 
         assert_eq!(
-            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
             Action::Raise(ResolveError::NotInferrable(vec![]))
         );
         assert_eq!(
-            super::infer(&state, NodeId(1), "bar", &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1), "bar", &Kind::Value),
             Action::Raise(ResolveError::NotInferrable(vec![]))
         );
     }
 
     #[test]
     fn skip() {
-        let state = State::from_types(vec![]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(&ctx, vec![]);
 
         assert_eq!(
-            super::infer(&state, NodeId(1), "foo", &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
             Action::Skip
         );
     }
 
     #[test]
     fn not_inferrable() {
-        let state = State::from_types(vec![
-            (
-                NodeId(1),
-                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
-            ),
-            (
-                NodeId(2),
-                (Kind::Value, Ok(Type::Local(types::Type::String))),
-            ),
-        ]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![
+                (
+                    NodeId(1),
+                    (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
+                ),
+                (
+                    NodeId(2),
+                    (Kind::Value, Ok(Type::Local(types::Type::String))),
+                ),
+            ],
+        );
 
         assert_eq!(
-            super::infer(&state, NodeId(1), "foo", &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![NodeId(1)]))
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
+            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(1)]))
         );
         assert_eq!(
-            super::infer(&state, NodeId(2), "foo", &Kind::Value),
+            super::infer(&state, CanonicalId::mock(2), "foo", &Kind::Value),
             Action::Raise(ResolveError::NotInferrable(vec![]))
         );
     }

@@ -1,8 +1,10 @@
-use super::{
-    data::{Inference, Type, Weak},
-    ToWeak,
-};
+use super::data::{Inference, Type, Weak};
 use lang::{ast, types::Kind, Fragment, NodeId};
+
+pub trait ToWeak {
+    /// infer the weak type of an AST fragment
+    fn to_weak(&self) -> Weak;
+}
 
 impl ToWeak for Fragment {
     fn to_weak(&self) -> Weak {

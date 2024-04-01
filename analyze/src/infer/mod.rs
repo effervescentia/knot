@@ -3,11 +3,13 @@ pub mod strong;
 pub mod weak;
 
 pub use bindings::BindingMap;
-use lang::{types::Kind, NodeId, ScopeId};
+use kore::invariant;
+use lang::{types::Kind, CanonicalId, NodeId, ScopeId};
 
+/// interchange format between weak and strong inference phases
 #[derive(Clone, Debug, PartialEq)]
 pub struct NodeDescriptor {
-    pub id: NodeId,
+    pub id: CanonicalId,
 
     pub scope: ScopeId,
 
@@ -17,9 +19,13 @@ pub struct NodeDescriptor {
 }
 
 impl NodeDescriptor {
-    pub fn into_inherit_from(self, from_id: NodeId) -> Self {
+    pub fn into_inherit_from(self, from_id: CanonicalId) -> Self {
+        if self.id.0 == from_id.0 {
+            invariant!("redirecting inheritance outside of the target module")
+        }
+
         Self {
-            weak: weak::Type::Inherit(from_id),
+            weak: weak::Type::Inherit(from_id.1),
             ..self
         }
     }
@@ -27,7 +33,7 @@ impl NodeDescriptor {
 
 impl bindings::ResolveTarget for NodeDescriptor {
     fn id(&self) -> &NodeId {
-        &self.id
+        &self.id.1
     }
 
     fn scope(&self) -> &ScopeId {

@@ -3,10 +3,14 @@ use super::{
     state::State,
 };
 use crate::error::ResolveError;
-use lang::{types::Kind, NodeId};
+use lang::{types::Kind, CanonicalId};
 
-pub fn inherit(state: &State, from_id: NodeId, from_kind: &Kind) -> Action {
-    match state.get_type(&from_id, from_kind) {
+pub fn inherit(state: &State, from_id: CanonicalId, from_kind: &Kind) -> Action {
+    if !state.is_local(&from_id) {
+        return Action::Infer(Type::Inherit(from_id));
+    }
+
+    match state.get_type(&from_id.1, from_kind) {
         Some(Ok(Type::Inherit(next_from_id))) => inherit(state, *next_from_id, &Kind::Mixed),
 
         Some(Ok(_)) => Action::Infer(Type::Inherit(from_id)),
@@ -25,63 +29,87 @@ mod tests {
             data::{Action, Type},
             state::State,
         },
+        Context, ModuleMap,
     };
     use kore::assert_eq;
     use lang::{
         types::{self, Kind},
-        NodeId,
+        CanonicalId, NodeId,
     };
 
     #[test]
     fn inherit_and_skip() {
-        let state = State::from_types(vec![]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(&ctx, vec![]);
 
         assert_eq!(
-            super::inherit(&state, NodeId(1), &Kind::Value),
-            Action::InheritAndSkip(NodeId(1))
+            super::inherit(&state, CanonicalId::mock(1), &Kind::Value),
+            Action::InheritAndSkip(CanonicalId::mock(1))
         );
     }
 
     #[test]
     fn inherit() {
-        let state = State::from_types(vec![(
-            NodeId(1),
-            (Kind::Value, Ok(Type::Local(types::Type::Integer))),
-        )]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+            )],
+        );
 
         assert_eq!(
-            super::inherit(&state, NodeId(1), &Kind::Value),
-            Action::Infer(Type::Inherit(NodeId(1)))
+            super::inherit(&state, CanonicalId::mock(1), &Kind::Value),
+            Action::Infer(Type::Inherit(CanonicalId::mock(1)))
         );
     }
 
     #[test]
     fn recursive_inherit() {
-        let state = State::from_types(vec![
-            (NodeId(1), (Kind::Value, Ok(Type::Inherit(NodeId(2))))),
-            (NodeId(2), (Kind::Value, Ok(Type::Inherit(NodeId(3))))),
-            (
-                NodeId(3),
-                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
-            ),
-        ]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![
+                (
+                    NodeId(1),
+                    (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(2)))),
+                ),
+                (
+                    NodeId(2),
+                    (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(3)))),
+                ),
+                (
+                    NodeId(3),
+                    (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                ),
+            ],
+        );
 
         assert_eq!(
-            super::inherit(&state, NodeId(1), &Kind::Value),
-            Action::Infer(Type::Inherit(NodeId(3)))
+            super::inherit(&state, CanonicalId::mock(1), &Kind::Value),
+            Action::Infer(Type::Inherit(CanonicalId::mock(3)))
         );
     }
 
     #[test]
     fn not_inferrable() {
-        let state = State::from_types(vec![(
-            NodeId(1),
-            (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
-        )]);
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
+            )],
+        );
 
         assert_eq!(
-            super::inherit(&state, NodeId(1), &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![NodeId(1)]))
+            super::inherit(&state, CanonicalId::mock(1), &Kind::Value),
+            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(1)]))
         );
     }
 }

@@ -1,9 +1,15 @@
 pub use super::meta::Binding;
-use crate::types;
+use crate::{types, CanonicalId};
 use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Type(pub types::Type<Rc<Type>>);
+pub struct Type(pub types::Type<Rc<(CanonicalId, Type)>>);
+
+impl Type {
+    pub fn to_canonical(&self) -> types::Type<CanonicalId> {
+        self.0.map(&|x| x.0)
+    }
+}
 
 pub type Storage = super::Storage<Binding>;
 pub type Expression = super::meta::Expression<Type>;

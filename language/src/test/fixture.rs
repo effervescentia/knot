@@ -1,5 +1,5 @@
 use super::nil_range::NilRange;
-use crate::{ast, types, Fragment, NodeId, Range, ScopeId};
+use crate::{ast, types, CanonicalId, Fragment, NodeId, Range, ScopeId};
 use kore::str;
 use std::{
     collections::{BTreeSet, HashMap},
@@ -346,8 +346,8 @@ pub mod enumerated {
                 (
                     str!("Render"),
                     vec![
-                        Rc::new(ast::typed::Type(types::Type::Boolean)),
-                        Rc::new(ast::typed::Type(types::Type::Style)),
+                        Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Boolean))),
+                        Rc::new((CanonicalId::mock(1), ast::typed::Type(types::Type::Style))),
                     ],
                 ),
             ],
@@ -617,11 +617,11 @@ pub mod function {
     pub fn type_of() -> ast::typed::Type {
         ast::typed::Type(types::Type::Function(
             vec![
-                Rc::new(ast::typed::Type(types::Type::Integer)),
-                Rc::new(ast::typed::Type(types::Type::Integer)),
-                Rc::new(ast::typed::Type(types::Type::Boolean)),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Integer))),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Integer))),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Boolean))),
             ],
-            Rc::new(ast::typed::Type(types::Type::Boolean)),
+            Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Boolean))),
         ))
     }
 
@@ -1012,8 +1012,9 @@ pub mod view {
     }
 
     pub fn type_of() -> ast::typed::Type {
-        ast::typed::Type(types::Type::View(vec![Rc::new(ast::typed::Type(
-            types::Type::Element,
+        ast::typed::Type(types::Type::View(vec![Rc::new((
+            CanonicalId::mock(0),
+            ast::typed::Type(types::Type::Element),
         ))]))
     }
 
@@ -1056,13 +1057,13 @@ pub mod view {
                                             ast::Expression::Primitive(ast::Primitive::Float(
                                                 45.67, 2,
                                             )),
-                                            ast::typed::Type(types::Type::Integer),
+                                            ast::typed::Type(types::Type::Float),
                                         )),
                                     ),
                                     ast::typed::Type(types::Type::Float),
                                 ),
                             ),
-                            ast::typed::Type(types::Type::Float),
+                            ast::typed::Type(types::Type::Nil),
                         ),
                         ast::typed::Statement::typed(
                             ast::Statement::Expression(ast::typed::Expression::typed(
@@ -1123,9 +1124,9 @@ pub mod view {
                                     ]),
                                     ast::typed::Type(types::Type::Element),
                                 ))),
-                                ast::typed::Type(types::Type::Float),
+                                ast::typed::Type(types::Type::Element),
                             )),
-                            ast::typed::Type(types::Type::Float),
+                            ast::typed::Type(types::Type::Element),
                         ),
                     ]),
                     ast::typed::Type(types::Type::Element),
@@ -1312,7 +1313,7 @@ pub mod module {
         ast::typed::Type(types::Type::Module(vec![(
             str!("MY_STYLE"),
             Kind::Value,
-            Rc::new(ast::typed::Type(types::Type::Style)),
+            Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Style))),
         )]))
     }
 

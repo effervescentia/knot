@@ -21,23 +21,28 @@ pub enum Enumerated<T> {
 }
 
 impl<T> Enumerated<T> {
-    pub fn to_shape(&self) -> Enumerated<()> {
+    pub fn map<R, F>(&self, f: &F) -> Enumerated<R>
+    where
+        F: Fn(&T) -> R,
+    {
         match self {
             Self::Declaration(variants) => Enumerated::Declaration(
                 variants
                     .iter()
-                    .map(|(name, parameters)| {
-                        (name.clone(), parameters.iter().map(|_| ()).collect())
-                    })
+                    .map(|(name, parameters)| (name.clone(), parameters.iter().map(f).collect()))
                     .collect(),
             ),
 
-            Self::Variant(parameters, _) => {
-                Enumerated::Variant(parameters.iter().map(|_| ()).collect(), ())
+            Self::Variant(parameters, instance) => {
+                Enumerated::Variant(parameters.iter().map(f).collect(), f(instance))
             }
 
-            Self::Instance(_) => Enumerated::Instance(()),
+            Self::Instance(x) => Enumerated::Instance(f(x)),
         }
+    }
+
+    pub fn to_shape(&self) -> Enumerated<()> {
+        self.map(&|_| ())
     }
 }
 
@@ -58,7 +63,10 @@ pub enum Type<T> {
 }
 
 impl<T> Type<T> {
-    pub fn to_shape(&self) -> Type<()> {
+    pub fn map<R, F>(&self, f: &F) -> Type<R>
+    where
+        F: Fn(&T) -> R,
+    {
         match self {
             Self::Nil => Type::Nil,
             Self::Boolean => Type::Boolean,
@@ -68,20 +76,24 @@ impl<T> Type<T> {
             Self::Style => Type::Style,
             Self::Element => Type::Element,
 
-            Self::Enumerated(x) => Type::Enumerated(x.to_shape()),
+            Self::Enumerated(x) => Type::Enumerated(x.map(f)),
 
-            Self::Function(parameters, _) => {
-                Type::Function(parameters.iter().map(|_| ()).collect(), ())
+            Self::Function(parameters, result) => {
+                Type::Function(parameters.iter().map(f).collect(), f(result))
             }
 
-            Self::View(parameters) => Type::View(parameters.iter().map(|_| ()).collect()),
+            Self::View(parameters) => Type::View(parameters.iter().map(f).collect()),
 
-            Self::Module(entities) => Type::Module(
-                entities
+            Self::Module(declarations) => Type::Module(
+                declarations
                     .iter()
-                    .map(|(name, kind, _)| (name.clone(), *kind, ()))
+                    .map(|(name, kind, x)| (name.clone(), *kind, f(x)))
                     .collect(),
             ),
         }
+    }
+
+    pub fn to_shape(&self) -> Type<()> {
+        self.map(&|_| ())
     }
 }

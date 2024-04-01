@@ -5,9 +5,10 @@ mod state;
 mod validate;
 mod write;
 
+use analyze::ModuleMap;
 use bimap::BiMap;
-use kore::{invariant, Generator};
-use lang::ast;
+use kore::{invariant, Generator, Incrementor};
+use lang::{ast, NamespaceId};
 use link::ImportGraph;
 pub use link::Link;
 pub use report::{CodeFrame, Error, Reporter};
@@ -290,15 +291,17 @@ where
 
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
         self.then(|state, _| {
+            let mut namespace_id = Incrementor::default();
             let mut analyzed = HashMap::new();
-            let module_types = HashMap::new();
+            let modules = ModuleMap::default();
 
             for id in state.graph.iter() {
                 let (link, state::Module { id, text, ast }) = Self::get_module(&state, &id);
                 let module_reference = link.clone().to_namespace();
                 let context = analyze::Context {
+                    namespace_id: NamespaceId(namespace_id.increment()),
                     namespace: &module_reference,
-                    modules: &module_types,
+                    modules: &modules,
                 };
                 let typed = analyze::analyze(&context, ast.clone())
                     .unwrap_or_else(|_| unimplemented!("need to handle errors"));

@@ -11,6 +11,14 @@ pub enum NamespaceKind {
 pub struct Namespace(pub NamespaceKind, pub Vec<String>);
 
 impl Namespace {
+    #[cfg(feature = "test")]
+    pub const MOCK: &Self = &Self(NamespaceKind::Internal, vec![]);
+
+    #[cfg(feature = "test")]
+    pub fn mock() -> Self {
+        Self(NamespaceKind::Internal, vec![])
+    }
+
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self
     where
         P: AsRef<Path>,

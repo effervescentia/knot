@@ -1,21 +1,17 @@
+mod context;
 mod error;
 #[cfg(test)]
 mod fixture;
 mod infer;
 mod into_typed;
 
+pub use context::{Context, ModuleMap};
 use error::ResolveError;
 use into_typed::Visitor;
-use lang::{ast, Namespace, NodeId};
-use std::{collections::HashMap, rc::Rc};
+use lang::{ast, NodeId};
 
+/// analysis result with possible resolution errors
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, ResolveError)>>;
-
-pub struct Context<'a> {
-    pub namespace: &'a Namespace,
-
-    pub modules: &'a HashMap<Namespace, Rc<ast::typed::Type>>,
-}
 
 pub fn analyze<Raw>(ctx: &Context, raw: Raw) -> Result<ast::typed::Program>
 where
@@ -35,14 +31,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{fixture, Context};
+    use crate::{fixture, Context, ModuleMap};
     use kore::{assert_eq, str};
     use lang::{
         ast,
         types::{Kind, Type},
-        Namespace, NamespaceKind, Node,
+        CanonicalId, Namespace, NamespaceKind, Node,
     };
-    use std::{collections::HashMap, rc::Rc};
+    use std::rc::Rc;
 
     fn program(
         imports: Vec<ast::raw::Import>,
@@ -56,9 +52,10 @@ mod tests {
 
     #[test]
     fn empty_module() {
+        let modules = ModuleMap::default();
         let ctx = Context {
             namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
+            ..Context::mock(&modules)
         };
         let raw = program(vec![], vec![]);
 
@@ -71,15 +68,12 @@ mod tests {
         );
     }
 
-    #[ignore = "not implemented"]
-    #[test]
-    fn import() {}
-
     #[test]
     fn type_alias() {
+        let modules = ModuleMap::default();
         let ctx = Context {
             namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
+            ..Context::mock(&modules)
         };
         let raw = program(vec![], vec![fixture::type_alias::mock()]);
 
@@ -90,7 +84,7 @@ mod tests {
                 ast::typed::Type(Type::Module(vec![(
                     str!("MyTypeAlias"),
                     Kind::Type,
-                    Rc::new(fixture::type_alias::type_of())
+                    Rc::new((CanonicalId::mock(0), fixture::type_alias::type_of()))
                 )]))
             ))))
         );
@@ -98,9 +92,10 @@ mod tests {
 
     #[test]
     fn constant() {
+        let modules = ModuleMap::default();
         let ctx = Context {
             namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
+            ..Context::mock(&modules)
         };
         let raw = program(vec![], vec![fixture::constant::mock()]);
 
@@ -111,7 +106,7 @@ mod tests {
                 ast::typed::Type(Type::Module(vec![(
                     str!("MY_CONSTANT"),
                     Kind::Value,
-                    Rc::new(fixture::constant::type_of())
+                    Rc::new((CanonicalId::mock(0), fixture::constant::type_of()))
                 )]))
             ))))
         );
@@ -119,9 +114,10 @@ mod tests {
 
     #[test]
     fn enumerated() {
+        let modules = ModuleMap::default();
         let ctx = Context {
             namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
+            ..Context::mock(&modules)
         };
         let raw = program(vec![], vec![fixture::enumerated::mock()]);
 
@@ -132,7 +128,7 @@ mod tests {
                 ast::typed::Type(Type::Module(vec![(
                     str!("MyEnum"),
                     Kind::Mixed,
-                    Rc::new(fixture::enumerated::type_of())
+                    Rc::new((CanonicalId::mock(2), fixture::enumerated::type_of()))
                 )]))
             ))))
         );
@@ -141,9 +137,10 @@ mod tests {
     #[ignore = "parameter inference not implemented"]
     #[test]
     fn function() {
+        let modules = ModuleMap::default();
         let ctx = Context {
             namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
+            ..Context::mock(&modules)
         };
         let raw = program(vec![], vec![fixture::function::mock()]);
 
@@ -154,18 +151,18 @@ mod tests {
                 ast::typed::Type(Type::Module(vec![(
                     str!("MyEnum"),
                     Kind::Mixed,
-                    Rc::new(fixture::function::type_of())
+                    Rc::new((CanonicalId::mock(0), fixture::function::type_of()))
                 )]))
             ))))
         );
     }
 
-    #[ignore = "reason"]
     #[test]
     fn view() {
+        let modules = ModuleMap::default();
         let ctx = Context {
             namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
+            ..Context::mock(&modules)
         };
         let raw = program(vec![], vec![fixture::view::mock()]);
 
@@ -173,7 +170,11 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::view::typed()]),
-                ast::typed::Type(Type::View(vec![Rc::new(ast::typed::Type(Type::Element))]))
+                ast::typed::Type(Type::Module(vec![(
+                    str!("MyView"),
+                    Kind::Value,
+                    Rc::new((CanonicalId::mock(20), fixture::view::type_of()))
+                )]))
             ))))
         );
     }
@@ -181,9 +182,10 @@ mod tests {
     #[ignore = "import inference not implemented"]
     #[test]
     fn module() {
+        let modules = ModuleMap::default();
         let ctx = Context {
             namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
+            ..Context::mock(&modules)
         };
         let raw = program(vec![], vec![fixture::module::mock()]);
 
@@ -194,7 +196,7 @@ mod tests {
                 ast::typed::Type(Type::Module(vec![(
                     str!("my_module"),
                     Kind::Mixed,
-                    Rc::new(fixture::module::type_of())
+                    Rc::new((CanonicalId::mock(0), fixture::module::type_of()))
                 )]))
             ))))
         );

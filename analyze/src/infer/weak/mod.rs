@@ -3,21 +3,18 @@ mod declaration;
 mod expression;
 mod to_weak;
 
-pub use data::{Inference, Result, Type, Weak};
+pub use data::{Inference, Output, Type, Weak};
 use lang::FragmentMap;
+use to_weak::ToWeak;
 
-pub trait ToWeak {
-    fn to_weak(&self) -> Weak;
-}
-
-pub fn infer_types(fragments: &FragmentMap) -> Result {
-    let mut result = Result::new(fragments);
+pub fn infer_types(fragments: &FragmentMap) -> Output {
+    let mut output = Output::new(fragments);
 
     for (id, (scope, fragment)) in fragments {
-        result.types.insert(*id, fragment.to_weak());
+        output.types.insert(*id, fragment.to_weak());
 
         if let Some((name, from_id)) = fragment.to_binding() {
-            result
+            output
                 .bindings
                 .0
                 .entry((scope.clone(), name))
@@ -26,14 +23,14 @@ pub fn infer_types(fragments: &FragmentMap) -> Result {
         }
     }
 
-    result
+    output
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
         fixture,
-        infer::{weak::Result, BindingMap},
+        infer::{weak::Output, BindingMap},
     };
     use kore::assert_eq;
     use std::collections::BTreeMap;
@@ -44,7 +41,7 @@ mod tests {
 
         assert_eq!(
             super::infer_types(&fragments),
-            Result {
+            Output {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::import::bindings()),
                 types: fixture::import::weak_types(),
@@ -58,7 +55,7 @@ mod tests {
 
         assert_eq!(
             super::infer_types(&fragments),
-            Result {
+            Output {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::type_alias::bindings()),
                 types: fixture::type_alias::weak_types(),
@@ -72,7 +69,7 @@ mod tests {
 
         assert_eq!(
             super::infer_types(&fragments),
-            Result {
+            Output {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::constant::bindings()),
                 types: fixture::constant::weak_types(),
@@ -86,7 +83,7 @@ mod tests {
 
         assert_eq!(
             super::infer_types(&fragments),
-            Result {
+            Output {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::enumerated::bindings()),
                 types: fixture::enumerated::weak_types()
@@ -100,7 +97,7 @@ mod tests {
 
         assert_eq!(
             super::infer_types(&fragments),
-            Result {
+            Output {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::function::bindings()),
                 types: fixture::function::weak_types()
@@ -114,7 +111,7 @@ mod tests {
 
         assert_eq!(
             super::infer_types(&fragments),
-            Result {
+            Output {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::view::bindings()),
                 types: fixture::view::weak_types(),
@@ -128,7 +125,7 @@ mod tests {
 
         assert_eq!(
             super::infer_types(&fragments),
-            Result {
+            Output {
                 fragments: &fragments,
                 bindings: BindingMap(fixture::module::bindings()),
                 types: fixture::module::weak_types(),

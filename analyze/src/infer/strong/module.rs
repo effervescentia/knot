@@ -3,7 +3,7 @@ use super::{
     state::State,
 };
 use kore::invariant;
-use lang::{types, Fragment, NodeId};
+use lang::{types, Canonicalize, Fragment, NodeId};
 
 pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
     let typed_declarations = declarations
@@ -12,7 +12,7 @@ pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
             (_, Fragment::Declaration(declaration)) => {
                 let (kind, _) = state.types.get(x)?;
 
-                Some((declaration.binding().clone(), *kind, *x))
+                Some((declaration.binding().clone(), *kind, state.canonicalize(*x)))
             }
 
             _ => invariant!("fragment should not appear as a child of module"),
@@ -28,38 +28,37 @@ pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
 mod tests {
     use crate::{
         error::ResolveError,
-        infer::{
-            strong::{
-                data::{Action, Type},
-                state::State,
-            },
-            BindingMap,
+        infer::strong::{
+            data::{Action, Type},
+            state::State,
         },
+        Context, ModuleMap,
     };
     use kore::{assert_eq, str};
     use lang::{
         ast,
         types::{self, Kind},
-        Fragment, NodeId, ScopeId,
+        CanonicalId, Fragment, NodeId, ScopeId,
     };
     use std::collections::BTreeMap;
 
     #[allow(clippy::type_complexity)]
-    fn mock_state(
-        fragments: &BTreeMap<NodeId, (ScopeId, Fragment)>,
+    fn mock_state<'a>(
+        ctx: &'a Context,
+        fragments: &'a BTreeMap<NodeId, (ScopeId, Fragment)>,
         types: Vec<(NodeId, (Kind, Result<Type, ResolveError>))>,
-    ) -> State {
+    ) -> State<'a> {
         State {
             fragments,
-            bindings: BindingMap::default(),
-            nodes: vec![],
             types: BTreeMap::from_iter(types),
-            warnings: vec![],
+            ..State::mock(ctx)
         }
     }
 
     #[test]
     fn infer_module() {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
         let fragments = BTreeMap::from_iter(vec![
             (
                 NodeId(1),
@@ -84,6 +83,7 @@ mod tests {
             ),
         ]);
         let state = mock_state(
+            &ctx,
             &fragments,
             vec![
                 (
@@ -100,14 +100,16 @@ mod tests {
         assert_eq!(
             super::infer(&state, &[NodeId(1), NodeId(3)]),
             Action::Infer(Type::Local(types::Type::Module(vec![
-                (str!("Foo"), Kind::Type, NodeId(1)),
-                (str!("BAR"), Kind::Value, NodeId(3))
+                (str!("Foo"), Kind::Type, CanonicalId::mock(1)),
+                (str!("BAR"), Kind::Value, CanonicalId::mock(3))
             ])))
         );
     }
 
     #[test]
     fn skip() {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
         let fragments = BTreeMap::from_iter(vec![
             (
                 NodeId(1),
@@ -131,6 +133,7 @@ mod tests {
             ),
         ]);
         let state = mock_state(
+            &ctx,
             &fragments,
             vec![(
                 NodeId(3),

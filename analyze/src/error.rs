@@ -1,4 +1,4 @@
-use lang::NodeId;
+use lang::CanonicalId;
 
 // #[derive(Clone, Debug, PartialEq)]
 // pub enum ExpectedShape {
@@ -8,9 +8,9 @@ use lang::NodeId;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ResolveError {
-    NotInferrable(Vec<NodeId>),
+    NotInferrable(Vec<CanonicalId>),
 
-    NotFound(String, NodeId),
+    NotFound(String, CanonicalId),
 }
 
 // #[derive(Clone, Debug, PartialEq)]

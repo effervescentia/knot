@@ -12,12 +12,12 @@ mod reference;
 mod state;
 
 use super::{weak, NodeDescriptor};
-use crate::Context;
-pub use data::{Output, Result};
+use crate::{Context, Result};
+pub use data::Output;
 use state::State;
 
-pub fn infer_types(ctx: &Context, weak: weak::Result) -> Result {
-    let mut state = State::from_weak(weak);
+pub fn infer_types(ctx: &Context, weak: weak::Output) -> Result<Output> {
+    let mut state = State::from_weak(ctx, weak);
 
     while !state.is_done() {
         state = partial::infer_types(ctx, state);
@@ -31,12 +31,13 @@ mod tests {
     use crate::{
         fixture,
         infer::{weak, BindingMap},
+        Context, ModuleMap,
     };
     use kore::{assert_eq, str};
     use lang::{
         ast,
         types::{Enumerated, Type},
-        Namespace, NamespaceKind, NodeId,
+        CanonicalId, NodeId,
     };
     use std::{
         cell::OnceCell,
@@ -44,19 +45,20 @@ mod tests {
         rc::Rc,
     };
 
-    fn type_(type_: Type<Rc<ast::typed::Type>>) -> Rc<ast::typed::Type> {
-        Rc::new(ast::typed::Type(type_))
+    fn type_(
+        id: usize,
+        type_: Type<Rc<(CanonicalId, ast::typed::Type)>>,
+    ) -> Rc<(CanonicalId, ast::typed::Type)> {
+        Rc::new((CanonicalId::mock(id), ast::typed::Type(type_)))
     }
 
     #[ignore = "import inference not implemented"]
     #[test]
     fn import() {
         let fragments = BTreeMap::from_iter(fixture::import::fragments());
-        let ctx = crate::Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
-        };
-        let weak = weak::Result {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap(fixture::import::bindings()),
             types: fixture::import::weak_types(),
@@ -65,7 +67,10 @@ mod tests {
         assert_eq!(
             super::infer_types(&ctx, weak),
             Ok(super::Output {
-                types: HashMap::from_iter(vec![(NodeId(0), OnceCell::from(type_(Type::Integer)))]),
+                types: HashMap::from_iter(vec![(
+                    NodeId(0),
+                    OnceCell::from(type_(0, Type::Integer))
+                )]),
             })
         );
     }
@@ -73,11 +78,9 @@ mod tests {
     #[test]
     fn type_alias() {
         let fragments = BTreeMap::from_iter(fixture::type_alias::fragments());
-        let ctx = crate::Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
-        };
-        let weak = weak::Result {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap(fixture::type_alias::bindings()),
             types: fixture::type_alias::weak_types(),
@@ -87,8 +90,8 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(Type::Nil))),
-                    (NodeId(1), OnceCell::from(type_(Type::Nil)))
+                    (NodeId(0), OnceCell::from(type_(0, Type::Nil))),
+                    (NodeId(1), OnceCell::from(type_(0, Type::Nil)))
                 ]),
             })
         );
@@ -97,11 +100,9 @@ mod tests {
     #[test]
     fn constant() {
         let fragments = BTreeMap::from_iter(fixture::constant::fragments());
-        let ctx = crate::Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
-        };
-        let weak = weak::Result {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap(fixture::constant::bindings()),
             types: fixture::constant::weak_types(),
@@ -111,9 +112,9 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(Type::String))),
-                    (NodeId(1), OnceCell::from(type_(Type::String))),
-                    (NodeId(2), OnceCell::from(type_(Type::String)))
+                    (NodeId(0), OnceCell::from(type_(0, Type::String))),
+                    (NodeId(1), OnceCell::from(type_(1, Type::String))),
+                    (NodeId(2), OnceCell::from(type_(0, Type::String)))
                 ]),
             })
         );
@@ -122,11 +123,9 @@ mod tests {
     #[test]
     fn enumerated() {
         let fragments = BTreeMap::from_iter(fixture::enumerated::fragments());
-        let ctx = crate::Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
-        };
-        let weak = weak::Result {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap(fixture::enumerated::bindings()),
             types: fixture::enumerated::weak_types(),
@@ -136,17 +135,20 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(Type::Boolean))),
-                    (NodeId(1), OnceCell::from(type_(Type::Style))),
+                    (NodeId(0), OnceCell::from(type_(0, Type::Boolean))),
+                    (NodeId(1), OnceCell::from(type_(1, Type::Style))),
                     (
                         NodeId(2),
-                        OnceCell::from(type_(Type::Enumerated(Enumerated::Declaration(vec![
-                            (str!("Empty"), vec![]),
-                            (
-                                str!("Render"),
-                                vec![type_(Type::Boolean), type_(Type::Style)]
-                            ),
-                        ]))))
+                        OnceCell::from(type_(
+                            2,
+                            Type::Enumerated(Enumerated::Declaration(vec![
+                                (str!("Empty"), vec![]),
+                                (
+                                    str!("Render"),
+                                    vec![type_(0, Type::Boolean), type_(1, Type::Style)]
+                                ),
+                            ]))
+                        ))
                     ),
                 ]),
             })
@@ -157,11 +159,9 @@ mod tests {
     #[test]
     fn function() {
         let fragments = BTreeMap::from_iter(fixture::function::fragments());
-        let ctx = crate::Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
-        };
-        let weak = weak::Result {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap(fixture::function::bindings()),
             types: fixture::function::weak_types(),
@@ -171,17 +171,20 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(Type::Boolean))),
-                    (NodeId(1), OnceCell::from(type_(Type::Style))),
+                    (NodeId(0), OnceCell::from(type_(0, Type::Boolean))),
+                    (NodeId(1), OnceCell::from(type_(1, Type::Style))),
                     (
                         NodeId(2),
-                        OnceCell::from(type_(Type::Enumerated(Enumerated::Declaration(vec![
-                            (str!("Empty"), vec![]),
-                            (
-                                str!("Render"),
-                                vec![type_(Type::Boolean), type_(Type::Style)]
-                            ),
-                        ]))))
+                        OnceCell::from(type_(
+                            2,
+                            Type::Enumerated(Enumerated::Declaration(vec![
+                                (str!("Empty"), vec![]),
+                                (
+                                    str!("Render"),
+                                    vec![type_(0, Type::Boolean), type_(1, Type::Style)]
+                                ),
+                            ]))
+                        ))
                     ),
                 ]),
             })
@@ -191,11 +194,9 @@ mod tests {
     #[test]
     fn view() {
         let fragments = BTreeMap::from_iter(fixture::view::fragments());
-        let ctx = crate::Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
-        };
-        let weak = weak::Result {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap(fixture::view::bindings()),
             types: fixture::view::weak_types(),
@@ -205,29 +206,35 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(Type::Element))),
-                    (NodeId(1), OnceCell::from(type_(Type::Element))),
-                    (NodeId(2), OnceCell::from(type_(Type::Element))),
-                    (NodeId(3), OnceCell::from(type_(Type::Element))),
-                    (NodeId(4), OnceCell::from(type_(Type::Integer))),
-                    (NodeId(5), OnceCell::from(type_(Type::Float))),
-                    (NodeId(6), OnceCell::from(type_(Type::Float))),
-                    (NodeId(7), OnceCell::from(type_(Type::Nil))),
-                    (NodeId(8), OnceCell::from(type_(Type::String))),
-                    (NodeId(9), OnceCell::from(type_(Type::Element))),
-                    (NodeId(10), OnceCell::from(type_(Type::Float))),
-                    (NodeId(11), OnceCell::from(type_(Type::Float))),
-                    (NodeId(12), OnceCell::from(type_(Type::String))),
-                    (NodeId(13), OnceCell::from(type_(Type::Element))),
-                    (NodeId(14), OnceCell::from(type_(Type::Element))),
-                    (NodeId(15), OnceCell::from(type_(Type::Element))),
-                    (NodeId(16), OnceCell::from(type_(Type::Element))),
-                    (NodeId(17), OnceCell::from(type_(Type::Element))),
-                    (NodeId(18), OnceCell::from(type_(Type::Element))),
-                    (NodeId(19), OnceCell::from(type_(Type::Element))),
+                    (NodeId(0), OnceCell::from(type_(0, Type::Element))),
+                    (NodeId(1), OnceCell::from(type_(1, Type::Element))),
+                    (NodeId(2), OnceCell::from(type_(1, Type::Element))),
+                    (NodeId(3), OnceCell::from(type_(0, Type::Element))),
+                    (NodeId(4), OnceCell::from(type_(4, Type::Integer))),
+                    (NodeId(5), OnceCell::from(type_(5, Type::Float))),
+                    (NodeId(6), OnceCell::from(type_(6, Type::Float))),
+                    (NodeId(7), OnceCell::from(type_(7, Type::Nil))),
+                    (NodeId(8), OnceCell::from(type_(8, Type::String))),
+                    (NodeId(9), OnceCell::from(type_(9, Type::Element))),
+                    (NodeId(10), OnceCell::from(type_(6, Type::Float))),
+                    (NodeId(11), OnceCell::from(type_(6, Type::Float))),
+                    (NodeId(12), OnceCell::from(type_(12, Type::String))),
+                    (NodeId(13), OnceCell::from(type_(0, Type::Element))),
+                    (NodeId(14), OnceCell::from(type_(0, Type::Element))),
+                    (NodeId(15), OnceCell::from(type_(15, Type::Element))),
+                    (NodeId(16), OnceCell::from(type_(16, Type::Element))),
+                    (NodeId(17), OnceCell::from(type_(16, Type::Element))),
+                    (NodeId(18), OnceCell::from(type_(16, Type::Element))),
+                    (NodeId(19), OnceCell::from(type_(16, Type::Element))),
                     (
                         NodeId(20),
-                        OnceCell::from(type_(Type::View(vec![type_(Type::Element)])))
+                        OnceCell::from(type_(
+                            20,
+                            Type::View(vec![Rc::new((
+                                CanonicalId::mock(0),
+                                ast::typed::Type(Type::Element)
+                            ))])
+                        ))
                     ),
                 ]),
             })
@@ -238,11 +245,9 @@ mod tests {
     #[test]
     fn module() {
         let fragments = BTreeMap::from_iter(fixture::module::fragments());
-        let ctx = crate::Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            modules: &HashMap::new(),
-        };
-        let weak = weak::Result {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap(fixture::module::bindings()),
             types: fixture::module::weak_types(),
@@ -252,17 +257,20 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(Type::Boolean))),
-                    (NodeId(1), OnceCell::from(type_(Type::Style))),
+                    (NodeId(0), OnceCell::from(type_(0, Type::Boolean))),
+                    (NodeId(1), OnceCell::from(type_(1, Type::Style))),
                     (
                         NodeId(2),
-                        OnceCell::from(type_(Type::Enumerated(Enumerated::Declaration(vec![
-                            (str!("Empty"), vec![]),
-                            (
-                                str!("Render"),
-                                vec![type_(Type::Boolean), type_(Type::Style)]
-                            ),
-                        ]))))
+                        OnceCell::from(type_(
+                            2,
+                            Type::Enumerated(Enumerated::Declaration(vec![
+                                (str!("Empty"), vec![]),
+                                (
+                                    str!("Render"),
+                                    vec![type_(0, Type::Boolean), type_(1, Type::Style)]
+                                ),
+                            ]))
+                        ))
                     ),
                 ]),
             })
