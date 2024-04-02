@@ -141,7 +141,6 @@ mod tests {
                 NamespaceId(1),
                 (
                     CanonicalId(NamespaceId(1), NodeId(0)),
-                    ast::typed::Type(types::Type::Integer),
                     HashMap::from_iter(vec![(
                         CanonicalId(NamespaceId(1), NodeId(0)),
                         Rc::new((
@@ -489,6 +488,116 @@ mod tests {
                             Kind::Value,
                             Ok(Type::Local(types::Type::View(vec![CanonicalId::mock(3)])))
                         )
+                    ),
+                ]
+            )
+        );
+    }
+
+    #[test]
+    fn module() {
+        let fragments = BTreeMap::from_iter(fixture::module::fragments());
+        let modules = ModuleMap {
+            keys: HashMap::from_iter(vec![(
+                Namespace(NamespaceKind::Internal, vec![str!("theme")]),
+                NamespaceId(1),
+            )]),
+            by_key: HashMap::from_iter(vec![(
+                NamespaceId(1),
+                (
+                    CanonicalId(NamespaceId(1), NodeId(0)),
+                    HashMap::from_iter(vec![
+                        (
+                            CanonicalId(NamespaceId(1), NodeId(0)),
+                            Rc::new((
+                                CanonicalId(NamespaceId(1), NodeId(0)),
+                                ast::typed::Type(types::Type::Module(vec![(
+                                    str!("PRIMARY"),
+                                    Kind::Value,
+                                    Rc::new((
+                                        CanonicalId(NamespaceId(1), NodeId(1)),
+                                        ast::typed::Type(types::Type::String),
+                                    )),
+                                )])),
+                            )),
+                        ),
+                        (
+                            CanonicalId(NamespaceId(1), NodeId(1)),
+                            Rc::new((
+                                CanonicalId(NamespaceId(1), NodeId(1)),
+                                ast::typed::Type(types::Type::String),
+                            )),
+                        ),
+                    ]),
+                ),
+            )]),
+        };
+        let ctx = Context::mock(&modules);
+        let mut weak = weak::Output {
+            fragments: &fragments,
+            bindings: BindingMap::default(),
+            types: fixture::module::weak_types(),
+        };
+        let state = |nodes, types| State {
+            fragments: &fragments,
+            bindings: BindingMap(fixture::module::bindings()),
+            types: BTreeMap::from_iter(types),
+            nodes,
+            ..State::mock(&ctx)
+        };
+
+        assert_eq!(
+            super::infer_types(&ctx, state(weak.build_descriptors(NamespaceId(0)), vec![])),
+            state(
+                vec![],
+                vec![
+                    (
+                        NodeId(0),
+                        (
+                            Kind::Mixed,
+                            Ok(Type::Inherit(CanonicalId(NamespaceId(1), NodeId(0))))
+                        )
+                    ),
+                    (
+                        NodeId(1),
+                        (
+                            Kind::Value,
+                            Ok(Type::Inherit(CanonicalId(NamespaceId(1), NodeId(0))))
+                        )
+                    ),
+                    (
+                        NodeId(2),
+                        (
+                            Kind::Value,
+                            Ok(Type::Inherit(CanonicalId(NamespaceId(1), NodeId(1))))
+                        )
+                    ),
+                    (
+                        NodeId(3),
+                        (Kind::Value, Ok(Type::Local(types::Type::String)))
+                    ),
+                    (
+                        NodeId(4),
+                        (Kind::Value, Ok(Type::Local(types::Type::Style)))
+                    ),
+                    (
+                        NodeId(5),
+                        (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(4))))
+                    ),
+                    (
+                        NodeId(6),
+                        (
+                            Kind::Mixed,
+                            Ok(Type::Local(types::Type::Module(vec![(
+                                str!("MY_STYLE"),
+                                Kind::Value,
+                                CanonicalId::mock(5)
+                            )])))
+                        )
+                    ),
+                    (
+                        NodeId(7),
+                        (Kind::Mixed, Ok(Type::Inherit(CanonicalId::mock(6))))
                     ),
                 ]
             )

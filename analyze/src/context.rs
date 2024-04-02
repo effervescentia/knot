@@ -10,8 +10,6 @@ pub struct ModuleMap {
         NamespaceId,
         (
             CanonicalId,
-            // TODO: drop this since the type can be looked up in the table below with the ID above
-            ast::typed::Type,
             HashMap<CanonicalId, Rc<(CanonicalId, ast::typed::Type)>>,
         ),
     >,
@@ -19,9 +17,7 @@ pub struct ModuleMap {
 
 impl ModuleMap {
     pub fn resolve(&self, id: CanonicalId) -> Option<&Rc<(CanonicalId, ast::typed::Type)>> {
-        self.by_key
-            .get(&id.0)
-            .and_then(|(_, _, types)| types.get(&id))
+        self.by_key.get(&id.0).and_then(|(_, types)| types.get(&id))
     }
 
     pub fn resolve_module(
@@ -30,9 +26,7 @@ impl ModuleMap {
     ) -> Option<&Rc<(CanonicalId, ast::typed::Type)>> {
         let key = self.keys.get(namespace)?;
 
-        self.by_key
-            .get(key)
-            .and_then(|(id, _, types)| types.get(id))
+        self.by_key.get(key).and_then(|(id, types)| types.get(id))
     }
 }
 

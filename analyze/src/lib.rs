@@ -37,9 +37,9 @@ mod tests {
     use lang::{
         ast,
         types::{Kind, Type},
-        CanonicalId, Namespace, NamespaceKind, Node,
+        CanonicalId, Namespace, NamespaceId, NamespaceKind, Node, NodeId,
     };
-    use std::rc::Rc;
+    use std::{collections::HashMap, rc::Rc};
 
     fn program(
         imports: Vec<ast::raw::Import>,
@@ -180,10 +180,43 @@ mod tests {
         );
     }
 
-    #[ignore = "import inference not implemented"]
     #[test]
     fn module() {
-        let modules = ModuleMap::default();
+        let modules = ModuleMap {
+            keys: HashMap::from_iter(vec![(
+                Namespace(NamespaceKind::Internal, vec![str!("theme")]),
+                NamespaceId(1),
+            )]),
+            by_key: HashMap::from_iter(vec![(
+                NamespaceId(1),
+                (
+                    CanonicalId(NamespaceId(1), NodeId(0)),
+                    HashMap::from_iter(vec![
+                        (
+                            CanonicalId(NamespaceId(1), NodeId(0)),
+                            Rc::new((
+                                CanonicalId(NamespaceId(1), NodeId(0)),
+                                ast::typed::Type(Type::Module(vec![(
+                                    str!("PRIMARY"),
+                                    Kind::Value,
+                                    Rc::new((
+                                        CanonicalId(NamespaceId(1), NodeId(1)),
+                                        ast::typed::Type(Type::String),
+                                    )),
+                                )])),
+                            )),
+                        ),
+                        (
+                            CanonicalId(NamespaceId(1), NodeId(1)),
+                            Rc::new((
+                                CanonicalId(NamespaceId(1), NodeId(1)),
+                                ast::typed::Type(Type::String),
+                            )),
+                        ),
+                    ]),
+                ),
+            )]),
+        };
         let ctx = Context {
             namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
             ..Context::mock(&modules)
@@ -197,7 +230,7 @@ mod tests {
                 ast::typed::Type(Type::Module(vec![(
                     str!("my_module"),
                     Kind::Mixed,
-                    Rc::new((CanonicalId::mock(0), fixture::module::type_of()))
+                    Rc::new((CanonicalId::mock(6), fixture::module::type_of()))
                 )]))
             ))))
         );

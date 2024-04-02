@@ -4,10 +4,6 @@ use super::{data::Action, inherit, state::State};
 use crate::{error::ResolveError, infer::NodeDescriptor};
 
 pub fn infer(state: &State, name: &str, node: &NodeDescriptor) -> Action {
-    println!(
-        "RESOLVING INFERENCE {name} {node:?} {:?}",
-        state.bindings.resolve(node, name)
-    );
     match state.bindings.resolve(node, name) {
         Some(from_id) => inherit::inherit(state, state.canonicalize(from_id), &node.kind),
 

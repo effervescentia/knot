@@ -36,8 +36,8 @@ mod tests {
     use kore::{assert_eq, str};
     use lang::{
         ast,
-        types::{Enumerated, Type},
-        CanonicalId, NodeId,
+        types::{Enumerated, Kind, Type},
+        CanonicalId, Namespace, NamespaceId, NamespaceKind, NodeId,
     };
     use std::{
         cell::OnceCell,
@@ -46,17 +46,41 @@ mod tests {
     };
 
     fn type_(
-        id: usize,
+        namespace_id: usize,
+        node_id: usize,
         type_: Type<Rc<(CanonicalId, ast::typed::Type)>>,
     ) -> Rc<(CanonicalId, ast::typed::Type)> {
-        Rc::new((CanonicalId::mock(id), ast::typed::Type(type_)))
+        Rc::new((
+            CanonicalId(NamespaceId(namespace_id), NodeId(node_id)),
+            ast::typed::Type(type_),
+        ))
     }
 
-    #[ignore = "import inference not implemented"]
     #[test]
     fn import() {
         let fragments = BTreeMap::from_iter(fixture::import::fragments());
-        let modules = ModuleMap::default();
+        let modules = ModuleMap {
+            keys: HashMap::from_iter(vec![(
+                Namespace(
+                    NamespaceKind::Internal,
+                    vec![str!("foo"), str!("bar"), str!("fizz")],
+                ),
+                NamespaceId(1),
+            )]),
+            by_key: HashMap::from_iter(vec![(
+                NamespaceId(1),
+                (
+                    CanonicalId(NamespaceId(1), NodeId(0)),
+                    HashMap::from_iter(vec![(
+                        CanonicalId(NamespaceId(1), NodeId(0)),
+                        Rc::new((
+                            CanonicalId(NamespaceId(1), NodeId(0)),
+                            ast::typed::Type(Type::Module(vec![])),
+                        )),
+                    )]),
+                ),
+            )]),
+        };
         let ctx = Context::mock(&modules);
         let weak = weak::Output {
             fragments: &fragments,
@@ -69,7 +93,7 @@ mod tests {
             Ok(super::Output {
                 types: HashMap::from_iter(vec![(
                     NodeId(0),
-                    OnceCell::from(type_(0, Type::Integer))
+                    OnceCell::from(type_(1, 0, Type::Module(vec![])))
                 )]),
             })
         );
@@ -90,8 +114,8 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, Type::Nil))),
-                    (NodeId(1), OnceCell::from(type_(0, Type::Nil)))
+                    (NodeId(0), OnceCell::from(type_(0, 0, Type::Nil))),
+                    (NodeId(1), OnceCell::from(type_(0, 0, Type::Nil)))
                 ]),
             })
         );
@@ -112,9 +136,9 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, Type::String))),
-                    (NodeId(1), OnceCell::from(type_(1, Type::String))),
-                    (NodeId(2), OnceCell::from(type_(0, Type::String)))
+                    (NodeId(0), OnceCell::from(type_(0, 0, Type::String))),
+                    (NodeId(1), OnceCell::from(type_(0, 1, Type::String))),
+                    (NodeId(2), OnceCell::from(type_(0, 0, Type::String)))
                 ]),
             })
         );
@@ -135,17 +159,18 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, Type::Boolean))),
-                    (NodeId(1), OnceCell::from(type_(1, Type::Style))),
+                    (NodeId(0), OnceCell::from(type_(0, 0, Type::Boolean))),
+                    (NodeId(1), OnceCell::from(type_(0, 1, Type::Style))),
                     (
                         NodeId(2),
                         OnceCell::from(type_(
+                            0,
                             2,
                             Type::Enumerated(Enumerated::Declaration(vec![
                                 (str!("Empty"), vec![]),
                                 (
                                     str!("Render"),
-                                    vec![type_(0, Type::Boolean), type_(1, Type::Style)]
+                                    vec![type_(0, 0, Type::Boolean), type_(0, 1, Type::Style)]
                                 ),
                             ]))
                         ))
@@ -171,17 +196,18 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, Type::Boolean))),
-                    (NodeId(1), OnceCell::from(type_(1, Type::Style))),
+                    (NodeId(0), OnceCell::from(type_(0, 0, Type::Boolean))),
+                    (NodeId(1), OnceCell::from(type_(0, 1, Type::Style))),
                     (
                         NodeId(2),
                         OnceCell::from(type_(
+                            0,
                             2,
                             Type::Enumerated(Enumerated::Declaration(vec![
                                 (str!("Empty"), vec![]),
                                 (
                                     str!("Render"),
-                                    vec![type_(0, Type::Boolean), type_(1, Type::Style)]
+                                    vec![type_(0, 0, Type::Boolean), type_(0, 1, Type::Style)]
                                 ),
                             ]))
                         ))
@@ -206,29 +232,30 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, Type::Element))),
-                    (NodeId(1), OnceCell::from(type_(1, Type::Element))),
-                    (NodeId(2), OnceCell::from(type_(1, Type::Element))),
-                    (NodeId(3), OnceCell::from(type_(0, Type::Element))),
-                    (NodeId(4), OnceCell::from(type_(4, Type::Integer))),
-                    (NodeId(5), OnceCell::from(type_(5, Type::Float))),
-                    (NodeId(6), OnceCell::from(type_(6, Type::Float))),
-                    (NodeId(7), OnceCell::from(type_(7, Type::Nil))),
-                    (NodeId(8), OnceCell::from(type_(8, Type::String))),
-                    (NodeId(9), OnceCell::from(type_(9, Type::Element))),
-                    (NodeId(10), OnceCell::from(type_(6, Type::Float))),
-                    (NodeId(11), OnceCell::from(type_(6, Type::Float))),
-                    (NodeId(12), OnceCell::from(type_(12, Type::String))),
-                    (NodeId(13), OnceCell::from(type_(0, Type::Element))),
-                    (NodeId(14), OnceCell::from(type_(0, Type::Element))),
-                    (NodeId(15), OnceCell::from(type_(15, Type::Element))),
-                    (NodeId(16), OnceCell::from(type_(16, Type::Element))),
-                    (NodeId(17), OnceCell::from(type_(16, Type::Element))),
-                    (NodeId(18), OnceCell::from(type_(16, Type::Element))),
-                    (NodeId(19), OnceCell::from(type_(16, Type::Element))),
+                    (NodeId(0), OnceCell::from(type_(0, 0, Type::Element))),
+                    (NodeId(1), OnceCell::from(type_(0, 1, Type::Element))),
+                    (NodeId(2), OnceCell::from(type_(0, 1, Type::Element))),
+                    (NodeId(3), OnceCell::from(type_(0, 0, Type::Element))),
+                    (NodeId(4), OnceCell::from(type_(0, 4, Type::Integer))),
+                    (NodeId(5), OnceCell::from(type_(0, 5, Type::Float))),
+                    (NodeId(6), OnceCell::from(type_(0, 6, Type::Float))),
+                    (NodeId(7), OnceCell::from(type_(0, 7, Type::Nil))),
+                    (NodeId(8), OnceCell::from(type_(0, 8, Type::String))),
+                    (NodeId(9), OnceCell::from(type_(0, 9, Type::Element))),
+                    (NodeId(10), OnceCell::from(type_(0, 6, Type::Float))),
+                    (NodeId(11), OnceCell::from(type_(0, 6, Type::Float))),
+                    (NodeId(12), OnceCell::from(type_(0, 12, Type::String))),
+                    (NodeId(13), OnceCell::from(type_(0, 0, Type::Element))),
+                    (NodeId(14), OnceCell::from(type_(0, 0, Type::Element))),
+                    (NodeId(15), OnceCell::from(type_(0, 15, Type::Element))),
+                    (NodeId(16), OnceCell::from(type_(0, 16, Type::Element))),
+                    (NodeId(17), OnceCell::from(type_(0, 16, Type::Element))),
+                    (NodeId(18), OnceCell::from(type_(0, 16, Type::Element))),
+                    (NodeId(19), OnceCell::from(type_(0, 16, Type::Element))),
                     (
                         NodeId(20),
                         OnceCell::from(type_(
+                            0,
                             20,
                             Type::View(vec![Rc::new((
                                 CanonicalId::mock(0),
@@ -241,11 +268,44 @@ mod tests {
         );
     }
 
-    #[ignore = "import inference not implemented"]
     #[test]
     fn module() {
         let fragments = BTreeMap::from_iter(fixture::module::fragments());
-        let modules = ModuleMap::default();
+        let modules = ModuleMap {
+            keys: HashMap::from_iter(vec![(
+                Namespace(NamespaceKind::Internal, vec![str!("theme")]),
+                NamespaceId(1),
+            )]),
+            by_key: HashMap::from_iter(vec![(
+                NamespaceId(1),
+                (
+                    CanonicalId(NamespaceId(1), NodeId(0)),
+                    HashMap::from_iter(vec![
+                        (
+                            CanonicalId(NamespaceId(1), NodeId(0)),
+                            Rc::new((
+                                CanonicalId(NamespaceId(1), NodeId(0)),
+                                ast::typed::Type(Type::Module(vec![(
+                                    str!("PRIMARY"),
+                                    Kind::Value,
+                                    Rc::new((
+                                        CanonicalId(NamespaceId(1), NodeId(1)),
+                                        ast::typed::Type(Type::String),
+                                    )),
+                                )])),
+                            )),
+                        ),
+                        (
+                            CanonicalId(NamespaceId(1), NodeId(1)),
+                            Rc::new((
+                                CanonicalId(NamespaceId(1), NodeId(1)),
+                                ast::typed::Type(Type::String),
+                            )),
+                        ),
+                    ]),
+                ),
+            )]),
+        };
         let ctx = Context::mock(&modules);
         let weak = weak::Output {
             fragments: &fragments,
@@ -257,19 +317,56 @@ mod tests {
             super::infer_types(&ctx, weak),
             Ok(super::Output {
                 types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, Type::Boolean))),
-                    (NodeId(1), OnceCell::from(type_(1, Type::Style))),
                     (
-                        NodeId(2),
+                        NodeId(0),
                         OnceCell::from(type_(
-                            2,
-                            Type::Enumerated(Enumerated::Declaration(vec![
-                                (str!("Empty"), vec![]),
-                                (
-                                    str!("Render"),
-                                    vec![type_(0, Type::Boolean), type_(1, Type::Style)]
-                                ),
-                            ]))
+                            1,
+                            0,
+                            Type::Module(vec![(
+                                str!("PRIMARY"),
+                                Kind::Value,
+                                type_(1, 1, Type::String)
+                            )])
+                        ))
+                    ),
+                    (
+                        NodeId(1),
+                        OnceCell::from(type_(
+                            1,
+                            0,
+                            Type::Module(vec![(
+                                str!("PRIMARY"),
+                                Kind::Value,
+                                type_(1, 1, Type::String)
+                            )])
+                        ))
+                    ),
+                    (NodeId(2), OnceCell::from(type_(1, 1, Type::String))),
+                    (NodeId(3), OnceCell::from(type_(0, 3, Type::String))),
+                    (NodeId(4), OnceCell::from(type_(0, 4, Type::Style))),
+                    (NodeId(5), OnceCell::from(type_(0, 4, Type::Style))),
+                    (
+                        NodeId(6),
+                        OnceCell::from(type_(
+                            0,
+                            6,
+                            Type::Module(vec![(
+                                str!("MY_STYLE"),
+                                Kind::Value,
+                                type_(0, 4, Type::Style)
+                            )])
+                        ))
+                    ),
+                    (
+                        NodeId(7),
+                        OnceCell::from(type_(
+                            0,
+                            6,
+                            Type::Module(vec![(
+                                str!("MY_STYLE"),
+                                Kind::Value,
+                                type_(0, 4, Type::Style)
+                            )])
                         ))
                     ),
                 ]),

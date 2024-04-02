@@ -201,23 +201,36 @@ pub mod module {
                     Kind::Mixed,
                     weak::Type::Infer(Inference::Import(
                         ast::ImportSource::Local,
-                        vec![str!("buzz")],
-                        Some(str!("Buzz")),
+                        vec![str!("theme")],
+                        Some(str!("Theme")),
                     )),
                 ),
             ),
-            (NodeId(1), (Kind::Value, weak::Type::Local(Type::String))),
-            (NodeId(2), (Kind::Value, weak::Type::Local(Type::String))),
-            (NodeId(3), (Kind::Value, weak::Type::Local(Type::Style))),
-            (NodeId(4), (Kind::Value, weak::Type::Inherit(NodeId(3)))),
             (
-                NodeId(5),
+                NodeId(1),
                 (
-                    Kind::Mixed,
-                    weak::Type::Infer(Inference::Module(vec![NodeId(4)])),
+                    Kind::Value,
+                    weak::Type::Infer(Inference::Reference(str!("Theme"))),
                 ),
             ),
-            (NodeId(6), (Kind::Mixed, weak::Type::Inherit(NodeId(5)))),
+            (
+                NodeId(2),
+                (
+                    Kind::Value,
+                    weak::Type::Infer(Inference::Property(NodeId(1), str!("PRIMARY"))),
+                ),
+            ),
+            (NodeId(3), (Kind::Value, weak::Type::Local(Type::String))),
+            (NodeId(4), (Kind::Value, weak::Type::Local(Type::Style))),
+            (NodeId(5), (Kind::Value, weak::Type::Inherit(NodeId(4)))),
+            (
+                NodeId(6),
+                (
+                    Kind::Mixed,
+                    weak::Type::Infer(Inference::Module(vec![NodeId(5)])),
+                ),
+            ),
+            (NodeId(7), (Kind::Mixed, weak::Type::Inherit(NodeId(6)))),
         ])
     }
 }

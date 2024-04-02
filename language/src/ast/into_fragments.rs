@@ -191,7 +191,7 @@ mod tests {
                     fixture::view::fragments_at(21, &(vec![0], 4)),
                     fixture::module::fragments_at(42, &(vec![0], 6)),
                     vec![(
-                        NodeId(49),
+                        NodeId(50),
                         (
                             ScopeId(vec![0]),
                             Fragment::Module(ast::Module {
@@ -202,7 +202,7 @@ mod tests {
                                     NodeId(8),
                                     NodeId(20),
                                     NodeId(41),
-                                    NodeId(48),
+                                    NodeId(49),
                                 ]
                             })
                         )
