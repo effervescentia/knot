@@ -8,7 +8,7 @@ pub enum Inference {
     Reference(String),
     Property(NodeId, String),
     Arithmetic(NodeId, NodeId),
-    FunctionResult(NodeId),
+    Product(NodeId),
     Import(ast::ImportSource, Vec<String>, Option<String>),
     Module(Vec<NodeId>),
     Parameter,

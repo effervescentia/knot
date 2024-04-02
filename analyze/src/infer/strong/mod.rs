@@ -1,12 +1,12 @@
 mod arithmetic;
 mod data;
-mod function_result;
 mod import;
 mod inherit;
 #[cfg(test)]
 mod mock;
 mod module;
 mod partial;
+mod product;
 mod property;
 mod reference;
 mod state;

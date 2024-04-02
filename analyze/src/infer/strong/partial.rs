@@ -1,7 +1,7 @@
 use super::{
     arithmetic,
     data::{Action, Type},
-    function_result, inherit, module, property, reference,
+    inherit, module, product, property, reference,
     state::State,
     weak::{self, Inference},
     NodeDescriptor,
@@ -55,12 +55,12 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
                 ..
             } => property::infer(&next, ctx.canonicalize(*lhs), property, kind),
 
-            // capture the result of calling a function
+            // capture the result of calling a function or variant
             NodeDescriptor {
                 kind,
-                weak: weak::Type::Infer(Inference::FunctionResult(x)),
+                weak: weak::Type::Infer(Inference::Product(x)),
                 ..
-            } => function_result::infer(&next, ctx.canonicalize(*x), kind),
+            } => product::infer(&next, ctx.canonicalize(*x), kind),
 
             // capture the result of a module declaration
             NodeDescriptor {

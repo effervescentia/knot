@@ -17,10 +17,9 @@ pub fn infer(state: &State, x: CanonicalId, kind: &Kind) -> Action {
             Type::Value(types::Type::Enumerated(Enumerated::Instance(instance))),
         ),
 
-        Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![x])),
+        Some(Ok(_)) => Action::Raise(ResolveError::NotCallable(x)),
 
-        // TODO: surface the underlying error (not a callable type)
-        Some(Ok(_)) => Action::Raise(ResolveError::NotInferrable(vec![])),
+        Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![x])),
 
         None => Action::Skip,
     }
@@ -122,30 +121,38 @@ mod tests {
     }
 
     #[test]
+    fn not_callable() {
+        let modules = ModuleMap::default();
+        let ctx = Context::mock(&modules);
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (Kind::Value, Ok(Type::Value(types::Type::Integer))),
+            )],
+        );
+
+        assert_eq!(
+            super::infer(&state, CanonicalId::mock(1), &Kind::Value),
+            Action::Raise(ResolveError::NotCallable(CanonicalId::mock(1)))
+        );
+    }
+
+    #[test]
     fn not_inferrable() {
         let modules = ModuleMap::default();
         let ctx = Context::mock(&modules);
         let state = State::from_types(
             &ctx,
-            vec![
-                (
-                    NodeId(1),
-                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
-                ),
-                (
-                    NodeId(2),
-                    (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
-                ),
-            ],
+            vec![(
+                NodeId(1),
+                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
+            )],
         );
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![]))
-        );
-        assert_eq!(
-            super::infer(&state, CanonicalId::mock(2), &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(2)]))
+            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(1)]))
         );
     }
 }

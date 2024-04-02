@@ -73,7 +73,7 @@ impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
                 Type::Infer(Inference::Property(**x, property.clone())),
             ),
 
-            Self::FunctionCall(x, ..) => (Kind::Value, Type::Infer(Inference::FunctionResult(**x))),
+            Self::FunctionCall(x, ..) => (Kind::Value, Type::Infer(Inference::Product(**x))),
 
             Self::Style(..) => (Kind::Value, Type::Value(types::Type::Style)),
 
@@ -348,10 +348,7 @@ mod tests {
         assert_eq!(
             ast::Expression::FunctionCall(Box::new(NodeId(1)), vec![NodeId(2), NodeId(3)])
                 .to_weak(),
-            (
-                Kind::Value,
-                Type::Infer(Inference::FunctionResult(NodeId(1)))
-            )
+            (Kind::Value, Type::Infer(Inference::Product(NodeId(1))))
         );
     }
 

@@ -1,35 +1,58 @@
-use lang::{types::Type, CanonicalId, NodeId};
+use lang::CanonicalId;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ResolveError {
-    NotInferrable(Vec<CanonicalId>),
-
+    /* inference */
+    NotInferrable(
+        // references to the dependencies that blocked inference
+        Vec<CanonicalId>,
+    ),
     NotFound(String, CanonicalId),
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum SemanticError {
-    // NotResolved(ResolveError),
-
-    /* mismatch */
-    // UnexpectedShape((ShallowType, NodeId), ExpectedShape),
-    // UnexpectedKind((Kind, NodeId), Kind),
 
     /* enum-related */
-    // VariantNotFound((ShallowType, NodeId), String),
+    VariantNotFound(
+        // id of the enum declaration
+        CanonicalId,
+        // name of the expected variant
+        String,
+    ),
 
     /* module-related */
-    // DeclarationNotFound((ShallowType, NodeId), String),
+    DeclarationNotFound(
+        // id of the enum declaration
+        CanonicalId,
+        // name of the expected declaration
+        String,
+    ),
 
     /* object-related */
-    // NotIndexable((ShallowType, NodeId), String),
+    NotIndexable(
+        // id of the target node
+        CanonicalId,
+        // name of the expected property
+        String,
+    ),
 
     /* function-related */
-    NotCallable(Type<()>, NodeId),
-    // MissingArguments(NodeId, Vec<(ShallowType, NodeId)>),
-    // UnexpectedArguments(NodeId, Vec<(ShallowType, NodeId)>),
-    // InvalidArguments(
-    //     NodeId,
-    //     #[allow(clippy::type_complexity)] Vec<((ShallowType, NodeId), (ShallowType, NodeId))>,
-    // ),
+    NotCallable(
+        // id of the target node
+        CanonicalId,
+    ),
 }
+
+// #[derive(Clone, Debug, PartialEq)]
+// pub enum SemanticError {
+//     // NotResolved(ResolveError),
+
+//     /* mismatch */
+//     // UnexpectedShape((ShallowType, NodeId), ExpectedShape),
+//     // UnexpectedKind((Kind, NodeId), Kind),
+
+//     /* function-related */
+//     // MissingArguments(NodeId, Vec<(ShallowType, NodeId)>),
+//     // UnexpectedArguments(NodeId, Vec<(ShallowType, NodeId)>),
+//     // InvalidArguments(
+//     //     NodeId,
+//     //     #[allow(clippy::type_complexity)] Vec<((ShallowType, NodeId), (ShallowType, NodeId))>,
+//     // ),
+// }

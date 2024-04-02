@@ -1,8 +1,7 @@
+use crate::error::ResolveError;
 use lang::ast;
 
-use crate::error::SemanticError;
-
-pub fn analyze(typed: ast::typed::Program) -> Vec<SemanticError> {
+pub fn analyze(typed: ast::typed::Program) -> Vec<ResolveError> {
     let errors = vec![];
 
     errors
