@@ -57,7 +57,7 @@ mod tests {
             &ctx,
             vec![(
                 NodeId(1),
-                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                (Kind::Value, Ok(Type::Value(types::Type::Integer))),
             )],
         );
 
@@ -84,7 +84,7 @@ mod tests {
                 ),
                 (
                     NodeId(3),
-                    (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
                 ),
             ],
         );

@@ -8,13 +8,13 @@ use lang::{types, CanonicalId};
 pub fn infer(state: &State, lhs: CanonicalId, rhs: CanonicalId) -> Action {
     match (state.resolve_value(&lhs), state.resolve_value(&rhs)) {
         (Some(Ok(types::Type::Integer)), Some(Ok(types::Type::Integer))) => {
-            Action::Infer(Type::Local(types::Type::Integer))
+            Action::Infer(Type::Value(types::Type::Integer))
         }
 
         (
             Some(Ok(types::Type::Integer | types::Type::Float)),
             Some(Ok(types::Type::Integer | types::Type::Float)),
-        ) => Action::Infer(Type::Local(types::Type::Float)),
+        ) => Action::Infer(Type::Value(types::Type::Float)),
 
         (None, _) | (_, None) => Action::Skip,
 
@@ -51,13 +51,13 @@ mod tests {
             &ctx,
             vec![(
                 NodeId(1),
-                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                (Kind::Value, Ok(Type::Value(types::Type::Integer))),
             )],
         );
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), CanonicalId::mock(1)),
-            Action::Infer(Type::Local(types::Type::Integer))
+            Action::Infer(Type::Value(types::Type::Integer))
         );
     }
 
@@ -70,26 +70,26 @@ mod tests {
             vec![
                 (
                     NodeId(1),
-                    (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
                 ),
                 (
                     NodeId(2),
-                    (Kind::Value, Ok(Type::Local(types::Type::Float))),
+                    (Kind::Value, Ok(Type::Value(types::Type::Float))),
                 ),
             ],
         );
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), CanonicalId::mock(2)),
-            Action::Infer(Type::Local(types::Type::Float))
+            Action::Infer(Type::Value(types::Type::Float))
         );
         assert_eq!(
             super::infer(&state, CanonicalId::mock(2), CanonicalId::mock(1)),
-            Action::Infer(Type::Local(types::Type::Float))
+            Action::Infer(Type::Value(types::Type::Float))
         );
         assert_eq!(
             super::infer(&state, CanonicalId::mock(2), CanonicalId::mock(2)),
-            Action::Infer(Type::Local(types::Type::Float))
+            Action::Infer(Type::Value(types::Type::Float))
         );
     }
 
@@ -101,7 +101,7 @@ mod tests {
             &ctx,
             vec![(
                 NodeId(1),
-                (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                (Kind::Value, Ok(Type::Value(types::Type::Integer))),
             )],
         );
 
@@ -124,11 +124,11 @@ mod tests {
             vec![
                 (
                     NodeId(1),
-                    (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
                 ),
                 (
                     NodeId(2),
-                    (Kind::Value, Ok(Type::Local(types::Type::Boolean))),
+                    (Kind::Value, Ok(Type::Value(types::Type::Boolean))),
                 ),
                 (
                     NodeId(3),

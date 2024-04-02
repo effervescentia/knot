@@ -20,8 +20,7 @@ pub enum Type {
     Infer(Inference),
     Inherit(NodeId),
     InheritKind(NodeId, types::Kind),
-    Local(types::Type<NodeId>),
-    // Remote(&'a types::ReferenceType<'a>),
+    Value(types::Type<NodeId>),
 }
 
 pub type Weak<'a> = (types::Kind, Type);

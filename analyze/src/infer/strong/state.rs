@@ -95,7 +95,7 @@ impl<'a> State<'a> {
 
         self.get_type(&id.1, allowed_kind)
             .and_then(|strong| match strong {
-                Ok(Type::Local(local)) => Some(Ok(local.clone())),
+                Ok(Type::Value(local)) => Some(Ok(local.clone())),
 
                 Ok(Type::Inherit(from_id)) => self.resolve_any(from_id),
 
@@ -145,7 +145,7 @@ impl<'a> State<'a> {
 
         for (id, (_, x)) in &self.types {
             match x {
-                Ok(Type::Local(x)) => {
+                Ok(Type::Value(x)) => {
                     let cell = get_cell(*id);
 
                     cell.set(self.canonicalize_type(*id, x, &output)).ok();

@@ -14,7 +14,7 @@ pub fn infer(state: &State, x: CanonicalId, kind: &Kind) -> Action {
         Some(Ok(types::Type::Function(_, result))) => inherit::inherit(state, result, kind),
 
         Some(Ok(types::Type::Enumerated(Enumerated::Variant(_, instance)))) => Action::Infer(
-            Type::Local(types::Type::Enumerated(Enumerated::Instance(instance))),
+            Type::Value(types::Type::Enumerated(Enumerated::Instance(instance))),
         ),
 
         Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![x])),
@@ -53,7 +53,7 @@ mod tests {
                     NodeId(1),
                     (
                         Kind::Value,
-                        Ok(Type::Local(types::Type::Function(
+                        Ok(Type::Value(types::Type::Function(
                             vec![],
                             CanonicalId::mock(2),
                         ))),
@@ -61,7 +61,7 @@ mod tests {
                 ),
                 (
                     NodeId(2),
-                    (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
                 ),
             ],
         );
@@ -83,7 +83,7 @@ mod tests {
                     NodeId(1),
                     (
                         Kind::Value,
-                        Ok(Type::Local(types::Type::Enumerated(Enumerated::Variant(
+                        Ok(Type::Value(types::Type::Enumerated(Enumerated::Variant(
                             vec![],
                             CanonicalId::mock(2),
                         )))),
@@ -93,7 +93,7 @@ mod tests {
                     NodeId(2),
                     (
                         Kind::Value,
-                        Ok(Type::Local(types::Type::Enumerated(
+                        Ok(Type::Value(types::Type::Enumerated(
                             Enumerated::Declaration(vec![]),
                         ))),
                     ),
@@ -103,7 +103,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), &Kind::Value),
-            Action::Infer(Type::Local(types::Type::Enumerated(Enumerated::Instance(
+            Action::Infer(Type::Value(types::Type::Enumerated(Enumerated::Instance(
                 CanonicalId::mock(2)
             ))))
         );
@@ -130,7 +130,7 @@ mod tests {
             vec![
                 (
                     NodeId(1),
-                    (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
                 ),
                 (
                     NodeId(2),

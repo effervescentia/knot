@@ -31,7 +31,7 @@ fn infer_enumerated(
     enumerated: &CanonicalId,
 ) -> Action {
     match variants.iter().find(|(name, _)| name == property) {
-        Some((_, parameters)) => Action::Infer(Type::Local(types::Type::Enumerated(
+        Some((_, parameters)) => Action::Infer(Type::Value(types::Type::Enumerated(
             Enumerated::Variant(parameters.clone(), *enumerated),
         ))),
 
@@ -86,7 +86,7 @@ mod tests {
                 NodeId(1),
                 (
                     Kind::Value,
-                    Ok(Type::Local(types::Type::Enumerated(
+                    Ok(Type::Value(types::Type::Enumerated(
                         Enumerated::Declaration(vec![(
                             str!("foo"),
                             vec![CanonicalId::mock(2), CanonicalId::mock(3)],
@@ -98,7 +98,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Infer(Type::Local(types::Type::Enumerated(Enumerated::Variant(
+            Action::Infer(Type::Value(types::Type::Enumerated(Enumerated::Variant(
                 vec![CanonicalId::mock(2), CanonicalId::mock(3)],
                 CanonicalId::mock(1)
             ))))
@@ -115,7 +115,7 @@ mod tests {
                 NodeId(1),
                 (
                     Kind::Value,
-                    Ok(Type::Local(types::Type::Enumerated(
+                    Ok(Type::Value(types::Type::Enumerated(
                         Enumerated::Declaration(vec![]),
                     ))),
                 ),
@@ -138,7 +138,7 @@ mod tests {
                 NodeId(1),
                 (
                     Kind::Value,
-                    Ok(Type::Local(types::Type::Module(vec![(
+                    Ok(Type::Value(types::Type::Module(vec![(
                         str!("foo"),
                         Kind::Value,
                         CanonicalId::mock(2),
@@ -163,7 +163,7 @@ mod tests {
                 NodeId(1),
                 (
                     Kind::Value,
-                    Ok(Type::Local(types::Type::Module(vec![(
+                    Ok(Type::Value(types::Type::Module(vec![(
                         str!("foo"),
                         Kind::Type,
                         CanonicalId::mock(2),
@@ -207,7 +207,7 @@ mod tests {
                 ),
                 (
                     NodeId(2),
-                    (Kind::Value, Ok(Type::Local(types::Type::String))),
+                    (Kind::Value, Ok(Type::Value(types::Type::String))),
                 ),
             ],
         );

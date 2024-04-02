@@ -18,9 +18,9 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
         let action = match &node {
             // capture local types known during this pass
             NodeDescriptor {
-                weak: weak::Type::Local(local),
+                weak: weak::Type::Value(local),
                 ..
-            } => Action::Infer(Type::Local(local.map(&|x| ctx.canonicalize(*x)))),
+            } => Action::Infer(Type::Value(local.map(&|x| ctx.canonicalize(*x)))),
 
             // capture inherited types
             NodeDescriptor {
@@ -203,7 +203,7 @@ mod tests {
             state(
                 vec![],
                 vec![
-                    (NodeId(0), (Kind::Type, Ok(Type::Local(types::Type::Nil)))),
+                    (NodeId(0), (Kind::Type, Ok(Type::Value(types::Type::Nil)))),
                     (
                         NodeId(1),
                         (Kind::Type, Ok(Type::Inherit(CanonicalId::mock(0))))
@@ -238,11 +238,11 @@ mod tests {
                 vec![
                     (
                         NodeId(0),
-                        (Kind::Type, Ok(Type::Local(types::Type::String)))
+                        (Kind::Type, Ok(Type::Value(types::Type::String)))
                     ),
                     (
                         NodeId(1),
-                        (Kind::Value, Ok(Type::Local(types::Type::String)))
+                        (Kind::Value, Ok(Type::Value(types::Type::String)))
                     ),
                     (
                         NodeId(2),
@@ -278,14 +278,14 @@ mod tests {
                 vec![
                     (
                         NodeId(0),
-                        (Kind::Type, Ok(Type::Local(types::Type::Boolean)))
+                        (Kind::Type, Ok(Type::Value(types::Type::Boolean)))
                     ),
-                    (NodeId(1), (Kind::Type, Ok(Type::Local(types::Type::Style)))),
+                    (NodeId(1), (Kind::Type, Ok(Type::Value(types::Type::Style)))),
                     (
                         NodeId(2),
                         (
                             Kind::Mixed,
-                            Ok(Type::Local(types::Type::Enumerated(
+                            Ok(Type::Value(types::Type::Enumerated(
                                 Enumerated::Declaration(vec![
                                     (str!("Empty"), vec![]),
                                     (
@@ -328,7 +328,7 @@ mod tests {
                     // (NodeId(0), (Kind::Value, Ok(Data::Local(Type::Boolean)))),
                     (
                         NodeId(1),
-                        (Kind::Type, Ok(Type::Local(types::Type::Integer)))
+                        (Kind::Type, Ok(Type::Value(types::Type::Integer)))
                     ),
                     (
                         NodeId(2),
@@ -336,7 +336,7 @@ mod tests {
                     ),
                     (
                         NodeId(3),
-                        (Kind::Value, Ok(Type::Local(types::Type::Boolean)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Boolean)))
                     ),
                     (
                         NodeId(4),
@@ -344,7 +344,7 @@ mod tests {
                     ),
                     (
                         NodeId(5),
-                        (Kind::Value, Ok(Type::Local(types::Type::Boolean)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Boolean)))
                     ),
                     // (NodeId(6), (Kind::Value, Ok(Data::Local(Type::Style)))),
                     (
@@ -353,21 +353,21 @@ mod tests {
                     ),
                     (
                         NodeId(8),
-                        (Kind::Type, Ok(Type::Local(types::Type::Boolean)))
+                        (Kind::Type, Ok(Type::Value(types::Type::Boolean)))
                     ),
                     (
                         NodeId(9),
-                        (Kind::Value, Ok(Type::Local(types::Type::Style)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Style)))
                     ),
                     (
                         NodeId(10),
-                        (Kind::Value, Ok(Type::Local(types::Type::Style)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Style)))
                     ),
                     (
                         NodeId(11),
                         (
                             Kind::Value,
-                            Ok(Type::Local(types::Type::Function(
+                            Ok(Type::Value(types::Type::Function(
                                 vec![
                                     CanonicalId::mock(0),
                                     CanonicalId::mock(2),
@@ -407,11 +407,11 @@ mod tests {
                 vec![
                     (
                         NodeId(0),
-                        (Kind::Type, Ok(Type::Local(types::Type::Element)))
+                        (Kind::Type, Ok(Type::Value(types::Type::Element)))
                     ),
                     (
                         NodeId(1),
-                        (Kind::Value, Ok(Type::Local(types::Type::Element)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
                     ),
                     (
                         NodeId(2),
@@ -423,24 +423,24 @@ mod tests {
                     ),
                     (
                         NodeId(4),
-                        (Kind::Value, Ok(Type::Local(types::Type::Integer)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Integer)))
                     ),
                     (
                         NodeId(5),
-                        (Kind::Value, Ok(Type::Local(types::Type::Float)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Float)))
                     ),
                     (
                         NodeId(6),
-                        (Kind::Value, Ok(Type::Local(types::Type::Float)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Float)))
                     ),
-                    (NodeId(7), (Kind::Value, Ok(Type::Local(types::Type::Nil)))),
+                    (NodeId(7), (Kind::Value, Ok(Type::Value(types::Type::Nil)))),
                     (
                         NodeId(8),
-                        (Kind::Value, Ok(Type::Local(types::Type::String)))
+                        (Kind::Value, Ok(Type::Value(types::Type::String)))
                     ),
                     (
                         NodeId(9),
-                        (Kind::Value, Ok(Type::Local(types::Type::Element)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
                     ),
                     (
                         NodeId(10),
@@ -452,7 +452,7 @@ mod tests {
                     ),
                     (
                         NodeId(12),
-                        (Kind::Value, Ok(Type::Local(types::Type::String)))
+                        (Kind::Value, Ok(Type::Value(types::Type::String)))
                     ),
                     (
                         NodeId(13),
@@ -464,11 +464,11 @@ mod tests {
                     ),
                     (
                         NodeId(15),
-                        (Kind::Value, Ok(Type::Local(types::Type::Element)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
                     ),
                     (
                         NodeId(16),
-                        (Kind::Value, Ok(Type::Local(types::Type::Element)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
                     ),
                     (
                         NodeId(17),
@@ -486,7 +486,7 @@ mod tests {
                         NodeId(20),
                         (
                             Kind::Value,
-                            Ok(Type::Local(types::Type::View(vec![CanonicalId::mock(3)])))
+                            Ok(Type::Value(types::Type::View(vec![CanonicalId::mock(3)])))
                         )
                     ),
                 ]
@@ -574,11 +574,11 @@ mod tests {
                     ),
                     (
                         NodeId(3),
-                        (Kind::Value, Ok(Type::Local(types::Type::String)))
+                        (Kind::Value, Ok(Type::Value(types::Type::String)))
                     ),
                     (
                         NodeId(4),
-                        (Kind::Value, Ok(Type::Local(types::Type::Style)))
+                        (Kind::Value, Ok(Type::Value(types::Type::Style)))
                     ),
                     (
                         NodeId(5),
@@ -588,7 +588,7 @@ mod tests {
                         NodeId(6),
                         (
                             Kind::Mixed,
-                            Ok(Type::Local(types::Type::Module(vec![(
+                            Ok(Type::Value(types::Type::Module(vec![(
                                 str!("MY_STYLE"),
                                 Kind::Value,
                                 CanonicalId::mock(5)

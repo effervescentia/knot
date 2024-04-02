@@ -34,7 +34,7 @@ impl ToWeak for ast::TypeExpression<NodeId> {
         (
             Kind::Type,
             match self {
-                Self::Primitive(x) => Type::Local(match x {
+                Self::Primitive(x) => Type::Value(match x {
                     ast::TypePrimitive::Nil => types::Type::Nil,
                     ast::TypePrimitive::Boolean => types::Type::Boolean,
                     ast::TypePrimitive::Integer => types::Type::Integer,
@@ -53,7 +53,7 @@ impl ToWeak for ast::TypeExpression<NodeId> {
                 }
 
                 Self::Function(params, x) => {
-                    Type::Local(types::Type::Function(params.clone(), **x))
+                    Type::Value(types::Type::Function(params.clone(), **x))
                 }
             },
         )
@@ -67,7 +67,7 @@ impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
 
             Self::Enumerated { variants, .. } => (
                 Kind::Mixed,
-                Type::Local(types::Type::Enumerated(Enumerated::Declaration(
+                Type::Value(types::Type::Enumerated(Enumerated::Declaration(
                     variants.clone(),
                 ))),
             ),
@@ -88,7 +88,7 @@ impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
                 ..
             } => (
                 Kind::Value,
-                Type::Local(types::Type::Function(
+                Type::Value(types::Type::Function(
                     parameters.clone(),
                     body_type.unwrap_or(*body),
                 )),
@@ -96,7 +96,7 @@ impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
 
             Self::View { parameters, .. } => (
                 Kind::Value,
-                Type::Local(types::Type::View(parameters.clone())),
+                Type::Value(types::Type::View(parameters.clone())),
             ),
 
             Self::Module { value, .. } => (Kind::Mixed, Type::Inherit(*value)),
@@ -142,31 +142,31 @@ mod tests {
     fn type_expression_primitive() {
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Nil).to_weak(),
-            (Kind::Type, Type::Local(types::Type::Nil))
+            (Kind::Type, Type::Value(types::Type::Nil))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean).to_weak(),
-            (Kind::Type, Type::Local(types::Type::Boolean))
+            (Kind::Type, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Integer).to_weak(),
-            (Kind::Type, Type::Local(types::Type::Integer))
+            (Kind::Type, Type::Value(types::Type::Integer))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Float).to_weak(),
-            (Kind::Type, Type::Local(types::Type::Float))
+            (Kind::Type, Type::Value(types::Type::Float))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::String).to_weak(),
-            (Kind::Type, Type::Local(types::Type::String))
+            (Kind::Type, Type::Value(types::Type::String))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Style).to_weak(),
-            (Kind::Type, Type::Local(types::Type::Style))
+            (Kind::Type, Type::Value(types::Type::Style))
         );
         assert_eq!(
             ast::TypeExpression::Primitive(ast::TypePrimitive::Element).to_weak(),
-            (Kind::Type, Type::Local(types::Type::Element))
+            (Kind::Type, Type::Value(types::Type::Element))
         );
     }
 
@@ -204,7 +204,7 @@ mod tests {
                 .to_weak(),
             (
                 Kind::Type,
-                Type::Local(types::Type::Function(vec![NodeId(1), NodeId(2)], NodeId(3)))
+                Type::Value(types::Type::Function(vec![NodeId(1), NodeId(2)], NodeId(3)))
             )
         );
     }
@@ -252,7 +252,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Mixed,
-                Type::Local(types::Type::Enumerated(Enumerated::Declaration(vec![
+                Type::Value(types::Type::Enumerated(Enumerated::Declaration(vec![
                     (str!("Bar"), vec![]),
                     (str!("Fizz"), vec![NodeId(1), NodeId(2)])
                 ])))
@@ -272,7 +272,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Type::Local(types::Type::Function(vec![NodeId(1), NodeId(2)], NodeId(3)))
+                Type::Value(types::Type::Function(vec![NodeId(1), NodeId(2)], NodeId(3)))
             )
         );
     }
@@ -289,7 +289,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Type::Local(types::Type::Function(vec![NodeId(1), NodeId(2)], NodeId(3)))
+                Type::Value(types::Type::Function(vec![NodeId(1), NodeId(2)], NodeId(3)))
             )
         );
     }
@@ -305,7 +305,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Type::Local(types::Type::View(vec![NodeId(1), NodeId(2)]))
+                Type::Value(types::Type::View(vec![NodeId(1), NodeId(2)]))
             )
         );
     }

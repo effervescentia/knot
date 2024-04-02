@@ -20,7 +20,7 @@ pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
         .collect::<Option<Vec<_>>>();
 
     typed_declarations
-        .map(|xs| Action::Infer(Type::Local(types::Type::Module(xs))))
+        .map(|xs| Action::Infer(Type::Value(types::Type::Module(xs))))
         .unwrap_or(Action::Skip)
 }
 
@@ -88,18 +88,18 @@ mod tests {
             vec![
                 (
                     NodeId(1),
-                    (Kind::Type, Ok(Type::Local(types::Type::Boolean))),
+                    (Kind::Type, Ok(Type::Value(types::Type::Boolean))),
                 ),
                 (
                     NodeId(3),
-                    (Kind::Value, Ok(Type::Local(types::Type::Integer))),
+                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
                 ),
             ],
         );
 
         assert_eq!(
             super::infer(&state, &[NodeId(1), NodeId(3)]),
-            Action::Infer(Type::Local(types::Type::Module(vec![
+            Action::Infer(Type::Value(types::Type::Module(vec![
                 (str!("Foo"), Kind::Type, CanonicalId::mock(1)),
                 (str!("BAR"), Kind::Value, CanonicalId::mock(3))
             ])))
@@ -137,7 +137,7 @@ mod tests {
             &fragments,
             vec![(
                 NodeId(3),
-                (Kind::Type, Ok(Type::Local(types::Type::Integer))),
+                (Kind::Type, Ok(Type::Value(types::Type::Integer))),
             )],
         );
 

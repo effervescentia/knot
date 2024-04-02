@@ -6,7 +6,7 @@ use std::{cell::OnceCell, collections::HashMap, rc::Rc};
 #[derive(Clone, Debug, PartialEq)]
 pub enum Type {
     Inherit(CanonicalId),
-    Local(types::Type<CanonicalId>),
+    Value(types::Type<CanonicalId>),
 }
 
 pub type Strong = (types::Kind, Result<Type, ResolveError>);
