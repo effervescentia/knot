@@ -4,7 +4,7 @@ use crate::{
 };
 use kore::{invariant, Incrementor};
 use lang::{Node, NodeId, Range};
-use std::{cell::OnceCell, ops::Deref};
+use std::cell::OnceCell;
 
 pub trait IntoTyped: Sized {
     fn into_typed(self, strong: Visitor) -> ast::typed::Program;
@@ -37,7 +37,7 @@ impl Visitor {
             .get(&id)
             .and_then(OnceCell::get)
             .unwrap_or_else(|| invariant!("type not found"))
-            .deref()
+            .1
             .clone()
     }
 

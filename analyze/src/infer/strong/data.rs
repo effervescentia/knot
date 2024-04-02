@@ -1,23 +1,21 @@
 use crate::error::ResolveError;
-use lang::{ast, types, NodeId};
+use lang::{ast, types, CanonicalId, NodeId};
 use std::{cell::OnceCell, collections::HashMap, rc::Rc};
 
+/// the inferred type for nodes in a strongly typed AST
 #[derive(Clone, Debug, PartialEq)]
-pub enum Data {
-    Inherit(NodeId),
-    Local(types::Type<NodeId>),
-    // Remote(&'a types::ReferenceType<'a>),
+pub enum Type {
+    Inherit(CanonicalId),
+    Value(types::Type<CanonicalId>),
 }
 
-pub type Strong = (types::Kind, std::result::Result<Data, ResolveError>);
+pub type Strong = (types::Kind, Result<Type, ResolveError>);
 
+/// output of the strong inference phase
 #[derive(Debug, PartialEq)]
 pub struct Output {
-    // might be able to refactor this to avoid the need for
-    // inherit types thanks to Rc container
-    pub types: HashMap<NodeId, OnceCell<Rc<ast::typed::Type>>>,
-
-    pub inherits: HashMap<NodeId, NodeId>,
+    /// lookup for strong types during inference
+    pub types: HashMap<NodeId, OnceCell<Rc<(CanonicalId, ast::typed::Type)>>>,
 }
 
 impl Output {
@@ -27,12 +25,9 @@ impl Output {
     {
         Self {
             types: keys.into_iter().map(|id| (*id, OnceCell::new())).collect(),
-            inherits: Default::default(),
         }
     }
 }
-
-pub type Result = crate::Result<Output>;
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
@@ -40,10 +35,10 @@ pub enum Action {
     Skip,
 
     /// infer a success result based on the data
-    Infer(Data),
+    Infer(Type),
 
     /// used when inheriting can resolve further
-    InheritAndSkip(NodeId),
+    InheritAndSkip(CanonicalId),
 
     /// infer an error result based on the data
     Raise(ResolveError),

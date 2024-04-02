@@ -1,7 +1,7 @@
 mod import_graph;
 
 pub use import_graph::ImportGraph;
-use lang::{ast, ModuleReference, ModuleScope};
+use lang::{ast, Namespace, NamespaceKind};
 use std::{
     ffi::OsStr,
     fmt::{Debug, Display, Formatter},
@@ -9,7 +9,7 @@ use std::{
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Link(ModuleReference);
+pub struct Link(Namespace);
 
 impl Link {
     pub fn to_path(&self) -> PathBuf {
@@ -20,10 +20,10 @@ impl Link {
     where
         P: AsRef<Path>,
     {
-        Self(ModuleReference::from_import(file_path, import))
+        Self(Namespace::from_import(file_path, import))
     }
 
-    pub fn to_module_reference(self) -> ModuleReference {
+    pub fn to_namespace(self) -> Namespace {
         self.0
     }
 }
@@ -37,8 +37,8 @@ where
 
         assert!(!path.is_absolute(), "must be a relative value");
 
-        Self(ModuleReference(
-            ModuleScope::Source,
+        Self(Namespace(
+            NamespaceKind::Internal,
             path.iter()
                 .map(|x| x.to_string_lossy().to_string())
                 .collect(),

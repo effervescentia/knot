@@ -1,8 +1,10 @@
-use super::{
-    data::{Data, Inference, Weak},
-    ToWeak,
-};
+use super::data::{Inference, Type, Weak};
 use lang::{ast, types::Kind, Fragment, NodeId};
+
+pub trait ToWeak {
+    /// infer the weak type of an AST fragment
+    fn to_weak(&self) -> Weak;
+}
 
 impl ToWeak for Fragment {
     fn to_weak(&self) -> Weak {
@@ -23,7 +25,7 @@ impl ToWeak for ast::Import {
     fn to_weak(&self) -> Weak {
         (
             Kind::Mixed,
-            Data::Infer(Inference::Import(
+            Type::Infer(Inference::Import(
                 self.source.clone(),
                 self.path.clone(),
                 self.alias.clone(),
@@ -36,14 +38,14 @@ impl ToWeak for ast::Module<NodeId, NodeId> {
     fn to_weak(&self) -> Weak {
         (
             Kind::Mixed,
-            Data::Infer(Inference::Module(self.declarations.clone())),
+            Type::Infer(Inference::Module(self.declarations.clone())),
         )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Data, Inference, ToWeak};
+    use super::{Inference, ToWeak, Type};
     use kore::str;
     use lang::{ast, types::Kind, NodeId};
 
@@ -58,7 +60,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Mixed,
-                Data::Infer(Inference::Import(
+                Type::Infer(Inference::Import(
                     ast::ImportSource::Local,
                     vec![str!("foo")],
                     Some(str!("Foo"))
@@ -73,7 +75,7 @@ mod tests {
             ast::Module::new(vec![], vec![NodeId(1), NodeId(1)]).to_weak(),
             (
                 Kind::Mixed,
-                Data::Infer(Inference::Module(vec![NodeId(1), NodeId(1)],))
+                Type::Infer(Inference::Module(vec![NodeId(1), NodeId(1)],))
             )
         );
     }

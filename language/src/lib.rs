@@ -2,7 +2,7 @@ pub mod ast;
 #[cfg(feature = "format")]
 pub mod format;
 mod fragment;
-mod interface;
+mod namespace;
 mod node;
 mod range;
 #[cfg(feature = "test")]
@@ -10,9 +10,12 @@ pub mod test;
 pub mod types;
 
 pub use fragment::{Fragment, FragmentMap};
-pub use interface::{ModuleReference, ModuleScope};
+pub use namespace::{Namespace, NamespaceKind};
 pub use node::Node;
 pub use range::{Point, Range};
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub struct NamespaceId(pub usize);
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NodeId(pub usize);
@@ -24,4 +27,18 @@ impl ScopeId {
     fn child(&self, next_id: usize) -> Self {
         Self([self.0.clone(), vec![next_id]].concat())
     }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub struct CanonicalId(pub NamespaceId, pub NodeId);
+
+impl CanonicalId {
+    #[cfg(feature = "test")]
+    pub const fn mock(id: usize) -> Self {
+        Self(NamespaceId(0), NodeId(id))
+    }
+}
+
+pub trait Canonicalize {
+    fn canonicalize(&self, id: NodeId) -> CanonicalId;
 }

@@ -19,7 +19,7 @@ pub mod import {
             NodeId(0),
             (
                 Kind::Mixed,
-                weak::Data::Infer(Inference::Import(
+                weak::Type::Infer(Inference::Import(
                     ast::ImportSource::Local,
                     vec![str!("foo"), str!("bar"), str!("fizz")],
                     None,
@@ -35,8 +35,8 @@ pub mod type_alias {
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
         HashMap::from_iter(vec![
-            (NodeId(0), (Kind::Type, weak::Data::Local(Type::Nil))),
-            (NodeId(1), (Kind::Type, weak::Data::Inherit(NodeId(0)))),
+            (NodeId(0), (Kind::Type, weak::Type::Value(Type::Nil))),
+            (NodeId(1), (Kind::Type, weak::Type::Inherit(NodeId(0)))),
         ])
     }
 }
@@ -47,11 +47,11 @@ pub mod constant {
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
         HashMap::from_iter(vec![
-            (NodeId(0), (Kind::Type, weak::Data::Local(Type::String))),
-            (NodeId(1), (Kind::Value, weak::Data::Local(Type::String))),
+            (NodeId(0), (Kind::Type, weak::Type::Value(Type::String))),
+            (NodeId(1), (Kind::Value, weak::Type::Value(Type::String))),
             (
                 NodeId(2),
-                (Kind::Value, weak::Data::InheritKind(NodeId(0), Kind::Type)),
+                (Kind::Value, weak::Type::InheritKind(NodeId(0), Kind::Type)),
             ),
         ])
     }
@@ -63,13 +63,13 @@ pub mod enumerated {
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
         HashMap::from_iter(vec![
-            (NodeId(0), (Kind::Type, weak::Data::Local(Type::Boolean))),
-            (NodeId(1), (Kind::Type, weak::Data::Local(Type::Style))),
+            (NodeId(0), (Kind::Type, weak::Type::Value(Type::Boolean))),
+            (NodeId(1), (Kind::Type, weak::Type::Value(Type::Style))),
             (
                 NodeId(2),
                 (
                     Kind::Mixed,
-                    weak::Data::Local(Type::Enumerated(Enumerated::Declaration(vec![
+                    weak::Type::Value(Type::Enumerated(Enumerated::Declaration(vec![
                         (str!("Empty"), vec![]),
                         (str!("Render"), vec![NodeId(0), NodeId(1)]),
                     ]))),
@@ -87,44 +87,44 @@ pub mod function {
         HashMap::from_iter(vec![
             (
                 NodeId(0),
-                (Kind::Value, weak::Data::Infer(Inference::Parameter)),
+                (Kind::Value, weak::Type::Infer(Inference::Parameter)),
             ),
-            (NodeId(1), (Kind::Type, weak::Data::Local(Type::Integer))),
+            (NodeId(1), (Kind::Type, weak::Type::Value(Type::Integer))),
             (
                 NodeId(2),
-                (Kind::Value, weak::Data::InheritKind(NodeId(1), Kind::Type)),
+                (Kind::Value, weak::Type::InheritKind(NodeId(1), Kind::Type)),
             ),
-            (NodeId(3), (Kind::Value, weak::Data::Local(Type::Boolean))),
-            (NodeId(4), (Kind::Value, weak::Data::Inherit(NodeId(3)))),
-            (NodeId(5), (Kind::Type, weak::Data::Local(Type::Boolean))),
+            (NodeId(3), (Kind::Value, weak::Type::Value(Type::Boolean))),
+            (NodeId(4), (Kind::Value, weak::Type::Inherit(NodeId(3)))),
+            (NodeId(5), (Kind::Type, weak::Type::Value(Type::Boolean))),
             (
                 NodeId(6),
                 (
                     Kind::Value,
-                    weak::Data::Infer(Inference::Reference(str!("first"))),
+                    weak::Type::Infer(Inference::Reference(str!("first"))),
                 ),
             ),
             (
                 NodeId(7),
                 (
                     Kind::Value,
-                    weak::Data::Infer(Inference::Reference(str!("second"))),
+                    weak::Type::Infer(Inference::Reference(str!("second"))),
                 ),
             ),
-            (NodeId(8), (Kind::Value, weak::Data::Local(Type::Boolean))),
+            (NodeId(8), (Kind::Value, weak::Type::Value(Type::Boolean))),
             (
                 NodeId(9),
                 (
                     Kind::Value,
-                    weak::Data::Infer(Inference::Reference(str!("third"))),
+                    weak::Type::Infer(Inference::Reference(str!("third"))),
                 ),
             ),
-            (NodeId(10), (Kind::Value, weak::Data::Local(Type::Boolean))),
+            (NodeId(10), (Kind::Value, weak::Type::Value(Type::Boolean))),
             (
                 NodeId(11),
                 (
                     Kind::Value,
-                    weak::Data::Local(Type::Function(
+                    weak::Type::Value(Type::Function(
                         vec![NodeId(0), NodeId(2), NodeId(4)],
                         NodeId(5),
                     )),
@@ -140,50 +140,50 @@ pub mod view {
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
         HashMap::from_iter(vec![
-            (NodeId(0), (Kind::Type, weak::Data::Local(Type::Element))),
-            (NodeId(1), (Kind::Value, weak::Data::Local(Type::Element))),
-            (NodeId(2), (Kind::Value, weak::Data::Inherit(NodeId(1)))),
+            (NodeId(0), (Kind::Type, weak::Type::Value(Type::Element))),
+            (NodeId(1), (Kind::Value, weak::Type::Value(Type::Element))),
+            (NodeId(2), (Kind::Value, weak::Type::Inherit(NodeId(1)))),
             (
                 NodeId(3),
-                (Kind::Value, weak::Data::InheritKind(NodeId(0), Kind::Type)),
+                (Kind::Value, weak::Type::InheritKind(NodeId(0), Kind::Type)),
             ),
-            (NodeId(4), (Kind::Value, weak::Data::Local(Type::Integer))),
-            (NodeId(5), (Kind::Value, weak::Data::Local(Type::Float))),
+            (NodeId(4), (Kind::Value, weak::Type::Value(Type::Integer))),
+            (NodeId(5), (Kind::Value, weak::Type::Value(Type::Float))),
             (
                 NodeId(6),
                 (
                     Kind::Value,
-                    weak::Data::Infer(Inference::Arithmetic(NodeId(4), NodeId(5))),
+                    weak::Type::Infer(Inference::Arithmetic(NodeId(4), NodeId(5))),
                 ),
             ),
-            (NodeId(7), (Kind::Value, weak::Data::Local(Type::Nil))),
-            (NodeId(8), (Kind::Value, weak::Data::Local(Type::String))),
-            (NodeId(9), (Kind::Value, weak::Data::Local(Type::Element))),
+            (NodeId(7), (Kind::Value, weak::Type::Value(Type::Nil))),
+            (NodeId(8), (Kind::Value, weak::Type::Value(Type::String))),
+            (NodeId(9), (Kind::Value, weak::Type::Value(Type::Element))),
             (
                 NodeId(10),
                 (
                     Kind::Value,
-                    weak::Data::Infer(Inference::Reference(str!("value"))),
+                    weak::Type::Infer(Inference::Reference(str!("value"))),
                 ),
             ),
-            (NodeId(11), (Kind::Value, weak::Data::Inherit(NodeId(10)))),
-            (NodeId(12), (Kind::Value, weak::Data::Local(Type::String))),
+            (NodeId(11), (Kind::Value, weak::Type::Inherit(NodeId(10)))),
+            (NodeId(12), (Kind::Value, weak::Type::Value(Type::String))),
             (
                 NodeId(13),
                 (
                     Kind::Value,
-                    weak::Data::Infer(Inference::Reference(str!("inner"))),
+                    weak::Type::Infer(Inference::Reference(str!("inner"))),
                 ),
             ),
-            (NodeId(14), (Kind::Value, weak::Data::Inherit(NodeId(13)))),
-            (NodeId(15), (Kind::Value, weak::Data::Local(Type::Element))),
-            (NodeId(16), (Kind::Value, weak::Data::Local(Type::Element))),
-            (NodeId(17), (Kind::Value, weak::Data::Inherit(NodeId(16)))),
-            (NodeId(18), (Kind::Value, weak::Data::Inherit(NodeId(17)))),
-            (NodeId(19), (Kind::Value, weak::Data::Inherit(NodeId(18)))),
+            (NodeId(14), (Kind::Value, weak::Type::Inherit(NodeId(13)))),
+            (NodeId(15), (Kind::Value, weak::Type::Value(Type::Element))),
+            (NodeId(16), (Kind::Value, weak::Type::Value(Type::Element))),
+            (NodeId(17), (Kind::Value, weak::Type::Inherit(NodeId(16)))),
+            (NodeId(18), (Kind::Value, weak::Type::Inherit(NodeId(17)))),
+            (NodeId(19), (Kind::Value, weak::Type::Inherit(NodeId(18)))),
             (
                 NodeId(20),
-                (Kind::Value, weak::Data::Local(Type::View(vec![NodeId(3)]))),
+                (Kind::Value, weak::Type::Value(Type::View(vec![NodeId(3)]))),
             ),
         ])
     }
@@ -199,25 +199,38 @@ pub mod module {
                 NodeId(0),
                 (
                     Kind::Mixed,
-                    weak::Data::Infer(Inference::Import(
+                    weak::Type::Infer(Inference::Import(
                         ast::ImportSource::Local,
-                        vec![str!("buzz")],
-                        Some(str!("Buzz")),
+                        vec![str!("theme")],
+                        Some(str!("Theme")),
                     )),
                 ),
             ),
-            (NodeId(1), (Kind::Value, weak::Data::Local(Type::String))),
-            (NodeId(2), (Kind::Value, weak::Data::Local(Type::String))),
-            (NodeId(3), (Kind::Value, weak::Data::Local(Type::Style))),
-            (NodeId(4), (Kind::Value, weak::Data::Inherit(NodeId(3)))),
             (
-                NodeId(5),
+                NodeId(1),
                 (
-                    Kind::Mixed,
-                    weak::Data::Infer(Inference::Module(vec![NodeId(4)])),
+                    Kind::Value,
+                    weak::Type::Infer(Inference::Reference(str!("Theme"))),
                 ),
             ),
-            (NodeId(6), (Kind::Mixed, weak::Data::Inherit(NodeId(5)))),
+            (
+                NodeId(2),
+                (
+                    Kind::Value,
+                    weak::Type::Infer(Inference::Property(NodeId(1), str!("PRIMARY"))),
+                ),
+            ),
+            (NodeId(3), (Kind::Value, weak::Type::Value(Type::String))),
+            (NodeId(4), (Kind::Value, weak::Type::Value(Type::Style))),
+            (NodeId(5), (Kind::Value, weak::Type::Inherit(NodeId(4)))),
+            (
+                NodeId(6),
+                (
+                    Kind::Mixed,
+                    weak::Type::Infer(Inference::Module(vec![NodeId(5)])),
+                ),
+            ),
+            (NodeId(7), (Kind::Mixed, weak::Type::Inherit(NodeId(6)))),
         ])
     }
 }

@@ -1,5 +1,5 @@
 use super::nil_range::NilRange;
-use crate::{ast, types, Fragment, NodeId, Range, ScopeId};
+use crate::{ast, types, CanonicalId, Fragment, NodeId, Range, ScopeId};
 use kore::str;
 use std::{
     collections::{BTreeSet, HashMap},
@@ -346,8 +346,8 @@ pub mod enumerated {
                 (
                     str!("Render"),
                     vec![
-                        Rc::new(ast::typed::Type(types::Type::Boolean)),
-                        Rc::new(ast::typed::Type(types::Type::Style)),
+                        Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Boolean))),
+                        Rc::new((CanonicalId::mock(1), ast::typed::Type(types::Type::Style))),
                     ],
                 ),
             ],
@@ -617,11 +617,11 @@ pub mod function {
     pub fn type_of() -> ast::typed::Type {
         ast::typed::Type(types::Type::Function(
             vec![
-                Rc::new(ast::typed::Type(types::Type::Integer)),
-                Rc::new(ast::typed::Type(types::Type::Integer)),
-                Rc::new(ast::typed::Type(types::Type::Boolean)),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Integer))),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Integer))),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Boolean))),
             ],
-            Rc::new(ast::typed::Type(types::Type::Boolean)),
+            Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Boolean))),
         ))
     }
 
@@ -1012,8 +1012,9 @@ pub mod view {
     }
 
     pub fn type_of() -> ast::typed::Type {
-        ast::typed::Type(types::Type::View(vec![Rc::new(ast::typed::Type(
-            types::Type::Element,
+        ast::typed::Type(types::Type::View(vec![Rc::new((
+            CanonicalId::mock(0),
+            ast::typed::Type(types::Type::Element),
         ))]))
     }
 
@@ -1056,13 +1057,13 @@ pub mod view {
                                             ast::Expression::Primitive(ast::Primitive::Float(
                                                 45.67, 2,
                                             )),
-                                            ast::typed::Type(types::Type::Integer),
+                                            ast::typed::Type(types::Type::Float),
                                         )),
                                     ),
                                     ast::typed::Type(types::Type::Float),
                                 ),
                             ),
-                            ast::typed::Type(types::Type::Float),
+                            ast::typed::Type(types::Type::Nil),
                         ),
                         ast::typed::Statement::typed(
                             ast::Statement::Expression(ast::typed::Expression::typed(
@@ -1123,9 +1124,9 @@ pub mod view {
                                     ]),
                                     ast::typed::Type(types::Type::Element),
                                 ))),
-                                ast::typed::Type(types::Type::Float),
+                                ast::typed::Type(types::Type::Element),
                             )),
-                            ast::typed::Type(types::Type::Float),
+                            ast::typed::Type(types::Type::Element),
                         ),
                     ]),
                     ast::typed::Type(types::Type::Element),
@@ -1137,14 +1138,16 @@ pub mod view {
 }
 
 pub mod module {
+    use crate::NamespaceId;
+
     use self::types::Kind;
     use super::*;
 
     pub const SOURCE: &str = "module my_module {
-  use ./buzz as Buzz;
+  use ./theme as Theme;
 
   const MY_STYLE = style {
-    color: \"red\",
+    color: Theme.PRIMARY,
     display: \"block\",
   };
 }";
@@ -1161,10 +1164,10 @@ pub mod module {
                         vec![ast::meta::Import::raw(
                             ast::Import::new(
                                 ast::ImportSource::Local,
-                                vec![str!("buzz")],
-                                Some(str!("Buzz")),
+                                vec![str!("theme")],
+                                Some(str!("Theme")),
                             ),
-                            Range::new((2, 3), (2, 20)).offset(offset),
+                            Range::new((2, 3), (2, 22)).offset(offset),
                         )],
                         vec![ast::meta::Declaration::raw(
                             ast::Declaration::constant(
@@ -1178,10 +1181,14 @@ pub mod module {
                                         (
                                             str!("color"),
                                             ast::meta::Expression::raw(
-                                                ast::Expression::Primitive(ast::Primitive::String(
-                                                    str!("red"),
-                                                )),
-                                                Range::new((5, 12), (5, 16)).offset(offset),
+                                                ast::Expression::PropertyAccess(
+                                                    Box::new(ast::meta::Expression::raw(
+                                                        ast::Expression::Identifier(str!("Theme")),
+                                                        Range::new((5, 12), (5, 16)).offset(offset),
+                                                    )),
+                                                    str!("PRIMARY"),
+                                                ),
+                                                Range::new((5, 12), (5, 24)).offset(offset),
                                             ),
                                         ),
                                         (
@@ -1219,8 +1226,8 @@ pub mod module {
                     ScopeId(vec![1]).offset(scope),
                     Fragment::Import(ast::Import {
                         source: ast::ImportSource::Local,
-                        path: vec![str!("buzz")],
-                        alias: Some(str!("Buzz")),
+                        path: vec![str!("theme")],
+                        alias: Some(str!("Theme")),
                     }),
                 ),
             ),
@@ -1228,13 +1235,21 @@ pub mod module {
                 NodeId(node + 1),
                 (
                     ScopeId(vec![1, 2]).offset(scope),
-                    Fragment::Expression(ast::Expression::Primitive(ast::Primitive::String(str!(
-                        "red"
-                    )))),
+                    Fragment::Expression(ast::Expression::Identifier(str!("Theme"))),
                 ),
             ),
             (
                 NodeId(node + 2),
+                (
+                    ScopeId(vec![1, 2]).offset(scope),
+                    Fragment::Expression(ast::Expression::PropertyAccess(
+                        Box::new(NodeId(node + 1)),
+                        str!("PRIMARY"),
+                    )),
+                ),
+            ),
+            (
+                NodeId(node + 3),
                 (
                     ScopeId(vec![1, 2]).offset(scope),
                     Fragment::Expression(ast::Expression::Primitive(ast::Primitive::String(str!(
@@ -1243,40 +1258,40 @@ pub mod module {
                 ),
             ),
             (
-                NodeId(node + 3),
+                NodeId(node + 4),
                 (
                     ScopeId(vec![1, 2]).offset(scope),
                     Fragment::Expression(ast::Expression::Style(vec![
-                        (str!("color"), NodeId(node + 1)),
-                        (str!("display"), NodeId(node + 2)),
+                        (str!("color"), NodeId(node + 2)),
+                        (str!("display"), NodeId(node + 3)),
                     ])),
-                ),
-            ),
-            (
-                NodeId(node + 4),
-                (
-                    ScopeId(vec![1]).offset(scope),
-                    Fragment::Declaration(ast::Declaration::constant(
-                        ast::Storage::public(str!("MY_STYLE")),
-                        None,
-                        NodeId(node + 3),
-                    )),
                 ),
             ),
             (
                 NodeId(node + 5),
                 (
                     ScopeId(vec![1]).offset(scope),
-                    Fragment::Module(ast::Module::new(vec![NodeId(node)], vec![NodeId(node + 4)])),
+                    Fragment::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("MY_STYLE")),
+                        None,
+                        NodeId(node + 4),
+                    )),
                 ),
             ),
             (
                 NodeId(node + 6),
                 (
+                    ScopeId(vec![1]).offset(scope),
+                    Fragment::Module(ast::Module::new(vec![NodeId(node)], vec![NodeId(node + 5)])),
+                ),
+            ),
+            (
+                NodeId(node + 7),
+                (
                     ScopeId::default().offset(scope),
                     Fragment::Declaration(ast::Declaration::module(
                         ast::Storage::public(str!("my_module")),
-                        NodeId(node + 5),
+                        NodeId(node + 6),
                     )),
                 ),
             ),
@@ -1290,16 +1305,16 @@ pub mod module {
     pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
         HashMap::from_iter(vec![
             (
-                (ScopeId(vec![1]).offset(scope), str!("Buzz")),
+                (ScopeId(vec![1]).offset(scope), str!("Theme")),
                 BTreeSet::from_iter(vec![NodeId(node)]),
             ),
             (
                 (ScopeId(vec![1]).offset(scope), str!("MY_STYLE")),
-                BTreeSet::from_iter(vec![NodeId(node + 4)]),
+                BTreeSet::from_iter(vec![NodeId(node + 5)]),
             ),
             (
                 (ScopeId::default().offset(scope), str!("my_module")),
-                BTreeSet::from_iter(vec![NodeId(node + 6)]),
+                BTreeSet::from_iter(vec![NodeId(node + 7)]),
             ),
         ])
     }
@@ -1312,11 +1327,22 @@ pub mod module {
         ast::typed::Type(types::Type::Module(vec![(
             str!("MY_STYLE"),
             Kind::Value,
-            Rc::new(ast::typed::Type(types::Type::Style)),
+            Rc::new((CanonicalId::mock(4), ast::typed::Type(types::Type::Style))),
         )]))
     }
 
     pub fn typed() -> ast::typed::Declaration {
+        let theme_type = || {
+            ast::typed::Type(types::Type::Module(vec![(
+                str!("PRIMARY"),
+                Kind::Value,
+                Rc::new((
+                    CanonicalId(NamespaceId(1), NodeId(1)),
+                    ast::typed::Type(types::Type::String),
+                )),
+            )]))
+        };
+
         ast::meta::Declaration::typed(
             ast::Declaration::module(
                 ast::Storage::public(ast::meta::Binding::mock("my_module")),
@@ -1325,17 +1351,40 @@ pub mod module {
                         vec![ast::typed::Import::typed(
                             ast::Import::new(
                                 ast::ImportSource::Local,
-                                vec![str!("buzz")],
-                                Some(str!("Buzz")),
+                                vec![str!("theme")],
+                                Some(str!("Theme")),
                             ),
-                            ast::typed::Type(types::Type::Style),
+                            theme_type(),
                         )],
                         vec![ast::typed::Declaration::typed(
                             ast::Declaration::constant(
                                 ast::Storage::public(ast::meta::Binding::mock("MY_STYLE")),
                                 None,
                                 ast::typed::Expression::typed(
-                                    ast::Expression::Style(vec![]),
+                                    ast::Expression::Style(vec![
+                                        (
+                                            str!("color"),
+                                            ast::typed::Expression::typed(
+                                                ast::Expression::PropertyAccess(
+                                                    Box::new(ast::typed::Expression::typed(
+                                                        ast::Expression::Identifier(str!("Theme")),
+                                                        theme_type(),
+                                                    )),
+                                                    str!("PRIMARY"),
+                                                ),
+                                                ast::typed::Type(types::Type::String),
+                                            ),
+                                        ),
+                                        (
+                                            str!("display"),
+                                            ast::typed::Expression::typed(
+                                                ast::Expression::Primitive(ast::Primitive::String(
+                                                    str!("block"),
+                                                )),
+                                                ast::typed::Type(types::Type::String),
+                                            ),
+                                        ),
+                                    ]),
                                     ast::typed::Type(types::Type::Style),
                                 ),
                             ),

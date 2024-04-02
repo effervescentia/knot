@@ -1,7 +1,8 @@
 use crate::infer::{BindingMap, NodeDescriptor};
-use lang::{ast, types, FragmentMap, NodeId};
+use lang::{ast, types, CanonicalId, FragmentMap, NamespaceId, NodeId};
 use std::collections::HashMap;
 
+/// all inference cases encoded as variants
 #[derive(Clone, Debug, PartialEq)]
 pub enum Inference {
     Reference(String),
@@ -13,29 +14,33 @@ pub enum Inference {
     Parameter,
 }
 
+/// the inferred type for nodes in a weakly typed AST
 #[derive(Clone, Debug, PartialEq)]
-pub enum Data {
+pub enum Type {
     Infer(Inference),
     Inherit(NodeId),
     InheritKind(NodeId, types::Kind),
-    Local(types::Type<NodeId>),
-    // Remote(&'a types::ReferenceType<'a>),
+    Value(types::Type<NodeId>),
 }
 
-pub type Weak<'a> = (types::Kind, Data);
+pub type Weak<'a> = (types::Kind, Type);
 
 pub type TypeMap<'a> = HashMap<NodeId, Weak<'a>>;
 
+/// output of the weak inference phase
 #[derive(Debug, PartialEq)]
-pub struct Result<'a> {
+pub struct Output<'a> {
+    /// AST fragments undergoing inference
     pub fragments: &'a FragmentMap,
 
+    /// bindings within the target source file
     pub bindings: BindingMap,
 
+    /// lookup for weak types during inference
     pub types: TypeMap<'a>,
 }
 
-impl<'a> Result<'a> {
+impl<'a> Output<'a> {
     pub fn new(fragments: &'a FragmentMap) -> Self {
         Self {
             fragments,
@@ -44,12 +49,12 @@ impl<'a> Result<'a> {
         }
     }
 
-    pub fn build_descriptors(&mut self) -> Vec<NodeDescriptor> {
+    pub fn build_descriptors(&mut self, namespace: NamespaceId) -> Vec<NodeDescriptor> {
         self.fragments
             .iter()
             .filter_map(|(id, (scope, ..))| {
                 self.types.remove(id).map(|(kind, weak)| NodeDescriptor {
-                    id: *id,
+                    id: CanonicalId(namespace, *id),
                     scope: scope.clone(),
                     kind,
                     weak,

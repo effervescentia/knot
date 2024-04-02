@@ -1,10 +1,10 @@
 use super::{
-    data::{Data, Inference, Weak},
-    ToWeak,
+    data::{Inference, Type, Weak},
+    to_weak::ToWeak,
 };
 use lang::{
     ast,
-    types::{Kind, Type},
+    types::{self, Kind},
     NodeId,
 };
 
@@ -13,33 +13,33 @@ impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
         match self {
             Self::Primitive(x) => (
                 Kind::Value,
-                Data::Local(match x {
-                    ast::Primitive::Nil => Type::Nil,
-                    ast::Primitive::Boolean(..) => Type::Boolean,
-                    ast::Primitive::Integer(..) => Type::Integer,
-                    ast::Primitive::Float(..) => Type::Float,
-                    ast::Primitive::String(..) => Type::String,
+                Type::Value(match x {
+                    ast::Primitive::Nil => types::Type::Nil,
+                    ast::Primitive::Boolean(..) => types::Type::Boolean,
+                    ast::Primitive::Integer(..) => types::Type::Integer,
+                    ast::Primitive::Float(..) => types::Type::Float,
+                    ast::Primitive::String(..) => types::Type::String,
                 }),
             ),
 
-            Self::Identifier(x) => (Kind::Value, Data::Infer(Inference::Reference(x.clone()))),
+            Self::Identifier(x) => (Kind::Value, Type::Infer(Inference::Reference(x.clone()))),
 
-            Self::Group(x) => (Kind::Value, Data::Inherit(**x)),
+            Self::Group(x) => (Kind::Value, Type::Inherit(**x)),
 
             Self::Closure(xs) => (Kind::Value, {
                 match xs.last() {
-                    Some(id) => Data::Inherit(*id),
-                    None => Data::Local(Type::Nil),
+                    Some(id) => Type::Inherit(*id),
+                    None => Type::Value(types::Type::Nil),
                 }
             }),
 
             Self::UnaryOperation(op, id) => (
                 Kind::Value,
                 match op {
-                    ast::UnaryOperator::Not => Data::Local(Type::Boolean),
+                    ast::UnaryOperator::Not => Type::Value(types::Type::Boolean),
 
                     ast::UnaryOperator::Absolute | ast::UnaryOperator::Negate => {
-                        Data::Inherit(**id)
+                        Type::Inherit(**id)
                     }
                 },
             ),
@@ -54,30 +54,30 @@ impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
                     | ast::BinaryOperator::LessThan
                     | ast::BinaryOperator::LessThanOrEqual
                     | ast::BinaryOperator::GreaterThan
-                    | ast::BinaryOperator::GreaterThanOrEqual => Data::Local(Type::Boolean),
+                    | ast::BinaryOperator::GreaterThanOrEqual => Type::Value(types::Type::Boolean),
 
                     ast::BinaryOperator::Divide | ast::BinaryOperator::Exponent => {
-                        Data::Local(Type::Float)
+                        Type::Value(types::Type::Float)
                     }
 
                     ast::BinaryOperator::Add
                     | ast::BinaryOperator::Subtract
                     | ast::BinaryOperator::Multiply => {
-                        Data::Infer(Inference::Arithmetic(**lhs, **rhs))
+                        Type::Infer(Inference::Arithmetic(**lhs, **rhs))
                     }
                 },
             ),
 
             Self::PropertyAccess(x, property) => (
                 Kind::Value,
-                Data::Infer(Inference::Property(**x, property.clone())),
+                Type::Infer(Inference::Property(**x, property.clone())),
             ),
 
-            Self::FunctionCall(x, ..) => (Kind::Value, Data::Infer(Inference::FunctionResult(**x))),
+            Self::FunctionCall(x, ..) => (Kind::Value, Type::Infer(Inference::FunctionResult(**x))),
 
-            Self::Style(..) => (Kind::Value, Data::Local(Type::Style)),
+            Self::Style(..) => (Kind::Value, Type::Value(types::Type::Style)),
 
-            Self::Component(x) => (Kind::Value, Data::Inherit(**x)),
+            Self::Component(x) => (Kind::Value, Type::Inherit(**x)),
         }
     }
 }
@@ -85,9 +85,9 @@ impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
 impl ToWeak for ast::Statement<NodeId> {
     fn to_weak(&self) -> Weak {
         match self {
-            Self::Expression(id) => (Kind::Value, Data::Inherit(*id)),
+            Self::Expression(id) => (Kind::Value, Type::Inherit(*id)),
 
-            Self::Variable(..) => (Kind::Value, Data::Local(Type::Nil)),
+            Self::Variable(..) => (Kind::Value, Type::Value(types::Type::Nil)),
         }
     }
 }
@@ -95,12 +95,12 @@ impl ToWeak for ast::Statement<NodeId> {
 impl ToWeak for ast::Component<NodeId, NodeId> {
     fn to_weak(&self) -> Weak {
         match self {
-            Self::Text(..) => (Kind::Value, Data::Local(Type::String)),
+            Self::Text(..) => (Kind::Value, Type::Value(types::Type::String)),
 
-            Self::Expression(id) => (Kind::Value, Data::Inherit(*id)),
+            Self::Expression(id) => (Kind::Value, Type::Inherit(*id)),
 
             Self::Fragment(..) | Self::ClosedElement(..) | Self::OpenElement { .. } => {
-                (Kind::Value, Data::Local(Type::Element))
+                (Kind::Value, Type::Value(types::Type::Element))
             }
         }
     }
@@ -108,11 +108,11 @@ impl ToWeak for ast::Component<NodeId, NodeId> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Data, Inference, ToWeak};
+    use super::{Inference, ToWeak, Type};
     use kore::str;
     use lang::{
         ast,
-        types::{Kind, Type},
+        types::{self, Kind},
         NodeId,
     };
 
@@ -120,23 +120,23 @@ mod tests {
     fn expression_primitive() {
         assert_eq!(
             ast::Expression::Primitive(ast::Primitive::Nil).to_weak(),
-            (Kind::Value, Data::Local(Type::Nil))
+            (Kind::Value, Type::Value(types::Type::Nil))
         );
         assert_eq!(
             ast::Expression::Primitive(ast::Primitive::Boolean(true)).to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::Expression::Primitive(ast::Primitive::Integer(123)).to_weak(),
-            (Kind::Value, Data::Local(Type::Integer))
+            (Kind::Value, Type::Value(types::Type::Integer))
         );
         assert_eq!(
             ast::Expression::Primitive(ast::Primitive::Float(45.67, 2)).to_weak(),
-            (Kind::Value, Data::Local(Type::Float))
+            (Kind::Value, Type::Value(types::Type::Float))
         );
         assert_eq!(
             ast::Expression::Primitive(ast::Primitive::String(str!("foo"))).to_weak(),
-            (Kind::Value, Data::Local(Type::String))
+            (Kind::Value, Type::Value(types::Type::String))
         );
     }
 
@@ -144,7 +144,7 @@ mod tests {
     fn expression_identifier() {
         assert_eq!(
             ast::Expression::Identifier(str!("foo")).to_weak(),
-            (Kind::Value, Data::Infer(Inference::Reference(str!("foo"))))
+            (Kind::Value, Type::Infer(Inference::Reference(str!("foo"))))
         );
     }
 
@@ -152,7 +152,7 @@ mod tests {
     fn expression_group() {
         assert_eq!(
             ast::Expression::Group(Box::new(NodeId(1))).to_weak(),
-            (Kind::Value, Data::Inherit(NodeId(1)))
+            (Kind::Value, Type::Inherit(NodeId(1)))
         );
     }
 
@@ -160,7 +160,7 @@ mod tests {
     fn expression_closure_empty() {
         assert_eq!(
             ast::Expression::Closure(vec![]).to_weak(),
-            (Kind::Value, Data::Local(Type::Nil))
+            (Kind::Value, Type::Value(types::Type::Nil))
         );
     }
 
@@ -168,7 +168,7 @@ mod tests {
     fn expression_closure() {
         assert_eq!(
             ast::Expression::Closure(vec![NodeId(1), NodeId(2)]).to_weak(),
-            (Kind::Value, Data::Inherit(NodeId(2)))
+            (Kind::Value, Type::Inherit(NodeId(2)))
         );
     }
 
@@ -176,7 +176,7 @@ mod tests {
     fn expression_unary_not() {
         assert_eq!(
             ast::Expression::UnaryOperation(ast::UnaryOperator::Not, Box::new(NodeId(1))).to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
     }
 
@@ -185,12 +185,12 @@ mod tests {
         assert_eq!(
             ast::Expression::UnaryOperation(ast::UnaryOperator::Absolute, Box::new(NodeId(1)))
                 .to_weak(),
-            (Kind::Value, Data::Inherit(NodeId(1)))
+            (Kind::Value, Type::Inherit(NodeId(1)))
         );
         assert_eq!(
             ast::Expression::UnaryOperation(ast::UnaryOperator::Negate, Box::new(NodeId(1)))
                 .to_weak(),
-            (Kind::Value, Data::Inherit(NodeId(1)))
+            (Kind::Value, Type::Inherit(NodeId(1)))
         );
     }
 
@@ -205,7 +205,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Data::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
+                Type::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
             )
         );
         assert_eq!(
@@ -217,7 +217,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Data::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
+                Type::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
             )
         );
         assert_eq!(
@@ -229,7 +229,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Data::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
+                Type::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
             )
         );
     }
@@ -243,7 +243,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Float))
+            (Kind::Value, Type::Value(types::Type::Float))
         );
         assert_eq!(
             ast::Expression::BinaryOperation(
@@ -252,7 +252,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Float))
+            (Kind::Value, Type::Value(types::Type::Float))
         );
     }
 
@@ -265,7 +265,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::Expression::BinaryOperation(
@@ -274,7 +274,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::Expression::BinaryOperation(
@@ -283,7 +283,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::Expression::BinaryOperation(
@@ -292,7 +292,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::Expression::BinaryOperation(
@@ -301,7 +301,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::Expression::BinaryOperation(
@@ -310,7 +310,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::Expression::BinaryOperation(
@@ -319,7 +319,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
         assert_eq!(
             ast::Expression::BinaryOperation(
@@ -328,7 +328,7 @@ mod tests {
                 Box::new(NodeId(2))
             )
             .to_weak(),
-            (Kind::Value, Data::Local(Type::Boolean))
+            (Kind::Value, Type::Value(types::Type::Boolean))
         );
     }
 
@@ -338,7 +338,7 @@ mod tests {
             ast::Expression::PropertyAccess(Box::new(NodeId(1)), str!("foo")).to_weak(),
             (
                 Kind::Value,
-                Data::Infer(Inference::Property(NodeId(1), str!("foo")))
+                Type::Infer(Inference::Property(NodeId(1), str!("foo")))
             )
         );
     }
@@ -350,7 +350,7 @@ mod tests {
                 .to_weak(),
             (
                 Kind::Value,
-                Data::Infer(Inference::FunctionResult(NodeId(1)))
+                Type::Infer(Inference::FunctionResult(NodeId(1)))
             )
         );
     }
@@ -359,7 +359,7 @@ mod tests {
     fn expression_style() {
         assert_eq!(
             ast::Expression::Style(vec![]).to_weak(),
-            (Kind::Value, Data::Local(Type::Style))
+            (Kind::Value, Type::Value(types::Type::Style))
         );
     }
 
@@ -367,7 +367,7 @@ mod tests {
     fn expression_component() {
         assert_eq!(
             ast::Expression::Component(Box::new(NodeId(1))).to_weak(),
-            (Kind::Value, Data::Inherit(NodeId(1)))
+            (Kind::Value, Type::Inherit(NodeId(1)))
         );
     }
 
@@ -375,7 +375,7 @@ mod tests {
     fn statement_expression() {
         assert_eq!(
             ast::Statement::Expression(NodeId(1)).to_weak(),
-            (Kind::Value, Data::Inherit(NodeId(1)))
+            (Kind::Value, Type::Inherit(NodeId(1)))
         );
     }
 
@@ -383,7 +383,7 @@ mod tests {
     fn statement_variable() {
         assert_eq!(
             ast::Statement::Variable(str!("foo"), NodeId(1)).to_weak(),
-            (Kind::Value, Data::Local(Type::Nil))
+            (Kind::Value, Type::Value(types::Type::Nil))
         );
     }
 
@@ -391,7 +391,7 @@ mod tests {
     fn component_text() {
         assert_eq!(
             ast::Component::Text(str!("foo")).to_weak(),
-            (Kind::Value, Data::Local(Type::String))
+            (Kind::Value, Type::Value(types::Type::String))
         );
     }
 
@@ -399,7 +399,7 @@ mod tests {
     fn component_expression() {
         assert_eq!(
             ast::Component::Expression(NodeId(1)).to_weak(),
-            (Kind::Value, Data::Inherit(NodeId(1)))
+            (Kind::Value, Type::Inherit(NodeId(1)))
         );
     }
 
@@ -407,15 +407,15 @@ mod tests {
     fn component_elements() {
         assert_eq!(
             ast::Component::Fragment(vec![]).to_weak(),
-            (Kind::Value, Data::Local(Type::Element))
+            (Kind::Value, Type::Value(types::Type::Element))
         );
         assert_eq!(
             ast::Component::ClosedElement(str!("div"), vec![]).to_weak(),
-            (Kind::Value, Data::Local(Type::Element))
+            (Kind::Value, Type::Value(types::Type::Element))
         );
         assert_eq!(
             ast::Component::open_element(str!("main"), vec![], vec![], str!("main"),).to_weak(),
-            (Kind::Value, Data::Local(Type::Element))
+            (Kind::Value, Type::Value(types::Type::Element))
         );
     }
 }

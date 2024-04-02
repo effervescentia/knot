@@ -1,23 +1,27 @@
-use super::data::{Data, Output, Result, Strong};
+use super::data::{Output, Strong, Type};
 use crate::{
     error::ResolveError,
     infer::{weak, BindingMap, NodeDescriptor},
+    Context, Result,
 };
 use kore::invariant;
 use lang::{
     ast,
-    types::{self, Enumerated, Kind, Type},
-    FragmentMap, NodeId,
+    types::{self, Kind},
+    CanonicalId, Canonicalize, FragmentMap, NodeId,
 };
 use std::{cell::OnceCell, collections::BTreeMap, rc::Rc};
 
 /// type resolved from the `State` during inference
-type Resolved<'a> = std::result::Result<&'a types::Type<NodeId>, &'a ResolveError>;
+type ResolvedType<'a> = std::result::Result<types::Type<CanonicalId>, &'a ResolveError>;
 
 type Warning<'a> = (&'a NodeDescriptor, String);
 
+/// partial state for a single round of strong type inference
 #[derive(Debug, PartialEq)]
 pub struct State<'a> {
+    pub context: &'a Context<'a>,
+
     pub fragments: &'a FragmentMap,
 
     pub bindings: BindingMap,
@@ -30,10 +34,12 @@ pub struct State<'a> {
 }
 
 impl<'a> State<'a> {
-    pub fn from_weak(mut weak: weak::Result<'a>) -> Self {
-        let nodes = weak.build_descriptors();
+    /// create a new `State` from the output of the weak inference phase and the analysis `Context`
+    pub fn from_weak(context: &'a Context, mut weak: weak::Output<'a>) -> Self {
+        let nodes = weak.build_descriptors(context.namespace_id);
 
         Self {
+            context,
             fragments: weak.fragments,
             bindings: weak.bindings,
             nodes,
@@ -42,6 +48,7 @@ impl<'a> State<'a> {
         }
     }
 
+    /// create queue and next `State` from previous
     pub fn next(prev: Self) -> (Vec<NodeDescriptor>, Self) {
         (
             prev.nodes,
@@ -52,15 +59,17 @@ impl<'a> State<'a> {
         )
     }
 
+    /// if true then inference is done
     pub fn is_done(&self) -> bool {
         self.nodes.is_empty()
     }
 
+    /// get the strong type of a node in the target source file
     pub fn get_type(
         &self,
         id: &NodeId,
         allowed_kind: &Kind,
-    ) -> Option<&std::result::Result<Data, ResolveError>> {
+    ) -> Option<&std::result::Result<Type, ResolveError>> {
         self.types.get(id).and_then(|(kind, strong)| {
             if !allowed_kind.can_accept(kind) {
                 return None;
@@ -70,80 +79,60 @@ impl<'a> State<'a> {
         })
     }
 
-    pub fn resolve(&self, id: &NodeId, allowed_kind: &Kind) -> Option<Resolved> {
-        self.get_type(id, allowed_kind)
-            .and_then(|strong| match strong {
-                Ok(Data::Local(local)) => Some(Ok(local)),
+    pub fn is_local(&self, id: &CanonicalId) -> bool {
+        id.0 == self.context.namespace_id
+    }
 
-                Ok(Data::Inherit(from_id)) => self.resolve_any(from_id),
+    /// resolve the type of a canonical node ID in the scope of the entire program
+    pub fn resolve(&self, id: &CanonicalId, allowed_kind: &Kind) -> Option<ResolvedType> {
+        if !self.is_local(id) {
+            return self
+                .context
+                .modules
+                .resolve(*id)
+                .map(|x| Ok(x.1.to_canonical()));
+        }
+
+        self.get_type(&id.1, allowed_kind)
+            .and_then(|strong| match strong {
+                Ok(Type::Value(local)) => Some(Ok(local.clone())),
+
+                Ok(Type::Inherit(from_id)) => self.resolve_any(from_id),
 
                 Err(err) => Some(Err(err)),
             })
     }
 
-    pub fn resolve_value(&self, id: &NodeId) -> Option<Resolved> {
+    pub fn resolve_value(&self, id: &CanonicalId) -> Option<ResolvedType> {
         self.resolve(id, &Kind::Value)
     }
 
-    pub fn resolve_any(&self, id: &NodeId) -> Option<Resolved> {
+    pub fn resolve_any(&self, id: &CanonicalId) -> Option<ResolvedType> {
         self.resolve(id, &Kind::Mixed)
     }
 
-    fn finalize_type(x: Type<NodeId>, output: &Output) -> Rc<ast::typed::Type> {
-        let get_type = |id| {
-            Rc::clone(
-                output
-                    .types
-                    .get(id)
-                    .and_then(OnceCell::get)
+    fn canonicalize_type(
+        &self,
+        id: NodeId,
+        x: &types::Type<CanonicalId>,
+        output: &Output,
+    ) -> Rc<(CanonicalId, ast::typed::Type)> {
+        Rc::new((
+            self.canonicalize(id),
+            ast::typed::Type(x.map(&|id| {
+                Rc::clone(
+                    (if self.is_local(id) {
+                        output.types.get(&id.1).and_then(OnceCell::get)
+                    } else {
+                        self.context.modules.resolve(*id)
+                    })
                     .unwrap_or_else(|| invariant!("type not found")),
-            )
-        };
-
-        match x {
-            Type::Nil => Rc::new(ast::typed::Type(Type::Nil)),
-            Type::Boolean => Rc::new(ast::typed::Type(Type::Boolean)),
-            Type::Integer => Rc::new(ast::typed::Type(Type::Integer)),
-            Type::Float => Rc::new(ast::typed::Type(Type::Float)),
-            Type::String => Rc::new(ast::typed::Type(Type::String)),
-            Type::Style => Rc::new(ast::typed::Type(Type::Style)),
-            Type::Element => Rc::new(ast::typed::Type(Type::Element)),
-
-            Type::Enumerated(x) => Rc::new(ast::typed::Type(Type::Enumerated(match x {
-                Enumerated::Declaration(variants) => Enumerated::Declaration(
-                    variants
-                        .iter()
-                        .map(|(name, xs)| (name.clone(), xs.iter().map(get_type).collect()))
-                        .collect(),
-                ),
-
-                Enumerated::Variant(parameters, instance) => Enumerated::Variant(
-                    parameters.iter().map(get_type).collect(),
-                    get_type(&instance),
-                ),
-
-                Enumerated::Instance(x) => Enumerated::Instance(get_type(&x)),
-            }))),
-
-            Type::Function(parameters, x) => Rc::new(ast::typed::Type(Type::Function(
-                parameters.iter().map(get_type).collect(),
-                get_type(&x),
-            ))),
-
-            Type::View(parameters) => Rc::new(ast::typed::Type(Type::View(
-                parameters.iter().map(get_type).collect(),
-            ))),
-
-            Type::Module(declarations) => Rc::new(ast::typed::Type(Type::Module(
-                declarations
-                    .iter()
-                    .map(|(name, kind, x)| (name.clone(), *kind, get_type(x)))
-                    .collect(),
-            ))),
-        }
+                )
+            })),
+        ))
     }
 
-    pub fn into_result(self) -> Result {
+    pub fn into_result(self) -> Result<Output> {
         let output = Output::new(self.types.keys());
         let mut errors = vec![];
 
@@ -154,27 +143,34 @@ impl<'a> State<'a> {
                 .unwrap_or_else(|| invariant!("no cell exists to store type"))
         };
 
-        for (id, (_, x)) in self.types {
+        for (id, (_, x)) in &self.types {
             match x {
-                Ok(Data::Local(x)) => {
-                    let cell = get_cell(id);
+                Ok(Type::Value(x)) => {
+                    let cell = get_cell(*id);
 
-                    cell.set(State::finalize_type(x, &output)).ok();
+                    cell.set(self.canonicalize_type(*id, x, &output)).ok();
                 }
 
-                Ok(Data::Inherit(from_id)) => {
-                    let cell = get_cell(id);
-                    let from_cell = get_cell(from_id);
+                Ok(Type::Inherit(from_id)) => {
+                    let cell = get_cell(*id);
 
-                    cell.set(Rc::clone(
+                    let value = if self.is_local(from_id) {
+                        let from_cell = get_cell(from_id.1);
+
                         from_cell
                             .get()
-                            .unwrap_or_else(|| invariant!("inherited cell is empty")),
-                    ))
-                    .ok();
+                            .unwrap_or_else(|| invariant!("inherited cell is empty"))
+                    } else {
+                        self.context
+                            .modules
+                            .resolve(*from_id)
+                            .unwrap_or_else(|| invariant!("inherited type not found"))
+                    };
+
+                    cell.set(Rc::clone(value)).ok();
                 }
 
-                Err(err) => errors.push((id, err)),
+                Err(err) => errors.push((*id, err.clone())),
             }
         }
 
@@ -183,5 +179,11 @@ impl<'a> State<'a> {
         } else {
             Err(errors)
         }
+    }
+}
+
+impl<'a> Canonicalize for State<'a> {
+    fn canonicalize(&self, id: NodeId) -> CanonicalId {
+        CanonicalId(self.context.namespace_id, id)
     }
 }

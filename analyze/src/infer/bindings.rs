@@ -18,6 +18,7 @@ impl<'a> ResolveTarget for NodeTarget<'a> {
     }
 }
 
+/// scope-aware lookup for bindings within a source file
 #[derive(Debug, Default, PartialEq)]
 pub struct BindingMap(pub HashMap<(ScopeId, String), BTreeSet<NodeId>>);
 
@@ -153,7 +154,7 @@ mod tests {
 
         assert_eq!(
             bindings.resolve(&NodeTarget(&NodeId(100), &ScopeId(vec![0])), "my_module"),
-            Some(NodeId(6))
+            Some(NodeId(7))
         );
     }
 
@@ -162,12 +163,12 @@ mod tests {
         let bindings = BindingMap(fixture::module::bindings());
 
         assert_eq!(
-            bindings.resolve(&NodeTarget(&NodeId(100), &ScopeId(vec![0, 1])), "Buzz"),
+            bindings.resolve(&NodeTarget(&NodeId(100), &ScopeId(vec![0, 1])), "Theme"),
             Some(NodeId(0))
         );
         assert_eq!(
             bindings.resolve(&NodeTarget(&NodeId(100), &ScopeId(vec![0, 1])), "MY_STYLE"),
-            Some(NodeId(4))
+            Some(NodeId(5))
         );
     }
 }
