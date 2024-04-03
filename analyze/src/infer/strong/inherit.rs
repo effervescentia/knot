@@ -11,7 +11,7 @@ pub fn inherit(state: &State, from_id: CanonicalId, from_kind: &Kind) -> Action 
     }
 
     match state.get_type(&from_id.1, from_kind) {
-        Some(Ok(Type::Inherit(next_from_id))) => inherit(state, *next_from_id, &Kind::Mixed),
+        Some(Ok(Type::Inherit(next_from_id))) => inherit_any(state, *next_from_id),
 
         Some(Ok(_)) => Action::Infer(Type::Inherit(from_id)),
 
@@ -19,6 +19,10 @@ pub fn inherit(state: &State, from_id: CanonicalId, from_kind: &Kind) -> Action 
 
         None => Action::InheritAndSkip(from_id),
     }
+}
+
+pub fn inherit_any(state: &State, from_id: CanonicalId) -> Action {
+    inherit(state, from_id, &Kind::Mixed)
 }
 
 #[cfg(test)]

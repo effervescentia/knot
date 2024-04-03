@@ -1,4 +1,4 @@
-use lang::CanonicalId;
+use lang::{ast, types::Kind, CanonicalId};
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ResolveError {
@@ -7,7 +7,11 @@ pub enum ResolveError {
         // references to the dependencies that blocked inference
         Vec<CanonicalId>,
     ),
-    NotFound(String, CanonicalId),
+
+    NotFound(
+        // name of the expected binding
+        String,
+    ),
 
     /* enum-related */
     VariantNotFound(
@@ -27,7 +31,7 @@ pub enum ResolveError {
 
     /* object-related */
     NotIndexable(
-        // id of the target node
+        // id of the node being indexed
         CanonicalId,
         // name of the expected property
         String,
@@ -35,18 +39,32 @@ pub enum ResolveError {
 
     /* function-related */
     NotCallable(
-        // id of the target node
+        // id of the node being called
         CanonicalId,
+    ),
+
+    /* mismatch */
+    BinaryOperationNotSupported(
+        // operation being performed
+        ast::BinaryOperator,
+        // id of the left-hand side
+        CanonicalId,
+        // id of the right-hand side
+        CanonicalId,
+    ),
+
+    UnexpectedKind(
+        // id of the node with unmatched kind
+        CanonicalId,
+        // expected kind
+        Kind,
     ),
 }
 
 // #[derive(Clone, Debug, PartialEq)]
 // pub enum SemanticError {
-//     // NotResolved(ResolveError),
-
 //     /* mismatch */
 //     // UnexpectedShape((ShallowType, NodeId), ExpectedShape),
-//     // UnexpectedKind((Kind, NodeId), Kind),
 
 //     /* function-related */
 //     // MissingArguments(NodeId, Vec<(ShallowType, NodeId)>),

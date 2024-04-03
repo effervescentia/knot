@@ -7,8 +7,7 @@ pub fn infer(state: &State, name: &str, node: &NodeDescriptor) -> Action {
     match state.bindings.resolve(node, name) {
         Some(from_id) => inherit::inherit(state, state.canonicalize(from_id), &node.kind),
 
-        // TODO: surface the underlying error (not found in scope)
-        None => Action::Raise(ResolveError::NotFound(name.to_owned(), node.id)),
+        None => Action::Raise(ResolveError::NotFound(name.to_owned())),
     }
 }
 
@@ -87,7 +86,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, "foo", &node),
-            Action::Raise(ResolveError::NotFound(str!("foo"), CanonicalId::mock(1)))
+            Action::Raise(ResolveError::NotFound(str!("foo")))
         );
     }
 }

@@ -44,9 +44,9 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
 
             // capture the type of dynamic binary operations
             NodeDescriptor {
-                weak: weak::Type::Infer(weak::Inference::Arithmetic(lhs, rhs)),
+                weak: weak::Type::Infer(weak::Inference::Arithmetic(op, lhs, rhs)),
                 ..
-            } => arithmetic::infer(&next, ctx.canonicalize(*lhs), ctx.canonicalize(*rhs)),
+            } => arithmetic::infer(&next, *op, ctx.canonicalize(*lhs), ctx.canonicalize(*rhs)),
 
             // capture the type of a property by name
             NodeDescriptor {

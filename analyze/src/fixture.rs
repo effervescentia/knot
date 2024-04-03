@@ -153,7 +153,11 @@ pub mod view {
                 NodeId(6),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Arithmetic(NodeId(4), NodeId(5))),
+                    weak::Type::Infer(Inference::Arithmetic(
+                        ast::BinaryOperator::Add,
+                        NodeId(4),
+                        NodeId(5),
+                    )),
                 ),
             ),
             (NodeId(7), (Kind::Value, weak::Type::Value(Type::Nil))),

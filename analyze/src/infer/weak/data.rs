@@ -7,7 +7,7 @@ use std::collections::HashMap;
 pub enum Inference {
     Reference(String),
     Property(NodeId, String),
-    Arithmetic(NodeId, NodeId),
+    Arithmetic(ast::BinaryOperator, NodeId, NodeId),
     Product(NodeId),
     Import(ast::ImportSource, Vec<String>, Option<String>),
     Module(Vec<NodeId>),

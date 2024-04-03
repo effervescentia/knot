@@ -15,9 +15,8 @@ where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    // TODO: refactor to only map one time
-    m::lexeme(primitive::primitive().map(ast::Expression::Primitive))
-        .map(|(x, range)| ast::raw::Expression::raw(x, range))
+    m::lexeme(primitive::primitive())
+        .map(|(x, range)| ast::raw::Expression::raw(ast::Expression::Primitive(x), range))
 }
 
 fn group<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Expression>

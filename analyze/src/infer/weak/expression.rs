@@ -63,7 +63,7 @@ impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
                     ast::BinaryOperator::Add
                     | ast::BinaryOperator::Subtract
                     | ast::BinaryOperator::Multiply => {
-                        Type::Infer(Inference::Arithmetic(**lhs, **rhs))
+                        Type::Infer(Inference::Arithmetic(*op, **lhs, **rhs))
                     }
                 },
             ),
@@ -205,7 +205,11 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Type::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
+                Type::Infer(Inference::Arithmetic(
+                    ast::BinaryOperator::Add,
+                    NodeId(1),
+                    NodeId(2)
+                ))
             )
         );
         assert_eq!(
@@ -217,7 +221,11 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Type::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
+                Type::Infer(Inference::Arithmetic(
+                    ast::BinaryOperator::Subtract,
+                    NodeId(1),
+                    NodeId(2)
+                ))
             )
         );
         assert_eq!(
@@ -229,7 +237,11 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Type::Infer(Inference::Arithmetic(NodeId(1), NodeId(2)))
+                Type::Infer(Inference::Arithmetic(
+                    ast::BinaryOperator::Multiply,
+                    NodeId(1),
+                    NodeId(2)
+                ))
             )
         );
     }

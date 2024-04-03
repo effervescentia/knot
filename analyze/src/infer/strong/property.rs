@@ -1,5 +1,6 @@
 use super::{
     data::{Action, Type},
+    inherit,
     state::State,
 };
 use crate::error::ResolveError;
@@ -9,17 +10,16 @@ use lang::{
 };
 
 fn infer_module(
+    state: &State,
     declarations: &[(String, Kind, CanonicalId)],
     property: &str,
     allowed_kind: &Kind,
     module: &CanonicalId,
 ) -> Action {
     match declarations.iter().find(|(name, ..)| name == property) {
-        // TODO: `inherit::inherit`
-        Some((_, kind, id)) if allowed_kind.can_accept(kind) => Action::Infer(Type::Inherit(*id)),
+        Some((_, kind, id)) if allowed_kind.can_accept(kind) => inherit::inherit_any(state, *id),
 
-        // TODO: surface the underlying error (declaration is of the wrong kind)
-        Some(_) => Action::Raise(ResolveError::NotInferrable(vec![])),
+        Some((.., id)) => Action::Raise(ResolveError::UnexpectedKind(*id, *allowed_kind)),
 
         None => Action::Raise(ResolveError::DeclarationNotFound(
             *module,
@@ -49,7 +49,7 @@ pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kin
     match state.resolve_any(&lhs) {
         Some(Ok(x)) => match x {
             types::Type::Module(declarations) => {
-                infer_module(&declarations, property, allowed_kind, &lhs)
+                infer_module(state, &declarations, property, allowed_kind, &lhs)
             }
 
             types::Type::Enumerated(Enumerated::Declaration(variants)) => {
@@ -142,17 +142,23 @@ mod tests {
         let ctx = Context::mock(&modules);
         let state = State::from_types(
             &ctx,
-            vec![(
-                NodeId(1),
+            vec![
                 (
-                    Kind::Value,
-                    Ok(Type::Value(types::Type::Module(vec![(
-                        str!("foo"),
+                    NodeId(1),
+                    (
                         Kind::Value,
-                        CanonicalId::mock(2),
-                    )]))),
+                        Ok(Type::Value(types::Type::Module(vec![(
+                            str!("foo"),
+                            Kind::Value,
+                            CanonicalId::mock(2),
+                        )]))),
+                    ),
                 ),
-            )],
+                (
+                    NodeId(2),
+                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
+                ),
+            ],
         );
 
         assert_eq!(
@@ -183,7 +189,7 @@ mod tests {
     }
 
     #[test]
-    fn infer_module_entry_not_inferrable() {
+    fn infer_module_entry_unexpected_kind() {
         let modules = ModuleMap::default();
         let ctx = Context::mock(&modules);
         let state = State::from_types(
@@ -203,7 +209,10 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![]))
+            Action::Raise(ResolveError::UnexpectedKind(
+                CanonicalId::mock(2),
+                Kind::Value
+            ))
         );
     }
 
