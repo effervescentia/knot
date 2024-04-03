@@ -1,20 +1,20 @@
 use lang::Canonicalize;
 
 use super::{data::Action, inherit, state::State};
-use crate::{error::ResolveError, infer::NodeDescriptor};
+use crate::{error::Error, infer::NodeDescriptor};
 
 pub fn infer(state: &State, name: &str, node: &NodeDescriptor) -> Action {
     match state.bindings.resolve(node, name) {
         Some(from_id) => inherit::inherit(state, state.canonicalize(from_id), &node.kind),
 
-        None => Action::Raise(ResolveError::NotFound(name.to_owned())),
+        None => Action::Raise(Error::NotFound(name.to_owned())),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        error::Error,
         infer::{
             strong::{
                 data::{Action, Type},
@@ -35,7 +35,7 @@ mod tests {
     fn mock_state<'a>(
         ctx: &'a Context,
         bindings: Vec<((ScopeId, String), BTreeSet<NodeId>)>,
-        types: Vec<(NodeId, (Kind, Result<Type, ResolveError>))>,
+        types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
     ) -> State<'a> {
         State {
             bindings: BindingMap(HashMap::from_iter(bindings)),
@@ -86,7 +86,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, "foo", &node),
-            Action::Raise(ResolveError::NotFound(str!("foo")))
+            Action::Raise(Error::NotFound(str!("foo")))
         );
     }
 }

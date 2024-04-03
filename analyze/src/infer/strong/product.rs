@@ -3,7 +3,7 @@ use super::{
     inherit,
     state::State,
 };
-use crate::error::ResolveError;
+use crate::error::Error;
 use lang::{
     types::{self, Enumerated, Kind},
     CanonicalId,
@@ -17,9 +17,9 @@ pub fn infer(state: &State, x: CanonicalId, kind: &Kind) -> Action {
             Type::Value(types::Type::Enumerated(Enumerated::Instance(instance))),
         ),
 
-        Some(Ok(_)) => Action::Raise(ResolveError::NotCallable(x)),
+        Some(Ok(_)) => Action::Raise(Error::NotCallable(x)),
 
-        Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![x])),
+        Some(Err(_)) => Action::Raise(Error::NotInferrable(vec![x])),
 
         None => Action::Skip,
     }
@@ -28,7 +28,7 @@ pub fn infer(state: &State, x: CanonicalId, kind: &Kind) -> Action {
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
@@ -134,7 +134,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), &Kind::Value),
-            Action::Raise(ResolveError::NotCallable(CanonicalId::mock(1)))
+            Action::Raise(Error::NotCallable(CanonicalId::mock(1)))
         );
     }
 
@@ -144,15 +144,12 @@ mod tests {
         let ctx = Context::mock(&modules);
         let state = State::from_types(
             &ctx,
-            vec![(
-                NodeId(1),
-                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
-            )],
+            vec![(NodeId(1), (Kind::Value, Err(Error::NotInferrable(vec![]))))],
         );
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(1)]))
+            Action::Raise(Error::NotInferrable(vec![CanonicalId::mock(1)]))
         );
     }
 }

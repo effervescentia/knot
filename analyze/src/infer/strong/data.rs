@@ -1,4 +1,4 @@
-use crate::error::ResolveError;
+use crate::error::Error;
 use lang::{ast, types, CanonicalId, NodeId};
 use std::{cell::OnceCell, collections::HashMap, rc::Rc};
 
@@ -9,7 +9,7 @@ pub enum Type {
     Value(types::Type<CanonicalId>),
 }
 
-pub type Strong = (types::Kind, Result<Type, ResolveError>);
+pub type Strong = (types::Kind, Result<Type, Error>);
 
 /// output of the strong inference phase
 #[derive(Debug, PartialEq)]
@@ -41,5 +41,5 @@ pub enum Action {
     InheritAndSkip(CanonicalId),
 
     /// infer an error result based on the data
-    Raise(ResolveError),
+    Raise(Error),
 }

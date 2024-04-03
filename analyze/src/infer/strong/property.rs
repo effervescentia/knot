@@ -3,7 +3,7 @@ use super::{
     inherit,
     state::State,
 };
-use crate::error::ResolveError;
+use crate::error::Error;
 use lang::{
     types::{self, Enumerated, Kind},
     CanonicalId,
@@ -19,12 +19,9 @@ fn infer_module(
     match declarations.iter().find(|(name, ..)| name == property) {
         Some((_, kind, id)) if allowed_kind.can_accept(kind) => inherit::inherit_any(state, *id),
 
-        Some((.., id)) => Action::Raise(ResolveError::UnexpectedKind(*id, *allowed_kind)),
+        Some((.., id)) => Action::Raise(Error::UnexpectedKind(*id, *allowed_kind)),
 
-        None => Action::Raise(ResolveError::DeclarationNotFound(
-            *module,
-            property.to_owned(),
-        )),
+        None => Action::Raise(Error::DeclarationNotFound(*module, property.to_owned())),
     }
 }
 
@@ -38,10 +35,7 @@ fn infer_enumerated(
             Enumerated::Variant(parameters.clone(), *enumerated),
         ))),
 
-        None => Action::Raise(ResolveError::VariantNotFound(
-            *enumerated,
-            property.to_owned(),
-        )),
+        None => Action::Raise(Error::VariantNotFound(*enumerated, property.to_owned())),
     }
 }
 
@@ -56,10 +50,10 @@ pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kin
                 infer_enumerated(&variants, property, &lhs)
             }
 
-            _ => Action::Raise(ResolveError::NotIndexable(lhs, property.to_owned())),
+            _ => Action::Raise(Error::NotIndexable(lhs, property.to_owned())),
         },
 
-        Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![lhs])),
+        Some(Err(_)) => Action::Raise(Error::NotInferrable(vec![lhs])),
 
         None => Action::Skip,
     }
@@ -68,7 +62,7 @@ pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kin
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
@@ -129,10 +123,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Raise(ResolveError::VariantNotFound(
-                CanonicalId::mock(1),
-                str!("foo")
-            ))
+            Action::Raise(Error::VariantNotFound(CanonicalId::mock(1), str!("foo")))
         );
     }
 
@@ -181,7 +172,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Raise(ResolveError::DeclarationNotFound(
+            Action::Raise(Error::DeclarationNotFound(
                 CanonicalId::mock(1),
                 str!("foo")
             ))
@@ -209,10 +200,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Raise(ResolveError::UnexpectedKind(
-                CanonicalId::mock(2),
-                Kind::Value
-            ))
+            Action::Raise(Error::UnexpectedKind(CanonicalId::mock(2), Kind::Value))
         );
     }
 
@@ -242,10 +230,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Raise(ResolveError::NotIndexable(
-                CanonicalId::mock(1),
-                str!("foo")
-            ))
+            Action::Raise(Error::NotIndexable(CanonicalId::mock(1), str!("foo")))
         );
     }
 
@@ -255,15 +240,12 @@ mod tests {
         let ctx = Context::mock(&modules);
         let state = State::from_types(
             &ctx,
-            vec![(
-                NodeId(1),
-                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
-            )],
+            vec![(NodeId(1), (Kind::Value, Err(Error::NotInferrable(vec![]))))],
         );
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(1)]))
+            Action::Raise(Error::NotInferrable(vec![CanonicalId::mock(1)]))
         );
     }
 }

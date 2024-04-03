@@ -2,7 +2,7 @@ use super::{
     data::{Action, Type},
     state::State,
 };
-use crate::error::ResolveError;
+use crate::error::Error;
 use lang::{ast, types, CanonicalId};
 
 pub fn infer(state: &State, op: ast::BinaryOperator, lhs: CanonicalId, rhs: CanonicalId) -> Action {
@@ -18,20 +18,18 @@ pub fn infer(state: &State, op: ast::BinaryOperator, lhs: CanonicalId, rhs: Cano
 
         (None, _) | (_, None) => Action::Skip,
 
-        (Some(Err(_)), Some(Err(_))) => Action::Raise(ResolveError::NotInferrable(vec![lhs, rhs])),
-        (Some(Err(_)), _) => Action::Raise(ResolveError::NotInferrable(vec![lhs])),
-        (_, Some(Err(_))) => Action::Raise(ResolveError::NotInferrable(vec![rhs])),
+        (Some(Err(_)), Some(Err(_))) => Action::Raise(Error::NotInferrable(vec![lhs, rhs])),
+        (Some(Err(_)), _) => Action::Raise(Error::NotInferrable(vec![lhs])),
+        (_, Some(Err(_))) => Action::Raise(Error::NotInferrable(vec![rhs])),
 
-        (Some(_), Some(_)) => {
-            Action::Raise(ResolveError::BinaryOperationNotSupported(op, lhs, rhs))
-        }
+        (Some(_), Some(_)) => Action::Raise(Error::BinaryOperationNotSupported(op, lhs, rhs)),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
@@ -133,7 +131,7 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, OP, CanonicalId::mock(1), CanonicalId::mock(1)),
-            Action::Raise(ResolveError::BinaryOperationNotSupported(
+            Action::Raise(Error::BinaryOperationNotSupported(
                 OP,
                 CanonicalId::mock(1),
                 CanonicalId::mock(1)
@@ -152,24 +150,21 @@ mod tests {
                     NodeId(1),
                     (Kind::Value, Ok(Type::Value(types::Type::Integer))),
                 ),
-                (
-                    NodeId(2),
-                    (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
-                ),
+                (NodeId(2), (Kind::Value, Err(Error::NotInferrable(vec![])))),
             ],
         );
 
         assert_eq!(
             super::infer(&state, OP, CanonicalId::mock(1), CanonicalId::mock(2)),
-            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(2)]))
+            Action::Raise(Error::NotInferrable(vec![CanonicalId::mock(2)]))
         );
         assert_eq!(
             super::infer(&state, OP, CanonicalId::mock(2), CanonicalId::mock(1)),
-            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(2)]))
+            Action::Raise(Error::NotInferrable(vec![CanonicalId::mock(2)]))
         );
         assert_eq!(
             super::infer(&state, OP, CanonicalId::mock(2), CanonicalId::mock(2)),
-            Action::Raise(ResolveError::NotInferrable(vec![
+            Action::Raise(Error::NotInferrable(vec![
                 CanonicalId::mock(2),
                 CanonicalId::mock(2)
             ]))

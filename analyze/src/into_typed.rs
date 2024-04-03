@@ -16,13 +16,13 @@ impl<Context> IntoTyped for ast::meta::Program<Context> {
     }
 }
 
-pub struct Visitor {
+pub struct Visitor<'a> {
     node_id: Incrementor,
-    strong: infer::strong::Output,
+    strong: &'a infer::strong::Output,
 }
 
-impl Visitor {
-    pub fn new(strong: infer::strong::Output) -> Self {
+impl<'a> Visitor<'a> {
+    pub fn new(strong: &'a infer::strong::Output) -> Self {
         Self {
             node_id: Default::default(),
             strong,
@@ -49,7 +49,7 @@ impl Visitor {
     }
 }
 
-impl ast::walk::Visit for Visitor {
+impl<'a> ast::walk::Visit for Visitor<'a> {
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;

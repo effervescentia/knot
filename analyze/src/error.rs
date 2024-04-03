@@ -1,7 +1,7 @@
 use lang::{ast, types::Kind, CanonicalId};
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum ResolveError {
+pub enum Error {
     /* inference */
     NotInferrable(
         // references to the dependencies that blocked inference
@@ -49,6 +49,13 @@ pub enum ResolveError {
         ast::BinaryOperator,
         // id of the left-hand side
         CanonicalId,
+        // id of the right-hand side
+        CanonicalId,
+    ),
+
+    UnaryOperationNotSupported(
+        // operation being performed
+        ast::UnaryOperator,
         // id of the right-hand side
         CanonicalId,
     ),

@@ -1,6 +1,6 @@
 use super::data::{Output, Strong, Type};
 use crate::{
-    error::ResolveError,
+    error::Error,
     infer::{weak, BindingMap, NodeDescriptor},
     Context, Result,
 };
@@ -13,7 +13,7 @@ use lang::{
 use std::{cell::OnceCell, collections::BTreeMap, rc::Rc};
 
 /// type resolved from the `State` during inference
-type ResolvedType<'a> = std::result::Result<types::Type<CanonicalId>, &'a ResolveError>;
+type ResolvedType<'a> = std::result::Result<types::Type<CanonicalId>, &'a Error>;
 
 type Warning<'a> = (&'a NodeDescriptor, String);
 
@@ -69,7 +69,7 @@ impl<'a> State<'a> {
         &self,
         id: &NodeId,
         allowed_kind: &Kind,
-    ) -> Option<&std::result::Result<Type, ResolveError>> {
+    ) -> Option<&std::result::Result<Type, Error>> {
         self.types.get(id).and_then(|(kind, strong)| {
             if !allowed_kind.can_accept(kind) {
                 return None;
@@ -155,9 +155,7 @@ impl<'a> State<'a> {
                     let cell = get_cell(*id);
 
                     let value = if self.is_local(from_id) {
-                        let from_cell = get_cell(from_id.1);
-
-                        from_cell
+                        get_cell(from_id.1)
                             .get()
                             .unwrap_or_else(|| invariant!("inherited cell is empty"))
                     } else {

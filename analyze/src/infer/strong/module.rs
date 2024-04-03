@@ -27,7 +27,7 @@ pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
@@ -46,7 +46,7 @@ mod tests {
     fn mock_state<'a>(
         ctx: &'a Context,
         fragments: &'a BTreeMap<NodeId, (ScopeId, Fragment)>,
-        types: Vec<(NodeId, (Kind, Result<Type, ResolveError>))>,
+        types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
     ) -> State<'a> {
         State {
             fragments,
