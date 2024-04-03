@@ -49,7 +49,7 @@ impl<'a> Visitor<'a> {
     }
 }
 
-impl<'a> ast::walk::Visit for Visitor<'a> {
+impl<'a> ast::walk::Visit<Range> for Visitor<'a> {
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;

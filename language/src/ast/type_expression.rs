@@ -1,6 +1,5 @@
-use crate::Range;
-
 use super::walk;
+use crate::Range;
 use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -24,18 +23,15 @@ pub enum TypeExpression<TypeExpression_> {
     // View(Vec<(String, TypeExpression)>),
 }
 
-impl<Visitor, TypeExpression_> walk::Walk<Visitor> for walk::Span<TypeExpression<TypeExpression_>>
+impl<Visitor, TypeExpression_> walk::Walk<Visitor, Range>
+    for walk::Span<TypeExpression<TypeExpression_>>
 where
-    Visitor: walk::Visit,
-    TypeExpression_: walk::Walk<Visitor, Output = Visitor::TypeExpression>,
+    Visitor: walk::Visit<Range>,
+    TypeExpression_: walk::Walk<Visitor, Range, Output = Visitor::TypeExpression>,
 {
-    type Meta = Range;
     type Output = Visitor::TypeExpression;
 
-    fn walk(self, v: Visitor) -> (Self::Output, Visitor)
-    where
-        Visitor: walk::Visit,
-    {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let Self(value, range) = self;
 
         match value {

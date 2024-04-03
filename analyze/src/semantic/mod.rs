@@ -19,7 +19,7 @@ pub fn analyze(ctx: &Context, typed: ast::typed::Program) -> Result<ast::typed::
 #[derive(Default)]
 struct Visitor(Vec<(NodeId, Error)>);
 
-impl ast::walk::Visit for Visitor {
+impl ast::walk::Visit<lang::Range> for Visitor {
     // type Binding = ast::typed::Binding;
     type Binding = ();
     // type Expression = ast::typed::Expression;

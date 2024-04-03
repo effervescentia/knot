@@ -21,11 +21,10 @@ impl Binding {
     }
 }
 
-impl<Visitor> Walk<Visitor> for Binding
+impl<Visitor> Walk<Visitor, Range> for Binding
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::Binding;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -58,11 +57,10 @@ impl Expression<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor> for Expression<Meta>
+impl<Visitor, Meta> Walk<Visitor, Range> for Expression<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::Expression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -94,11 +92,10 @@ impl Statement<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor> for Statement<Meta>
+impl<Visitor, Meta> Walk<Visitor, Range> for Statement<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::Statement;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -130,11 +127,10 @@ impl Component<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor> for Component<Meta>
+impl<Visitor, Meta> Walk<Visitor, Range> for Component<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::Component;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -166,11 +162,10 @@ impl TypeExpression<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor> for TypeExpression<Meta>
+impl<Visitor, Meta> Walk<Visitor, Range> for TypeExpression<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::TypeExpression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -202,11 +197,10 @@ impl Parameter<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor> for Parameter<Meta>
+impl<Visitor, Meta> Walk<Visitor, Range> for Parameter<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::Parameter;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -245,11 +239,10 @@ impl Declaration<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor> for Declaration<Meta>
+impl<Visitor, Meta> Walk<Visitor, Range> for Declaration<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::Declaration;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -279,11 +272,10 @@ impl Import<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor> for Import<Meta>
+impl<Visitor, Meta> Walk<Visitor, Range> for Import<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::Import;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -315,11 +307,10 @@ impl Module<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor> for Module<Meta>
+impl<Visitor, Meta> Walk<Visitor, Range> for Module<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: super::walk::Visit<Range>,
 {
-    type Meta = Range;
     type Output = Visitor::Module;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {

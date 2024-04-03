@@ -78,7 +78,7 @@ impl Display for Program {
 
 pub struct Visitor;
 
-impl walk::Visit for Visitor {
+impl<Meta> walk::Visit<Meta> for Visitor {
     type Binding = String;
     type Expression = Expression;
     type Statement = Statement;
@@ -96,19 +96,19 @@ impl walk::Visit for Visitor {
     fn expression(
         self,
         x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
-        _: Range,
+        _: Meta,
     ) -> (Self::Expression, Self) {
         (Expression(x), self)
     }
 
-    fn statement(self, x: super::Statement<Self::Expression>, _: Range) -> (Self::Statement, Self) {
+    fn statement(self, x: super::Statement<Self::Expression>, _: Meta) -> (Self::Statement, Self) {
         (Statement(x), self)
     }
 
     fn component(
         self,
         x: super::Component<Self::Component, Self::Expression>,
-        _: Range,
+        _: Meta,
     ) -> (Self::Component, Self) {
         (Component(x), self)
     }
@@ -116,7 +116,7 @@ impl walk::Visit for Visitor {
     fn type_expression(
         self,
         x: super::TypeExpression<Self::TypeExpression>,
-        _: Range,
+        _: Meta,
     ) -> (Self::TypeExpression, Self) {
         (TypeExpression(x), self)
     }
@@ -124,7 +124,7 @@ impl walk::Visit for Visitor {
     fn parameter(
         self,
         x: super::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        _: Range,
+        _: Meta,
     ) -> (Self::Parameter, Self) {
         (Parameter(x), self)
     }
@@ -138,19 +138,19 @@ impl walk::Visit for Visitor {
             Self::Parameter,
             Self::Module,
         >,
-        _: Range,
+        _: Meta,
     ) -> (Self::Declaration, Self) {
         (Declaration(x), self)
     }
 
-    fn import(self, x: super::Import, _: Range) -> (Self::Import, Self) {
+    fn import(self, x: super::Import, _: Meta) -> (Self::Import, Self) {
         (Import(x), self)
     }
 
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
-        _: Range,
+        _: Meta,
     ) -> (Self::Module, Self) {
         (Module(x), self)
     }

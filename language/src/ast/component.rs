@@ -1,6 +1,5 @@
-use crate::Range;
-
 use super::walk::{self, WalkEach};
+use crate::Range;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -33,20 +32,16 @@ impl<Component_, Expression> Component<Component_, Expression> {
     }
 }
 
-impl<Visitor, Component_, Expression> walk::Walk<Visitor>
+impl<Visitor, Component_, Expression> walk::Walk<Visitor, Range>
     for walk::Span<Component<Component_, Expression>>
 where
-    Visitor: walk::Visit,
-    Component_: walk::Walk<Visitor, Output = Visitor::Component>,
-    Expression: walk::Walk<Visitor, Output = Visitor::Expression>,
+    Visitor: walk::Visit<Range>,
+    Component_: walk::Walk<Visitor, Range, Output = Visitor::Component>,
+    Expression: walk::Walk<Visitor, Range, Output = Visitor::Expression>,
 {
-    type Meta = Range;
     type Output = Visitor::Component;
 
-    fn walk(self, v: Visitor) -> (Self::Output, Visitor)
-    where
-        Visitor: walk::Visit,
-    {
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let Self(value, range) = self;
 
         match value {
