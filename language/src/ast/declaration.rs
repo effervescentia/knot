@@ -1,3 +1,5 @@
+use crate::Range;
+
 use super::walk::{self, WalkEach};
 use std::fmt::Debug;
 
@@ -8,6 +10,7 @@ impl<Visitor> walk::Walk<Visitor> for walk::Span<Binding>
 where
     Visitor: walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Binding;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -51,6 +54,7 @@ where
     Visitor: walk::Visit,
     Binding: walk::Walk<Visitor, Output = Visitor::Binding>,
 {
+    type Meta = Binding::Meta;
     type Output = Storage<Visitor::Binding>;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -95,6 +99,7 @@ where
     Expression: walk::Walk<Visitor, Output = Visitor::Expression>,
     TypeExpression: walk::Walk<Visitor, Output = Visitor::TypeExpression>,
 {
+    type Meta = Range;
     type Output = Visitor::Parameter;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -250,6 +255,7 @@ where
     Parameter: walk::Walk<Visitor, Output = Visitor::Parameter>,
     Module: walk::Walk<Visitor, Output = Visitor::Module>,
 {
+    type Meta = Range;
     type Output = Visitor::Declaration;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {

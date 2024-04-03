@@ -1,3 +1,5 @@
+use crate::Range;
+
 use super::{walk, BinaryOperator, UnaryOperator};
 use std::fmt::Debug;
 
@@ -38,6 +40,7 @@ where
     Statement: walk::Walk<Visitor, Output = Visitor::Statement>,
     Component: walk::Walk<Visitor, Output = Visitor::Component>,
 {
+    type Meta = Range;
     type Output = Visitor::Expression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -124,6 +127,7 @@ where
     Visitor: walk::Visit,
     Expression: walk::Walk<Visitor, Output = Visitor::Expression>,
 {
+    type Meta = Range;
     type Output = Visitor::Statement;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {

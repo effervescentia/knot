@@ -25,6 +25,7 @@ impl<Visitor> Walk<Visitor> for Binding
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Binding;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -61,6 +62,7 @@ impl<Visitor, Meta> Walk<Visitor> for Expression<Meta>
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Expression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -96,6 +98,7 @@ impl<Visitor, Meta> Walk<Visitor> for Statement<Meta>
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Statement;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -131,6 +134,7 @@ impl<Visitor, Meta> Walk<Visitor> for Component<Meta>
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Component;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -166,6 +170,7 @@ impl<Visitor, Meta> Walk<Visitor> for TypeExpression<Meta>
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::TypeExpression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -201,6 +206,7 @@ impl<Visitor, Meta> Walk<Visitor> for Parameter<Meta>
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Parameter;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -243,6 +249,7 @@ impl<Visitor, Meta> Walk<Visitor> for Declaration<Meta>
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Declaration;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -276,6 +283,7 @@ impl<Visitor, Meta> Walk<Visitor> for Import<Meta>
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Import;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -311,6 +319,7 @@ impl<Visitor, Meta> Walk<Visitor> for Module<Meta>
 where
     Visitor: super::walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Module;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {

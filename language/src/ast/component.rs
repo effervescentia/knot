@@ -1,3 +1,5 @@
+use crate::Range;
+
 use super::walk::{self, WalkEach};
 use std::fmt::Debug;
 
@@ -38,6 +40,7 @@ where
     Component_: walk::Walk<Visitor, Output = Visitor::Component>,
     Expression: walk::Walk<Visitor, Output = Visitor::Expression>,
 {
+    type Meta = Range;
     type Output = Visitor::Component;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor)

@@ -86,6 +86,7 @@ where
     Visitor: Visit,
 {
     type Output;
+    type Meta;
 
     fn walk(self, visitor: Visitor) -> (Self::Output, Visitor);
 }
@@ -96,6 +97,7 @@ where
     Visitor: Visit,
 {
     type Output = (String, Target::Output);
+    type Meta = Target::Meta;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let (key, x) = self;
@@ -111,6 +113,7 @@ where
     Visitor: Visit,
 {
     type Output = Option<Target::Output>;
+    type Meta = Target::Meta;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         if let Some(x) = self {
@@ -128,6 +131,7 @@ where
     Visitor: Visit,
 {
     type Output = Vec<Target::Output>;
+    type Meta = Target::Meta;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         self.into_iter().fold((vec![], v), |(mut acc, v), x| {

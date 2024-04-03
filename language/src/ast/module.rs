@@ -1,3 +1,5 @@
+use crate::Range;
+
 use super::walk::{self, WalkEach};
 use std::fmt::Debug;
 
@@ -30,6 +32,7 @@ impl<Visitor> walk::Walk<Visitor> for walk::Span<Import>
 where
     Visitor: walk::Visit,
 {
+    type Meta = Range;
     type Output = Visitor::Import;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
@@ -74,6 +77,7 @@ where
     Import: walk::Walk<Visitor, Output = Visitor::Import>,
     Declaration: walk::Walk<Visitor, Output = Visitor::Declaration>,
 {
+    type Meta = Range;
     type Output = Visitor::Module;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {

@@ -1,3 +1,5 @@
+use crate::Range;
+
 use super::walk;
 use std::fmt::Debug;
 
@@ -27,6 +29,7 @@ where
     Visitor: walk::Visit,
     TypeExpression_: walk::Walk<Visitor, Output = Visitor::TypeExpression>,
 {
+    type Meta = Range;
     type Output = Visitor::TypeExpression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor)
