@@ -113,10 +113,11 @@ mod tests {
         assert_eq!(
             super::infer_types(&ctx, weak),
             Ok(super::Output {
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, 0, Type::Nil))),
-                    (NodeId(1), OnceCell::from(type_(0, 0, Type::Nil)))
-                ]),
+                types: fixture::type_alias::strong_types()
+                    .into_iter()
+                    .filter(|(key, _)| key != &CanonicalId::mock(2))
+                    .map(|(key, value)| (key.1, OnceCell::from(value)))
+                    .collect(),
             })
         );
     }
@@ -135,11 +136,11 @@ mod tests {
         assert_eq!(
             super::infer_types(&ctx, weak),
             Ok(super::Output {
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, 0, Type::String))),
-                    (NodeId(1), OnceCell::from(type_(0, 1, Type::String))),
-                    (NodeId(2), OnceCell::from(type_(0, 0, Type::String)))
-                ]),
+                types: fixture::constant::strong_types()
+                    .into_iter()
+                    .filter(|(key, _)| key != &CanonicalId::mock(3))
+                    .map(|(key, value)| (key.1, OnceCell::from(value)))
+                    .collect(),
             })
         );
     }
@@ -158,24 +159,11 @@ mod tests {
         assert_eq!(
             super::infer_types(&ctx, weak),
             Ok(super::Output {
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, 0, Type::Boolean))),
-                    (NodeId(1), OnceCell::from(type_(0, 1, Type::Style))),
-                    (
-                        NodeId(2),
-                        OnceCell::from(type_(
-                            0,
-                            2,
-                            Type::Enumerated(Enumerated::Declaration(vec![
-                                (str!("Empty"), vec![]),
-                                (
-                                    str!("Render"),
-                                    vec![type_(0, 0, Type::Boolean), type_(0, 1, Type::Style)]
-                                ),
-                            ]))
-                        ))
-                    ),
-                ]),
+                types: fixture::enumerated::strong_types()
+                    .into_iter()
+                    .filter(|(key, _)| key != &CanonicalId::mock(3))
+                    .map(|(key, value)| (key.1, OnceCell::from(value)))
+                    .collect(),
             })
         );
     }
@@ -231,39 +219,11 @@ mod tests {
         assert_eq!(
             super::infer_types(&ctx, weak),
             Ok(super::Output {
-                types: HashMap::from_iter(vec![
-                    (NodeId(0), OnceCell::from(type_(0, 0, Type::Element))),
-                    (NodeId(1), OnceCell::from(type_(0, 1, Type::Element))),
-                    (NodeId(2), OnceCell::from(type_(0, 1, Type::Element))),
-                    (NodeId(3), OnceCell::from(type_(0, 0, Type::Element))),
-                    (NodeId(4), OnceCell::from(type_(0, 4, Type::Integer))),
-                    (NodeId(5), OnceCell::from(type_(0, 5, Type::Float))),
-                    (NodeId(6), OnceCell::from(type_(0, 6, Type::Float))),
-                    (NodeId(7), OnceCell::from(type_(0, 7, Type::Nil))),
-                    (NodeId(8), OnceCell::from(type_(0, 8, Type::String))),
-                    (NodeId(9), OnceCell::from(type_(0, 9, Type::Element))),
-                    (NodeId(10), OnceCell::from(type_(0, 6, Type::Float))),
-                    (NodeId(11), OnceCell::from(type_(0, 6, Type::Float))),
-                    (NodeId(12), OnceCell::from(type_(0, 12, Type::String))),
-                    (NodeId(13), OnceCell::from(type_(0, 0, Type::Element))),
-                    (NodeId(14), OnceCell::from(type_(0, 0, Type::Element))),
-                    (NodeId(15), OnceCell::from(type_(0, 15, Type::Element))),
-                    (NodeId(16), OnceCell::from(type_(0, 16, Type::Element))),
-                    (NodeId(17), OnceCell::from(type_(0, 16, Type::Element))),
-                    (NodeId(18), OnceCell::from(type_(0, 16, Type::Element))),
-                    (NodeId(19), OnceCell::from(type_(0, 16, Type::Element))),
-                    (
-                        NodeId(20),
-                        OnceCell::from(type_(
-                            0,
-                            20,
-                            Type::View(vec![Rc::new((
-                                CanonicalId::mock(0),
-                                ast::typed::Type(Type::Element)
-                            ))])
-                        ))
-                    ),
-                ]),
+                types: fixture::view::strong_types()
+                    .into_iter()
+                    .filter(|(key, _)| key != &CanonicalId::mock(21))
+                    .map(|(key, value)| (key.1, OnceCell::from(value)))
+                    .collect(),
             })
         );
     }
@@ -316,60 +276,11 @@ mod tests {
         assert_eq!(
             super::infer_types(&ctx, weak),
             Ok(super::Output {
-                types: HashMap::from_iter(vec![
-                    (
-                        NodeId(0),
-                        OnceCell::from(type_(
-                            1,
-                            0,
-                            Type::Module(vec![(
-                                str!("PRIMARY"),
-                                Kind::Value,
-                                type_(1, 1, Type::String)
-                            )])
-                        ))
-                    ),
-                    (
-                        NodeId(1),
-                        OnceCell::from(type_(
-                            1,
-                            0,
-                            Type::Module(vec![(
-                                str!("PRIMARY"),
-                                Kind::Value,
-                                type_(1, 1, Type::String)
-                            )])
-                        ))
-                    ),
-                    (NodeId(2), OnceCell::from(type_(1, 1, Type::String))),
-                    (NodeId(3), OnceCell::from(type_(0, 3, Type::String))),
-                    (NodeId(4), OnceCell::from(type_(0, 4, Type::Style))),
-                    (NodeId(5), OnceCell::from(type_(0, 4, Type::Style))),
-                    (
-                        NodeId(6),
-                        OnceCell::from(type_(
-                            0,
-                            6,
-                            Type::Module(vec![(
-                                str!("MY_STYLE"),
-                                Kind::Value,
-                                type_(0, 4, Type::Style)
-                            )])
-                        ))
-                    ),
-                    (
-                        NodeId(7),
-                        OnceCell::from(type_(
-                            0,
-                            6,
-                            Type::Module(vec![(
-                                str!("MY_STYLE"),
-                                Kind::Value,
-                                type_(0, 4, Type::Style)
-                            )])
-                        ))
-                    ),
-                ]),
+                types: fixture::module::strong_types()
+                    .into_iter()
+                    .filter(|(key, _)| key != &CanonicalId::mock(8))
+                    .map(|(key, value)| (key.1, OnceCell::from(value)))
+                    .collect(),
             })
         );
     }
