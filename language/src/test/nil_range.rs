@@ -10,11 +10,11 @@ pub trait NilRange {
     fn nil_range(self) -> Self;
 }
 
-impl NilRange for ast::meta::Binding {
-    fn nil_range(self) -> Self {
-        self.walk(Visitor).0
-    }
-}
+// impl NilRange for ast::meta::Binding {
+//     fn nil_range(self) -> Self {
+//         self.walk(Visitor).0
+//     }
+// }
 
 impl NilRange for ast::raw::Expression {
     fn nil_range(self) -> Self {

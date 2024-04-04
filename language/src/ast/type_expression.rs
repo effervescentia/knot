@@ -23,30 +23,30 @@ pub enum TypeExpression<TypeExpression_> {
     // View(Vec<(String, TypeExpression)>),
 }
 
-impl<Visitor, TypeExpression_> walk::Walk<Visitor, Range>
-    for walk::Span<TypeExpression<TypeExpression_>>
+impl<Visitor, Meta, TypeExpression_> walk::Walk<Visitor, (Range, Meta)>
+    for walk::Span<TypeExpression<TypeExpression_>, Meta>
 where
-    Visitor: walk::Visit<Range>,
-    TypeExpression_: walk::Walk<Visitor, Range, Output = Visitor::TypeExpression>,
+    Visitor: walk::Visit<(Range, Meta)>,
+    TypeExpression_: walk::Walk<Visitor, (Range, Meta), Output = Visitor::TypeExpression>,
 {
     type Output = Visitor::TypeExpression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(value, range) = self;
+        let (value, ctx) = self;
 
         match value {
             super::TypeExpression::Primitive(x) => {
-                v.type_expression(super::TypeExpression::Primitive(x), range)
+                v.type_expression(super::TypeExpression::Primitive(x), ctx)
             }
 
             super::TypeExpression::Identifier(x) => {
-                v.type_expression(super::TypeExpression::Identifier(x), range)
+                v.type_expression(super::TypeExpression::Identifier(x), ctx)
             }
 
             super::TypeExpression::Group(x) => {
                 let (x, v) = x.walk(v);
 
-                v.type_expression(super::TypeExpression::Group(Box::new(x)), range)
+                v.type_expression(super::TypeExpression::Group(Box::new(x)), ctx)
             }
 
             super::TypeExpression::PropertyAccess(x, property) => {
@@ -54,7 +54,7 @@ where
 
                 v.type_expression(
                     super::TypeExpression::PropertyAccess(Box::new(x), property),
-                    range,
+                    ctx,
                 )
             }
 
@@ -64,7 +64,7 @@ where
 
                 v.type_expression(
                     super::TypeExpression::Function(parameters, Box::new(x)),
-                    range,
+                    ctx,
                 )
             }
         }

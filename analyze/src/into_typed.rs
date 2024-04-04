@@ -10,7 +10,7 @@ pub trait IntoTyped: Sized {
     fn into_typed(self, strong: Visitor) -> ast::typed::Program;
 }
 
-impl<Context> IntoTyped for ast::meta::Program<Context> {
+impl<Meta> IntoTyped for ast::meta::Program<Meta> {
     fn into_typed(self, strong: super::Visitor) -> ast::typed::Program {
         ast::meta::Program(self.0.walk(strong).0)
     }
@@ -49,7 +49,7 @@ impl<'a> Visitor<'a> {
     }
 }
 
-impl<'a> ast::walk::Visit<Range> for Visitor<'a> {
+impl<'a, Meta> ast::walk::Visit<(Range, Meta)> for Visitor<'a> {
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;
@@ -67,19 +67,23 @@ impl<'a> ast::walk::Visit<Range> for Visitor<'a> {
     fn expression(
         self,
         x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
-        r: Range,
+        (r, _): (Range, Meta),
     ) -> (Self::Expression, Self) {
         self.typed(x, r, ast::meta::Expression)
     }
 
-    fn statement(self, x: ast::Statement<Self::Expression>, r: Range) -> (Self::Statement, Self) {
+    fn statement(
+        self,
+        x: ast::Statement<Self::Expression>,
+        (r, _): (Range, Meta),
+    ) -> (Self::Statement, Self) {
         self.typed(x, r, ast::meta::Statement)
     }
 
     fn component(
         self,
         x: ast::Component<Self::Component, Self::Expression>,
-        r: Range,
+        (r, _): (Range, Meta),
     ) -> (Self::Component, Self) {
         self.typed(x, r, ast::meta::Component)
     }
@@ -87,7 +91,7 @@ impl<'a> ast::walk::Visit<Range> for Visitor<'a> {
     fn type_expression(
         self,
         x: ast::TypeExpression<Self::TypeExpression>,
-        r: Range,
+        (r, _): (Range, Meta),
     ) -> (Self::TypeExpression, Self) {
         self.typed(x, r, ast::meta::TypeExpression)
     }
@@ -95,7 +99,7 @@ impl<'a> ast::walk::Visit<Range> for Visitor<'a> {
     fn parameter(
         self,
         x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        r: Range,
+        (r, _): (Range, Meta),
     ) -> (Self::Parameter, Self) {
         self.typed(x, r, ast::meta::Parameter)
     }
@@ -109,19 +113,19 @@ impl<'a> ast::walk::Visit<Range> for Visitor<'a> {
             Self::Parameter,
             Self::Module,
         >,
-        r: Range,
+        (r, _): (Range, Meta),
     ) -> (Self::Declaration, Self) {
         self.typed(x, r, ast::meta::Declaration)
     }
 
-    fn import(self, x: ast::Import, r: Range) -> (Self::Import, Self) {
+    fn import(self, x: ast::Import, (r, _): (Range, Meta)) -> (Self::Import, Self) {
         self.typed(x, r, ast::meta::Import)
     }
 
     fn module(
         self,
         x: ast::Module<Self::Import, Self::Declaration>,
-        r: Range,
+        (r, _): (Range, Meta),
     ) -> (Self::Module, Self) {
         self.typed(x, r, ast::meta::Module)
     }

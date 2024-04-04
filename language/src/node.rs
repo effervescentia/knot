@@ -48,9 +48,9 @@ impl<Value> Node<Value, ()> {
     }
 }
 
-impl<Value, Meta> IntoSpan<Value> for Node<Value, Meta> {
-    fn into_span(self) -> Span<Value> {
-        Span(self.0, self.1)
+impl<Value, Meta> IntoSpan<Value, Meta> for Node<Value, Meta> {
+    fn into_span(self) -> Span<Value, Meta> {
+        (self.0, (self.1, self.2))
     }
 }
 

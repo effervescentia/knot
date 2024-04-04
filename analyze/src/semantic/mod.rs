@@ -19,7 +19,7 @@ pub fn analyze(ctx: &Context, typed: ast::typed::Program) -> Result<ast::typed::
 #[derive(Default)]
 struct Visitor(Vec<(NodeId, Error)>);
 
-impl ast::walk::Visit<lang::Range> for Visitor {
+impl<Meta> ast::walk::Visit<(lang::Range, Meta)> for Visitor {
     // type Binding = ast::typed::Binding;
     type Binding = ();
     // type Expression = ast::typed::Expression;
@@ -46,7 +46,7 @@ impl ast::walk::Visit<lang::Range> for Visitor {
     fn expression(
         self,
         x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
-        r: lang::Range,
+        ctx: (lang::Range, Meta),
     ) -> (Self::Expression, Self) {
         match x {
             ast::Expression::BinaryOperation(ast::BinaryOperator::And, lhs, rhs) => (),
@@ -60,7 +60,7 @@ impl ast::walk::Visit<lang::Range> for Visitor {
     fn statement(
         self,
         x: ast::Statement<Self::Expression>,
-        r: lang::Range,
+        ctx: (lang::Range, Meta),
     ) -> (Self::Statement, Self) {
         ((), self)
     }
@@ -68,7 +68,7 @@ impl ast::walk::Visit<lang::Range> for Visitor {
     fn component(
         self,
         x: ast::Component<Self::Component, Self::Expression>,
-        r: lang::Range,
+        ctx: (lang::Range, Meta),
     ) -> (Self::Component, Self) {
         ((), self)
     }
@@ -76,7 +76,7 @@ impl ast::walk::Visit<lang::Range> for Visitor {
     fn type_expression(
         self,
         x: ast::TypeExpression<Self::TypeExpression>,
-        r: lang::Range,
+        ctx: (lang::Range, Meta),
     ) -> (Self::TypeExpression, Self) {
         ((), self)
     }
@@ -84,7 +84,7 @@ impl ast::walk::Visit<lang::Range> for Visitor {
     fn parameter(
         self,
         x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        r: lang::Range,
+        ctx: (lang::Range, Meta),
     ) -> (Self::Parameter, Self) {
         ((), self)
     }
@@ -98,19 +98,19 @@ impl ast::walk::Visit<lang::Range> for Visitor {
             Self::Parameter,
             Self::Module,
         >,
-        r: lang::Range,
+        ctx: (lang::Range, Meta),
     ) -> (Self::Declaration, Self) {
         ((), self)
     }
 
-    fn import(self, x: ast::Import, r: lang::Range) -> (Self::Import, Self) {
+    fn import(self, x: ast::Import, ctx: (lang::Range, Meta)) -> (Self::Import, Self) {
         ((), self)
     }
 
     fn module(
         self,
         x: ast::Module<Self::Import, Self::Declaration>,
-        r: lang::Range,
+        ctx: (lang::Range, Meta),
     ) -> (Self::Module, Self) {
         ((), self)
     }

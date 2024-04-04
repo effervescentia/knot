@@ -27,20 +27,20 @@ impl Import {
     }
 }
 
-impl<Visitor> walk::Walk<Visitor, Range> for walk::Span<Import>
+impl<Visitor, Meta> walk::Walk<Visitor, (Range, Meta)> for walk::Span<Import, Meta>
 where
-    Visitor: walk::Visit<Range>,
+    Visitor: walk::Visit<(Range, Meta)>,
 {
     type Output = Visitor::Import;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(
+        let (
             super::Import {
                 source,
                 path,
                 alias,
             },
-            range,
+            ctx,
         ) = self;
 
         v.import(
@@ -49,7 +49,7 @@ where
                 path,
                 alias,
             },
-            range,
+            ctx,
         )
     }
 }
@@ -69,22 +69,22 @@ impl<Import, Declaration> Module<Import, Declaration> {
     }
 }
 
-impl<Visitor, Import, Declaration> walk::Walk<Visitor, Range>
-    for walk::Span<Module<Import, Declaration>>
+impl<Visitor, Meta, Import, Declaration> walk::Walk<Visitor, (Range, Meta)>
+    for walk::Span<Module<Import, Declaration>, Meta>
 where
-    Visitor: walk::Visit<Range>,
-    Import: walk::Walk<Visitor, Range, Output = Visitor::Import>,
-    Declaration: walk::Walk<Visitor, Range, Output = Visitor::Declaration>,
+    Visitor: walk::Visit<(Range, Meta)>,
+    Import: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Import>,
+    Declaration: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Declaration>,
 {
     type Output = Visitor::Module;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(
+        let (
             super::Module {
                 imports,
                 declarations,
             },
-            range,
+            ctx,
         ) = self;
         let ((imports, declarations), v) = (imports, declarations).walk_each(v);
 
@@ -93,7 +93,7 @@ where
                 imports,
                 declarations,
             },
-            range,
+            ctx,
         )
     }
 }

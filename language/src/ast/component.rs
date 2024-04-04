@@ -32,37 +32,37 @@ impl<Component_, Expression> Component<Component_, Expression> {
     }
 }
 
-impl<Visitor, Component_, Expression> walk::Walk<Visitor, Range>
-    for walk::Span<Component<Component_, Expression>>
+impl<Visitor, Meta, Component_, Expression> walk::Walk<Visitor, (Range, Meta)>
+    for walk::Span<Component<Component_, Expression>, Meta>
 where
-    Visitor: walk::Visit<Range>,
-    Component_: walk::Walk<Visitor, Range, Output = Visitor::Component>,
-    Expression: walk::Walk<Visitor, Range, Output = Visitor::Expression>,
+    Visitor: walk::Visit<(Range, Meta)>,
+    Component_: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Component>,
+    Expression: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
 {
     type Output = Visitor::Component;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(value, range) = self;
+        let (value, ctx) = self;
 
         match value {
-            Component::Text(x) => v.component(Component::Text(x), range),
+            Component::Text(x) => v.component(Component::Text(x), ctx),
 
             Component::Expression(x) => {
                 let (x, v) = x.walk(v);
 
-                v.component(Component::Expression(x), range)
+                v.component(Component::Expression(x), ctx)
             }
 
             Component::Fragment(xs) => {
                 let (xs, v) = xs.walk(v);
 
-                v.component(Component::Fragment(xs), range)
+                v.component(Component::Fragment(xs), ctx)
             }
 
             Component::ClosedElement(tag, attributes) => {
                 let (attributes, v) = attributes.walk(v);
 
-                v.component(Component::ClosedElement(tag, attributes), range)
+                v.component(Component::ClosedElement(tag, attributes), ctx)
             }
 
             Component::OpenElement {
@@ -80,7 +80,7 @@ where
                         children,
                         end_tag,
                     },
-                    range,
+                    ctx,
                 )
             }
         }

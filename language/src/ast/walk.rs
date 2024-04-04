@@ -1,13 +1,14 @@
 use crate::Range;
 
-#[derive(Clone)]
-pub struct Span<Value>(pub Value, pub Range);
+// #[derive(Clone)]
+// pub struct Span<Value>(pub Value, pub Range);
+pub type Span<Value, Meta> = (Value, (Range, Meta));
 
-pub trait IntoSpan<Value> {
-    fn into_span(self) -> Span<Value>;
+pub trait IntoSpan<Value, Meta> {
+    fn into_span(self) -> Span<Value, Meta>;
 }
 
-impl<Value> IntoSpan<Value> for Span<Value> {
+impl<Value, Meta> IntoSpan<Value, Meta> for Span<Value, Meta> {
     fn into_span(self) -> Self {
         self
     }
