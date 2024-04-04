@@ -66,7 +66,7 @@ impl NilRange for ast::raw::Module {
 
 struct Visitor;
 
-impl<Meta> Visit<Meta> for Visitor {
+impl<Context> Visit<Context> for Visitor {
     type Binding = ast::raw::Binding;
     type Expression = ast::raw::Expression;
     type Statement = ast::raw::Statement;
@@ -84,19 +84,19 @@ impl<Meta> Visit<Meta> for Visitor {
     fn expression(
         self,
         x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Expression, Self) {
         (ast::meta::Expression(Node::raw(x, Range::nil())), self)
     }
 
-    fn statement(self, x: ast::Statement<Self::Expression>, _: Meta) -> (Self::Statement, Self) {
+    fn statement(self, x: ast::Statement<Self::Expression>, _: Context) -> (Self::Statement, Self) {
         (ast::meta::Statement(Node::raw(x, Range::nil())), self)
     }
 
     fn component(
         self,
         x: ast::Component<Self::Component, Self::Expression>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Component, Self) {
         (ast::meta::Component(Node::raw(x, Range::nil())), self)
     }
@@ -104,7 +104,7 @@ impl<Meta> Visit<Meta> for Visitor {
     fn type_expression(
         self,
         x: ast::TypeExpression<Self::TypeExpression>,
-        _: Meta,
+        _: Context,
     ) -> (Self::TypeExpression, Self) {
         (ast::meta::TypeExpression(Node::raw(x, Range::nil())), self)
     }
@@ -112,7 +112,7 @@ impl<Meta> Visit<Meta> for Visitor {
     fn parameter(
         self,
         x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Parameter, Self) {
         (ast::meta::Parameter(Node::raw(x, Range::nil())), self)
     }
@@ -126,19 +126,19 @@ impl<Meta> Visit<Meta> for Visitor {
             Self::Parameter,
             Self::Module,
         >,
-        _: Meta,
+        _: Context,
     ) -> (Self::Declaration, Self) {
         (ast::meta::Declaration(Node::raw(x, Range::nil())), self)
     }
 
-    fn import(self, x: ast::Import, _: Meta) -> (Self::Import, Self) {
+    fn import(self, x: ast::Import, _: Context) -> (Self::Import, Self) {
         (ast::meta::Import(Node::raw(x, Range::nil())), self)
     }
 
     fn module(
         self,
         x: ast::Module<Self::Import, Self::Declaration>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Module, Self) {
         (ast::meta::Module(Node::raw(x, Range::nil())), self)
     }

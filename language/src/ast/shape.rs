@@ -78,7 +78,7 @@ impl Display for Program {
 
 pub struct Visitor;
 
-impl<Meta> walk::Visit<Meta> for Visitor {
+impl<Context> walk::Visit<Context> for Visitor {
     type Binding = String;
     type Expression = Expression;
     type Statement = Statement;
@@ -96,19 +96,23 @@ impl<Meta> walk::Visit<Meta> for Visitor {
     fn expression(
         self,
         x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Expression, Self) {
         (Expression(x), self)
     }
 
-    fn statement(self, x: super::Statement<Self::Expression>, _: Meta) -> (Self::Statement, Self) {
+    fn statement(
+        self,
+        x: super::Statement<Self::Expression>,
+        _: Context,
+    ) -> (Self::Statement, Self) {
         (Statement(x), self)
     }
 
     fn component(
         self,
         x: super::Component<Self::Component, Self::Expression>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Component, Self) {
         (Component(x), self)
     }
@@ -116,7 +120,7 @@ impl<Meta> walk::Visit<Meta> for Visitor {
     fn type_expression(
         self,
         x: super::TypeExpression<Self::TypeExpression>,
-        _: Meta,
+        _: Context,
     ) -> (Self::TypeExpression, Self) {
         (TypeExpression(x), self)
     }
@@ -124,7 +128,7 @@ impl<Meta> walk::Visit<Meta> for Visitor {
     fn parameter(
         self,
         x: super::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Parameter, Self) {
         (Parameter(x), self)
     }
@@ -138,19 +142,19 @@ impl<Meta> walk::Visit<Meta> for Visitor {
             Self::Parameter,
             Self::Module,
         >,
-        _: Meta,
+        _: Context,
     ) -> (Self::Declaration, Self) {
         (Declaration(x), self)
     }
 
-    fn import(self, x: super::Import, _: Meta) -> (Self::Import, Self) {
+    fn import(self, x: super::Import, _: Context) -> (Self::Import, Self) {
         (Import(x), self)
     }
 
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Module, Self) {
         (Module(x), self)
     }

@@ -54,7 +54,7 @@ impl Visitor {
     }
 }
 
-impl<Meta> walk::Visit<Meta> for Visitor {
+impl<Context> walk::Visit<Context> for Visitor {
     type Binding = String;
     type Expression = NodeId;
     type Statement = NodeId;
@@ -92,19 +92,23 @@ impl<Meta> walk::Visit<Meta> for Visitor {
     fn expression(
         self,
         x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Expression, Self) {
         self.capture(Fragment::Expression(x))
     }
 
-    fn statement(self, x: super::Statement<Self::Expression>, _: Meta) -> (Self::Statement, Self) {
+    fn statement(
+        self,
+        x: super::Statement<Self::Expression>,
+        _: Context,
+    ) -> (Self::Statement, Self) {
         self.capture(Fragment::Statement(x))
     }
 
     fn component(
         self,
         x: super::Component<Self::Expression, Self::Component>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Component, Self) {
         self.capture(Fragment::Component(x))
     }
@@ -112,7 +116,7 @@ impl<Meta> walk::Visit<Meta> for Visitor {
     fn type_expression(
         self,
         x: super::TypeExpression<Self::TypeExpression>,
-        _: Meta,
+        _: Context,
     ) -> (Self::TypeExpression, Self) {
         self.capture(Fragment::TypeExpression(x))
     }
@@ -120,7 +124,7 @@ impl<Meta> walk::Visit<Meta> for Visitor {
     fn parameter(
         self,
         x: super::Parameter<String, Self::Expression, Self::TypeExpression>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Parameter, Self) {
         self.capture(Fragment::Parameter(x))
     }
@@ -134,19 +138,19 @@ impl<Meta> walk::Visit<Meta> for Visitor {
             Self::Module,
             Self::TypeExpression,
         >,
-        _: Meta,
+        _: Context,
     ) -> (Self::Declaration, Self) {
         self.capture(Fragment::Declaration(x))
     }
 
-    fn import(self, x: super::Import, _: Meta) -> (Self::Import, Self) {
+    fn import(self, x: super::Import, _: Context) -> (Self::Import, Self) {
         self.capture(Fragment::Import(x))
     }
 
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
-        _: Meta,
+        _: Context,
     ) -> (Self::Module, Self) {
         self.capture(Fragment::Module(x))
     }

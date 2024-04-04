@@ -13,7 +13,7 @@ impl<Value> IntoSpan<Value> for Span<Value> {
     }
 }
 
-pub trait Visit<Meta>: Sized {
+pub trait Visit<Context>: Sized {
     type Binding;
     type Expression;
     type Statement;
@@ -36,27 +36,31 @@ pub trait Visit<Meta>: Sized {
     fn expression(
         self,
         x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
-        m: Meta,
+        c: Context,
     ) -> (Self::Expression, Self);
 
-    fn statement(self, x: super::Statement<Self::Expression>, m: Meta) -> (Self::Statement, Self);
+    fn statement(
+        self,
+        x: super::Statement<Self::Expression>,
+        c: Context,
+    ) -> (Self::Statement, Self);
 
     fn component(
         self,
         x: super::Component<Self::Component, Self::Expression>,
-        m: Meta,
+        c: Context,
     ) -> (Self::Component, Self);
 
     fn type_expression(
         self,
         x: super::TypeExpression<Self::TypeExpression>,
-        m: Meta,
+        c: Context,
     ) -> (Self::TypeExpression, Self);
 
     fn parameter(
         self,
         x: super::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        m: Meta,
+        c: Context,
     ) -> (Self::Parameter, Self);
 
     #[allow(clippy::type_complexity)]
@@ -69,31 +73,31 @@ pub trait Visit<Meta>: Sized {
             Self::Parameter,
             Self::Module,
         >,
-        m: Meta,
+        c: Context,
     ) -> (Self::Declaration, Self);
 
-    fn import(self, x: super::Import, m: Meta) -> (Self::Import, Self);
+    fn import(self, x: super::Import, c: Context) -> (Self::Import, Self);
 
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
-        m: Meta,
+        c: Context,
     ) -> (Self::Module, Self);
 }
 
-pub trait Walk<Visitor, Meta>
+pub trait Walk<Visitor, Context>
 where
-    Visitor: Visit<Meta>,
+    Visitor: Visit<Context>,
 {
     type Output;
 
     fn walk(self, visitor: Visitor) -> (Self::Output, Visitor);
 }
 
-impl<Target, Visitor, Meta> Walk<Visitor, Meta> for (String, Target)
+impl<Target, Visitor, Context> Walk<Visitor, Context> for (String, Target)
 where
-    Target: Walk<Visitor, Meta>,
-    Visitor: Visit<Meta>,
+    Target: Walk<Visitor, Context>,
+    Visitor: Visit<Context>,
 {
     type Output = (String, Target::Output);
 
@@ -105,10 +109,10 @@ where
     }
 }
 
-impl<Target, Visitor, Meta> Walk<Visitor, Meta> for Option<Target>
+impl<Target, Visitor, Context> Walk<Visitor, Context> for Option<Target>
 where
-    Target: Walk<Visitor, Meta>,
-    Visitor: Visit<Meta>,
+    Target: Walk<Visitor, Context>,
+    Visitor: Visit<Context>,
 {
     type Output = Option<Target::Output>;
 
@@ -122,10 +126,10 @@ where
     }
 }
 
-impl<Target, Visitor, Meta> Walk<Visitor, Meta> for Vec<Target>
+impl<Target, Visitor, Context> Walk<Visitor, Context> for Vec<Target>
 where
-    Target: Walk<Visitor, Meta>,
-    Visitor: Visit<Meta>,
+    Target: Walk<Visitor, Context>,
+    Visitor: Visit<Context>,
 {
     type Output = Vec<Target::Output>;
 
@@ -138,20 +142,20 @@ where
     }
 }
 
-pub trait WalkEach<Visitor, Meta>
+pub trait WalkEach<Visitor, Context>
 where
-    Visitor: Visit<Meta>,
+    Visitor: Visit<Context>,
 {
     type Output;
 
     fn walk_each(self, visitor: Visitor) -> (Self::Output, Visitor);
 }
 
-impl<T1, T2, Visitor, Meta> WalkEach<Visitor, Meta> for (T1, T2)
+impl<T1, T2, Visitor, Context> WalkEach<Visitor, Context> for (T1, T2)
 where
-    T1: Walk<Visitor, Meta>,
-    T2: Walk<Visitor, Meta>,
-    Visitor: Visit<Meta>,
+    T1: Walk<Visitor, Context>,
+    T2: Walk<Visitor, Context>,
+    Visitor: Visit<Context>,
 {
     type Output = (T1::Output, T2::Output);
 
@@ -162,12 +166,12 @@ where
     }
 }
 
-impl<T1, T2, T3, Visitor, Meta> WalkEach<Visitor, Meta> for (T1, T2, T3)
+impl<T1, T2, T3, Visitor, Context> WalkEach<Visitor, Context> for (T1, T2, T3)
 where
-    T1: Walk<Visitor, Meta>,
-    T2: Walk<Visitor, Meta>,
-    T3: Walk<Visitor, Meta>,
-    Visitor: Visit<Meta>,
+    T1: Walk<Visitor, Context>,
+    T2: Walk<Visitor, Context>,
+    T3: Walk<Visitor, Context>,
+    Visitor: Visit<Context>,
 {
     type Output = (T1::Output, T2::Output, T3::Output);
 
@@ -178,13 +182,13 @@ where
     }
 }
 
-impl<T1, T2, T3, T4, Visitor, Meta> WalkEach<Visitor, Meta> for (T1, T2, T3, T4)
+impl<T1, T2, T3, T4, Visitor, Context> WalkEach<Visitor, Context> for (T1, T2, T3, T4)
 where
-    T1: Walk<Visitor, Meta>,
-    T2: Walk<Visitor, Meta>,
-    T3: Walk<Visitor, Meta>,
-    T4: Walk<Visitor, Meta>,
-    Visitor: Visit<Meta>,
+    T1: Walk<Visitor, Context>,
+    T2: Walk<Visitor, Context>,
+    T3: Walk<Visitor, Context>,
+    T4: Walk<Visitor, Context>,
+    Visitor: Visit<Context>,
 {
     type Output = (T1::Output, T2::Output, T3::Output, T4::Output);
 
