@@ -7,6 +7,7 @@ mod node;
 mod range;
 #[cfg(feature = "test")]
 pub mod test;
+mod type_of;
 pub mod types;
 pub mod walk;
 
@@ -14,6 +15,7 @@ pub use fragment::{Fragment, FragmentMap};
 pub use namespace::{Namespace, NamespaceKind};
 pub use node::Node;
 pub use range::{Point, Range};
+pub use type_of::TypeOf;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct NamespaceId(pub usize);

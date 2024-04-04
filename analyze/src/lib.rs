@@ -80,7 +80,7 @@ mod tests {
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::type_alias::typed()]),
                 (
-                    CanonicalId::mock(0),
+                    CanonicalId::mock(2),
                     ast::typed::Type(Type::Module(vec![(
                         str!("MyTypeAlias"),
                         Kind::Type,
@@ -105,7 +105,7 @@ mod tests {
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::constant::typed()]),
                 (
-                    CanonicalId::mock(0),
+                    CanonicalId::mock(3),
                     ast::typed::Type(Type::Module(vec![(
                         str!("MY_CONSTANT"),
                         Kind::Value,
@@ -130,7 +130,7 @@ mod tests {
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::enumerated::typed()]),
                 (
-                    CanonicalId::mock(0),
+                    CanonicalId::mock(3),
                     ast::typed::Type(Type::Module(vec![(
                         str!("MyEnum"),
                         Kind::Mixed,
@@ -156,7 +156,7 @@ mod tests {
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::function::typed()]),
                 (
-                    CanonicalId::mock(0),
+                    CanonicalId::mock(7),
                     ast::typed::Type(Type::Module(vec![(
                         str!("MyEnum"),
                         Kind::Mixed,
@@ -181,7 +181,7 @@ mod tests {
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::view::typed()]),
                 (
-                    CanonicalId::mock(0),
+                    CanonicalId::mock(21),
                     ast::typed::Type(Type::Module(vec![(
                         str!("MyView"),
                         Kind::Value,
@@ -240,7 +240,7 @@ mod tests {
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::module::typed()]),
                 (
-                    CanonicalId::mock(0),
+                    CanonicalId::mock(8),
                     ast::typed::Type(Type::Module(vec![(
                         str!("my_module"),
                         Kind::Mixed,
