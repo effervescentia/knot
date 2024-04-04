@@ -1,5 +1,4 @@
-use super::walk;
-use crate::Range;
+use crate::{walk::Visit, Range};
 use std::fmt::{Display, Formatter};
 
 pub struct Expression(pub super::Expression<Expression, Statement, Component>);
@@ -78,7 +77,7 @@ impl Display for Program {
 
 pub struct Visitor;
 
-impl<Context> walk::Visit<Context> for Visitor {
+impl<Context> Visit<Context> for Visitor {
     type Binding = String;
     type Expression = Expression;
     type Statement = Statement;

@@ -1,5 +1,7 @@
-use super::walk::{self, WalkEach};
-use crate::Range;
+use crate::{
+    walk::{Span, Visit, Walk, WalkEach},
+    Range,
+};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -32,12 +34,12 @@ impl<Component_, Expression> Component<Component_, Expression> {
     }
 }
 
-impl<Visitor, Meta, Component_, Expression> walk::Walk<Visitor, (Range, Meta)>
-    for walk::Span<Component<Component_, Expression>, Meta>
+impl<Visitor, Meta, Component_, Expression> Walk<Visitor, (Range, Meta)>
+    for Span<Component<Component_, Expression>, Meta>
 where
-    Visitor: walk::Visit<(Range, Meta)>,
-    Component_: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Component>,
-    Expression: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
+    Visitor: Visit<(Range, Meta)>,
+    Component_: Walk<Visitor, (Range, Meta), Output = Visitor::Component>,
+    Expression: Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
 {
     type Output = Visitor::Component;
 

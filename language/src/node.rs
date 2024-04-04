@@ -1,5 +1,5 @@
 use crate::{
-    ast::walk::{IntoSpan, Span},
+    walk::{IntoSpan, Span},
     Range,
 };
 use std::fmt::{Debug, Display, Formatter};

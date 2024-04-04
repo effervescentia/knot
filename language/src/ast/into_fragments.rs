@@ -1,5 +1,7 @@
-use super::walk::{self, Walk};
-use crate::{Fragment, FragmentMap, NodeId, Range, ScopeId};
+use crate::{
+    walk::{Visit, Walk},
+    Fragment, FragmentMap, NodeId, Range, ScopeId,
+};
 use kore::Incrementor;
 
 pub trait IntoFragments {
@@ -54,7 +56,7 @@ impl Visitor {
     }
 }
 
-impl<Context> walk::Visit<Context> for Visitor {
+impl<Context> Visit<Context> for Visitor {
     type Binding = String;
     type Expression = NodeId;
     type Statement = NodeId;

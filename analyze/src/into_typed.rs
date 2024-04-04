@@ -1,9 +1,12 @@
 use crate::{
-    ast::{self, walk::Walk},
+    ast::{self},
     infer,
 };
 use kore::{invariant, Incrementor};
-use lang::{Node, NodeId, Range};
+use lang::{
+    walk::{Visit, Walk},
+    Node, NodeId, Range,
+};
 use std::cell::OnceCell;
 
 pub trait IntoTyped: Sized {
@@ -49,7 +52,7 @@ impl<'a> Visitor<'a> {
     }
 }
 
-impl<'a, Meta> ast::walk::Visit<(Range, Meta)> for Visitor<'a> {
+impl<'a, Meta> Visit<(Range, Meta)> for Visitor<'a> {
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;

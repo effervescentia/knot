@@ -1,8 +1,8 @@
-use super::{
-    shape,
-    walk::{IntoSpan, Walk},
+use super::shape;
+use crate::{
+    walk::{IntoSpan, Visit, Walk},
+    Node, Range,
 };
-use crate::{Node, Range};
 use std::fmt::Display;
 
 /* binding */
@@ -23,7 +23,7 @@ impl Binding {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Binding
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Binding;
 
@@ -59,7 +59,7 @@ impl Expression<()> {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Expression<Meta>
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Expression;
 
@@ -94,7 +94,7 @@ impl Statement<()> {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Statement<Meta>
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Statement;
 
@@ -129,7 +129,7 @@ impl Component<()> {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Component<Meta>
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Component;
 
@@ -164,7 +164,7 @@ impl TypeExpression<()> {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for TypeExpression<Meta>
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::TypeExpression;
 
@@ -199,7 +199,7 @@ impl Parameter<()> {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Parameter<Meta>
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Parameter;
 
@@ -241,7 +241,7 @@ impl Declaration<()> {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Declaration<Meta>
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Declaration;
 
@@ -274,7 +274,7 @@ impl Import<()> {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Import<Meta>
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Import;
 
@@ -309,7 +309,7 @@ impl Module<()> {
 
 impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Module<Meta>
 where
-    Visitor: super::walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Module;
 

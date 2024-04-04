@@ -1,8 +1,6 @@
 use crate::{
-    ast::{
-        self,
-        walk::{Visit, Walk},
-    },
+    ast,
+    walk::{Visit, Walk},
     Node, Range,
 };
 

@@ -9,7 +9,6 @@ pub mod raw;
 pub mod shape;
 mod type_expression;
 pub mod typed;
-pub mod walk;
 
 pub use component::Component;
 pub use declaration::{Binding, Declaration, Parameter, Storage, Visibility};

@@ -1,5 +1,7 @@
-use super::walk::{self, WalkEach};
-use crate::Range;
+use crate::{
+    walk::{Span, Visit, Walk, WalkEach},
+    Range,
+};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -27,9 +29,9 @@ impl Import {
     }
 }
 
-impl<Visitor, Meta> walk::Walk<Visitor, (Range, Meta)> for walk::Span<Import, Meta>
+impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Span<Import, Meta>
 where
-    Visitor: walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Import;
 
@@ -69,12 +71,12 @@ impl<Import, Declaration> Module<Import, Declaration> {
     }
 }
 
-impl<Visitor, Meta, Import, Declaration> walk::Walk<Visitor, (Range, Meta)>
-    for walk::Span<Module<Import, Declaration>, Meta>
+impl<Visitor, Meta, Import, Declaration> Walk<Visitor, (Range, Meta)>
+    for Span<Module<Import, Declaration>, Meta>
 where
-    Visitor: walk::Visit<(Range, Meta)>,
-    Import: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Import>,
-    Declaration: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Declaration>,
+    Visitor: Visit<(Range, Meta)>,
+    Import: Walk<Visitor, (Range, Meta), Output = Visitor::Import>,
+    Declaration: Walk<Visitor, (Range, Meta), Output = Visitor::Declaration>,
 {
     type Output = Visitor::Module;
 

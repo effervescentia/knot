@@ -1,7 +1,5 @@
-use crate::Range;
+use crate::{ast, Range};
 
-// #[derive(Clone)]
-// pub struct Span<Value>(pub Value, pub Range);
 pub type Span<Value, Meta> = (Value, (Range, Meta));
 
 pub trait IntoSpan<Value, Meta> {
@@ -32,42 +30,38 @@ pub trait Visit<Context>: Sized {
         f(self)
     }
 
-    fn binding(self, x: super::Binding, r: Range) -> (Self::Binding, Self);
+    fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self);
 
     fn expression(
         self,
-        x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
+        x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
         c: Context,
     ) -> (Self::Expression, Self);
 
-    fn statement(
-        self,
-        x: super::Statement<Self::Expression>,
-        c: Context,
-    ) -> (Self::Statement, Self);
+    fn statement(self, x: ast::Statement<Self::Expression>, c: Context) -> (Self::Statement, Self);
 
     fn component(
         self,
-        x: super::Component<Self::Component, Self::Expression>,
+        x: ast::Component<Self::Component, Self::Expression>,
         c: Context,
     ) -> (Self::Component, Self);
 
     fn type_expression(
         self,
-        x: super::TypeExpression<Self::TypeExpression>,
+        x: ast::TypeExpression<Self::TypeExpression>,
         c: Context,
     ) -> (Self::TypeExpression, Self);
 
     fn parameter(
         self,
-        x: super::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
+        x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
         c: Context,
     ) -> (Self::Parameter, Self);
 
     #[allow(clippy::type_complexity)]
     fn declaration(
         self,
-        x: super::Declaration<
+        x: ast::Declaration<
             Self::Binding,
             Self::Expression,
             Self::TypeExpression,
@@ -77,11 +71,11 @@ pub trait Visit<Context>: Sized {
         c: Context,
     ) -> (Self::Declaration, Self);
 
-    fn import(self, x: super::Import, c: Context) -> (Self::Import, Self);
+    fn import(self, x: ast::Import, c: Context) -> (Self::Import, Self);
 
     fn module(
         self,
-        x: super::Module<Self::Import, Self::Declaration>,
+        x: ast::Module<Self::Import, Self::Declaration>,
         c: Context,
     ) -> (Self::Module, Self);
 }

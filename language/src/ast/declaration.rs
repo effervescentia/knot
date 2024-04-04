@@ -1,13 +1,15 @@
-use super::walk::{self, WalkEach};
-use crate::Range;
+use crate::{
+    walk::{Span, Visit, Walk, WalkEach},
+    Range,
+};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Binding(pub String);
 
-impl<Visitor, Meta> walk::Walk<Visitor, (Range, Meta)> for walk::Span<Binding, ()>
+impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Span<Binding, ()>
 where
-    Visitor: walk::Visit<(Range, Meta)>,
+    Visitor: Visit<(Range, Meta)>,
 {
     type Output = Visitor::Binding;
 
@@ -47,10 +49,10 @@ impl<Binding> Storage<Binding> {
     }
 }
 
-impl<Visitor, Meta, Binding> walk::Walk<Visitor, (Range, Meta)> for Storage<Binding>
+impl<Visitor, Meta, Binding> Walk<Visitor, (Range, Meta)> for Storage<Binding>
 where
-    Visitor: walk::Visit<(Range, Meta)>,
-    Binding: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Binding>,
+    Visitor: Visit<(Range, Meta)>,
+    Binding: Walk<Visitor, (Range, Meta), Output = Visitor::Binding>,
 {
     type Output = Storage<Visitor::Binding>;
 
@@ -88,13 +90,13 @@ impl<Binding, Expression, TypeExpression> Parameter<Binding, Expression, TypeExp
     }
 }
 
-impl<Visitor, Meta, Binding, Expression, TypeExpression> walk::Walk<Visitor, (Range, Meta)>
-    for walk::Span<Parameter<Binding, Expression, TypeExpression>, Meta>
+impl<Visitor, Meta, Binding, Expression, TypeExpression> Walk<Visitor, (Range, Meta)>
+    for Span<Parameter<Binding, Expression, TypeExpression>, Meta>
 where
-    Visitor: walk::Visit<(Range, Meta)>,
-    Binding: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Binding>,
-    Expression: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
-    TypeExpression: walk::Walk<Visitor, (Range, Meta), Output = Visitor::TypeExpression>,
+    Visitor: Visit<(Range, Meta)>,
+    Binding: Walk<Visitor, (Range, Meta), Output = Visitor::Binding>,
+    Expression: Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
+    TypeExpression: Walk<Visitor, (Range, Meta), Output = Visitor::TypeExpression>,
 {
     type Output = Visitor::Parameter;
 
@@ -242,15 +244,15 @@ impl<Binding, Expression, TypeExpression, Parameter, Module>
 }
 
 impl<Visitor, Meta, Binding, Expression, TypeExpression, Parameter, Module>
-    walk::Walk<Visitor, (Range, Meta)>
-    for walk::Span<Declaration<Binding, Expression, TypeExpression, Parameter, Module>, Meta>
+    Walk<Visitor, (Range, Meta)>
+    for Span<Declaration<Binding, Expression, TypeExpression, Parameter, Module>, Meta>
 where
-    Visitor: walk::Visit<(Range, Meta)>,
-    Binding: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Binding>,
-    Expression: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
-    TypeExpression: walk::Walk<Visitor, (Range, Meta), Output = Visitor::TypeExpression>,
-    Parameter: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Parameter>,
-    Module: walk::Walk<Visitor, (Range, Meta), Output = Visitor::Module>,
+    Visitor: Visit<(Range, Meta)>,
+    Binding: Walk<Visitor, (Range, Meta), Output = Visitor::Binding>,
+    Expression: Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
+    TypeExpression: Walk<Visitor, (Range, Meta), Output = Visitor::TypeExpression>,
+    Parameter: Walk<Visitor, (Range, Meta), Output = Visitor::Parameter>,
+    Module: Walk<Visitor, (Range, Meta), Output = Visitor::Module>,
 {
     type Output = Visitor::Declaration;
 

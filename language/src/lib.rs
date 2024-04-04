@@ -8,6 +8,7 @@ mod range;
 #[cfg(feature = "test")]
 pub mod test;
 pub mod types;
+pub mod walk;
 
 pub use fragment::{Fragment, FragmentMap};
 pub use namespace::{Namespace, NamespaceKind};

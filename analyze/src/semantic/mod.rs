@@ -1,6 +1,7 @@
 use crate::{error::Error, Context, Result};
 use lang::{
-    ast::{self, walk::Walk},
+    ast,
+    walk::{Visit, Walk},
     NodeId,
 };
 
@@ -19,7 +20,7 @@ pub fn analyze(ctx: &Context, typed: ast::typed::Program) -> Result<ast::typed::
 #[derive(Default)]
 struct Visitor(Vec<(NodeId, Error)>);
 
-impl<Meta> ast::walk::Visit<(lang::Range, Meta)> for Visitor {
+impl<Meta> Visit<(lang::Range, Meta)> for Visitor {
     // type Binding = ast::typed::Binding;
     type Binding = ();
     // type Expression = ast::typed::Expression;
