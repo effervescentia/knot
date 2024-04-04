@@ -1,12 +1,15 @@
-use crate::infer::weak::{self, Inference};
+use crate::{
+    infer::weak::{self, Inference},
+    TypeMap as StrongTypes,
+};
 use kore::str;
 pub use lang::test::fixture::*;
 use lang::{
     ast,
     types::{Enumerated, Kind, Type},
-    NodeId,
+    CanonicalId, NamespaceId, NodeId,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 type WeakTypes<'a> = weak::data::TypeMap<'a>;
 
@@ -39,6 +42,30 @@ pub mod type_alias {
             (NodeId(1), (Kind::Type, weak::Type::Inherit(NodeId(0)))),
         ])
     }
+
+    pub fn strong_types() -> StrongTypes {
+        HashMap::from_iter(vec![
+            (
+                CanonicalId::mock(0),
+                Rc::new((CanonicalId::mock(0), type_of())),
+            ),
+            (
+                CanonicalId::mock(1),
+                Rc::new((CanonicalId::mock(0), type_of())),
+            ),
+            (
+                CanonicalId::mock(2),
+                Rc::new((
+                    CanonicalId::mock(2),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MyTypeAlias"),
+                        Kind::Type,
+                        Rc::new((CanonicalId::mock(0), type_of())),
+                    )])),
+                )),
+            ),
+        ])
+    }
 }
 
 pub mod constant {
@@ -52,6 +79,34 @@ pub mod constant {
             (
                 NodeId(2),
                 (Kind::Value, weak::Type::InheritKind(NodeId(0), Kind::Type)),
+            ),
+        ])
+    }
+
+    pub fn strong_types() -> StrongTypes {
+        HashMap::from_iter(vec![
+            (
+                CanonicalId::mock(0),
+                Rc::new((CanonicalId::mock(0), constant::type_of())),
+            ),
+            (
+                CanonicalId::mock(1),
+                Rc::new((CanonicalId::mock(1), constant::type_of())),
+            ),
+            (
+                CanonicalId::mock(2),
+                Rc::new((CanonicalId::mock(0), constant::type_of())),
+            ),
+            (
+                CanonicalId::mock(3),
+                Rc::new((
+                    CanonicalId::mock(3),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MY_CONSTANT"),
+                        Kind::Value,
+                        Rc::new((CanonicalId::mock(0), constant::type_of())),
+                    )])),
+                )),
             ),
         ])
     }
@@ -74,6 +129,34 @@ pub mod enumerated {
                         (str!("Render"), vec![NodeId(0), NodeId(1)]),
                     ]))),
                 ),
+            ),
+        ])
+    }
+
+    pub fn strong_types() -> StrongTypes {
+        HashMap::from_iter(vec![
+            (
+                CanonicalId::mock(0),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(Type::Boolean))),
+            ),
+            (
+                CanonicalId::mock(1),
+                Rc::new((CanonicalId::mock(1), ast::typed::Type(Type::Style))),
+            ),
+            (
+                CanonicalId::mock(2),
+                Rc::new((CanonicalId::mock(2), type_of())),
+            ),
+            (
+                CanonicalId::mock(3),
+                Rc::new((
+                    CanonicalId::mock(3),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MyEnum"),
+                        Kind::Mixed,
+                        Rc::new((CanonicalId::mock(2), type_of())),
+                    )])),
+                )),
             ),
         ])
     }
@@ -191,6 +274,106 @@ pub mod view {
             ),
         ])
     }
+
+    pub fn strong_types() -> StrongTypes {
+        HashMap::from_iter(vec![
+            (
+                CanonicalId::mock(0),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(1),
+                Rc::new((CanonicalId::mock(1), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(2),
+                Rc::new((CanonicalId::mock(1), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(3),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(4),
+                Rc::new((CanonicalId::mock(4), ast::typed::Type(Type::Integer))),
+            ),
+            (
+                CanonicalId::mock(5),
+                Rc::new((CanonicalId::mock(5), ast::typed::Type(Type::Float))),
+            ),
+            (
+                CanonicalId::mock(6),
+                Rc::new((CanonicalId::mock(6), ast::typed::Type(Type::Float))),
+            ),
+            (
+                CanonicalId::mock(7),
+                Rc::new((CanonicalId::mock(7), ast::typed::Type(Type::Nil))),
+            ),
+            (
+                CanonicalId::mock(8),
+                Rc::new((CanonicalId::mock(8), ast::typed::Type(Type::String))),
+            ),
+            (
+                CanonicalId::mock(9),
+                Rc::new((CanonicalId::mock(9), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(10),
+                Rc::new((CanonicalId::mock(6), ast::typed::Type(Type::Float))),
+            ),
+            (
+                CanonicalId::mock(11),
+                Rc::new((CanonicalId::mock(6), ast::typed::Type(Type::Float))),
+            ),
+            (
+                CanonicalId::mock(12),
+                Rc::new((CanonicalId::mock(12), ast::typed::Type(Type::String))),
+            ),
+            (
+                CanonicalId::mock(13),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(14),
+                Rc::new((CanonicalId::mock(0), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(15),
+                Rc::new((CanonicalId::mock(15), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(16),
+                Rc::new((CanonicalId::mock(16), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(17),
+                Rc::new((CanonicalId::mock(16), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(18),
+                Rc::new((CanonicalId::mock(16), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(19),
+                Rc::new((CanonicalId::mock(16), ast::typed::Type(Type::Element))),
+            ),
+            (
+                CanonicalId::mock(20),
+                Rc::new((CanonicalId::mock(20), type_of())),
+            ),
+            (
+                CanonicalId::mock(21),
+                Rc::new((
+                    CanonicalId::mock(21),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MyView"),
+                        Kind::Value,
+                        Rc::new((CanonicalId::mock(20), type_of())),
+                    )])),
+                )),
+            ),
+        ])
+    }
 }
 
 pub mod module {
@@ -235,6 +418,63 @@ pub mod module {
                 ),
             ),
             (NodeId(7), (Kind::Mixed, weak::Type::Inherit(NodeId(6)))),
+        ])
+    }
+
+    pub fn strong_types() -> StrongTypes {
+        let theme_type = Rc::new((
+            CanonicalId(NamespaceId(1), NodeId(0)),
+            ast::typed::Type(Type::Module(vec![(
+                str!("PRIMARY"),
+                Kind::Value,
+                Rc::new((
+                    CanonicalId(NamespaceId(1), NodeId(1)),
+                    ast::typed::Type(Type::String),
+                )),
+            )])),
+        ));
+
+        HashMap::from_iter(vec![
+            (CanonicalId::mock(0), Rc::clone(&theme_type)),
+            (CanonicalId::mock(1), Rc::clone(&theme_type)),
+            (
+                CanonicalId::mock(2),
+                Rc::new((
+                    CanonicalId(NamespaceId(1), NodeId(1)),
+                    ast::typed::Type(Type::String),
+                )),
+            ),
+            (
+                CanonicalId::mock(3),
+                Rc::new((CanonicalId::mock(3), ast::typed::Type(Type::String))),
+            ),
+            (
+                CanonicalId::mock(4),
+                Rc::new((CanonicalId::mock(4), ast::typed::Type(Type::Style))),
+            ),
+            (
+                CanonicalId::mock(5),
+                Rc::new((CanonicalId::mock(4), ast::typed::Type(Type::Style))),
+            ),
+            (
+                CanonicalId::mock(6),
+                Rc::new((CanonicalId::mock(6), type_of())),
+            ),
+            (
+                CanonicalId::mock(7),
+                Rc::new((CanonicalId::mock(6), type_of())),
+            ),
+            (
+                CanonicalId::mock(8),
+                Rc::new((
+                    CanonicalId::mock(8),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("my_module"),
+                        Kind::Mixed,
+                        Rc::new((CanonicalId::mock(6), type_of())),
+                    )])),
+                )),
+            ),
         ])
     }
 }
