@@ -22,7 +22,7 @@ where
     let weak = infer::weak::infer_types(&fragments);
     let strong = infer::strong::infer_types(ctx, weak)?;
 
-    let typed = raw.into_typed(&strong);
+    let typed = raw.into_typed(ctx, &strong);
 
     semantic::analyze(ctx, typed)
 }
@@ -61,7 +61,7 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![]),
-                ast::typed::Type(Type::Module(vec![]))
+                (CanonicalId::mock(0), ast::typed::Type(Type::Module(vec![])))
             ))))
         );
     }
@@ -79,11 +79,14 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::type_alias::typed()]),
-                ast::typed::Type(Type::Module(vec![(
-                    str!("MyTypeAlias"),
-                    Kind::Type,
-                    Rc::new((CanonicalId::mock(0), fixture::type_alias::type_of()))
-                )]))
+                (
+                    CanonicalId::mock(0),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MyTypeAlias"),
+                        Kind::Type,
+                        Rc::new((CanonicalId::mock(0), fixture::type_alias::type_of()))
+                    )]))
+                )
             ))))
         );
     }
@@ -101,11 +104,14 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::constant::typed()]),
-                ast::typed::Type(Type::Module(vec![(
-                    str!("MY_CONSTANT"),
-                    Kind::Value,
-                    Rc::new((CanonicalId::mock(0), fixture::constant::type_of()))
-                )]))
+                (
+                    CanonicalId::mock(0),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MY_CONSTANT"),
+                        Kind::Value,
+                        Rc::new((CanonicalId::mock(0), fixture::constant::type_of()))
+                    )]))
+                )
             ))))
         );
     }
@@ -123,11 +129,14 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::enumerated::typed()]),
-                ast::typed::Type(Type::Module(vec![(
-                    str!("MyEnum"),
-                    Kind::Mixed,
-                    Rc::new((CanonicalId::mock(2), fixture::enumerated::type_of()))
-                )]))
+                (
+                    CanonicalId::mock(0),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MyEnum"),
+                        Kind::Mixed,
+                        Rc::new((CanonicalId::mock(2), fixture::enumerated::type_of()))
+                    )]))
+                )
             ))))
         );
     }
@@ -146,11 +155,14 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::function::typed()]),
-                ast::typed::Type(Type::Module(vec![(
-                    str!("MyEnum"),
-                    Kind::Mixed,
-                    Rc::new((CanonicalId::mock(0), fixture::function::type_of()))
-                )]))
+                (
+                    CanonicalId::mock(0),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MyEnum"),
+                        Kind::Mixed,
+                        Rc::new((CanonicalId::mock(0), fixture::function::type_of()))
+                    )]))
+                )
             ))))
         );
     }
@@ -168,11 +180,14 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::view::typed()]),
-                ast::typed::Type(Type::Module(vec![(
-                    str!("MyView"),
-                    Kind::Value,
-                    Rc::new((CanonicalId::mock(20), fixture::view::type_of()))
-                )]))
+                (
+                    CanonicalId::mock(0),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("MyView"),
+                        Kind::Value,
+                        Rc::new((CanonicalId::mock(20), fixture::view::type_of()))
+                    )]))
+                )
             ))))
         );
     }
@@ -224,11 +239,14 @@ mod tests {
             super::analyze(&ctx, raw),
             Ok(ast::meta::Program(ast::meta::Module(Node::mock(
                 ast::Module::new(vec![], vec![fixture::module::typed()]),
-                ast::typed::Type(Type::Module(vec![(
-                    str!("my_module"),
-                    Kind::Mixed,
-                    Rc::new((CanonicalId::mock(6), fixture::module::type_of()))
-                )]))
+                (
+                    CanonicalId::mock(0),
+                    ast::typed::Type(Type::Module(vec![(
+                        str!("my_module"),
+                        Kind::Mixed,
+                        Rc::new((CanonicalId::mock(6), fixture::module::type_of()))
+                    )]))
+                )
             ))))
         );
     }

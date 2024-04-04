@@ -209,11 +209,11 @@ where
 impl<'a, S, R> Engine<S, R>
 where
     S: state::Modules<'a>,
-    S::Context: Clone,
+    S::Meta: Clone,
     R: Resolver,
 {
     /// generate output files by formatting the loaded modules
-    pub fn format(&'a self) -> Writer<&ast::meta::Program<S::Context>> {
+    pub fn format(&'a self) -> Writer<&ast::meta::Program<S::Meta>> {
         Writer(self.state.modules().map(|modules| {
             modules
                 .map(|(link, state::Module { ast, .. })| (link.to_path(), ast))
