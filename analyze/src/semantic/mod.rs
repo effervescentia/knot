@@ -29,7 +29,8 @@ impl Visitor {
     }
 }
 
-impl Visit<(lang::Range, ast::typed::Type)> for Visitor {
+impl Visit for Visitor {
+    type Context = (lang::Range, ast::typed::Type);
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;

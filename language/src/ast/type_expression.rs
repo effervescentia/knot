@@ -22,11 +22,10 @@ pub enum TypeExpression<TypeExpression_> {
     // View(Vec<(String, TypeExpression)>),
 }
 
-impl<Visitor, Context, TypeExpression_> Walk<Visitor, Context>
-    for (TypeExpression<TypeExpression_>, Context)
+impl<Visitor, Context, TypeExpression_> Walk<Visitor> for (TypeExpression<TypeExpression_>, Context)
 where
-    Visitor: Visit<Context>,
-    TypeExpression_: Walk<Visitor, Context, Output = Visitor::TypeExpression>,
+    Visitor: Visit<Context = Context>,
+    TypeExpression_: Walk<Visitor, Output = Visitor::TypeExpression>,
 {
     type Output = Visitor::TypeExpression;
 

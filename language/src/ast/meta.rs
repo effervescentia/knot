@@ -21,9 +21,9 @@ impl Binding {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Binding
+impl<Visitor, Meta> Walk<Visitor> for Binding
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Binding;
 
@@ -57,9 +57,9 @@ impl Expression<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Expression<Meta>
+impl<Visitor, Meta> Walk<Visitor> for Expression<Meta>
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Expression;
 
@@ -92,9 +92,9 @@ impl Statement<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Statement<Meta>
+impl<Visitor, Meta> Walk<Visitor> for Statement<Meta>
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Statement;
 
@@ -127,9 +127,9 @@ impl Component<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Component<Meta>
+impl<Visitor, Meta> Walk<Visitor> for Component<Meta>
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Component;
 
@@ -162,9 +162,9 @@ impl TypeExpression<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for TypeExpression<Meta>
+impl<Visitor, Meta> Walk<Visitor> for TypeExpression<Meta>
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::TypeExpression;
 
@@ -197,9 +197,9 @@ impl Parameter<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Parameter<Meta>
+impl<Visitor, Meta> Walk<Visitor> for Parameter<Meta>
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Parameter;
 
@@ -239,9 +239,9 @@ impl Declaration<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Declaration<Meta>
+impl<Visitor, Meta> Walk<Visitor> for Declaration<Meta>
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Declaration;
 
@@ -272,9 +272,9 @@ impl Import<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Import<Meta>
+impl<Visitor, Meta> Walk<Visitor> for Import<Meta>
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Import;
 
@@ -307,9 +307,9 @@ impl Module<()> {
     }
 }
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for Module<Meta>
+impl<Visitor, Meta> Walk<Visitor> for Module<Meta>
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Module;
 
@@ -334,7 +334,7 @@ impl<Meta> Program<Meta> {
     }
 
     pub fn to_shape(self) -> shape::Program {
-        shape::Program(self.0.walk(super::shape::Visitor).0)
+        shape::Program(self.0.walk(super::shape::Visitor::default()).0)
     }
 }
 
@@ -343,6 +343,10 @@ where
     Meta: Clone,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        self.0.clone().walk(super::shape::Visitor).0.fmt(f)
+        self.0
+            .clone()
+            .walk(super::shape::Visitor::default())
+            .0
+            .fmt(f)
     }
 }

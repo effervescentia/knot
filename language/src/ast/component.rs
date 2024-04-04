@@ -31,12 +31,12 @@ impl<Component_, Expression> Component<Component_, Expression> {
     }
 }
 
-impl<Visitor, Context, Component_, Expression> Walk<Visitor, Context>
+impl<Visitor, Context, Component_, Expression> Walk<Visitor>
     for (Component<Component_, Expression>, Context)
 where
-    Visitor: Visit<Context>,
-    Component_: Walk<Visitor, Context, Output = Visitor::Component>,
-    Expression: Walk<Visitor, Context, Output = Visitor::Expression>,
+    Visitor: Visit<Context = Context>,
+    Component_: Walk<Visitor, Output = Visitor::Component>,
+    Expression: Walk<Visitor, Output = Visitor::Expression>,
 {
     type Output = Visitor::Component;
 

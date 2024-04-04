@@ -26,9 +26,9 @@ impl Import {
     }
 }
 
-impl<Visitor, Context> Walk<Visitor, Context> for (Import, Context)
+impl<Visitor, Context> Walk<Visitor> for (Import, Context)
 where
-    Visitor: Visit<Context>,
+    Visitor: Visit<Context = Context>,
 {
     type Output = Visitor::Import;
 
@@ -68,12 +68,11 @@ impl<Import, Declaration> Module<Import, Declaration> {
     }
 }
 
-impl<Visitor, Context, Import, Declaration> Walk<Visitor, Context>
-    for (Module<Import, Declaration>, Context)
+impl<Visitor, Context, Import, Declaration> Walk<Visitor> for (Module<Import, Declaration>, Context)
 where
-    Visitor: Visit<Context>,
-    Import: Walk<Visitor, Context, Output = Visitor::Import>,
-    Declaration: Walk<Visitor, Context, Output = Visitor::Declaration>,
+    Visitor: Visit<Context = Context>,
+    Import: Walk<Visitor, Output = Visitor::Import>,
+    Declaration: Walk<Visitor, Output = Visitor::Declaration>,
 {
     type Output = Visitor::Module;
 

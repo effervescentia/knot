@@ -1,32 +1,32 @@
-use crate::{
-    ast::{self},
-    infer,
-};
+use crate::{ast, infer};
 use kore::{invariant, Incrementor};
 use lang::{
     walk::{Visit, Walk},
     Node, NodeId, Range,
 };
-use std::cell::OnceCell;
+use std::{cell::OnceCell, marker::PhantomData};
 
 pub trait IntoTyped: Sized {
-    fn into_typed(self, strong: Visitor) -> ast::typed::Program;
+    fn into_typed(self, strong: &infer::strong::Output) -> ast::typed::Program;
 }
 
 impl<Meta> IntoTyped for ast::meta::Program<Meta> {
-    fn into_typed(self, strong: super::Visitor) -> ast::typed::Program {
-        ast::meta::Program(self.0.walk(strong).0)
+    fn into_typed(self, strong: &infer::strong::Output) -> ast::typed::Program {
+        let visitor = Visitor::new(strong);
+        ast::meta::Program(self.0.walk(visitor).0)
     }
 }
 
-pub struct Visitor<'a> {
+struct Visitor<'a, Meta> {
+    _meta: PhantomData<Meta>,
     node_id: Incrementor,
     strong: &'a infer::strong::Output,
 }
 
-impl<'a> Visitor<'a> {
+impl<'a, Meta> Visitor<'a, Meta> {
     pub fn new(strong: &'a infer::strong::Output) -> Self {
         Self {
+            _meta: PhantomData,
             node_id: Default::default(),
             strong,
         }
@@ -52,7 +52,8 @@ impl<'a> Visitor<'a> {
     }
 }
 
-impl<'a, Meta> Visit<(Range, Meta)> for Visitor<'a> {
+impl<'a, Meta> Visit for Visitor<'a, Meta> {
+    type Context = (Range, Meta);
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;

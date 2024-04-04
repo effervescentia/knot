@@ -1,5 +1,8 @@
 use crate::{walk::Visit, Range};
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    marker::PhantomData,
+};
 
 pub struct Expression(pub super::Expression<Expression, Statement, Component>);
 
@@ -75,9 +78,16 @@ impl Display for Program {
     }
 }
 
-pub struct Visitor;
+pub struct Visitor<Context>(PhantomData<Context>);
 
-impl<Context> Visit<Context> for Visitor {
+impl<Context> Default for Visitor<Context> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<Context> Visit for Visitor<Context> {
+    type Context = Context;
     type Binding = String;
     type Expression = Expression;
     type Statement = Statement;
@@ -95,7 +105,7 @@ impl<Context> Visit<Context> for Visitor {
     fn expression(
         self,
         x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Expression, Self) {
         (Expression(x), self)
     }
@@ -103,7 +113,7 @@ impl<Context> Visit<Context> for Visitor {
     fn statement(
         self,
         x: super::Statement<Self::Expression>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Statement, Self) {
         (Statement(x), self)
     }
@@ -111,7 +121,7 @@ impl<Context> Visit<Context> for Visitor {
     fn component(
         self,
         x: super::Component<Self::Component, Self::Expression>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Component, Self) {
         (Component(x), self)
     }
@@ -119,7 +129,7 @@ impl<Context> Visit<Context> for Visitor {
     fn type_expression(
         self,
         x: super::TypeExpression<Self::TypeExpression>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         (TypeExpression(x), self)
     }
@@ -127,7 +137,7 @@ impl<Context> Visit<Context> for Visitor {
     fn parameter(
         self,
         x: super::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Parameter, Self) {
         (Parameter(x), self)
     }
@@ -141,19 +151,19 @@ impl<Context> Visit<Context> for Visitor {
             Self::Parameter,
             Self::Module,
         >,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Declaration, Self) {
         (Declaration(x), self)
     }
 
-    fn import(self, x: super::Import, _: Context) -> (Self::Import, Self) {
+    fn import(self, x: super::Import, _: Self::Context) -> (Self::Import, Self) {
         (Import(x), self)
     }
 
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Module, Self) {
         (Module(x), self)
     }

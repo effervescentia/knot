@@ -8,7 +8,6 @@ mod semantic;
 
 pub use context::{Context, ModuleMap};
 use error::Error;
-use into_typed::Visitor;
 use lang::{ast, NodeId};
 
 /// analysis result with possible resolution errors
@@ -23,7 +22,7 @@ where
     let weak = infer::weak::infer_types(&fragments);
     let strong = infer::strong::infer_types(ctx, weak)?;
 
-    let typed = raw.into_typed(Visitor::new(&strong));
+    let typed = raw.into_typed(&strong);
 
     semantic::analyze(ctx, typed)
 }

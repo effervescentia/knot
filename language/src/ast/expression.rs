@@ -31,13 +31,13 @@ pub enum Expression<Expression_, Statement, Component> {
     Component(Box<Component>),
 }
 
-impl<Visitor, Context, Expression_, Statement, Component> Walk<Visitor, Context>
+impl<Visitor, Context, Expression_, Statement, Component> Walk<Visitor>
     for (Expression<Expression_, Statement, Component>, Context)
 where
-    Visitor: Visit<Context>,
-    Expression_: Walk<Visitor, Context, Output = Visitor::Expression>,
-    Statement: Walk<Visitor, Context, Output = Visitor::Statement>,
-    Component: Walk<Visitor, Context, Output = Visitor::Component>,
+    Visitor: Visit<Context = Context>,
+    Expression_: Walk<Visitor, Output = Visitor::Expression>,
+    Statement: Walk<Visitor, Output = Visitor::Statement>,
+    Component: Walk<Visitor, Output = Visitor::Component>,
 {
     type Output = Visitor::Expression;
 
@@ -115,10 +115,10 @@ pub enum Statement<Expression> {
     Variable(String, Expression),
 }
 
-impl<Visitor, Context, Expression> Walk<Visitor, Context> for (Statement<Expression>, Context)
+impl<Visitor, Context, Expression> Walk<Visitor> for (Statement<Expression>, Context)
 where
-    Visitor: Visit<Context>,
-    Expression: Walk<Visitor, Context, Output = Visitor::Expression>,
+    Visitor: Visit<Context = Context>,
+    Expression: Walk<Visitor, Output = Visitor::Expression>,
 {
     type Output = Visitor::Statement;
 

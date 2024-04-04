@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use crate::{
     walk::{Visit, Walk},
     Fragment, FragmentMap, NodeId, Range, ScopeId,
@@ -24,39 +26,50 @@ struct State {
     pub fragments: FragmentMap,
 }
 
-pub struct Visitor {
+pub struct Visitor<Context> {
+    _context: PhantomData<Context>,
     scope_id: ScopeId,
     state: State,
 }
 
-impl Default for Visitor {
+impl<Context> Default for Visitor<Context> {
     fn default() -> Self {
         let mut state = State::default();
         Self {
+            _context: PhantomData,
             scope_id: ScopeId(vec![state.scope_id.increment()]),
             state,
         }
     }
 }
 
-impl Visitor {
+impl<Context> Visitor<Context> {
+    const fn new(scope_id: ScopeId, state: State) -> Self {
+        Self {
+            _context: PhantomData,
+            scope_id,
+            state,
+        }
+    }
+
     fn next_scope_id(&mut self) -> ScopeId {
         self.scope_id.child(self.state.scope_id.increment())
     }
 
-    pub fn capture(mut self, fragment: Fragment) -> (NodeId, Self) {
+    fn capture(mut self, fragment: Fragment) -> (NodeId, Self) {
         let node_id = NodeId(self.state.node_id.increment());
         let scope_id = self.scope_id.clone();
         self.state.fragments.insert(node_id, (scope_id, fragment));
         (node_id, self)
     }
 
-    pub fn fragments(self) -> FragmentMap {
+    fn fragments(self) -> FragmentMap {
         self.state.fragments
     }
 }
 
-impl<Context> Visit<Context> for Visitor {
+impl<Context> Visit for Visitor<Context> {
+    type Context = Context;
     type Binding = String;
     type Expression = NodeId;
     type Statement = NodeId;
@@ -71,20 +84,11 @@ impl<Context> Visit<Context> for Visitor {
     where
         F: FnOnce(Self) -> (T, Self),
     {
-        let child = Self {
-            scope_id: self.next_scope_id(),
-            state: self.state,
-        };
+        let child = Self::new(self.next_scope_id(), self.state);
 
         let (result, Self { state, .. }) = f(child);
 
-        (
-            result,
-            Self {
-                scope_id: self.scope_id,
-                state,
-            },
-        )
+        (result, Self::new(self.scope_id, state))
     }
 
     fn binding(self, x: super::Binding, _: Range) -> (Self::Binding, Self) {
@@ -94,7 +98,7 @@ impl<Context> Visit<Context> for Visitor {
     fn expression(
         self,
         x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Expression, Self) {
         self.capture(Fragment::Expression(x))
     }
@@ -102,7 +106,7 @@ impl<Context> Visit<Context> for Visitor {
     fn statement(
         self,
         x: super::Statement<Self::Expression>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Statement, Self) {
         self.capture(Fragment::Statement(x))
     }
@@ -110,7 +114,7 @@ impl<Context> Visit<Context> for Visitor {
     fn component(
         self,
         x: super::Component<Self::Expression, Self::Component>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Component, Self) {
         self.capture(Fragment::Component(x))
     }
@@ -118,7 +122,7 @@ impl<Context> Visit<Context> for Visitor {
     fn type_expression(
         self,
         x: super::TypeExpression<Self::TypeExpression>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         self.capture(Fragment::TypeExpression(x))
     }
@@ -126,7 +130,7 @@ impl<Context> Visit<Context> for Visitor {
     fn parameter(
         self,
         x: super::Parameter<String, Self::Expression, Self::TypeExpression>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Parameter, Self) {
         self.capture(Fragment::Parameter(x))
     }
@@ -140,19 +144,19 @@ impl<Context> Visit<Context> for Visitor {
             Self::Module,
             Self::TypeExpression,
         >,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Declaration, Self) {
         self.capture(Fragment::Declaration(x))
     }
 
-    fn import(self, x: super::Import, _: Context) -> (Self::Import, Self) {
+    fn import(self, x: super::Import, _: Self::Context) -> (Self::Import, Self) {
         self.capture(Fragment::Import(x))
     }
 
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
-        _: Context,
+        _: Self::Context,
     ) -> (Self::Module, Self) {
         self.capture(Fragment::Module(x))
     }

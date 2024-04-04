@@ -7,9 +7,9 @@ use std::fmt::Debug;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Binding(pub String);
 
-impl<Visitor, Meta> Walk<Visitor, (Range, Meta)> for (Binding, (Range, ()))
+impl<Visitor, Meta> Walk<Visitor> for (Binding, (Range, ()))
 where
-    Visitor: Visit<(Range, Meta)>,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Binding;
 
@@ -49,10 +49,10 @@ impl<Binding> Storage<Binding> {
     }
 }
 
-impl<Visitor, Context, Binding> Walk<Visitor, Context> for Storage<Binding>
+impl<Visitor, Context, Binding> Walk<Visitor> for Storage<Binding>
 where
-    Visitor: Visit<Context>,
-    Binding: Walk<Visitor, Context, Output = Visitor::Binding>,
+    Visitor: Visit<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
 {
     type Output = Storage<Visitor::Binding>;
 
@@ -90,13 +90,13 @@ impl<Binding, Expression, TypeExpression> Parameter<Binding, Expression, TypeExp
     }
 }
 
-impl<Visitor, Context, Binding, Expression, TypeExpression> Walk<Visitor, Context>
+impl<Visitor, Context, Binding, Expression, TypeExpression> Walk<Visitor>
     for (Parameter<Binding, Expression, TypeExpression>, Context)
 where
-    Visitor: Visit<Context>,
-    Binding: Walk<Visitor, Context, Output = Visitor::Binding>,
-    Expression: Walk<Visitor, Context, Output = Visitor::Expression>,
-    TypeExpression: Walk<Visitor, Context, Output = Visitor::TypeExpression>,
+    Visitor: Visit<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
+    Expression: Walk<Visitor, Output = Visitor::Expression>,
+    TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
 {
     type Output = Visitor::Parameter;
 
@@ -243,19 +243,18 @@ impl<Binding, Expression, TypeExpression, Parameter, Module>
     }
 }
 
-impl<Visitor, Context, Binding, Expression, TypeExpression, Parameter, Module>
-    Walk<Visitor, Context>
+impl<Visitor, Context, Binding, Expression, TypeExpression, Parameter, Module> Walk<Visitor>
     for (
         Declaration<Binding, Expression, TypeExpression, Parameter, Module>,
         Context,
     )
 where
-    Visitor: Visit<Context>,
-    Binding: Walk<Visitor, Context, Output = Visitor::Binding>,
-    Expression: Walk<Visitor, Context, Output = Visitor::Expression>,
-    TypeExpression: Walk<Visitor, Context, Output = Visitor::TypeExpression>,
-    Parameter: Walk<Visitor, Context, Output = Visitor::Parameter>,
-    Module: Walk<Visitor, Context, Output = Visitor::Module>,
+    Visitor: Visit<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
+    Expression: Walk<Visitor, Output = Visitor::Expression>,
+    TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
+    Parameter: Walk<Visitor, Output = Visitor::Parameter>,
+    Module: Walk<Visitor, Output = Visitor::Module>,
 {
     type Output = Visitor::Declaration;
 

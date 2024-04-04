@@ -48,12 +48,12 @@ impl<Value> Node<Value, ()> {
     }
 }
 
-impl<Visitor, Context, Value, Meta> Walk<Visitor, Context> for Node<Value, Meta>
+impl<Visitor, Value, Meta> Walk<Visitor> for Node<Value, Meta>
 where
-    Visitor: Visit<Context>,
-    (Value, (Range, Meta)): Walk<Visitor, Context>,
+    Visitor: Visit,
+    (Value, (Range, Meta)): Walk<Visitor>,
 {
-    type Output = <(Value, (Range, Meta)) as Walk<Visitor, Context>>::Output;
+    type Output = <(Value, (Range, Meta)) as Walk<Visitor>>::Output;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         (self.0, (self.1, self.2)).walk(v)
