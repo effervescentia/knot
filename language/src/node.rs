@@ -1,5 +1,5 @@
 use crate::{
-    walk::{IntoSpan, Span},
+    walk::{Visit, Walk},
     Range,
 };
 use std::fmt::{Debug, Display, Formatter};
@@ -48,9 +48,15 @@ impl<Value> Node<Value, ()> {
     }
 }
 
-impl<Value, Meta> IntoSpan<Value, Meta> for Node<Value, Meta> {
-    fn into_span(self) -> Span<Value, Meta> {
-        (self.0, (self.1, self.2))
+impl<Visitor, Context, Value, Meta> Walk<Visitor, Context> for Node<Value, Meta>
+where
+    Visitor: Visit<Context>,
+    (Value, (Range, Meta)): Walk<Visitor, Context>,
+{
+    type Output = <(Value, (Range, Meta)) as Walk<Visitor, Context>>::Output;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        (self.0, (self.1, self.2)).walk(v)
     }
 }
 

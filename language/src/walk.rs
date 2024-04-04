@@ -1,17 +1,5 @@
 use crate::{ast, Range};
 
-pub type Span<Value, Meta> = (Value, (Range, Meta));
-
-pub trait IntoSpan<Value, Meta> {
-    fn into_span(self) -> Span<Value, Meta>;
-}
-
-impl<Value, Meta> IntoSpan<Value, Meta> for Span<Value, Meta> {
-    fn into_span(self) -> Self {
-        self
-    }
-}
-
 pub trait Visit<Context>: Sized {
     type Binding;
     type Expression;

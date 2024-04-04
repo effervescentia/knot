@@ -1,7 +1,4 @@
-use crate::{
-    walk::{Span, Visit, Walk},
-    Range,
-};
+use crate::walk::{Visit, Walk};
 use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -25,11 +22,11 @@ pub enum TypeExpression<TypeExpression_> {
     // View(Vec<(String, TypeExpression)>),
 }
 
-impl<Visitor, Meta, TypeExpression_> Walk<Visitor, (Range, Meta)>
-    for Span<TypeExpression<TypeExpression_>, Meta>
+impl<Visitor, Context, TypeExpression_> Walk<Visitor, Context>
+    for (TypeExpression<TypeExpression_>, Context)
 where
-    Visitor: Visit<(Range, Meta)>,
-    TypeExpression_: Walk<Visitor, (Range, Meta), Output = Visitor::TypeExpression>,
+    Visitor: Visit<Context>,
+    TypeExpression_: Walk<Visitor, Context, Output = Visitor::TypeExpression>,
 {
     type Output = Visitor::TypeExpression;
 

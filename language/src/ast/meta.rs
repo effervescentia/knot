@@ -1,6 +1,6 @@
 use super::shape;
 use crate::{
-    walk::{IntoSpan, Visit, Walk},
+    walk::{Visit, Walk},
     Node, Range,
 };
 use std::fmt::Display;
@@ -28,7 +28,7 @@ where
     type Output = Visitor::Binding;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -64,7 +64,7 @@ where
     type Output = Visitor::Expression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -99,7 +99,7 @@ where
     type Output = Visitor::Statement;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -134,7 +134,7 @@ where
     type Output = Visitor::Component;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -169,7 +169,7 @@ where
     type Output = Visitor::TypeExpression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -204,7 +204,7 @@ where
     type Output = Visitor::Parameter;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -246,7 +246,7 @@ where
     type Output = Visitor::Declaration;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -279,7 +279,7 @@ where
     type Output = Visitor::Import;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -314,7 +314,7 @@ where
     type Output = Visitor::Module;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 

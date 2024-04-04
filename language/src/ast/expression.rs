@@ -1,8 +1,5 @@
 use super::{BinaryOperator, UnaryOperator};
-use crate::{
-    walk::{Span, Visit, Walk},
-    Range,
-};
+use crate::walk::{Visit, Walk};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -34,13 +31,13 @@ pub enum Expression<Expression_, Statement, Component> {
     Component(Box<Component>),
 }
 
-impl<Visitor, Meta, Expression_, Statement, Component> Walk<Visitor, (Range, Meta)>
-    for Span<Expression<Expression_, Statement, Component>, Meta>
+impl<Visitor, Context, Expression_, Statement, Component> Walk<Visitor, Context>
+    for (Expression<Expression_, Statement, Component>, Context)
 where
-    Visitor: Visit<(Range, Meta)>,
-    Expression_: Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
-    Statement: Walk<Visitor, (Range, Meta), Output = Visitor::Statement>,
-    Component: Walk<Visitor, (Range, Meta), Output = Visitor::Component>,
+    Visitor: Visit<Context>,
+    Expression_: Walk<Visitor, Context, Output = Visitor::Expression>,
+    Statement: Walk<Visitor, Context, Output = Visitor::Statement>,
+    Component: Walk<Visitor, Context, Output = Visitor::Component>,
 {
     type Output = Visitor::Expression;
 
@@ -118,10 +115,10 @@ pub enum Statement<Expression> {
     Variable(String, Expression),
 }
 
-impl<Visitor, Meta, Expression> Walk<Visitor, (Range, Meta)> for Span<Statement<Expression>, Meta>
+impl<Visitor, Context, Expression> Walk<Visitor, Context> for (Statement<Expression>, Context)
 where
-    Visitor: Visit<(Range, Meta)>,
-    Expression: Walk<Visitor, (Range, Meta), Output = Visitor::Expression>,
+    Visitor: Visit<Context>,
+    Expression: Walk<Visitor, Context, Output = Visitor::Expression>,
 {
     type Output = Visitor::Statement;
 
