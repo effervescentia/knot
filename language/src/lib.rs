@@ -19,7 +19,7 @@ pub use node::Node;
 pub use range::{Point, Range};
 pub use type_of::TypeOf;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NamespaceId(pub usize);
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -34,7 +34,7 @@ impl ScopeId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CanonicalId(pub NamespaceId, pub NodeId);
 
 impl CanonicalId {

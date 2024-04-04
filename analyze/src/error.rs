@@ -46,8 +46,25 @@ pub enum Error {
     /// temporary solution until deeper type inference is implemented
     UntypedParameter,
 
-    InvalidDefaultValue(
+    DefaultValueRejected(
         // id of the default value
+        CanonicalId,
+    ),
+
+    UnexpectedArgument(
+        // id of the argument
+        CanonicalId,
+    ),
+
+    MissingArgument(
+        // id of the unfulfilled parameter
+        CanonicalId,
+    ),
+
+    ArgumentRejected(
+        // id of the parameter
+        CanonicalId,
+        // id of the argument
         CanonicalId,
     ),
 
@@ -55,6 +72,13 @@ pub enum Error {
     NotRenderable(
         // id of the expression being rendered
         CanonicalId,
+    ),
+
+    ComponentTypo(
+        // start tag
+        String,
+        // end tag
+        String,
     ),
 
     /* mismatch */
@@ -81,17 +105,3 @@ pub enum Error {
         Kind,
     ),
 }
-
-// #[derive(Clone, Debug, PartialEq)]
-// pub enum SemanticError {
-//     /* mismatch */
-//     // UnexpectedShape((ShallowType, NodeId), ExpectedShape),
-
-//     /* function-related */
-//     // MissingArguments(NodeId, Vec<(ShallowType, NodeId)>),
-//     // UnexpectedArguments(NodeId, Vec<(ShallowType, NodeId)>),
-//     // InvalidArguments(
-//     //     NodeId,
-//     //     #[allow(clippy::type_complexity)] Vec<((ShallowType, NodeId), (ShallowType, NodeId))>,
-//     // ),
-// }

@@ -2,7 +2,7 @@ use crate::ast;
 use std::rc::Rc;
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Type(super::Type<Box<Type>>);
+pub struct Type(pub super::Type<Box<Type>>);
 
 pub trait ToShape {
     fn to_shape(&self) -> Type;

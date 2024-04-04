@@ -22,7 +22,7 @@ type Warning<'a> = (&'a NodeDescriptor, String);
 pub struct State<'a> {
     pub context: &'a Context<'a>,
 
-    pub fragments: &'a FragmentMap,
+    pub fragments: &'a FragmentMap<NodeId>,
 
     pub bindings: BindingMap,
 

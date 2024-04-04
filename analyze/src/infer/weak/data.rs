@@ -31,7 +31,7 @@ pub type TypeMap<'a> = HashMap<NodeId, Weak<'a>>;
 #[derive(Debug, PartialEq)]
 pub struct Output<'a> {
     /// AST fragments undergoing inference
-    pub fragments: &'a FragmentMap,
+    pub fragments: &'a FragmentMap<NodeId>,
 
     /// bindings within the target source file
     pub bindings: BindingMap,
@@ -41,7 +41,7 @@ pub struct Output<'a> {
 }
 
 impl<'a> Output<'a> {
-    pub fn new(fragments: &'a FragmentMap) -> Self {
+    pub fn new(fragments: &'a FragmentMap<NodeId>) -> Self {
         Self {
             fragments,
             bindings: Default::default(),

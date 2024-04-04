@@ -6,12 +6,12 @@ use crate::{
 };
 use kore::Incrementor;
 
-pub trait IntoFragments {
-    fn into_fragments(self) -> FragmentMap;
+pub trait IntoFragments<T> {
+    fn into_fragments(self) -> FragmentMap<T>;
 }
 
-impl<Context> super::into_fragments::IntoFragments for super::meta::Program<Context> {
-    fn into_fragments(self) -> FragmentMap {
+impl<Context> super::into_fragments::IntoFragments<NodeId> for super::meta::Program<Context> {
+    fn into_fragments(self) -> FragmentMap<NodeId> {
         self.0
             .walk(super::into_fragments::Visitor::default())
             .1
@@ -23,7 +23,7 @@ impl<Context> super::into_fragments::IntoFragments for super::meta::Program<Cont
 struct State {
     node_id: Incrementor,
     scope_id: Incrementor,
-    pub fragments: FragmentMap,
+    pub fragments: FragmentMap<NodeId>,
 }
 
 pub struct Visitor<Context> {
@@ -63,7 +63,7 @@ impl<Context> Visitor<Context> {
         (node_id, self)
     }
 
-    fn fragments(self) -> FragmentMap {
+    fn fragments(self) -> FragmentMap<NodeId> {
         self.state.fragments
     }
 }

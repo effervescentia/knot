@@ -4,10 +4,10 @@ mod expression;
 mod to_weak;
 
 pub use data::{Inference, Output, Type, Weak};
-use lang::FragmentMap;
+use lang::{FragmentMap, NodeId};
 use to_weak::ToWeak;
 
-pub fn infer_types(fragments: &FragmentMap) -> Output {
+pub fn infer_types(fragments: &FragmentMap<NodeId>) -> Output {
     let mut output = Output::new(fragments);
 
     for (id, (scope, fragment)) in fragments {

@@ -1,9 +1,9 @@
-use super::Visitor;
+use super::{component, Visitor};
 use crate::error::Error;
-use lang::{ast, walk::Visit};
+use lang::{ast, walk::Visit, Identify, TypeOf};
 
 #[allow(clippy::type_complexity)]
-pub const fn analyze(
+pub fn analyze(
     x: &ast::Declaration<
         <Visitor as Visit>::Binding,
         <Visitor as Visit>::Expression,
@@ -12,6 +12,7 @@ pub const fn analyze(
         <Visitor as Visit>::Module,
     >,
     _: &<Visitor as Visit>::Context,
+    _: &Visitor,
 ) -> Option<Vec<Error>> {
     match x {
         ast::Declaration::TypeAlias { .. } => None,
@@ -22,7 +23,8 @@ pub const fn analyze(
 
         ast::Declaration::Function { .. } => None,
 
-        ast::Declaration::View { .. } => None,
+        ast::Declaration::View { body, .. } => (!component::can_render(body.type_of()))
+            .then_some(vec![Error::NotRenderable(*body.id())]),
 
         ast::Declaration::Module { .. } => None,
     }

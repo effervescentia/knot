@@ -7,19 +7,25 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::{error::Error, Context, Result, TypeMap};
+use crate::{error::Error, Context, Result};
+use kore::invariant;
 use lang::{
     ast,
     walk::{Visit, Walk},
-    Identify, Node, NodeId, Range,
+    CanonicalId, Canonicalize, Fragment, FragmentMap, Identify, Node, NodeId, Range,
 };
 
 pub fn analyze(
-    _: &Context,
+    ctx: &Context,
+    fragments: FragmentMap<NodeId>,
     typed: ast::typed::Program,
-    types: &TypeMap,
 ) -> Result<ast::typed::Program> {
-    let visitor = Visitor::new(types);
+    let visitor = Visitor::new(
+        fragments
+            .into_iter()
+            .map(|(key, value)| (ctx.canonicalize(key), value))
+            .collect(),
+    );
 
     let (_, visitor) = typed.0.clone().walk(visitor);
 
@@ -30,15 +36,15 @@ pub fn analyze(
     }
 }
 
-pub struct Visitor<'a> {
+pub struct Visitor {
     errors: Vec<(NodeId, Error)>,
-    types: &'a TypeMap,
+    fragments: FragmentMap<CanonicalId>,
 }
 
-impl<'a> Visitor<'a> {
-    fn new(types: &'a TypeMap) -> Self {
+impl Visitor {
+    fn new(fragments: FragmentMap<CanonicalId>) -> Self {
         Self {
-            types,
+            fragments,
             errors: Default::default(),
         }
     }
@@ -52,16 +58,24 @@ impl<'a> Visitor<'a> {
 
     fn report<T, F>(&mut self, x: &T, ctx: &<Self as Visit>::Context, analyzer: F)
     where
-        F: Fn(&T, &<Self as Visit>::Context) -> Option<Vec<Error>>,
+        F: Fn(&T, &<Self as Visit>::Context, &Self) -> Option<Vec<Error>>,
     {
-        if let Some(errors) = analyzer(x, ctx) {
+        if let Some(errors) = analyzer(x, ctx, self) {
             self.errors
                 .extend(errors.into_iter().map(|err| (ctx.id().1, err)));
         }
     }
+
+    pub fn get_fragment(&self, id: &CanonicalId) -> &Fragment {
+        &self
+            .fragments
+            .get(id)
+            .unwrap_or_else(|| invariant!("fragment could not be found"))
+            .1
+    }
 }
 
-impl<'a> Visit for Visitor<'a> {
+impl Visit for Visitor {
     type Context = (Range, ast::typed::Meta);
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
