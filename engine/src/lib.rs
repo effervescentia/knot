@@ -8,7 +8,7 @@ mod write;
 use analyze::ModuleMap;
 use bimap::BiMap;
 use kore::{invariant, Generator, Incrementor};
-use lang::{ast, NamespaceId};
+use lang::{ast, Identify, NamespaceId};
 use link::ImportGraph;
 pub use link::Link;
 pub use report::{CodeFrame, Error, Reporter};
@@ -293,21 +293,22 @@ where
         self.then(|state, _| {
             let mut namespace_id = Incrementor::default();
             let mut analyzed = HashMap::new();
-            let modules = ModuleMap::default();
+            let mut modules = ModuleMap::default();
 
             for id in state.graph.iter() {
                 let (link, state::Module { id, text, ast }) = Self::get_module(&state, &id);
-                let module_reference = link.clone().to_namespace();
+                let namespace = link.clone().to_namespace();
+                let namespace_id = NamespaceId(namespace_id.increment());
                 let context = analyze::Context {
-                    namespace_id: NamespaceId(namespace_id.increment()),
-                    namespace: &module_reference,
+                    namespace_id,
+                    namespace: &namespace,
                     modules: &modules,
                 };
-                let typed = analyze::analyze(&context, ast.clone())
+                let (typed, types) = analyze::analyze(&context, ast.clone())
                     .unwrap_or_else(|_| unimplemented!("need to handle errors"));
-                // let module_type = typed.node().meta();
 
-                // module_types.insert(module_reference, module_type);
+                modules.keys.insert(namespace, namespace_id);
+                modules.by_key.insert(namespace_id, (*typed.0.id(), types));
                 analyzed.insert(link.clone(), state::Module::new(*id, text.clone(), typed));
             }
 

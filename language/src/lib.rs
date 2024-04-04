@@ -2,6 +2,7 @@ pub mod ast;
 #[cfg(feature = "format")]
 pub mod format;
 mod fragment;
+mod identify;
 mod namespace;
 mod node;
 mod range;
@@ -12,6 +13,7 @@ pub mod types;
 pub mod walk;
 
 pub use fragment::{Fragment, FragmentMap};
+pub use identify::Identify;
 pub use namespace::{Namespace, NamespaceKind};
 pub use node::Node;
 pub use range::{Point, Range};

@@ -116,7 +116,7 @@ impl<'a> State<'a> {
         id: NodeId,
         x: &types::Type<CanonicalId>,
         output: &Output,
-    ) -> Rc<(CanonicalId, ast::typed::Type)> {
+    ) -> Rc<ast::typed::Meta> {
         Rc::new((
             self.canonicalize(id),
             ast::typed::Type(x.map(&|id| {

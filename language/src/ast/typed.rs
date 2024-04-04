@@ -4,8 +4,10 @@ use std::rc::Rc;
 
 pub type Meta = (CanonicalId, Type);
 
+pub type InnerType = types::Type<Rc<Meta>>;
+
 #[derive(Clone, Debug, PartialEq)]
-pub struct Type(pub types::Type<Rc<(CanonicalId, Type)>>);
+pub struct Type(pub InnerType);
 
 impl Type {
     pub fn to_canonical(&self) -> types::Type<CanonicalId> {

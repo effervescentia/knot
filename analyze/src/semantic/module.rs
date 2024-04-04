@@ -2,20 +2,9 @@ use super::Visitor;
 use crate::error::Error;
 use lang::{ast, walk::Visit};
 
-pub fn analyze(
-    x: &ast::Expression<
-        <Visitor as Visit>::Expression,
-        <Visitor as Visit>::Statement,
-        <Visitor as Visit>::Component,
-    >,
+pub const fn analyze(
+    _: &ast::Module<<Visitor as Visit>::Import, <Visitor as Visit>::Declaration>,
+    _: &<Visitor as Visit>::Context,
 ) -> Option<Vec<Error>> {
-    match x {
-        ast::Expression::BinaryOperation(op, lhs, rhs) => (),
-
-        ast::Expression::UnaryOperation(op, x) => (),
-
-        _ => (),
-    }
-
     None
 }

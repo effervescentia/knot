@@ -43,6 +43,20 @@ pub enum Error {
         CanonicalId,
     ),
 
+    /// temporary solution until deeper type inference is implemented
+    UntypedParameter,
+
+    InvalidDefaultValue(
+        // id of the default value
+        CanonicalId,
+    ),
+
+    /* component-related */
+    NotRenderable(
+        // id of the expression being rendered
+        CanonicalId,
+    ),
+
     /* mismatch */
     BinaryOperationNotSupported(
         // operation being performed

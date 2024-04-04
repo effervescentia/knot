@@ -6,7 +6,7 @@ use super::{
     weak::{self, Inference},
     NodeDescriptor,
 };
-use crate::{infer::strong::import, Context};
+use crate::{error::Error, infer::strong::import, Context};
 use kore::invariant;
 use lang::Canonicalize;
 
@@ -77,7 +77,10 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
             NodeDescriptor {
                 weak: weak::Type::Infer(Inference::Parameter),
                 ..
-            } => unimplemented!("parameter inference not implemented"),
+            } => {
+                // TODO: replace this with actual type inference
+                Action::Raise(Error::UntypedParameter)
+            }
         };
 
         match action {

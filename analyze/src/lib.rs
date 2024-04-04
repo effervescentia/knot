@@ -6,14 +6,14 @@ mod infer;
 mod into_typed;
 mod semantic;
 
-pub use context::{Context, ModuleMap};
+pub use context::{Context, ModuleMap, TypeMap};
 use error::Error;
 use lang::{ast, NodeId};
 
 /// analysis result with possible resolution errors
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, Error)>>;
 
-pub fn analyze<Raw>(ctx: &Context, raw: Raw) -> Result<ast::typed::Program>
+pub fn analyze<Raw>(ctx: &Context, raw: Raw) -> Result<(ast::typed::Program, TypeMap)>
 where
     Raw: ast::into_fragments::IntoFragments + into_typed::IntoTyped + Clone,
 {
@@ -22,9 +22,12 @@ where
     let weak = infer::weak::infer_types(&fragments);
     let strong = infer::strong::infer_types(ctx, weak)?;
 
-    let typed = raw.into_typed(ctx, &strong);
+    let mut typed = raw.into_typed(ctx, &strong);
+    let types = strong.canonicalize(ctx);
 
-    semantic::analyze(ctx, typed)
+    typed = semantic::analyze(ctx, typed, &types)?;
+
+    Ok((typed, types))
 }
 
 #[cfg(test)]
@@ -59,10 +62,13 @@ mod tests {
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(ast::meta::Program(ast::meta::Module(Node::mock(
-                ast::Module::new(vec![], vec![]),
-                (CanonicalId::mock(0), ast::typed::Type(Type::Module(vec![])))
-            ))))
+            Ok((
+                ast::meta::Program(ast::meta::Module(Node::mock(
+                    ast::Module::new(vec![], vec![]),
+                    (CanonicalId::mock(0), ast::typed::Type(Type::Module(vec![])))
+                ))),
+                HashMap::from_iter(vec![])
+            ))
         );
     }
 
@@ -77,17 +83,20 @@ mod tests {
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(ast::meta::Program(ast::meta::Module(Node::mock(
-                ast::Module::new(vec![], vec![fixture::type_alias::typed()]),
-                (
-                    CanonicalId::mock(2),
-                    ast::typed::Type(Type::Module(vec![(
-                        str!("MyTypeAlias"),
-                        Kind::Type,
-                        Rc::new((CanonicalId::mock(0), fixture::type_alias::type_of()))
-                    )]))
-                )
-            ))))
+            Ok((
+                ast::meta::Program(ast::meta::Module(Node::mock(
+                    ast::Module::new(vec![], vec![fixture::type_alias::typed()]),
+                    (
+                        CanonicalId::mock(2),
+                        ast::typed::Type(Type::Module(vec![(
+                            str!("MyTypeAlias"),
+                            Kind::Type,
+                            Rc::new((CanonicalId::mock(0), fixture::type_alias::type_of()))
+                        )]))
+                    )
+                ))),
+                HashMap::from_iter(vec![])
+            ))
         );
     }
 
@@ -102,17 +111,20 @@ mod tests {
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(ast::meta::Program(ast::meta::Module(Node::mock(
-                ast::Module::new(vec![], vec![fixture::constant::typed()]),
-                (
-                    CanonicalId::mock(3),
-                    ast::typed::Type(Type::Module(vec![(
-                        str!("MY_CONSTANT"),
-                        Kind::Value,
-                        Rc::new((CanonicalId::mock(0), fixture::constant::type_of()))
-                    )]))
-                )
-            ))))
+            Ok((
+                ast::meta::Program(ast::meta::Module(Node::mock(
+                    ast::Module::new(vec![], vec![fixture::constant::typed()]),
+                    (
+                        CanonicalId::mock(3),
+                        ast::typed::Type(Type::Module(vec![(
+                            str!("MY_CONSTANT"),
+                            Kind::Value,
+                            Rc::new((CanonicalId::mock(0), fixture::constant::type_of()))
+                        )]))
+                    )
+                ))),
+                HashMap::from_iter(vec![])
+            ))
         );
     }
 
@@ -127,17 +139,20 @@ mod tests {
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(ast::meta::Program(ast::meta::Module(Node::mock(
-                ast::Module::new(vec![], vec![fixture::enumerated::typed()]),
-                (
-                    CanonicalId::mock(3),
-                    ast::typed::Type(Type::Module(vec![(
-                        str!("MyEnum"),
-                        Kind::Mixed,
-                        Rc::new((CanonicalId::mock(2), fixture::enumerated::type_of()))
-                    )]))
-                )
-            ))))
+            Ok((
+                ast::meta::Program(ast::meta::Module(Node::mock(
+                    ast::Module::new(vec![], vec![fixture::enumerated::typed()]),
+                    (
+                        CanonicalId::mock(3),
+                        ast::typed::Type(Type::Module(vec![(
+                            str!("MyEnum"),
+                            Kind::Mixed,
+                            Rc::new((CanonicalId::mock(2), fixture::enumerated::type_of()))
+                        )]))
+                    )
+                ))),
+                HashMap::from_iter(vec![])
+            ))
         );
     }
 
@@ -153,17 +168,20 @@ mod tests {
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(ast::meta::Program(ast::meta::Module(Node::mock(
-                ast::Module::new(vec![], vec![fixture::function::typed()]),
-                (
-                    CanonicalId::mock(7),
-                    ast::typed::Type(Type::Module(vec![(
-                        str!("MyEnum"),
-                        Kind::Mixed,
-                        Rc::new((CanonicalId::mock(0), fixture::function::type_of()))
-                    )]))
-                )
-            ))))
+            Ok((
+                ast::meta::Program(ast::meta::Module(Node::mock(
+                    ast::Module::new(vec![], vec![fixture::function::typed()]),
+                    (
+                        CanonicalId::mock(7),
+                        ast::typed::Type(Type::Module(vec![(
+                            str!("MyEnum"),
+                            Kind::Mixed,
+                            Rc::new((CanonicalId::mock(0), fixture::function::type_of()))
+                        )]))
+                    )
+                ))),
+                HashMap::from_iter(vec![])
+            ))
         );
     }
 
@@ -178,17 +196,20 @@ mod tests {
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(ast::meta::Program(ast::meta::Module(Node::mock(
-                ast::Module::new(vec![], vec![fixture::view::typed()]),
-                (
-                    CanonicalId::mock(21),
-                    ast::typed::Type(Type::Module(vec![(
-                        str!("MyView"),
-                        Kind::Value,
-                        Rc::new((CanonicalId::mock(20), fixture::view::type_of()))
-                    )]))
-                )
-            ))))
+            Ok((
+                ast::meta::Program(ast::meta::Module(Node::mock(
+                    ast::Module::new(vec![], vec![fixture::view::typed()]),
+                    (
+                        CanonicalId::mock(21),
+                        ast::typed::Type(Type::Module(vec![(
+                            str!("MyView"),
+                            Kind::Value,
+                            Rc::new((CanonicalId::mock(20), fixture::view::type_of()))
+                        )]))
+                    )
+                ))),
+                HashMap::from_iter(vec![])
+            ))
         );
     }
 
@@ -237,17 +258,20 @@ mod tests {
 
         assert_eq!(
             super::analyze(&ctx, raw),
-            Ok(ast::meta::Program(ast::meta::Module(Node::mock(
-                ast::Module::new(vec![], vec![fixture::module::typed()]),
-                (
-                    CanonicalId::mock(8),
-                    ast::typed::Type(Type::Module(vec![(
-                        str!("my_module"),
-                        Kind::Mixed,
-                        Rc::new((CanonicalId::mock(6), fixture::module::type_of()))
-                    )]))
-                )
-            ))))
+            Ok((
+                ast::meta::Program(ast::meta::Module(Node::mock(
+                    ast::Module::new(vec![], vec![fixture::module::typed()]),
+                    (
+                        CanonicalId::mock(8),
+                        ast::typed::Type(Type::Module(vec![(
+                            str!("my_module"),
+                            Kind::Mixed,
+                            Rc::new((CanonicalId::mock(6), fixture::module::type_of()))
+                        )]))
+                    )
+                ))),
+                HashMap::from_iter(vec![])
+            ))
         );
     }
 }

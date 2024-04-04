@@ -2,12 +2,13 @@ use super::Visitor;
 use crate::error::Error;
 use lang::{ast, walk::Visit};
 
-pub fn analyze(x: &ast::Statement<<Visitor as Visit>::Expression>) -> Option<Vec<Error>> {
+pub const fn analyze(
+    x: &ast::Statement<<Visitor as Visit>::Expression>,
+    _: &<Visitor as Visit>::Context,
+) -> Option<Vec<Error>> {
     match x {
-        ast::Statement::Expression(x) => (),
+        ast::Statement::Expression(_) => None,
 
-        ast::Statement::Variable(name, x) => (),
+        ast::Statement::Variable(..) => None,
     }
-
-    None
 }

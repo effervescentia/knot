@@ -48,8 +48,8 @@ mod tests {
     fn type_(
         namespace_id: usize,
         node_id: usize,
-        type_: Type<Rc<(CanonicalId, ast::typed::Type)>>,
-    ) -> Rc<(CanonicalId, ast::typed::Type)> {
+        type_: ast::typed::InnerType,
+    ) -> Rc<ast::typed::Meta> {
         Rc::new((
             CanonicalId(NamespaceId(namespace_id), NodeId(node_id)),
             ast::typed::Type(type_),

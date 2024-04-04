@@ -1,30 +1,48 @@
 mod component;
+mod declaration;
 mod expression;
+mod import;
+mod module;
+mod parameter;
 mod statement;
+mod type_expression;
 
-use crate::{error::Error, Context, Result};
+use crate::{error::Error, Context, Result, TypeMap};
 use lang::{
     ast,
     walk::{Visit, Walk},
-    Node, NodeId, Range,
+    Identify, Node, NodeId, Range,
 };
 
-pub fn analyze(ctx: &Context, typed: ast::typed::Program) -> Result<ast::typed::Program> {
-    let visitor = Visitor::default();
+pub fn analyze(
+    _: &Context,
+    typed: ast::typed::Program,
+    types: &TypeMap,
+) -> Result<ast::typed::Program> {
+    let visitor = Visitor::new(types);
 
     let (_, visitor) = typed.0.clone().walk(visitor);
 
-    if visitor.0.is_empty() {
+    if visitor.errors.is_empty() {
         Ok(typed)
     } else {
-        Err(visitor.0)
+        Err(visitor.errors)
     }
 }
 
-#[derive(Default)]
-pub struct Visitor(Vec<(NodeId, Error)>);
+pub struct Visitor<'a> {
+    errors: Vec<(NodeId, Error)>,
+    types: &'a TypeMap,
+}
 
-impl Visitor {
+impl<'a> Visitor<'a> {
+    fn new(types: &'a TypeMap) -> Self {
+        Self {
+            types,
+            errors: Default::default(),
+        }
+    }
+
     fn node<T, M, R, F>(self, x: T, (r, m): (Range, M), f: F) -> (R, Self)
     where
         F: Fn(Node<T, M>) -> R,
@@ -32,17 +50,18 @@ impl Visitor {
         (f(Node(x, r, m)), self)
     }
 
-    pub fn report(&mut self, ctx: &<Self as Visit>::Context, errors: Option<Vec<Error>>) {
-        let (_, (canonical_id, _)) = ctx;
-
-        if let Some(errors) = errors {
-            self.0
-                .extend(errors.into_iter().map(|err| (canonical_id.1, err)));
+    fn report<T, F>(&mut self, x: &T, ctx: &<Self as Visit>::Context, analyzer: F)
+    where
+        F: Fn(&T, &<Self as Visit>::Context) -> Option<Vec<Error>>,
+    {
+        if let Some(errors) = analyzer(x, ctx) {
+            self.errors
+                .extend(errors.into_iter().map(|err| (ctx.id().1, err)));
         }
     }
 }
 
-impl Visit for Visitor {
+impl<'a> Visit for Visitor<'a> {
     type Context = (Range, ast::typed::Meta);
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
@@ -63,7 +82,7 @@ impl Visit for Visitor {
         x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
         ctx: Self::Context,
     ) -> (Self::Expression, Self) {
-        self.report(&ctx, expression::analyze(&x));
+        self.report(&x, &ctx, expression::analyze);
 
         self.node(x, ctx, ast::meta::Expression)
     }
@@ -73,7 +92,7 @@ impl Visit for Visitor {
         x: ast::Statement<Self::Expression>,
         ctx: Self::Context,
     ) -> (Self::Statement, Self) {
-        self.report(&ctx, statement::analyze(&x));
+        self.report(&x, &ctx, statement::analyze);
 
         self.node(x, ctx, ast::meta::Statement)
     }
@@ -83,29 +102,33 @@ impl Visit for Visitor {
         x: ast::Component<Self::Component, Self::Expression>,
         ctx: Self::Context,
     ) -> (Self::Component, Self) {
-        self.report(&ctx, component::analyze(&x));
+        self.report(&x, &ctx, component::analyze);
 
         self.node(x, ctx, ast::meta::Component)
     }
 
     fn type_expression(
-        self,
+        mut self,
         x: ast::TypeExpression<Self::TypeExpression>,
         ctx: Self::Context,
     ) -> (Self::TypeExpression, Self) {
+        self.report(&x, &ctx, type_expression::analyze);
+
         self.node(x, ctx, ast::meta::TypeExpression)
     }
 
     fn parameter(
-        self,
+        mut self,
         x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
         ctx: Self::Context,
     ) -> (Self::Parameter, Self) {
+        self.report(&x, &ctx, parameter::analyze);
+
         self.node(x, ctx, ast::meta::Parameter)
     }
 
     fn declaration(
-        self,
+        mut self,
         x: ast::Declaration<
             Self::Binding,
             Self::Expression,
@@ -115,18 +138,24 @@ impl Visit for Visitor {
         >,
         ctx: Self::Context,
     ) -> (Self::Declaration, Self) {
+        self.report(&x, &ctx, declaration::analyze);
+
         self.node(x, ctx, ast::meta::Declaration)
     }
 
-    fn import(self, x: ast::Import, ctx: Self::Context) -> (Self::Import, Self) {
+    fn import(mut self, x: ast::Import, ctx: Self::Context) -> (Self::Import, Self) {
+        self.report(&x, &ctx, import::analyze);
+
         self.node(x, ctx, ast::meta::Import)
     }
 
     fn module(
-        self,
+        mut self,
         x: ast::Module<Self::Import, Self::Declaration>,
         ctx: Self::Context,
     ) -> (Self::Module, Self) {
+        self.report(&x, &ctx, module::analyze);
+
         self.node(x, ctx, ast::meta::Module)
     }
 }
