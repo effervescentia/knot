@@ -6,6 +6,8 @@ mod string;
 pub use incrementor::Incrementor;
 #[cfg(feature = "test")]
 pub use pretty_assertions::{assert_eq, assert_ne, assert_str_eq};
+#[cfg(feature = "test")]
+pub use pretty_assertions_sorted::assert_eq_sorted;
 use std::{
     fmt::Display,
     path::{Path, PathBuf},
