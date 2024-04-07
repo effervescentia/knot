@@ -292,8 +292,9 @@ where
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
         self.then(|state, _| {
             let mut namespace_id = Incrementor::default();
-            let mut analyzed = HashMap::new();
+            let mut analyzed = HashMap::default();
             let mut modules = ModuleMap::default();
+            let ambient = HashMap::default();
 
             for id in state.graph.iter() {
                 let (link, state::Module { id, text, ast }) = Self::get_module(&state, &id);
@@ -303,12 +304,15 @@ where
                     namespace_id,
                     namespace: &namespace,
                     modules: &modules,
+                    ambient: &ambient,
                 };
                 let (typed, types) = analyze::analyze(&context, ast.clone())
                     .unwrap_or_else(|_| unimplemented!("need to handle errors"));
 
                 modules.keys.insert(namespace, namespace_id);
-                modules.by_key.insert(namespace_id, (*typed.0.id(), types));
+                modules
+                    .by_key
+                    .insert(namespace_id, (*typed.0.id(), typed.exports(), types));
                 analyzed.insert(link.clone(), state::Module::new(*id, text.clone(), typed));
             }
 

@@ -77,6 +77,7 @@ pub fn analyze(
                 let lhs = parameters.iter().map(Some).chain(std::iter::repeat(None));
                 let rhs = arguments.iter().map(Some).chain(std::iter::repeat(None));
 
+                // TODO: handle case where optional parameters appear before required parameters
                 for pair in lhs.zip(rhs) {
                     match pair {
                         // TODO: should this use a more nuanced approach for comparing types?

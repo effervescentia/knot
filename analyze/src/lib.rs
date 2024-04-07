@@ -5,10 +5,17 @@ mod fixture;
 mod infer;
 mod into_typed;
 mod semantic;
+#[cfg(test)]
+mod test;
 
 pub use context::{Context, ModuleMap, TypeMap};
 use error::Error;
 use lang::{ast, NodeId};
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum AmbientScope {
+    Html,
+}
 
 /// analysis result with possible resolution errors
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, Error)>>;
@@ -32,8 +39,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{fixture, Context, ModuleMap};
-    use kore::{assert_eq, str};
+    use crate::{analyze_mock, fixture, AmbientScope, ModuleMap};
+    use kore::{assert_eq_sorted, str};
     use lang::{
         ast,
         types::{Kind, Type},
@@ -53,14 +60,11 @@ mod tests {
 
     #[test]
     fn empty_module() {
-        let modules = ModuleMap::default();
-        let ctx = Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            ..Context::mock(&modules)
-        };
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let raw = program(vec![], vec![]);
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::analyze(&ctx, raw),
             Ok((
                 ast::meta::Program(ast::meta::Module(Node::mock(
@@ -77,14 +81,11 @@ mod tests {
 
     #[test]
     fn type_alias() {
-        let modules = ModuleMap::default();
-        let ctx = Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            ..Context::mock(&modules)
-        };
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let raw = program(vec![], vec![fixture::type_alias::mock()]);
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::analyze(&ctx, raw),
             Ok((
                 ast::meta::Program(ast::meta::Module(Node::mock(
@@ -105,14 +106,11 @@ mod tests {
 
     #[test]
     fn constant() {
-        let modules = ModuleMap::default();
-        let ctx = Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            ..Context::mock(&modules)
-        };
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let raw = program(vec![], vec![fixture::constant::mock()]);
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::analyze(&ctx, raw),
             Ok((
                 ast::meta::Program(ast::meta::Module(Node::mock(
@@ -133,14 +131,11 @@ mod tests {
 
     #[test]
     fn enumerated() {
-        let modules = ModuleMap::default();
-        let ctx = Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            ..Context::mock(&modules)
-        };
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let raw = program(vec![], vec![fixture::enumerated::mock()]);
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::analyze(&ctx, raw),
             Ok((
                 ast::meta::Program(ast::meta::Module(Node::mock(
@@ -162,14 +157,11 @@ mod tests {
     #[ignore = "parameter inference not implemented"]
     #[test]
     fn function() {
-        let modules = ModuleMap::default();
-        let ctx = Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            ..Context::mock(&modules)
-        };
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let raw = program(vec![], vec![fixture::function::mock()]);
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::analyze(&ctx, raw),
             Ok((
                 ast::meta::Program(ast::meta::Module(Node::mock(
@@ -190,14 +182,50 @@ mod tests {
 
     #[test]
     fn view() {
-        let modules = ModuleMap::default();
-        let ctx = Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            ..Context::mock(&modules)
-        };
+        let mock = analyze_mock!(
+            ambient = &HashMap::from_iter(vec![(AmbientScope::Html, NamespaceId(1))]),
+            modules = &ModuleMap {
+                keys: HashMap::new(),
+                by_key: HashMap::from_iter(vec![(
+                    NamespaceId(1),
+                    (
+                        CanonicalId(NamespaceId(1), NodeId(0)),
+                        HashMap::from_iter(vec![
+                            (str!("div"), CanonicalId(NamespaceId(1), NodeId(1))),
+                            (str!("h1"), CanonicalId(NamespaceId(1), NodeId(2))),
+                            (str!("main"), CanonicalId(NamespaceId(1), NodeId(3))),
+                        ]),
+                        HashMap::from_iter(vec![
+                            (
+                                CanonicalId(NamespaceId(1), NodeId(1)),
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(1)),
+                                    ast::typed::Type(Type::View(vec![])),
+                                )),
+                            ),
+                            (
+                                CanonicalId(NamespaceId(1), NodeId(2)),
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(2)),
+                                    ast::typed::Type(Type::View(vec![])),
+                                )),
+                            ),
+                            (
+                                CanonicalId(NamespaceId(1), NodeId(3)),
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(3)),
+                                    ast::typed::Type(Type::View(vec![])),
+                                )),
+                            ),
+                        ]),
+                    ),
+                )]),
+            }
+        );
+        let ctx = mock.context();
         let raw = program(vec![], vec![fixture::view::mock()]);
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::analyze(&ctx, raw),
             Ok((
                 ast::meta::Program(ast::meta::Module(Node::mock(
@@ -218,48 +246,48 @@ mod tests {
 
     #[test]
     fn module() {
-        let modules = ModuleMap {
-            keys: HashMap::from_iter(vec![(
-                Namespace(NamespaceKind::Internal, vec![str!("theme")]),
-                NamespaceId(1),
-            )]),
-            by_key: HashMap::from_iter(vec![(
-                NamespaceId(1),
-                (
-                    CanonicalId(NamespaceId(1), NodeId(0)),
-                    HashMap::from_iter(vec![
-                        (
-                            CanonicalId(NamespaceId(1), NodeId(0)),
-                            Rc::new((
+        let mock = analyze_mock!(
+            modules = &ModuleMap {
+                keys: HashMap::from_iter(vec![(
+                    Namespace(NamespaceKind::Internal, vec![str!("theme")]),
+                    NamespaceId(1),
+                )]),
+                by_key: HashMap::from_iter(vec![(
+                    NamespaceId(1),
+                    (
+                        CanonicalId(NamespaceId(1), NodeId(0)),
+                        HashMap::new(),
+                        HashMap::from_iter(vec![
+                            (
                                 CanonicalId(NamespaceId(1), NodeId(0)),
-                                ast::typed::Type(Type::Module(vec![(
-                                    str!("PRIMARY"),
-                                    Kind::Value,
-                                    Rc::new((
-                                        CanonicalId(NamespaceId(1), NodeId(1)),
-                                        ast::typed::Type(Type::String),
-                                    )),
-                                )])),
-                            )),
-                        ),
-                        (
-                            CanonicalId(NamespaceId(1), NodeId(1)),
-                            Rc::new((
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(0)),
+                                    ast::typed::Type(Type::Module(vec![(
+                                        str!("PRIMARY"),
+                                        Kind::Value,
+                                        Rc::new((
+                                            CanonicalId(NamespaceId(1), NodeId(1)),
+                                            ast::typed::Type(Type::String),
+                                        )),
+                                    )])),
+                                )),
+                            ),
+                            (
                                 CanonicalId(NamespaceId(1), NodeId(1)),
-                                ast::typed::Type(Type::String),
-                            )),
-                        ),
-                    ]),
-                ),
-            )]),
-        };
-        let ctx = Context {
-            namespace: &Namespace(NamespaceKind::Internal, vec![str!("foo")]),
-            ..Context::mock(&modules)
-        };
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(1)),
+                                    ast::typed::Type(Type::String),
+                                )),
+                            ),
+                        ]),
+                    ),
+                )]),
+            }
+        );
+        let ctx = mock.context();
         let raw = program(vec![], vec![fixture::module::mock()]);
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::analyze(&ctx, raw),
             Ok((
                 ast::meta::Program(ast::meta::Module(Node::mock(

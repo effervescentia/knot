@@ -1,6 +1,6 @@
 use crate::{
     infer::weak::{self, Inference},
-    TypeMap as StrongTypes,
+    AmbientScope, TypeMap as StrongTypes,
 };
 use kore::str;
 pub use lang::test::fixture::*;
@@ -184,14 +184,14 @@ pub mod function {
                 NodeId(6),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("first"))),
+                    weak::Type::Infer(Inference::Reference(str!("first"), None)),
                 ),
             ),
             (
                 NodeId(7),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("second"))),
+                    weak::Type::Infer(Inference::Reference(str!("second"), None)),
                 ),
             ),
             (NodeId(8), (Kind::Value, weak::Type::Value(Type::Boolean))),
@@ -199,7 +199,7 @@ pub mod function {
                 NodeId(9),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("third"))),
+                    weak::Type::Infer(Inference::Reference(str!("third"), None)),
                 ),
             ),
             (NodeId(10), (Kind::Value, weak::Type::Value(Type::Boolean))),
@@ -224,8 +224,14 @@ pub mod view {
     pub fn weak_types<'a>() -> WeakTypes<'a> {
         HashMap::from_iter(vec![
             (NodeId(0), (Kind::Type, weak::Type::Value(Type::Element))),
-            (NodeId(1), (Kind::Value, weak::Type::Value(Type::Element))),
-            (NodeId(2), (Kind::Value, weak::Type::Inherit(NodeId(1)))),
+            (
+                NodeId(1),
+                (
+                    Kind::Value,
+                    weak::Type::Infer(Inference::Reference(str!("div"), Some(AmbientScope::Html))),
+                ),
+            ),
+            (NodeId(2), (Kind::Value, weak::Type::Value(Type::Element))),
             (
                 NodeId(3),
                 (Kind::Value, weak::Type::InheritKind(NodeId(0), Kind::Type)),
@@ -245,12 +251,18 @@ pub mod view {
             ),
             (NodeId(7), (Kind::Value, weak::Type::Value(Type::Nil))),
             (NodeId(8), (Kind::Value, weak::Type::Value(Type::String))),
-            (NodeId(9), (Kind::Value, weak::Type::Value(Type::Element))),
+            (
+                NodeId(9),
+                (
+                    Kind::Value,
+                    weak::Type::Infer(Inference::Reference(str!("h1"), Some(AmbientScope::Html))),
+                ),
+            ),
             (
                 NodeId(10),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("value"))),
+                    weak::Type::Infer(Inference::Reference(str!("value"), None)),
                 ),
             ),
             (NodeId(11), (Kind::Value, weak::Type::Inherit(NodeId(10)))),
@@ -259,13 +271,19 @@ pub mod view {
                 NodeId(13),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("inner"))),
+                    weak::Type::Infer(Inference::Reference(str!("inner"), None)),
                 ),
             ),
             (NodeId(14), (Kind::Value, weak::Type::Inherit(NodeId(13)))),
-            (NodeId(15), (Kind::Value, weak::Type::Value(Type::Element))),
+            (
+                NodeId(15),
+                (
+                    Kind::Value,
+                    weak::Type::Infer(Inference::Reference(str!("main"), Some(AmbientScope::Html))),
+                ),
+            ),
             (NodeId(16), (Kind::Value, weak::Type::Value(Type::Element))),
-            (NodeId(17), (Kind::Value, weak::Type::Inherit(NodeId(16)))),
+            (NodeId(17), (Kind::Value, weak::Type::Value(Type::Element))),
             (NodeId(18), (Kind::Value, weak::Type::Inherit(NodeId(17)))),
             (NodeId(19), (Kind::Value, weak::Type::Inherit(NodeId(18)))),
             (
@@ -283,11 +301,14 @@ pub mod view {
             ),
             (
                 CanonicalId::mock(1),
-                Rc::new((CanonicalId::mock(1), ast::typed::Type(Type::Element))),
+                Rc::new((
+                    CanonicalId(NamespaceId(1), NodeId(1)),
+                    ast::typed::Type(Type::View(vec![])),
+                )),
             ),
             (
                 CanonicalId::mock(2),
-                Rc::new((CanonicalId::mock(1), ast::typed::Type(Type::Element))),
+                Rc::new((CanonicalId::mock(2), ast::typed::Type(Type::Element))),
             ),
             (
                 CanonicalId::mock(3),
@@ -315,7 +336,10 @@ pub mod view {
             ),
             (
                 CanonicalId::mock(9),
-                Rc::new((CanonicalId::mock(9), ast::typed::Type(Type::Element))),
+                Rc::new((
+                    CanonicalId(NamespaceId(1), NodeId(2)),
+                    ast::typed::Type(Type::View(vec![])),
+                )),
             ),
             (
                 CanonicalId::mock(10),
@@ -339,7 +363,10 @@ pub mod view {
             ),
             (
                 CanonicalId::mock(15),
-                Rc::new((CanonicalId::mock(15), ast::typed::Type(Type::Element))),
+                Rc::new((
+                    CanonicalId(NamespaceId(1), NodeId(3)),
+                    ast::typed::Type(Type::View(vec![])),
+                )),
             ),
             (
                 CanonicalId::mock(16),
@@ -347,15 +374,15 @@ pub mod view {
             ),
             (
                 CanonicalId::mock(17),
-                Rc::new((CanonicalId::mock(16), ast::typed::Type(Type::Element))),
+                Rc::new((CanonicalId::mock(17), ast::typed::Type(Type::Element))),
             ),
             (
                 CanonicalId::mock(18),
-                Rc::new((CanonicalId::mock(16), ast::typed::Type(Type::Element))),
+                Rc::new((CanonicalId::mock(17), ast::typed::Type(Type::Element))),
             ),
             (
                 CanonicalId::mock(19),
-                Rc::new((CanonicalId::mock(16), ast::typed::Type(Type::Element))),
+                Rc::new((CanonicalId::mock(17), ast::typed::Type(Type::Element))),
             ),
             (
                 CanonicalId::mock(20),
@@ -397,7 +424,7 @@ pub mod module {
                 NodeId(1),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("Theme"))),
+                    weak::Type::Infer(Inference::Reference(str!("Theme"), None)),
                 ),
             ),
             (

@@ -1,6 +1,6 @@
 pub use super::meta::Binding;
-use crate::{types, CanonicalId};
-use std::rc::Rc;
+use crate::{types, CanonicalId, Node};
+use std::{collections::HashMap, rc::Rc};
 
 pub type Meta = (CanonicalId, Type);
 
@@ -25,3 +25,14 @@ pub type Declaration = super::meta::Declaration<Meta>;
 pub type Import = super::meta::Import<Meta>;
 pub type Module = super::meta::Module<Meta>;
 pub type Program = super::meta::Program<Meta>;
+
+impl Program {
+    pub fn exports(&self) -> HashMap<String, CanonicalId> {
+        let Self(super::meta::Module(Node(super::Module { declarations, .. }, ..), ..)) = self;
+
+        declarations
+            .iter()
+            .map(|x| (x.0.value().binding().0.value().0.clone(), x.0.meta().0))
+            .collect()
+    }
+}

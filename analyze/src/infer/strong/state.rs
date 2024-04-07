@@ -2,7 +2,7 @@ use super::data::{Output, Strong, Type};
 use crate::{
     error::Error,
     infer::{weak, BindingMap, NodeDescriptor},
-    Context, Result,
+    AmbientScope, Context, Result,
 };
 use kore::invariant;
 use lang::{
@@ -89,7 +89,7 @@ impl<'a> State<'a> {
             return self
                 .context
                 .modules
-                .resolve(*id)
+                .get_type(*id)
                 .map(|x| Ok(x.1.to_canonical()));
         }
 
@@ -111,6 +111,18 @@ impl<'a> State<'a> {
         self.resolve(id, &Kind::Mixed)
     }
 
+    pub fn resolve_ambient(
+        &self,
+        ambient: &AmbientScope,
+        name: &str,
+    ) -> Option<&Rc<ast::typed::Meta>> {
+        let ambient_namespace = self.context.ambient.get(ambient)?;
+
+        self.context
+            .modules
+            .get_export_type(ambient_namespace, name)
+    }
+
     fn canonicalize_type(
         &self,
         id: NodeId,
@@ -124,7 +136,7 @@ impl<'a> State<'a> {
                     (if self.is_local(id) {
                         output.types.get(&id.1).and_then(OnceCell::get)
                     } else {
-                        self.context.modules.resolve(*id)
+                        self.context.modules.get_type(*id)
                     })
                     .unwrap_or_else(|| invariant!("type not found")),
                 )
@@ -161,7 +173,7 @@ impl<'a> State<'a> {
                     } else {
                         self.context
                             .modules
-                            .resolve(*from_id)
+                            .get_type(*from_id)
                             .unwrap_or_else(|| invariant!("inherited type not found"))
                     };
 

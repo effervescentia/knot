@@ -2,6 +2,7 @@ use super::{
     data::{Inference, Type, Weak},
     to_weak::ToWeak,
 };
+use crate::AmbientScope;
 use lang::{
     ast,
     types::{self, Kind},
@@ -22,7 +23,10 @@ impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
                 }),
             ),
 
-            Self::Identifier(x) => (Kind::Value, Type::Infer(Inference::Reference(x.clone()))),
+            Self::Identifier(x) => (
+                Kind::Value,
+                Type::Infer(Inference::Reference(x.clone(), None)),
+            ),
 
             Self::Group(x) => (Kind::Value, Type::Inherit(**x)),
 
@@ -77,7 +81,7 @@ impl ToWeak for ast::Expression<NodeId, NodeId, NodeId> {
 
             Self::Style(..) => (Kind::Value, Type::Value(types::Type::Style)),
 
-            Self::Component(x) => (Kind::Value, Type::Inherit(**x)),
+            Self::Component(_) => (Kind::Value, Type::Value(types::Type::Element)),
         }
     }
 }
@@ -99,9 +103,12 @@ impl ToWeak for ast::Component<NodeId, NodeId> {
 
             Self::Expression(id) => (Kind::Value, Type::Inherit(*id)),
 
-            Self::Fragment(..) | Self::ClosedElement(..) | Self::OpenElement { .. } => {
-                (Kind::Value, Type::Value(types::Type::Element))
-            }
+            Self::Fragment(..) => (Kind::Value, Type::Value(types::Type::Element)),
+
+            Self::ClosedElement(tag, _) | Self::OpenElement { start_tag: tag, .. } => (
+                Kind::Value,
+                Type::Infer(Inference::Reference(tag.clone(), Some(AmbientScope::Html))),
+            ),
         }
     }
 }
@@ -109,6 +116,7 @@ impl ToWeak for ast::Component<NodeId, NodeId> {
 #[cfg(test)]
 mod tests {
     use super::{Inference, ToWeak, Type};
+    use crate::AmbientScope;
     use kore::str;
     use lang::{
         ast,
@@ -144,7 +152,10 @@ mod tests {
     fn expression_identifier() {
         assert_eq!(
             ast::Expression::Identifier(str!("foo")).to_weak(),
-            (Kind::Value, Type::Infer(Inference::Reference(str!("foo"))))
+            (
+                Kind::Value,
+                Type::Infer(Inference::Reference(str!("foo"), None))
+            )
         );
     }
 
@@ -376,7 +387,7 @@ mod tests {
     fn expression_component() {
         assert_eq!(
             ast::Expression::Component(Box::new(NodeId(1))).to_weak(),
-            (Kind::Value, Type::Inherit(NodeId(1)))
+            (Kind::Value, Type::Value(types::Type::Element))
         );
     }
 
@@ -420,11 +431,17 @@ mod tests {
         );
         assert_eq!(
             ast::Component::ClosedElement(str!("div"), vec![]).to_weak(),
-            (Kind::Value, Type::Value(types::Type::Element))
+            (
+                Kind::Value,
+                Type::Infer(Inference::Reference(str!("div"), Some(AmbientScope::Html)))
+            )
         );
         assert_eq!(
-            ast::Component::open_element(str!("main"), vec![], vec![], str!("main"),).to_weak(),
-            (Kind::Value, Type::Value(types::Type::Element))
+            ast::Component::open_element(str!("main"), vec![], vec![], str!("main")).to_weak(),
+            (
+                Kind::Value,
+                Type::Infer(Inference::Reference(str!("main"), Some(AmbientScope::Html)))
+            )
         );
     }
 }

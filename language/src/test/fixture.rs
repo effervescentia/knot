@@ -1032,7 +1032,10 @@ pub mod view {
                         Some(ast::typed::Expression::typed(
                             ast::Expression::Component(Box::new(ast::typed::Component::typed(
                                 ast::Component::ClosedElement(str!("div"), vec![]),
-                                (CanonicalId::mock(1), ast::typed::Type(types::Type::Element)),
+                                (
+                                    CanonicalId::mock(1),
+                                    ast::typed::Type(types::Type::View(vec![])),
+                                ),
                             ))),
                             (CanonicalId::mock(2), ast::typed::Type(types::Type::Element)),
                         )),
@@ -1090,7 +1093,7 @@ pub mod view {
                                             ),
                                             (
                                                 CanonicalId::mock(9),
-                                                ast::typed::Type(types::Type::Element),
+                                                ast::typed::Type(types::Type::View(vec![])),
                                             ),
                                         ),
                                         ast::typed::Component::typed(
@@ -1148,7 +1151,7 @@ pub mod view {
                                             ),
                                             (
                                                 CanonicalId::mock(15),
-                                                ast::typed::Type(types::Type::Element),
+                                                ast::typed::Type(types::Type::View(vec![])),
                                             ),
                                         ),
                                     ]),

@@ -62,12 +62,12 @@ pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kin
 #[cfg(test)]
 mod tests {
     use crate::{
+        analyze_mock,
         error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
         },
-        Context, ModuleMap,
     };
     use kore::{assert_eq, str};
     use lang::{
@@ -77,8 +77,8 @@ mod tests {
 
     #[test]
     fn infer_enum_variant() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(
@@ -106,8 +106,8 @@ mod tests {
 
     #[test]
     fn infer_enum_variant_not_found() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(
@@ -129,8 +129,8 @@ mod tests {
 
     #[test]
     fn infer_module_entry() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![
@@ -160,8 +160,8 @@ mod tests {
 
     #[test]
     fn infer_module_entry_not_found() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(
@@ -181,8 +181,8 @@ mod tests {
 
     #[test]
     fn infer_module_entry_unexpected_kind() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(
@@ -206,8 +206,8 @@ mod tests {
 
     #[test]
     fn skip() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(&ctx, vec![]);
 
         assert_eq!(
@@ -218,8 +218,8 @@ mod tests {
 
     #[test]
     fn not_indexable() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(
@@ -236,8 +236,8 @@ mod tests {
 
     #[test]
     fn not_inferrable() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(NodeId(1), (Kind::Value, Err(Error::NotInferrable(vec![]))))],

@@ -28,12 +28,12 @@ pub fn inherit_any(state: &State, from_id: CanonicalId) -> Action {
 #[cfg(test)]
 mod tests {
     use crate::{
+        analyze_mock,
         error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
         },
-        Context, ModuleMap,
     };
     use kore::assert_eq;
     use lang::{
@@ -43,8 +43,8 @@ mod tests {
 
     #[test]
     fn inherit_and_skip() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(&ctx, vec![]);
 
         assert_eq!(
@@ -55,8 +55,8 @@ mod tests {
 
     #[test]
     fn inherit() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(
@@ -73,8 +73,8 @@ mod tests {
 
     #[test]
     fn recursive_inherit() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![
@@ -101,8 +101,8 @@ mod tests {
 
     #[test]
     fn not_inferrable() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(NodeId(1), (Kind::Value, Err(Error::NotInferrable(vec![]))))],
