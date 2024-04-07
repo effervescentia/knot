@@ -11,7 +11,7 @@ pub const fn can_render(x: &ast::typed::InnerType) -> bool {
 
 pub fn analyze(
     x: &ast::Component<<Visitor as Visit>::Component, <Visitor as Visit>::Expression>,
-    _: &<Visitor as Visit>::Context,
+    ctx: &<Visitor as Visit>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
     match x {
@@ -22,6 +22,13 @@ pub fn analyze(
         }
 
         ast::Component::Fragment(_) => None,
+
+        ast::Component::ClosedElement(tag, ..)
+        | ast::Component::OpenElement { start_tag: tag, .. }
+            if !matches!(ctx.type_of(), Type::View(_)) =>
+        {
+            Some(vec![Error::InvalidComponent(tag.clone())])
+        }
 
         ast::Component::ClosedElement(..) => None,
 

@@ -1,9 +1,9 @@
 use super::shape;
 use crate::{
     walk::{Visit, Walk},
-    CanonicalId, Node, Range,
+    Node, Range,
 };
-use std::{collections::HashMap, fmt::Display};
+use std::fmt::Display;
 
 /* binding */
 

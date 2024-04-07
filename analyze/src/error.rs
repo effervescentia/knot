@@ -74,6 +74,11 @@ pub enum Error {
         CanonicalId,
     ),
 
+    InvalidComponent(
+        // tag name
+        String,
+    ),
+
     ComponentTypo(
         // start tag
         String,
