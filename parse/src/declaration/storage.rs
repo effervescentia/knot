@@ -1,9 +1,6 @@
-use crate::{
-    ast,
-    matcher::{self as m, Position},
-};
+use crate::matcher::{self as m, Position};
 use combine::{position, value, Parser, Stream};
-use lang::Range;
+use lang::{ast, Range};
 
 pub fn storage<T>(keyword: &'static str) -> impl Parser<T, Output = (ast::raw::Storage, Range)>
 where

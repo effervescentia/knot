@@ -71,7 +71,7 @@ where
             .ok_or(vec![Error::ModuleNotFound(link.clone())])?;
 
         let (ast, _) =
-            parse::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.clone())])?;
+            parse::program::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.clone())])?;
 
         Ok((input, ast))
     }

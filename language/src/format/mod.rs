@@ -4,7 +4,7 @@ mod expression;
 mod module;
 mod parameter;
 mod statement;
-mod type_expression;
+mod types;
 
 use kore::format::SeparateEach;
 use std::fmt::{Display, Formatter};

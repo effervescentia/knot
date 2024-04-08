@@ -19,7 +19,6 @@ pub enum TypeExpression<TypeExpression_> {
     Group(Box<TypeExpression_>),
     PropertyAccess(Box<TypeExpression_>, String),
     Function(Vec<TypeExpression_>, Box<TypeExpression_>),
-    // View(Vec<(String, TypeExpression)>),
 }
 
 impl<Visitor, Context, TypeExpression_> Walk<Visitor> for (TypeExpression<TypeExpression_>, Context)
@@ -68,3 +67,68 @@ where
         }
     }
 }
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum TypeDeclaration<Binding, TypeExpression> {
+    TypeAlias {
+        binding: Binding,
+        value: TypeExpression,
+    },
+
+    View {
+        binding: Binding,
+        parameters: Vec<TypeExpression>,
+    },
+}
+
+impl<Binding, TypeExpression> TypeDeclaration<Binding, TypeExpression> {
+    pub const fn type_alias(binding: Binding, value: TypeExpression) -> Self {
+        Self::TypeAlias { binding, value }
+    }
+
+    pub const fn view(binding: Binding, parameters: Vec<TypeExpression>) -> Self {
+        Self::View {
+            binding,
+            parameters,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypeModule<Declaration> {
+    pub declarations: Vec<Declaration>,
+}
+
+impl<Declaration> TypeModule<Declaration> {
+    pub fn new(declarations: Vec<Declaration>) -> Self {
+        Self { declarations }
+    }
+}
+
+// impl<Visitor, Context, Declaration> Walk<Visitor> for (TypeModule<Declaration>, Context)
+// where
+//     Visitor: Visit<Context = Context>,
+//     Import: Walk<Visitor, Output = Visitor::Import>,
+//     Declaration: Walk<Visitor, Output = Visitor::Declaration>,
+// {
+//     type Output = Visitor::Module;
+
+//     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+//         let (
+//             super::Module {
+//                 imports,
+//                 declarations,
+//             },
+//             ctx,
+//         ) = self;
+//         let ((imports, declarations), v) = (imports, declarations).walk_each(v);
+
+//         v.module(
+//             super::Module {
+//                 imports,
+//                 declarations,
+//             },
+//             ctx,
+//         )
+//     }
+// }

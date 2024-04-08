@@ -228,7 +228,10 @@ pub mod view {
                 NodeId(1),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("div"), Some(AmbientScope::Html))),
+                    weak::Type::Infer(Inference::Reference(
+                        str!("div"),
+                        Some(AmbientScope::Element),
+                    )),
                 ),
             ),
             (NodeId(2), (Kind::Value, weak::Type::Value(Type::Element))),
@@ -255,7 +258,10 @@ pub mod view {
                 NodeId(9),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("h1"), Some(AmbientScope::Html))),
+                    weak::Type::Infer(Inference::Reference(
+                        str!("h1"),
+                        Some(AmbientScope::Element),
+                    )),
                 ),
             ),
             (
@@ -279,7 +285,10 @@ pub mod view {
                 NodeId(15),
                 (
                     Kind::Value,
-                    weak::Type::Infer(Inference::Reference(str!("main"), Some(AmbientScope::Html))),
+                    weak::Type::Infer(Inference::Reference(
+                        str!("main"),
+                        Some(AmbientScope::Element),
+                    )),
                 ),
             ),
             (NodeId(16), (Kind::Value, weak::Type::Value(Type::Element))),

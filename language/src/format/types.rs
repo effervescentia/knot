@@ -33,6 +33,27 @@ where
     }
 }
 
+impl<Binding, TypeExpression> Display for ast::TypeDeclaration<Binding, TypeExpression>
+where
+    Binding: Display,
+    TypeExpression: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            Self::TypeAlias { binding, value } => write!(f, "type {binding} = {value}"),
+
+            Self::View {
+                binding,
+                parameters,
+            } => write!(
+                f,
+                "view {binding} ({parameters})",
+                parameters = SeparateEach(", ", parameters)
+            ),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::ast;

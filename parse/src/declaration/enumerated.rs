@@ -1,8 +1,8 @@
 use super::storage;
-use crate::{ast, matcher as m, types::type_expression};
+use crate::{matcher as m, types::type_expression};
 use combine::{attempt, choice, optional, sep_end_by, sep_end_by1, Parser, Stream};
 use kore::invariant;
-use lang::Range;
+use lang::{ast, Range};
 
 fn variant<T>() -> impl Parser<T, Output = (String, Vec<ast::raw::TypeExpression>, Range)>
 where

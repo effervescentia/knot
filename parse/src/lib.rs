@@ -3,37 +3,20 @@ mod declaration;
 mod expression;
 mod matcher;
 mod module;
+pub mod program;
 mod statement;
 #[cfg(feature = "test")]
 pub mod test;
 mod types;
+pub mod typings;
 
 use combine::{
     easy::Errors,
-    eof,
-    parser::char::spaces,
     stream::position::{SourcePosition, Stream},
-    EasyParser, Parser,
 };
-use lang::ast;
-use matcher as m;
+// use lang::ast;
 
 pub type Result<'a, T> = std::result::Result<
     (T, Stream<&'a str, SourcePosition>),
     Errors<char, &'a str, SourcePosition>,
 >;
-
-fn program<T>() -> impl Parser<T, Output = ast::raw::Program>
-where
-    T: combine::Stream<Token = char>,
-    T::Position: m::Position,
-{
-    spaces()
-        .with(module::module())
-        .map(ast::meta::Program)
-        .skip(eof())
-}
-
-pub fn parse(input: &str) -> Result<ast::raw::Program> {
-    program().easy_parse(Stream::new(input))
-}

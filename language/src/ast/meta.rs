@@ -140,8 +140,6 @@ where
 
 /* type expression */
 
-// type TypeExpressionValue<Meta> = super::TypeExpression<TypeExpression<Meta>>;
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct TypeExpression<Meta>(pub Node<super::TypeExpression<Self>, Meta>);
 
@@ -318,6 +316,8 @@ where
     }
 }
 
+/* program */
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Program<Meta>(pub Module<Meta>);
 
@@ -350,3 +350,102 @@ where
             .fmt(f)
     }
 }
+
+/* type declaration */
+
+type TypeDeclarationValue<Meta> = super::TypeDeclaration<Binding, TypeExpression<Meta>>;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypeDeclaration<Meta>(pub Node<TypeDeclarationValue<Meta>, Meta>);
+
+impl<Meta> TypeDeclaration<Meta> {
+    pub fn typed(v: TypeDeclarationValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
+
+impl TypeDeclaration<()> {
+    pub const fn raw(x: TypeDeclarationValue<()>, range: Range) -> Self {
+        Self(Node::raw(x, range))
+    }
+
+    #[cfg(feature = "test")]
+    pub fn mock(x: TypeDeclarationValue<()>) -> Self {
+        Self::raw(x, Range::nil())
+    }
+}
+
+// impl<Visitor, Meta> Walk<Visitor> for TypeDeclaration<Meta>
+// where
+//     Visitor: Visit<Context = (Range, Meta)>,
+// {
+//     type Output = Visitor::TypeDeclaration;
+
+//     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+//         self.0.walk(v)
+//     }
+// }
+
+/* type module */
+
+type TypeModuleValue<Meta> = super::TypeModule<TypeDeclaration<Meta>>;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypeModule<Meta>(pub Node<TypeModuleValue<Meta>, Meta>);
+
+impl<Meta> TypeModule<Meta> {
+    pub fn typed(v: TypeModuleValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
+
+impl TypeModule<()> {
+    pub const fn raw(x: TypeModuleValue<()>, range: Range) -> Self {
+        Self(Node::raw(x, range))
+    }
+
+    #[cfg(feature = "test")]
+    pub fn mock(x: TypeModuleValue<()>) -> Self {
+        Self::raw(x, Range::nil())
+    }
+}
+
+// impl<Visitor, Meta> Walk<Visitor> for TypeModule<Meta>
+// where
+//     Visitor: Visit<Context = (Range, Meta)>,
+// {
+//     type Output = Visitor::Module;
+
+//     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+//         self.0.walk(v)
+//     }
+// }
+
+/* typings */
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Typings<Meta>(pub TypeModule<Meta>);
+
+impl<Meta> Typings<Meta> {
+    pub const fn node(&self) -> &Node<super::TypeModule<TypeDeclaration<Meta>>, Meta> {
+        let Self(module) = self;
+        &module.0
+    }
+
+    // pub fn to_shape(self) -> shape::Typings {
+    //     shape::Typings(self.0.walk(super::shape::Visitor::default()).0)
+    // }
+}
+
+// impl<Meta> Display for Typings<Meta>
+// where
+//     Meta: Clone,
+// {
+//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+//         self.0
+//             .clone()
+//             .walk(super::shape::Visitor::default())
+//             .0
+//             .fmt(f)
+//     }
+// }

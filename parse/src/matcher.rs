@@ -1,10 +1,9 @@
-use crate::ast;
 use combine::{
-    attempt, many, optional, parser, parser::char as p, position, stream::position::SourcePosition,
-    value, Parser, Stream,
+    attempt, many, optional, parser, parser::char as p, position, sep_end_by,
+    stream::position::SourcePosition, value, Parser, Stream,
 };
 use kore::invariant;
-use lang::{Point, Range};
+use lang::{ast, Point, Range};
 
 pub trait Position {
     fn to_point(&self) -> Point;
@@ -158,6 +157,15 @@ where
     T::Position: Position,
 {
     standard_identifier().map(|(name, range)| ast::raw::Binding::new(ast::Binding(name), range))
+}
+
+pub fn tuple<T, R, P>(parser: P) -> impl Parser<T, Output = (Vec<R>, Range)>
+where
+    T: Stream<Token = char>,
+    T::Position: Position,
+    P: Parser<T, Output = R>,
+{
+    between(symbol('('), symbol(')'), sep_end_by(parser, symbol(',')))
 }
 
 #[cfg(test)]

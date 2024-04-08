@@ -107,7 +107,10 @@ impl ToWeak for ast::Component<NodeId, NodeId> {
 
             Self::ClosedElement(tag, _) | Self::OpenElement { start_tag: tag, .. } => (
                 Kind::Value,
-                Type::Infer(Inference::Reference(tag.clone(), Some(AmbientScope::Html))),
+                Type::Infer(Inference::Reference(
+                    tag.clone(),
+                    Some(AmbientScope::Element),
+                )),
             ),
         }
     }
@@ -433,14 +436,20 @@ mod tests {
             ast::Component::ClosedElement(str!("div"), vec![]).to_weak(),
             (
                 Kind::Value,
-                Type::Infer(Inference::Reference(str!("div"), Some(AmbientScope::Html)))
+                Type::Infer(Inference::Reference(
+                    str!("div"),
+                    Some(AmbientScope::Element)
+                ))
             )
         );
         assert_eq!(
             ast::Component::open_element(str!("main"), vec![], vec![], str!("main")).to_weak(),
             (
                 Kind::Value,
-                Type::Infer(Inference::Reference(str!("main"), Some(AmbientScope::Html)))
+                Type::Infer(Inference::Reference(
+                    str!("main"),
+                    Some(AmbientScope::Element)
+                ))
             )
         );
     }

@@ -14,7 +14,7 @@ use lang::{ast, NodeId};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum AmbientScope {
-    Html,
+    Element,
 }
 
 /// analysis result with possible resolution errors
@@ -183,7 +183,7 @@ mod tests {
     #[test]
     fn view() {
         let mock = analyze_mock!(
-            ambient = &HashMap::from_iter(vec![(AmbientScope::Html, NamespaceId(1))]),
+            ambient = &HashMap::from_iter(vec![(AmbientScope::Element, NamespaceId(1))]),
             modules = &ModuleMap {
                 keys: HashMap::new(),
                 by_key: HashMap::from_iter(vec![(

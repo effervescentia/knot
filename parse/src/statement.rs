@@ -1,5 +1,6 @@
-use crate::{ast, matcher as m};
+use crate::matcher as m;
 use combine::{choice, Parser, Stream};
+use lang::ast;
 
 fn expression<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::Statement>
 where
@@ -46,10 +47,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{ast, expression};
+    use crate::expression;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::str;
-    use lang::Range;
+    use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::Statement> {
         super::statement(expression::expression)

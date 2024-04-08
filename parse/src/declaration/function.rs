@@ -1,6 +1,7 @@
 use super::{parameter, storage};
-use crate::{ast, expression, matcher as m, types::typedef};
-use combine::{between, optional, sep_end_by, Parser, Stream};
+use crate::{expression, matcher as m, types::typedef};
+use combine::{optional, Parser, Stream};
+use lang::ast;
 
 // func foo -> nil;
 // func foo -> {};
@@ -17,11 +18,7 @@ where
 {
     m::terminated((
         storage::storage("func"),
-        optional(between(
-            m::symbol('('),
-            m::symbol(')'),
-            sep_end_by(parameter::parameter(), m::symbol(',')),
-        )),
+        optional(m::tuple(parameter::parameter())),
         typedef::typedef(),
         m::glyph("->"),
         expression::expression(),
@@ -30,7 +27,12 @@ where
         let range = &start + body.0.range();
 
         ast::raw::Declaration::raw(
-            ast::Declaration::function(storage, parameters.unwrap_or_default(), body_type, body),
+            ast::Declaration::function(
+                storage,
+                parameters.map(|x| x.0).unwrap_or_default(),
+                body_type,
+                body,
+            ),
             range,
         )
     })

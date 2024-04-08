@@ -36,3 +36,7 @@ impl Program {
             .collect()
     }
 }
+
+pub type TypeDeclaration = super::meta::TypeDeclaration<Meta>;
+pub type TypeModule = super::meta::TypeModule<Meta>;
+pub type Typings = super::meta::Typings<Meta>;
