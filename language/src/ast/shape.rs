@@ -78,6 +78,22 @@ impl Display for Program {
     }
 }
 
+pub struct TypeDeclaration(pub super::TypeDeclaration<String, TypeExpression>);
+
+impl Display for TypeDeclaration {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+pub struct TypeModule(pub super::TypeModule<TypeDeclaration>);
+
+impl Display for TypeModule {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 pub struct Visitor<Context>(PhantomData<Context>);
 
 impl<Context> Default for Visitor<Context> {

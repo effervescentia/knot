@@ -1,5 +1,5 @@
 use crate::ast;
-use kore::format::SeparateEach;
+use kore::format::{SeparateEach, TerminateEach};
 use std::fmt::{Display, Formatter};
 
 impl<TypeExpression_> Display for ast::TypeExpression<TypeExpression_>
@@ -40,17 +40,30 @@ where
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            Self::TypeAlias { binding, value } => write!(f, "type {binding} = {value}"),
+            Self::TypeAlias { binding, value } => write!(f, "type {binding} = {value};"),
 
             Self::View {
                 binding,
                 parameters,
             } => write!(
                 f,
-                "view {binding} ({parameters})",
+                "view {binding} ({parameters});",
                 parameters = SeparateEach(", ", parameters)
             ),
         }
+    }
+}
+
+impl<TypeDeclaration> Display for ast::TypeModule<TypeDeclaration>
+where
+    TypeDeclaration: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "{declarations}",
+            declarations = TerminateEach("\n", &self.declarations)
+        )
     }
 }
 
@@ -187,6 +200,68 @@ mod tests {
             ))
             .to_string(),
             "(nil, nil) -> nil"
+        );
+    }
+
+    #[test]
+    fn type_alias() {
+        assert_eq!(
+            ast::shape::TypeDeclaration(ast::TypeDeclaration::type_alias(
+                str!("foo"),
+                ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil))
+            ))
+            .to_string(),
+            "type foo = nil;"
+        );
+    }
+
+    #[test]
+    fn view() {
+        assert_eq!(
+            ast::shape::TypeDeclaration(ast::TypeDeclaration::view(
+                str!("Foo"),
+                vec![
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Nil
+                    )),
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Boolean
+                    ))
+                ]
+            ))
+            .to_string(),
+            "view Foo (nil, boolean);"
+        );
+    }
+
+    #[test]
+    fn module() {
+        assert_eq!(
+            ast::shape::TypeModule(ast::TypeModule {
+                declarations: vec![
+                    ast::shape::TypeDeclaration(ast::TypeDeclaration::type_alias(
+                        str!("foo"),
+                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Nil
+                        ))
+                    )),
+                    ast::shape::TypeDeclaration(ast::TypeDeclaration::view(
+                        str!("Bar"),
+                        vec![
+                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                                ast::TypePrimitive::Nil
+                            )),
+                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                                ast::TypePrimitive::Boolean
+                            ))
+                        ]
+                    ))
+                ]
+            })
+            .to_string(),
+            "type foo = nil;
+view Bar (nil, boolean);
+"
         );
     }
 }
