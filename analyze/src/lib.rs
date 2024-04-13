@@ -32,7 +32,7 @@ where
     let mut typed = raw.into_typed(ctx, &strong);
     let types = strong.canonicalize(ctx);
 
-    typed = semantic::analyze(ctx, fragments, typed)?;
+    typed = semantic::analyze(typed)?;
 
     Ok((typed, types))
 }

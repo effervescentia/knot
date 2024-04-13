@@ -7,25 +7,15 @@ mod parameter;
 mod statement;
 mod type_expression;
 
-use crate::{error::Error, Context, Result};
-use kore::invariant;
+use crate::{error::Error, Result};
 use lang::{
     ast,
     walk::{Visit, Walk},
-    CanonicalId, Canonicalize, Fragment, FragmentMap, Identify, Node, NodeId, Range,
+    Identify, Node, NodeId, Range,
 };
 
-pub fn analyze(
-    ctx: &Context,
-    fragments: FragmentMap<NodeId>,
-    typed: ast::typed::Program,
-) -> Result<ast::typed::Program> {
-    let visitor = Visitor::new(
-        fragments
-            .into_iter()
-            .map(|(key, value)| (ctx.canonicalize(key), value))
-            .collect(),
-    );
+pub fn analyze(typed: ast::typed::Program) -> Result<ast::typed::Program> {
+    let visitor = Visitor::default();
 
     let (_, visitor) = typed.0.clone().walk(visitor);
 
@@ -36,19 +26,12 @@ pub fn analyze(
     }
 }
 
+#[derive(Default)]
 pub struct Visitor {
     errors: Vec<(NodeId, Error)>,
-    fragments: FragmentMap<CanonicalId>,
 }
 
 impl Visitor {
-    fn new(fragments: FragmentMap<CanonicalId>) -> Self {
-        Self {
-            fragments,
-            errors: Default::default(),
-        }
-    }
-
     fn node<T, M, R, F>(self, x: T, (r, m): (Range, M), f: F) -> (R, Self)
     where
         F: Fn(Node<T, M>) -> R,
@@ -64,14 +47,6 @@ impl Visitor {
             self.errors
                 .extend(errors.into_iter().map(|err| (ctx.id().1, err)));
         }
-    }
-
-    pub fn get_fragment(&self, id: &CanonicalId) -> &Fragment {
-        &self
-            .fragments
-            .get(id)
-            .unwrap_or_else(|| invariant!("fragment could not be found"))
-            .1
     }
 }
 
