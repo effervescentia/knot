@@ -122,7 +122,7 @@ mod tests {
         let cache = FileSystem(cache_dir.path());
         cache.write(TARGET_FILE, STALE_DATA);
 
-        sleep(Duration::from_millis(100));
+        sleep(Duration::from_millis(5));
 
         let source_dir = tempdir().unwrap();
         let source = FileSystem(source_dir.path());
