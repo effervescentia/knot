@@ -15,6 +15,8 @@ where
     {
         let Self(cache, inner) = self;
 
+        println!("pre-match");
+
         match (
             cache.last_modified(&relative),
             inner.last_modified(&relative),
@@ -35,8 +37,12 @@ where
                 println!("not found in source, cache: {cache_modified:?}");
             }
 
-            _ => (),
+            (None, None) => {
+                println!("not found in either source or cache");
+            }
         }
+
+        println!("post-match");
 
         {
             let data = inner.resolve(&relative)?;
