@@ -68,7 +68,7 @@ where
 mod tests {
     use super::FileCache;
     use crate::{resolve::Resolver, FileSystem};
-    use std::{fs, path::Path};
+    use std::{fs, path::Path, thread::sleep, time::Duration};
     use tempfile::tempdir;
 
     const TARGET_FILE: &str = "target_file.txt";
@@ -121,6 +121,8 @@ mod tests {
         let cache_dir = tempdir().unwrap();
         let cache = FileSystem(cache_dir.path());
         cache.write(TARGET_FILE, STALE_DATA);
+
+        sleep(Duration::from_millis(1));
 
         let source_dir = tempdir().unwrap();
         let source = FileSystem(source_dir.path());
