@@ -19,8 +19,8 @@ where
             cache.last_modified(&relative),
             inner.last_modified(&relative),
         ) {
-            (Some(cache_modified), Some(modified)) if cache_modified == modified => {
-                return cache.resolve(&relative)
+            (Some(cache_modified), Some(modified)) if cache_modified >= modified => {
+                return cache.resolve(&relative);
             }
 
             _ => (),
@@ -49,7 +49,7 @@ where
 mod tests {
     use super::FileCache;
     use crate::{resolve::Resolver, FileSystem};
-    use std::{fs, path::Path, thread::sleep, time::Duration};
+    use std::{fs, path::Path};
     use tempfile::tempdir;
 
     const TARGET_FILE: &str = "target_file.txt";
@@ -84,8 +84,6 @@ mod tests {
         let source = FileSystem(source_dir.path());
         source.write(TARGET_FILE, STALE_DATA);
 
-        sleep(Duration::from_millis(50));
-
         let cache_dir = tempdir().unwrap();
         let cache = FileSystem(cache_dir.path());
         cache.write(TARGET_FILE, FRESH_DATA);
@@ -104,8 +102,6 @@ mod tests {
         let cache_dir = tempdir().unwrap();
         let cache = FileSystem(cache_dir.path());
         cache.write(TARGET_FILE, STALE_DATA);
-
-        sleep(Duration::from_millis(50));
 
         let source_dir = tempdir().unwrap();
         let source = FileSystem(source_dir.path());
