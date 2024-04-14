@@ -22,6 +22,7 @@ where
             inner.last_modified(&relative),
         ) {
             (Some(cache_modified), Some(modified)) if cache_modified >= modified => {
+                println!("cache is fresh. cache: {cache_modified:?}, source: {modified:?}");
                 return cache.resolve(&relative);
             }
 
