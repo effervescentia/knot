@@ -23,6 +23,10 @@ where
                 return cache.resolve(&relative);
             }
 
+            (Some(cache_modified), Some(modified)) => {
+                println!("cache is stale. cache: {cache_modified:?}, source: {modified:?}");
+            }
+
             _ => (),
         }
 
