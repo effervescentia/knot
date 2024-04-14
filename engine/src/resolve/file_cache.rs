@@ -15,35 +15,16 @@ where
     {
         let Self(cache, inner) = self;
 
-        println!("pre-match");
-
         match (
             cache.last_modified(&relative),
             inner.last_modified(&relative),
         ) {
             (Some(cache_modified), Some(modified)) if cache_modified >= modified => {
-                println!("cache is fresh. cache: {cache_modified:?}, source: {modified:?}");
                 return cache.resolve(&relative);
             }
 
-            (Some(cache_modified), Some(modified)) => {
-                println!("cache is stale. cache: {cache_modified:?}, source: {modified:?}");
-            }
-
-            (None, Some(modified)) => {
-                println!("not found in cache, source: {modified:?}");
-            }
-
-            (Some(cache_modified), None) => {
-                println!("not found in source, cache: {cache_modified:?}");
-            }
-
-            (None, None) => {
-                println!("not found in either source or cache");
-            }
+            _ => (),
         }
-
-        println!("post-match");
 
         {
             let data = inner.resolve(&relative)?;
@@ -122,7 +103,7 @@ mod tests {
         let cache = FileSystem(cache_dir.path());
         cache.write(TARGET_FILE, STALE_DATA);
 
-        sleep(Duration::from_millis(5));
+        sleep(Duration::from_millis(2));
 
         let source_dir = tempdir().unwrap();
         let source = FileSystem(source_dir.path());
