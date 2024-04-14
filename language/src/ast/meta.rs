@@ -1,8 +1,8 @@
-use super::{
-    shape,
-    walk::{IntoSpan, Walk},
+use super::shape;
+use crate::{
+    walk::{Visit, Walk},
+    Node, Range,
 };
-use crate::{Node, Range};
 use std::fmt::Display;
 
 /* binding */
@@ -21,14 +21,14 @@ impl Binding {
     }
 }
 
-impl<Visitor> Walk<Visitor> for Binding
+impl<Visitor, Meta> Walk<Visitor> for Binding
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Binding;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -59,12 +59,12 @@ impl Expression<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Expression<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Expression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -94,12 +94,12 @@ impl Statement<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Statement<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Statement;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -129,18 +129,16 @@ impl Component<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Component<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Component;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
 /* type expression */
-
-// type TypeExpressionValue<Meta> = super::TypeExpression<TypeExpression<Meta>>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TypeExpression<Meta>(pub Node<super::TypeExpression<Self>, Meta>);
@@ -164,12 +162,12 @@ impl TypeExpression<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for TypeExpression<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::TypeExpression;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -199,12 +197,12 @@ impl Parameter<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Parameter<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Parameter;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -241,12 +239,12 @@ impl Declaration<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Declaration<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Declaration;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -274,12 +272,12 @@ impl Import<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Import<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Import;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
 
@@ -309,14 +307,16 @@ impl Module<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Module<Meta>
 where
-    Visitor: super::walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Module;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        self.0.into_span().walk(v)
+        self.0.walk(v)
     }
 }
+
+/* program */
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Program<Meta>(pub Module<Meta>);
@@ -334,7 +334,7 @@ impl<Meta> Program<Meta> {
     }
 
     pub fn to_shape(self) -> shape::Program {
-        shape::Program(self.0.walk(super::shape::Visitor).0)
+        shape::Program(self.0.walk(super::shape::Visitor::default()).0)
     }
 }
 
@@ -343,6 +343,109 @@ where
     Meta: Clone,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        self.0.clone().walk(super::shape::Visitor).0.fmt(f)
+        self.0
+            .clone()
+            .walk(super::shape::Visitor::default())
+            .0
+            .fmt(f)
     }
 }
+
+/* type declaration */
+
+type TypeDeclarationValue<Meta> = super::TypeDeclaration<Binding, TypeExpression<Meta>>;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypeDeclaration<Meta>(pub Node<TypeDeclarationValue<Meta>, Meta>);
+
+impl<Meta> TypeDeclaration<Meta> {
+    pub fn typed(v: TypeDeclarationValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
+
+impl TypeDeclaration<()> {
+    pub const fn raw(x: TypeDeclarationValue<()>, range: Range) -> Self {
+        Self(Node::raw(x, range))
+    }
+
+    #[cfg(feature = "test")]
+    pub fn mock(x: TypeDeclarationValue<()>) -> Self {
+        Self::raw(x, Range::nil())
+    }
+}
+
+// impl<Visitor, Meta> Walk<Visitor> for TypeDeclaration<Meta>
+// where
+//     Visitor: Visit<Context = (Range, Meta)>,
+// {
+//     type Output = Visitor::TypeDeclaration;
+
+//     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+//         self.0.walk(v)
+//     }
+// }
+
+/* type module */
+
+type TypeModuleValue<Meta> = super::TypeModule<TypeDeclaration<Meta>>;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypeModule<Meta>(pub Node<TypeModuleValue<Meta>, Meta>);
+
+impl<Meta> TypeModule<Meta> {
+    pub fn typed(v: TypeModuleValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
+
+impl TypeModule<()> {
+    pub const fn raw(x: TypeModuleValue<()>, range: Range) -> Self {
+        Self(Node::raw(x, range))
+    }
+
+    #[cfg(feature = "test")]
+    pub fn mock(x: TypeModuleValue<()>) -> Self {
+        Self::raw(x, Range::nil())
+    }
+}
+
+// impl<Visitor, Meta> Walk<Visitor> for TypeModule<Meta>
+// where
+//     Visitor: Visit<Context = (Range, Meta)>,
+// {
+//     type Output = Visitor::Module;
+
+//     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+//         self.0.walk(v)
+//     }
+// }
+
+/* typings */
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Typings<Meta>(pub TypeModule<Meta>);
+
+impl<Meta> Typings<Meta> {
+    pub const fn node(&self) -> &Node<super::TypeModule<TypeDeclaration<Meta>>, Meta> {
+        let Self(module) = self;
+        &module.0
+    }
+
+    // pub fn to_shape(self) -> shape::Typings {
+    //     shape::Typings(self.0.walk(super::shape::Visitor::default()).0)
+    // }
+}
+
+// impl<Meta> Display for Typings<Meta>
+// where
+//     Meta: Clone,
+// {
+//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+//         self.0
+//             .clone()
+//             .walk(super::shape::Visitor::default())
+//             .0
+//             .fmt(f)
+//     }
+// }

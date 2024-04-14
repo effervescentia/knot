@@ -1,5 +1,5 @@
 use super::{data::Type, state::State};
-use crate::{error::ResolveError, Context};
+use crate::{error::Error, Context};
 use lang::{types::Kind, Fragment, NodeId, ScopeId};
 use std::collections::BTreeMap;
 
@@ -21,7 +21,7 @@ impl<'a> State<'a> {
     #[allow(clippy::type_complexity)]
     pub fn from_types(
         context: &'a Context,
-        types: Vec<(NodeId, (Kind, Result<Type, ResolveError>))>,
+        types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
     ) -> State<'a> {
         State {
             types: BTreeMap::from_iter(types),

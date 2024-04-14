@@ -1,6 +1,7 @@
 use super::storage;
-use crate::{ast, matcher as m, module};
+use crate::{matcher as m, module};
 use combine::{Parser, Stream};
+use lang::ast;
 
 pub fn module<T>() -> impl Parser<T, Output = ast::raw::Declaration>
 where

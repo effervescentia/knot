@@ -1,9 +1,10 @@
 use super::storage;
 use crate::{
-    ast, expression,
+    expression,
     {matcher as m, types::typedef},
 };
 use combine::{Parser, Stream};
+use lang::ast;
 
 pub fn constant<T>() -> impl Parser<T, Output = ast::raw::Declaration>
 where

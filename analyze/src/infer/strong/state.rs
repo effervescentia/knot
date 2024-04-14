@@ -1,8 +1,8 @@
 use super::data::{Output, Strong, Type};
 use crate::{
-    error::ResolveError,
+    error::Error,
     infer::{weak, BindingMap, NodeDescriptor},
-    Context, Result,
+    AmbientScope, Context, Result,
 };
 use kore::invariant;
 use lang::{
@@ -13,7 +13,7 @@ use lang::{
 use std::{cell::OnceCell, collections::BTreeMap, rc::Rc};
 
 /// type resolved from the `State` during inference
-type ResolvedType<'a> = std::result::Result<types::Type<CanonicalId>, &'a ResolveError>;
+type ResolvedType<'a> = std::result::Result<types::Type<CanonicalId>, &'a Error>;
 
 type Warning<'a> = (&'a NodeDescriptor, String);
 
@@ -22,7 +22,7 @@ type Warning<'a> = (&'a NodeDescriptor, String);
 pub struct State<'a> {
     pub context: &'a Context<'a>,
 
-    pub fragments: &'a FragmentMap,
+    pub fragments: &'a FragmentMap<NodeId>,
 
     pub bindings: BindingMap,
 
@@ -69,7 +69,7 @@ impl<'a> State<'a> {
         &self,
         id: &NodeId,
         allowed_kind: &Kind,
-    ) -> Option<&std::result::Result<Type, ResolveError>> {
+    ) -> Option<&std::result::Result<Type, Error>> {
         self.types.get(id).and_then(|(kind, strong)| {
             if !allowed_kind.can_accept(kind) {
                 return None;
@@ -89,7 +89,7 @@ impl<'a> State<'a> {
             return self
                 .context
                 .modules
-                .resolve(*id)
+                .get_type(*id)
                 .map(|x| Ok(x.1.to_canonical()));
         }
 
@@ -111,12 +111,24 @@ impl<'a> State<'a> {
         self.resolve(id, &Kind::Mixed)
     }
 
+    pub fn resolve_ambient(
+        &self,
+        ambient: &AmbientScope,
+        name: &str,
+    ) -> Option<&Rc<ast::typed::Meta>> {
+        let ambient_namespace = self.context.ambient.get(ambient)?;
+
+        self.context
+            .modules
+            .get_export_type(ambient_namespace, name)
+    }
+
     fn canonicalize_type(
         &self,
         id: NodeId,
         x: &types::Type<CanonicalId>,
         output: &Output,
-    ) -> Rc<(CanonicalId, ast::typed::Type)> {
+    ) -> Rc<ast::typed::Meta> {
         Rc::new((
             self.canonicalize(id),
             ast::typed::Type(x.map(&|id| {
@@ -124,7 +136,7 @@ impl<'a> State<'a> {
                     (if self.is_local(id) {
                         output.types.get(&id.1).and_then(OnceCell::get)
                     } else {
-                        self.context.modules.resolve(*id)
+                        self.context.modules.get_type(*id)
                     })
                     .unwrap_or_else(|| invariant!("type not found")),
                 )
@@ -155,15 +167,13 @@ impl<'a> State<'a> {
                     let cell = get_cell(*id);
 
                     let value = if self.is_local(from_id) {
-                        let from_cell = get_cell(from_id.1);
-
-                        from_cell
+                        get_cell(from_id.1)
                             .get()
                             .unwrap_or_else(|| invariant!("inherited cell is empty"))
                     } else {
                         self.context
                             .modules
-                            .resolve(*from_id)
+                            .get_type(*from_id)
                             .unwrap_or_else(|| invariant!("inherited type not found"))
                     };
 

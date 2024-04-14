@@ -1,3 +1,6 @@
+mod shape;
+
+pub use shape::ToShape;
 use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -93,7 +96,7 @@ impl<T> Type<T> {
         }
     }
 
-    pub fn to_shape(&self) -> Type<()> {
+    pub fn to_shallow(&self) -> Type<()> {
         self.map(&|_| ())
     }
 }

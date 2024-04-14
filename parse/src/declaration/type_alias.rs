@@ -1,6 +1,7 @@
 use super::storage;
-use crate::{ast, matcher as m, types::type_expression};
+use crate::{matcher as m, types::type_expression};
 use combine::{Parser, Stream};
+use lang::ast;
 
 pub fn type_alias<T>() -> impl Parser<T, Output = ast::raw::Declaration>
 where

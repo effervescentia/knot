@@ -1,4 +1,4 @@
-use super::walk::{self, WalkEach};
+use crate::walk::{Visit, Walk, WalkEach};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -26,20 +26,20 @@ impl Import {
     }
 }
 
-impl<Visitor> walk::Walk<Visitor> for walk::Span<Import>
+impl<Visitor, Context> Walk<Visitor> for (Import, Context)
 where
-    Visitor: walk::Visit,
+    Visitor: Visit<Context = Context>,
 {
     type Output = Visitor::Import;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(
+        let (
             super::Import {
                 source,
                 path,
                 alias,
             },
-            range,
+            ctx,
         ) = self;
 
         v.import(
@@ -48,7 +48,7 @@ where
                 path,
                 alias,
             },
-            range,
+            ctx,
         )
     }
 }
@@ -68,21 +68,21 @@ impl<Import, Declaration> Module<Import, Declaration> {
     }
 }
 
-impl<Visitor, Import, Declaration> walk::Walk<Visitor> for walk::Span<Module<Import, Declaration>>
+impl<Visitor, Context, Import, Declaration> Walk<Visitor> for (Module<Import, Declaration>, Context)
 where
-    Visitor: walk::Visit,
-    Import: walk::Walk<Visitor, Output = Visitor::Import>,
-    Declaration: walk::Walk<Visitor, Output = Visitor::Declaration>,
+    Visitor: Visit<Context = Context>,
+    Import: Walk<Visitor, Output = Visitor::Import>,
+    Declaration: Walk<Visitor, Output = Visitor::Declaration>,
 {
     type Output = Visitor::Module;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(
+        let (
             super::Module {
                 imports,
                 declarations,
             },
-            range,
+            ctx,
         ) = self;
         let ((imports, declarations), v) = (imports, declarations).walk_each(v);
 
@@ -91,7 +91,7 @@ where
                 imports,
                 declarations,
             },
-            range,
+            ctx,
         )
     }
 }

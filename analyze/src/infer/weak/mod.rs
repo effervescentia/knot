@@ -4,10 +4,10 @@ mod expression;
 mod to_weak;
 
 pub use data::{Inference, Output, Type, Weak};
-use lang::FragmentMap;
+use lang::{FragmentMap, NodeId};
 use to_weak::ToWeak;
 
-pub fn infer_types(fragments: &FragmentMap) -> Output {
+pub fn infer_types(fragments: &FragmentMap<NodeId>) -> Output {
     let mut output = Output::new(fragments);
 
     for (id, (scope, fragment)) in fragments {
@@ -32,14 +32,14 @@ mod tests {
         fixture,
         infer::{weak::Output, BindingMap},
     };
-    use kore::assert_eq;
+    use kore::assert_eq_sorted;
     use std::collections::BTreeMap;
 
     #[test]
     fn import() {
         let fragments = BTreeMap::from_iter(fixture::import::fragments());
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&fragments),
             Output {
                 fragments: &fragments,
@@ -53,7 +53,7 @@ mod tests {
     fn type_alias() {
         let fragments = BTreeMap::from_iter(fixture::type_alias::fragments());
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&fragments),
             Output {
                 fragments: &fragments,
@@ -67,7 +67,7 @@ mod tests {
     fn constant() {
         let fragments = BTreeMap::from_iter(fixture::constant::fragments());
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&fragments),
             Output {
                 fragments: &fragments,
@@ -81,7 +81,7 @@ mod tests {
     fn enumerated() {
         let fragments = BTreeMap::from_iter(fixture::enumerated::fragments());
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&fragments),
             Output {
                 fragments: &fragments,
@@ -95,7 +95,7 @@ mod tests {
     fn function() {
         let fragments = BTreeMap::from_iter(fixture::function::fragments());
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&fragments),
             Output {
                 fragments: &fragments,
@@ -109,7 +109,7 @@ mod tests {
     fn view() {
         let fragments = BTreeMap::from_iter(fixture::view::fragments());
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&fragments),
             Output {
                 fragments: &fragments,
@@ -123,7 +123,7 @@ mod tests {
     fn module() {
         let fragments = BTreeMap::from_iter(fixture::module::fragments());
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&fragments),
             Output {
                 fragments: &fragments,

@@ -1,21 +1,33 @@
+use super::{
+    data::{Action, Type},
+    inherit,
+    state::State,
+};
+use crate::{error::Error, infer::NodeDescriptor, AmbientScope};
 use lang::Canonicalize;
 
-use super::{data::Action, inherit, state::State};
-use crate::{error::ResolveError, infer::NodeDescriptor};
-
-pub fn infer(state: &State, name: &str, node: &NodeDescriptor) -> Action {
-    match state.bindings.resolve(node, name) {
-        Some(from_id) => inherit::inherit(state, state.canonicalize(from_id), &node.kind),
-
-        // TODO: surface the underlying error (not found in scope)
-        None => Action::Raise(ResolveError::NotFound(name.to_owned(), node.id)),
+pub fn infer(
+    state: &State,
+    scope: &Option<AmbientScope>,
+    name: &str,
+    node: &NodeDescriptor,
+) -> Action {
+    if let Some(from_id) = state.bindings.resolve(node, name) {
+        return inherit::inherit(state, state.canonicalize(from_id), &node.kind);
     }
+
+    if let Some(ambient) = scope.and_then(|x| state.resolve_ambient(&x, name)) {
+        return Action::Infer(Type::Inherit(ambient.0));
+    }
+
+    Action::Raise(Error::NotFound(name.to_owned()))
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        analyze_mock,
+        error::Error,
         infer::{
             strong::{
                 data::{Action, Type},
@@ -23,7 +35,7 @@ mod tests {
             },
             weak, BindingMap, NodeDescriptor,
         },
-        Context, ModuleMap,
+        Context,
     };
     use kore::{assert_eq, str};
     use lang::{
@@ -36,7 +48,7 @@ mod tests {
     fn mock_state<'a>(
         ctx: &'a Context,
         bindings: Vec<((ScopeId, String), BTreeSet<NodeId>)>,
-        types: Vec<(NodeId, (Kind, Result<Type, ResolveError>))>,
+        types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
     ) -> State<'a> {
         State {
             bindings: BindingMap(HashMap::from_iter(bindings)),
@@ -51,10 +63,10 @@ mod tests {
             id: CanonicalId::mock(2),
             scope: ScopeId(vec![0]),
             kind: Kind::Value,
-            weak: weak::Type::Infer(weak::Inference::Reference(str!("foo"))),
+            weak: weak::Type::Infer(weak::Inference::Reference(str!("foo"), None)),
         };
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = mock_state(
             &ctx,
             vec![(
@@ -68,7 +80,7 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&state, "foo", &node),
+            super::infer(&state, &None, "foo", &node),
             Action::Infer(Type::Inherit(CanonicalId::mock(1)))
         );
     }
@@ -79,15 +91,15 @@ mod tests {
             id: CanonicalId::mock(1),
             scope: ScopeId(vec![0]),
             kind: Kind::Value,
-            weak: weak::Type::Infer(weak::Inference::Reference(str!("foo"))),
+            weak: weak::Type::Infer(weak::Inference::Reference(str!("foo"), None)),
         };
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = mock_state(&ctx, vec![], vec![]);
 
         assert_eq!(
-            super::infer(&state, "foo", &node),
-            Action::Raise(ResolveError::NotFound(str!("foo"), CanonicalId::mock(1)))
+            super::infer(&state, &None, "foo", &node),
+            Action::Raise(Error::NotFound(str!("foo")))
         );
     }
 }

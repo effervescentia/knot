@@ -1,19 +1,7 @@
-use crate::Range;
-
-#[derive(Clone)]
-pub struct Span<Value>(pub Value, pub Range);
-
-pub trait IntoSpan<Value> {
-    fn into_span(self) -> Span<Value>;
-}
-
-impl<Value> IntoSpan<Value> for Span<Value> {
-    fn into_span(self) -> Self {
-        self
-    }
-}
+use crate::{ast, Range};
 
 pub trait Visit: Sized {
+    type Context;
     type Binding;
     type Expression;
     type Statement;
@@ -31,53 +19,57 @@ pub trait Visit: Sized {
         f(self)
     }
 
-    fn binding(self, x: super::Binding, r: Range) -> (Self::Binding, Self);
+    fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self);
 
     fn expression(
         self,
-        x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
-        r: Range,
+        x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
+        c: Self::Context,
     ) -> (Self::Expression, Self);
 
-    fn statement(self, x: super::Statement<Self::Expression>, r: Range) -> (Self::Statement, Self);
+    fn statement(
+        self,
+        x: ast::Statement<Self::Expression>,
+        c: Self::Context,
+    ) -> (Self::Statement, Self);
 
     fn component(
         self,
-        x: super::Component<Self::Component, Self::Expression>,
-        r: Range,
+        x: ast::Component<Self::Component, Self::Expression>,
+        c: Self::Context,
     ) -> (Self::Component, Self);
 
     fn type_expression(
         self,
-        x: super::TypeExpression<Self::TypeExpression>,
-        r: Range,
+        x: ast::TypeExpression<Self::TypeExpression>,
+        c: Self::Context,
     ) -> (Self::TypeExpression, Self);
 
     fn parameter(
         self,
-        x: super::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        r: Range,
+        x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
+        c: Self::Context,
     ) -> (Self::Parameter, Self);
 
     #[allow(clippy::type_complexity)]
     fn declaration(
         self,
-        x: super::Declaration<
+        x: ast::Declaration<
             Self::Binding,
             Self::Expression,
             Self::TypeExpression,
             Self::Parameter,
             Self::Module,
         >,
-        r: Range,
+        c: Self::Context,
     ) -> (Self::Declaration, Self);
 
-    fn import(self, x: super::Import, r: Range) -> (Self::Import, Self);
+    fn import(self, x: ast::Import, c: Self::Context) -> (Self::Import, Self);
 
     fn module(
         self,
-        x: super::Module<Self::Import, Self::Declaration>,
-        r: Range,
+        x: ast::Module<Self::Import, Self::Declaration>,
+        c: Self::Context,
     ) -> (Self::Module, Self);
 }
 

@@ -3,7 +3,7 @@ use super::{
     inherit,
     state::State,
 };
-use crate::error::ResolveError;
+use crate::error::Error;
 use lang::{
     types::{self, Enumerated, Kind},
     CanonicalId,
@@ -17,9 +17,9 @@ pub fn infer(state: &State, x: CanonicalId, kind: &Kind) -> Action {
             Type::Value(types::Type::Enumerated(Enumerated::Instance(instance))),
         ),
 
-        Some(Ok(_)) => Action::Raise(ResolveError::NotCallable(x)),
+        Some(Ok(_)) => Action::Raise(Error::NotCallable(x)),
 
-        Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![x])),
+        Some(Err(_)) => Action::Raise(Error::NotInferrable(vec![x])),
 
         None => Action::Skip,
     }
@@ -28,12 +28,12 @@ pub fn infer(state: &State, x: CanonicalId, kind: &Kind) -> Action {
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        analyze_mock,
+        error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
         },
-        Context, ModuleMap,
     };
     use kore::assert_eq;
     use lang::{
@@ -43,8 +43,8 @@ mod tests {
 
     #[test]
     fn infer_function_result() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![
@@ -73,8 +73,8 @@ mod tests {
 
     #[test]
     fn infer_enumerated_instance() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![
@@ -110,8 +110,8 @@ mod tests {
 
     #[test]
     fn skip() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(&ctx, vec![]);
 
         assert_eq!(
@@ -122,8 +122,8 @@ mod tests {
 
     #[test]
     fn not_callable() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(
@@ -134,25 +134,22 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), &Kind::Value),
-            Action::Raise(ResolveError::NotCallable(CanonicalId::mock(1)))
+            Action::Raise(Error::NotCallable(CanonicalId::mock(1)))
         );
     }
 
     #[test]
     fn not_inferrable() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
-            vec![(
-                NodeId(1),
-                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
-            )],
+            vec![(NodeId(1), (Kind::Value, Err(Error::NotInferrable(vec![]))))],
         );
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(1)]))
+            Action::Raise(Error::NotInferrable(vec![CanonicalId::mock(1)]))
         );
     }
 }

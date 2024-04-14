@@ -46,7 +46,7 @@ impl ToWeak for ast::TypeExpression<NodeId> {
 
                 Self::Group(id) => Type::Inherit(**id),
 
-                Self::Identifier(x) => Type::Infer(Inference::Reference(x.clone())),
+                Self::Identifier(x) => Type::Infer(Inference::Reference(x.clone(), None)),
 
                 Self::PropertyAccess(x, property) => {
                     Type::Infer(Inference::Property(**x, property.clone()))
@@ -182,7 +182,10 @@ mod tests {
     fn type_expression_identifier() {
         assert_eq!(
             ast::TypeExpression::Identifier(str!("foo")).to_weak(),
-            (Kind::Type, Type::Infer(Inference::Reference(str!("foo"))))
+            (
+                Kind::Type,
+                Type::Infer(Inference::Reference(str!("foo"), None))
+            )
         );
     }
 

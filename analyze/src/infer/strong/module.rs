@@ -27,12 +27,13 @@ pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        analyze_mock,
+        error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
         },
-        Context, ModuleMap,
+        Context,
     };
     use kore::{assert_eq, str};
     use lang::{
@@ -46,7 +47,7 @@ mod tests {
     fn mock_state<'a>(
         ctx: &'a Context,
         fragments: &'a BTreeMap<NodeId, (ScopeId, Fragment)>,
-        types: Vec<(NodeId, (Kind, Result<Type, ResolveError>))>,
+        types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
     ) -> State<'a> {
         State {
             fragments,
@@ -57,8 +58,8 @@ mod tests {
 
     #[test]
     fn infer_module() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let fragments = BTreeMap::from_iter(vec![
             (
                 NodeId(1),
@@ -108,8 +109,8 @@ mod tests {
 
     #[test]
     fn skip() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let fragments = BTreeMap::from_iter(vec![
             (
                 NodeId(1),

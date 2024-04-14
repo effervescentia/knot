@@ -1,13 +1,16 @@
-use crate::infer::{BindingMap, NodeDescriptor};
+use crate::{
+    infer::{BindingMap, NodeDescriptor},
+    AmbientScope,
+};
 use lang::{ast, types, CanonicalId, FragmentMap, NamespaceId, NodeId};
 use std::collections::HashMap;
 
 /// all inference cases encoded as variants
 #[derive(Clone, Debug, PartialEq)]
 pub enum Inference {
-    Reference(String),
+    Reference(String, Option<AmbientScope>),
     Property(NodeId, String),
-    Arithmetic(NodeId, NodeId),
+    Arithmetic(ast::BinaryOperator, NodeId, NodeId),
     Product(NodeId),
     Import(ast::ImportSource, Vec<String>, Option<String>),
     Module(Vec<NodeId>),
@@ -31,7 +34,7 @@ pub type TypeMap<'a> = HashMap<NodeId, Weak<'a>>;
 #[derive(Debug, PartialEq)]
 pub struct Output<'a> {
     /// AST fragments undergoing inference
-    pub fragments: &'a FragmentMap,
+    pub fragments: &'a FragmentMap<NodeId>,
 
     /// bindings within the target source file
     pub bindings: BindingMap,
@@ -41,7 +44,7 @@ pub struct Output<'a> {
 }
 
 impl<'a> Output<'a> {
-    pub fn new(fragments: &'a FragmentMap) -> Self {
+    pub fn new(fragments: &'a FragmentMap<NodeId>) -> Self {
         Self {
             fragments,
             bindings: Default::default(),

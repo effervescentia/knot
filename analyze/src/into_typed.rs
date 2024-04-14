@@ -1,55 +1,67 @@
-use crate::{
-    ast::{self, walk::Walk},
-    infer,
-};
+use crate::{ast, infer, Context};
 use kore::{invariant, Incrementor};
-use lang::{Node, NodeId, Range};
-use std::cell::OnceCell;
+use lang::{
+    walk::{Visit, Walk},
+    CanonicalId, NamespaceId, Node, NodeId, Range,
+};
+use std::{cell::OnceCell, marker::PhantomData};
 
 pub trait IntoTyped: Sized {
-    fn into_typed(self, strong: Visitor) -> ast::typed::Program;
+    fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> ast::typed::Program;
 }
 
-impl<Context> IntoTyped for ast::meta::Program<Context> {
-    fn into_typed(self, strong: super::Visitor) -> ast::typed::Program {
-        ast::meta::Program(self.0.walk(strong).0)
+impl<Meta> IntoTyped for ast::meta::Program<Meta> {
+    fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> ast::typed::Program {
+        let visitor = Visitor::new(ctx.namespace_id, strong);
+        ast::meta::Program(self.0.walk(visitor).0)
     }
 }
 
-pub struct Visitor {
+struct Visitor<'a, Meta> {
+    _meta: PhantomData<Meta>,
     node_id: Incrementor,
-    strong: infer::strong::Output,
+    namespace_id: NamespaceId,
+    strong: &'a infer::strong::Output,
 }
 
-impl Visitor {
-    pub fn new(strong: infer::strong::Output) -> Self {
+impl<'a, Meta> Visitor<'a, Meta> {
+    const fn canonical(&self, node_id: NodeId) -> CanonicalId {
+        CanonicalId(self.namespace_id, node_id)
+    }
+
+    pub fn new(namespace_id: NamespaceId, strong: &'a infer::strong::Output) -> Self {
         Self {
+            _meta: PhantomData,
             node_id: Default::default(),
+            namespace_id,
             strong,
         }
     }
 
-    fn next_type(&mut self) -> ast::typed::Type {
-        let id = NodeId(self.node_id.increment());
-
-        self.strong
+    fn next_meta(&mut self) -> ast::typed::Meta {
+        let node_id = NodeId(self.node_id.increment());
+        let type_ = self
+            .strong
             .types
-            .get(&id)
+            .get(&node_id)
             .and_then(OnceCell::get)
             .unwrap_or_else(|| invariant!("type not found"))
             .1
-            .clone()
+            .clone();
+
+        (self.canonical(node_id), type_)
     }
 
     fn typed<T, R, F>(mut self, x: T, r: Range, f: F) -> (R, Self)
     where
-        F: Fn(Node<T, ast::typed::Type>) -> R,
+        F: Fn(Node<T, ast::typed::Meta>) -> R,
     {
-        (f(Node(x, r, self.next_type())), self)
+        (f(Node(x, r, self.next_meta())), self)
     }
 }
 
-impl ast::walk::Visit for Visitor {
+impl<'a, Meta> Visit for Visitor<'a, Meta> {
+    type Context = (Range, Meta);
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;
@@ -67,19 +79,23 @@ impl ast::walk::Visit for Visitor {
     fn expression(
         self,
         x: ast::Expression<Self::Expression, Self::Statement, Self::Component>,
-        r: Range,
+        (r, _): Self::Context,
     ) -> (Self::Expression, Self) {
         self.typed(x, r, ast::meta::Expression)
     }
 
-    fn statement(self, x: ast::Statement<Self::Expression>, r: Range) -> (Self::Statement, Self) {
+    fn statement(
+        self,
+        x: ast::Statement<Self::Expression>,
+        (r, _): Self::Context,
+    ) -> (Self::Statement, Self) {
         self.typed(x, r, ast::meta::Statement)
     }
 
     fn component(
         self,
         x: ast::Component<Self::Component, Self::Expression>,
-        r: Range,
+        (r, _): Self::Context,
     ) -> (Self::Component, Self) {
         self.typed(x, r, ast::meta::Component)
     }
@@ -87,7 +103,7 @@ impl ast::walk::Visit for Visitor {
     fn type_expression(
         self,
         x: ast::TypeExpression<Self::TypeExpression>,
-        r: Range,
+        (r, _): Self::Context,
     ) -> (Self::TypeExpression, Self) {
         self.typed(x, r, ast::meta::TypeExpression)
     }
@@ -95,7 +111,7 @@ impl ast::walk::Visit for Visitor {
     fn parameter(
         self,
         x: ast::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        r: Range,
+        (r, _): Self::Context,
     ) -> (Self::Parameter, Self) {
         self.typed(x, r, ast::meta::Parameter)
     }
@@ -109,19 +125,19 @@ impl ast::walk::Visit for Visitor {
             Self::Parameter,
             Self::Module,
         >,
-        r: Range,
+        (r, _): Self::Context,
     ) -> (Self::Declaration, Self) {
         self.typed(x, r, ast::meta::Declaration)
     }
 
-    fn import(self, x: ast::Import, r: Range) -> (Self::Import, Self) {
+    fn import(self, x: ast::Import, (r, _): Self::Context) -> (Self::Import, Self) {
         self.typed(x, r, ast::meta::Import)
     }
 
     fn module(
         self,
         x: ast::Module<Self::Import, Self::Declaration>,
-        r: Range,
+        (r, _): Self::Context,
     ) -> (Self::Module, Self) {
         self.typed(x, r, ast::meta::Module)
     }

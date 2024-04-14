@@ -7,8 +7,8 @@ use std::{
 };
 
 pub trait Modules<'a> {
-    type Context: 'a;
-    type Iter: Iterator<Item = (&'a Link, &'a Module<Self::Context>)>;
+    type Meta: 'a;
+    type Iter: Iterator<Item = (&'a Link, &'a Module<Self::Meta>)>;
 
     fn modules(&'a self) -> Result<Self::Iter>;
 }
@@ -74,8 +74,8 @@ pub struct Parsed {
 }
 
 impl<'a> Modules<'a> for Parsed {
-    type Context = ();
-    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
+    type Meta = ();
+    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Meta>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {
         Ok(self.modules.iter())
@@ -83,8 +83,8 @@ impl<'a> Modules<'a> for Parsed {
 }
 
 impl<'a> Modules<'a> for Result<Parsed> {
-    type Context = ();
-    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
+    type Meta = ();
+    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Meta>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {
         match self {
@@ -101,8 +101,8 @@ pub struct Linked {
 }
 
 impl<'a> Modules<'a> for Linked {
-    type Context = ();
-    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
+    type Meta = ();
+    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Meta>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {
         Ok(self.modules.iter())
@@ -110,8 +110,8 @@ impl<'a> Modules<'a> for Linked {
 }
 
 impl<'a> Modules<'a> for Result<Linked> {
-    type Context = ();
-    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
+    type Meta = ();
+    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Meta>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {
         match self {
@@ -122,14 +122,14 @@ impl<'a> Modules<'a> for Result<Linked> {
 }
 
 pub struct Analyzed {
-    pub modules: HashMap<Link, Module<ast::typed::Type>>,
+    pub modules: HashMap<Link, Module<ast::typed::Meta>>,
     pub lookup: BiMap<Link, usize>,
     pub graph: ImportGraph,
 }
 
 impl<'a> Modules<'a> for Analyzed {
-    type Context = ast::typed::Type;
-    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
+    type Meta = ast::typed::Meta;
+    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Meta>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {
         Ok(self.modules.iter())
@@ -137,8 +137,8 @@ impl<'a> Modules<'a> for Analyzed {
 }
 
 impl<'a> Modules<'a> for Result<Analyzed> {
-    type Context = ast::typed::Type;
-    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Context>>;
+    type Meta = ast::typed::Meta;
+    type Iter = std::collections::hash_map::Iter<'a, Link, Module<Self::Meta>>;
 
     fn modules(&'a self) -> Result<Self::Iter> {
         match self {

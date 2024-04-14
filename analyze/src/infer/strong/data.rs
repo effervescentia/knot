@@ -1,5 +1,6 @@
-use crate::error::ResolveError;
-use lang::{ast, types, CanonicalId, NodeId};
+use crate::{error::Error, Context, TypeMap};
+use kore::invariant;
+use lang::{ast, types, CanonicalId, Canonicalize, NodeId};
 use std::{cell::OnceCell, collections::HashMap, rc::Rc};
 
 /// the inferred type for nodes in a strongly typed AST
@@ -9,13 +10,13 @@ pub enum Type {
     Value(types::Type<CanonicalId>),
 }
 
-pub type Strong = (types::Kind, Result<Type, ResolveError>);
+pub type Strong = (types::Kind, Result<Type, Error>);
 
 /// output of the strong inference phase
 #[derive(Debug, PartialEq)]
 pub struct Output {
     /// lookup for strong types during inference
-    pub types: HashMap<NodeId, OnceCell<Rc<(CanonicalId, ast::typed::Type)>>>,
+    pub types: HashMap<NodeId, OnceCell<Rc<ast::typed::Meta>>>,
 }
 
 impl Output {
@@ -26,6 +27,21 @@ impl Output {
         Self {
             types: keys.into_iter().map(|id| (*id, OnceCell::new())).collect(),
         }
+    }
+
+    pub fn canonicalize(&self, ctx: &Context) -> TypeMap {
+        self.types
+            .iter()
+            .map(|(key, value)| {
+                (
+                    ctx.canonicalize(*key),
+                    value
+                        .get()
+                        .map(Rc::clone)
+                        .unwrap_or_else(|| invariant!("all cells should be populated")),
+                )
+            })
+            .collect()
     }
 }
 
@@ -41,5 +57,5 @@ pub enum Action {
     InheritAndSkip(CanonicalId),
 
     /// infer an error result based on the data
-    Raise(ResolveError),
+    Raise(Error),
 }

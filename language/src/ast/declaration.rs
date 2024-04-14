@@ -1,17 +1,20 @@
-use super::walk::{self, WalkEach};
+use crate::{
+    walk::{Visit, Walk, WalkEach},
+    Range,
+};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Binding(pub String);
 
-impl<Visitor> walk::Walk<Visitor> for walk::Span<Binding>
+impl<Visitor, Meta> Walk<Visitor> for (Binding, (Range, ()))
 where
-    Visitor: walk::Visit,
+    Visitor: Visit<Context = (Range, Meta)>,
 {
     type Output = Visitor::Binding;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(x, range) = self;
+        let (x, (range, _)) = self;
 
         v.binding(x, range)
     }
@@ -46,10 +49,10 @@ impl<Binding> Storage<Binding> {
     }
 }
 
-impl<Visitor, Binding> walk::Walk<Visitor> for Storage<Binding>
+impl<Visitor, Context, Binding> Walk<Visitor> for Storage<Binding>
 where
-    Visitor: walk::Visit,
-    Binding: walk::Walk<Visitor, Output = Visitor::Binding>,
+    Visitor: Visit<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
 {
     type Output = Storage<Visitor::Binding>;
 
@@ -87,24 +90,24 @@ impl<Binding, Expression, TypeExpression> Parameter<Binding, Expression, TypeExp
     }
 }
 
-impl<Visitor, Binding, Expression, TypeExpression> walk::Walk<Visitor>
-    for walk::Span<Parameter<Binding, Expression, TypeExpression>>
+impl<Visitor, Context, Binding, Expression, TypeExpression> Walk<Visitor>
+    for (Parameter<Binding, Expression, TypeExpression>, Context)
 where
-    Visitor: walk::Visit,
-    Binding: walk::Walk<Visitor, Output = Visitor::Binding>,
-    Expression: walk::Walk<Visitor, Output = Visitor::Expression>,
-    TypeExpression: walk::Walk<Visitor, Output = Visitor::TypeExpression>,
+    Visitor: Visit<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
+    Expression: Walk<Visitor, Output = Visitor::Expression>,
+    TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
 {
     type Output = Visitor::Parameter;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(
+        let (
             super::Parameter {
                 binding,
                 value_type,
                 default_value,
             },
-            range,
+            ctx,
         ) = self;
         let ((binding, value_type, default_value), v) =
             (binding, value_type, default_value).walk_each(v);
@@ -115,7 +118,7 @@ where
                 value_type,
                 default_value,
             },
-            range,
+            ctx,
         )
     }
 }
@@ -240,26 +243,29 @@ impl<Binding, Expression, TypeExpression, Parameter, Module>
     }
 }
 
-impl<Visitor, Binding, Expression, TypeExpression, Parameter, Module> walk::Walk<Visitor>
-    for walk::Span<Declaration<Binding, Expression, TypeExpression, Parameter, Module>>
+impl<Visitor, Context, Binding, Expression, TypeExpression, Parameter, Module> Walk<Visitor>
+    for (
+        Declaration<Binding, Expression, TypeExpression, Parameter, Module>,
+        Context,
+    )
 where
-    Visitor: walk::Visit,
-    Binding: walk::Walk<Visitor, Output = Visitor::Binding>,
-    Expression: walk::Walk<Visitor, Output = Visitor::Expression>,
-    TypeExpression: walk::Walk<Visitor, Output = Visitor::TypeExpression>,
-    Parameter: walk::Walk<Visitor, Output = Visitor::Parameter>,
-    Module: walk::Walk<Visitor, Output = Visitor::Module>,
+    Visitor: Visit<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
+    Expression: Walk<Visitor, Output = Visitor::Expression>,
+    TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
+    Parameter: Walk<Visitor, Output = Visitor::Parameter>,
+    Module: Walk<Visitor, Output = Visitor::Module>,
 {
     type Output = Visitor::Declaration;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let Self(value, range) = self;
+        let (value, ctx) = self;
 
         match value {
             super::Declaration::TypeAlias { storage, value } => {
                 let ((storage, value), v) = v.scoped(|v| (storage, value).walk_each(v));
 
-                v.declaration(super::Declaration::TypeAlias { storage, value }, range)
+                v.declaration(super::Declaration::TypeAlias { storage, value }, ctx)
             }
 
             super::Declaration::Constant {
@@ -276,14 +282,14 @@ where
                         value_type,
                         value,
                     },
-                    range,
+                    ctx,
                 )
             }
 
             super::Declaration::Enumerated { storage, variants } => {
                 let ((storage, variants), v) = v.scoped(|v| (storage, variants).walk_each(v));
 
-                v.declaration(super::Declaration::Enumerated { storage, variants }, range)
+                v.declaration(super::Declaration::Enumerated { storage, variants }, ctx)
             }
 
             super::Declaration::Function {
@@ -302,7 +308,7 @@ where
                         body_type,
                         body,
                     },
-                    range,
+                    ctx,
                 )
             }
 
@@ -320,14 +326,14 @@ where
                         parameters,
                         body,
                     },
-                    range,
+                    ctx,
                 )
             }
 
             super::Declaration::Module { storage, value } => {
                 let ((storage, value), v) = v.scoped(|v| (storage, value).walk_each(v));
 
-                v.declaration(super::Declaration::Module { storage, value }, range)
+                v.declaration(super::Declaration::Module { storage, value }, ctx)
             }
         }
     }

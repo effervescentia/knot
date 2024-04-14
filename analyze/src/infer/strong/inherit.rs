@@ -2,7 +2,7 @@ use super::{
     data::{Action, Type},
     state::State,
 };
-use crate::error::ResolveError;
+use crate::error::Error;
 use lang::{types::Kind, CanonicalId};
 
 pub fn inherit(state: &State, from_id: CanonicalId, from_kind: &Kind) -> Action {
@@ -11,25 +11,29 @@ pub fn inherit(state: &State, from_id: CanonicalId, from_kind: &Kind) -> Action 
     }
 
     match state.get_type(&from_id.1, from_kind) {
-        Some(Ok(Type::Inherit(next_from_id))) => inherit(state, *next_from_id, &Kind::Mixed),
+        Some(Ok(Type::Inherit(next_from_id))) => inherit_any(state, *next_from_id),
 
         Some(Ok(_)) => Action::Infer(Type::Inherit(from_id)),
 
-        Some(Err(_)) => Action::Raise(ResolveError::NotInferrable(vec![from_id])),
+        Some(Err(_)) => Action::Raise(Error::NotInferrable(vec![from_id])),
 
         None => Action::InheritAndSkip(from_id),
     }
 }
 
+pub fn inherit_any(state: &State, from_id: CanonicalId) -> Action {
+    inherit(state, from_id, &Kind::Mixed)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
-        error::ResolveError,
+        analyze_mock,
+        error::Error,
         infer::strong::{
             data::{Action, Type},
             state::State,
         },
-        Context, ModuleMap,
     };
     use kore::assert_eq;
     use lang::{
@@ -39,8 +43,8 @@ mod tests {
 
     #[test]
     fn inherit_and_skip() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(&ctx, vec![]);
 
         assert_eq!(
@@ -51,8 +55,8 @@ mod tests {
 
     #[test]
     fn inherit() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![(
@@ -69,8 +73,8 @@ mod tests {
 
     #[test]
     fn recursive_inherit() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
             vec![
@@ -97,19 +101,16 @@ mod tests {
 
     #[test]
     fn not_inferrable() {
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let state = State::from_types(
             &ctx,
-            vec![(
-                NodeId(1),
-                (Kind::Value, Err(ResolveError::NotInferrable(vec![]))),
-            )],
+            vec![(NodeId(1), (Kind::Value, Err(Error::NotInferrable(vec![]))))],
         );
 
         assert_eq!(
             super::inherit(&state, CanonicalId::mock(1), &Kind::Value),
-            Action::Raise(ResolveError::NotInferrable(vec![CanonicalId::mock(1)]))
+            Action::Raise(Error::NotInferrable(vec![CanonicalId::mock(1)]))
         );
     }
 }

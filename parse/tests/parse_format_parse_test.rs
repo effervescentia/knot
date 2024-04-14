@@ -3,7 +3,7 @@ use kore::assert_str_eq;
 use lang::ast;
 
 fn parse(s: &str) -> knot_parse::Result<ast::raw::Program> {
-    knot_parse::parse(s)
+    knot_parse::program::parse(s)
 }
 
 #[test]

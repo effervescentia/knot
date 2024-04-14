@@ -37,4 +37,4 @@ impl Fragment {
     }
 }
 
-pub type FragmentMap = BTreeMap<NodeId, (ScopeId, Fragment)>;
+pub type FragmentMap<T> = BTreeMap<T, (ScopeId, Fragment)>;

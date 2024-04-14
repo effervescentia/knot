@@ -141,10 +141,10 @@ pub mod type_alias {
                 ast::Storage::public(ast::meta::Binding::mock("MyTypeAlias")),
                 ast::meta::TypeExpression::typed(
                     ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                    ast::typed::Type(types::Type::Nil),
+                    (CanonicalId::mock(0), ast::typed::Type(types::Type::Nil)),
                 ),
             ),
-            type_of(),
+            (CanonicalId::mock(1), type_of()),
         )
     }
 }
@@ -237,14 +237,14 @@ pub mod constant {
                 ast::Storage::public(ast::meta::Binding::mock("MY_CONSTANT")),
                 Some(ast::meta::TypeExpression::typed(
                     ast::TypeExpression::Primitive(ast::TypePrimitive::String),
-                    ast::typed::Type(types::Type::String),
+                    (CanonicalId::mock(0), ast::typed::Type(types::Type::String)),
                 )),
                 ast::meta::Expression::typed(
                     ast::Expression::Primitive(ast::Primitive::String(str!("hello, world!"))),
-                    ast::typed::Type(types::Type::String),
+                    (CanonicalId::mock(1), ast::typed::Type(types::Type::String)),
                 ),
             ),
-            type_of(),
+            (CanonicalId::mock(2), type_of()),
         )
     }
 }
@@ -365,17 +365,17 @@ pub mod enumerated {
                         vec![
                             ast::meta::TypeExpression::typed(
                                 ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
-                                ast::typed::Type(types::Type::Boolean),
+                                (CanonicalId::mock(0), ast::typed::Type(types::Type::Boolean)),
                             ),
                             ast::meta::TypeExpression::typed(
                                 ast::TypeExpression::Primitive(ast::TypePrimitive::Style),
-                                ast::typed::Type(types::Type::Style),
+                                (CanonicalId::mock(1), ast::typed::Type(types::Type::Style)),
                             ),
                         ],
                     ),
                 ],
             ),
-            type_of(),
+            (CanonicalId::mock(2), type_of()),
         )
     }
 }
@@ -632,7 +632,7 @@ pub mod function {
                 vec![],
                 Some(ast::meta::TypeExpression::typed(
                     ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
-                    ast::typed::Type(types::Type::Boolean),
+                    (CanonicalId::mock(0), ast::typed::Type(types::Type::Boolean)),
                 )),
                 ast::meta::Expression::typed(
                     ast::Expression::BinaryOperation(
@@ -642,24 +642,24 @@ pub mod function {
                                 ast::BinaryOperator::GreaterThan,
                                 Box::new(ast::meta::Expression::typed(
                                     ast::Expression::Identifier(str!("first")),
-                                    ast::typed::Type(types::Type::Integer),
+                                    (CanonicalId::mock(1), ast::typed::Type(types::Type::Integer)),
                                 )),
                                 Box::new(ast::meta::Expression::typed(
                                     ast::Expression::Identifier(str!("second")),
-                                    ast::typed::Type(types::Type::Integer),
+                                    (CanonicalId::mock(2), ast::typed::Type(types::Type::Integer)),
                                 )),
                             ),
-                            ast::typed::Type(types::Type::Boolean),
+                            (CanonicalId::mock(3), ast::typed::Type(types::Type::Boolean)),
                         )),
                         Box::new(ast::meta::Expression::typed(
                             ast::Expression::Identifier(str!("third")),
-                            ast::typed::Type(types::Type::Boolean),
+                            (CanonicalId::mock(4), ast::typed::Type(types::Type::Boolean)),
                         )),
                     ),
-                    ast::typed::Type(types::Type::Boolean),
+                    (CanonicalId::mock(5), ast::typed::Type(types::Type::Boolean)),
                 ),
             ),
-            type_of(),
+            (CanonicalId::mock(6), type_of()),
         )
     }
 }
@@ -1027,17 +1027,20 @@ pub mod view {
                         ast::typed::Binding::mock("inner"),
                         Some(ast::typed::TypeExpression::typed(
                             ast::TypeExpression::Primitive(ast::TypePrimitive::Element),
-                            ast::typed::Type(types::Type::Element),
+                            (CanonicalId::mock(0), ast::typed::Type(types::Type::Element)),
                         )),
                         Some(ast::typed::Expression::typed(
                             ast::Expression::Component(Box::new(ast::typed::Component::typed(
                                 ast::Component::ClosedElement(str!("div"), vec![]),
-                                ast::typed::Type(types::Type::Element),
+                                (
+                                    CanonicalId::mock(1),
+                                    ast::typed::Type(types::Type::View(vec![])),
+                                ),
                             ))),
-                            ast::typed::Type(types::Type::Element),
+                            (CanonicalId::mock(2), ast::typed::Type(types::Type::Element)),
                         )),
                     ),
-                    ast::typed::Type(types::Type::Element),
+                    (CanonicalId::mock(3), ast::typed::Type(types::Type::Element)),
                 )],
                 ast::typed::Expression::typed(
                     ast::Expression::Closure(vec![
@@ -1051,19 +1054,25 @@ pub mod view {
                                             ast::Expression::Primitive(ast::Primitive::Integer(
                                                 123,
                                             )),
-                                            ast::typed::Type(types::Type::Integer),
+                                            (
+                                                CanonicalId::mock(4),
+                                                ast::typed::Type(types::Type::Integer),
+                                            ),
                                         )),
                                         Box::new(ast::typed::Expression::typed(
                                             ast::Expression::Primitive(ast::Primitive::Float(
                                                 45.67, 2,
                                             )),
-                                            ast::typed::Type(types::Type::Float),
+                                            (
+                                                CanonicalId::mock(5),
+                                                ast::typed::Type(types::Type::Float),
+                                            ),
                                         )),
                                     ),
-                                    ast::typed::Type(types::Type::Float),
+                                    (CanonicalId::mock(6), ast::typed::Type(types::Type::Float)),
                                 ),
                             ),
-                            ast::typed::Type(types::Type::Nil),
+                            (CanonicalId::mock(7), ast::typed::Type(types::Type::Nil)),
                         ),
                         ast::typed::Statement::typed(
                             ast::Statement::Expression(ast::typed::Expression::typed(
@@ -1075,11 +1084,17 @@ pub mod view {
                                                 vec![],
                                                 vec![ast::typed::Component::typed(
                                                     ast::Component::Text(str!("Welcome!")),
-                                                    ast::typed::Type(types::Type::String),
+                                                    (
+                                                        CanonicalId::mock(8),
+                                                        ast::typed::Type(types::Type::String),
+                                                    ),
                                                 )],
                                                 str!("h1"),
                                             ),
-                                            ast::typed::Type(types::Type::Element),
+                                            (
+                                                CanonicalId::mock(9),
+                                                ast::typed::Type(types::Type::View(vec![])),
+                                            ),
                                         ),
                                         ast::typed::Component::typed(
                                             ast::Component::open_element(
@@ -1092,16 +1107,25 @@ pub mod view {
                                                                 ast::Expression::Identifier(str!(
                                                                     "value"
                                                                 )),
-                                                                ast::typed::Type(
-                                                                    types::Type::Float,
+                                                                (
+                                                                    CanonicalId::mock(10),
+                                                                    ast::typed::Type(
+                                                                        types::Type::Float,
+                                                                    ),
                                                                 ),
                                                             ),
                                                         ),
-                                                        ast::typed::Type(types::Type::Float),
+                                                        (
+                                                            CanonicalId::mock(11),
+                                                            ast::typed::Type(types::Type::Float),
+                                                        ),
                                                     ),
                                                     ast::typed::Component::typed(
                                                         ast::Component::Text(str!(": ")),
-                                                        ast::typed::Type(types::Type::String),
+                                                        (
+                                                            CanonicalId::mock(12),
+                                                            ast::typed::Type(types::Type::String),
+                                                        ),
                                                     ),
                                                     ast::typed::Component::typed(
                                                         ast::Component::Expression(
@@ -1109,30 +1133,51 @@ pub mod view {
                                                                 ast::Expression::Identifier(str!(
                                                                     "inner"
                                                                 )),
-                                                                ast::typed::Type(
-                                                                    types::Type::Element,
+                                                                (
+                                                                    CanonicalId::mock(13),
+                                                                    ast::typed::Type(
+                                                                        types::Type::Element,
+                                                                    ),
                                                                 ),
                                                             ),
                                                         ),
-                                                        ast::typed::Type(types::Type::Element),
+                                                        (
+                                                            CanonicalId::mock(14),
+                                                            ast::typed::Type(types::Type::Element),
+                                                        ),
                                                     ),
                                                 ],
                                                 str!("main"),
                                             ),
-                                            ast::typed::Type(types::Type::Element),
+                                            (
+                                                CanonicalId::mock(15),
+                                                ast::typed::Type(types::Type::View(vec![])),
+                                            ),
                                         ),
                                     ]),
-                                    ast::typed::Type(types::Type::Element),
+                                    (
+                                        CanonicalId::mock(16),
+                                        ast::typed::Type(types::Type::Element),
+                                    ),
                                 ))),
-                                ast::typed::Type(types::Type::Element),
+                                (
+                                    CanonicalId::mock(17),
+                                    ast::typed::Type(types::Type::Element),
+                                ),
                             )),
-                            ast::typed::Type(types::Type::Element),
+                            (
+                                CanonicalId::mock(18),
+                                ast::typed::Type(types::Type::Element),
+                            ),
                         ),
                     ]),
-                    ast::typed::Type(types::Type::Element),
+                    (
+                        CanonicalId::mock(19),
+                        ast::typed::Type(types::Type::Element),
+                    ),
                 ),
             ),
-            type_of(),
+            (CanonicalId::mock(20), type_of()),
         )
     }
 }
@@ -1354,7 +1399,7 @@ pub mod module {
                                 vec![str!("theme")],
                                 Some(str!("Theme")),
                             ),
-                            theme_type(),
+                            (CanonicalId::mock(0), theme_type()),
                         )],
                         vec![ast::typed::Declaration::typed(
                             ast::Declaration::constant(
@@ -1368,11 +1413,14 @@ pub mod module {
                                                 ast::Expression::PropertyAccess(
                                                     Box::new(ast::typed::Expression::typed(
                                                         ast::Expression::Identifier(str!("Theme")),
-                                                        theme_type(),
+                                                        (CanonicalId::mock(1), theme_type()),
                                                     )),
                                                     str!("PRIMARY"),
                                                 ),
-                                                ast::typed::Type(types::Type::String),
+                                                (
+                                                    CanonicalId::mock(2),
+                                                    ast::typed::Type(types::Type::String),
+                                                ),
                                             ),
                                         ),
                                         (
@@ -1381,20 +1429,23 @@ pub mod module {
                                                 ast::Expression::Primitive(ast::Primitive::String(
                                                     str!("block"),
                                                 )),
-                                                ast::typed::Type(types::Type::String),
+                                                (
+                                                    CanonicalId::mock(3),
+                                                    ast::typed::Type(types::Type::String),
+                                                ),
                                             ),
                                         ),
                                     ]),
-                                    ast::typed::Type(types::Type::Style),
+                                    (CanonicalId::mock(4), ast::typed::Type(types::Type::Style)),
                                 ),
                             ),
-                            ast::typed::Type(types::Type::Style),
+                            (CanonicalId::mock(5), ast::typed::Type(types::Type::Style)),
                         )],
                     ),
-                    type_of(),
+                    (CanonicalId::mock(6), type_of()),
                 ),
             ),
-            type_of(),
+            (CanonicalId::mock(7), type_of()),
         )
     }
 }

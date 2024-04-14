@@ -1,6 +1,8 @@
-use super::walk;
-use crate::Range;
-use std::fmt::{Display, Formatter};
+use crate::{walk::Visit, Range};
+use std::{
+    fmt::{Display, Formatter},
+    marker::PhantomData,
+};
 
 pub struct Expression(pub super::Expression<Expression, Statement, Component>);
 
@@ -76,9 +78,32 @@ impl Display for Program {
     }
 }
 
-pub struct Visitor;
+pub struct TypeDeclaration(pub super::TypeDeclaration<String, TypeExpression>);
 
-impl walk::Visit for Visitor {
+impl Display for TypeDeclaration {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+pub struct TypeModule(pub super::TypeModule<TypeDeclaration>);
+
+impl Display for TypeModule {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+pub struct Visitor<Context>(PhantomData<Context>);
+
+impl<Context> Default for Visitor<Context> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<Context> Visit for Visitor<Context> {
+    type Context = Context;
     type Binding = String;
     type Expression = Expression;
     type Statement = Statement;
@@ -96,19 +121,23 @@ impl walk::Visit for Visitor {
     fn expression(
         self,
         x: super::Expression<Self::Expression, Self::Statement, Self::Component>,
-        _: Range,
+        _: Self::Context,
     ) -> (Self::Expression, Self) {
         (Expression(x), self)
     }
 
-    fn statement(self, x: super::Statement<Self::Expression>, _: Range) -> (Self::Statement, Self) {
+    fn statement(
+        self,
+        x: super::Statement<Self::Expression>,
+        _: Self::Context,
+    ) -> (Self::Statement, Self) {
         (Statement(x), self)
     }
 
     fn component(
         self,
         x: super::Component<Self::Component, Self::Expression>,
-        _: Range,
+        _: Self::Context,
     ) -> (Self::Component, Self) {
         (Component(x), self)
     }
@@ -116,7 +145,7 @@ impl walk::Visit for Visitor {
     fn type_expression(
         self,
         x: super::TypeExpression<Self::TypeExpression>,
-        _: Range,
+        _: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         (TypeExpression(x), self)
     }
@@ -124,7 +153,7 @@ impl walk::Visit for Visitor {
     fn parameter(
         self,
         x: super::Parameter<Self::Binding, Self::Expression, Self::TypeExpression>,
-        _: Range,
+        _: Self::Context,
     ) -> (Self::Parameter, Self) {
         (Parameter(x), self)
     }
@@ -138,19 +167,19 @@ impl walk::Visit for Visitor {
             Self::Parameter,
             Self::Module,
         >,
-        _: Range,
+        _: Self::Context,
     ) -> (Self::Declaration, Self) {
         (Declaration(x), self)
     }
 
-    fn import(self, x: super::Import, _: Range) -> (Self::Import, Self) {
+    fn import(self, x: super::Import, _: Self::Context) -> (Self::Import, Self) {
         (Import(x), self)
     }
 
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
-        _: Range,
+        _: Self::Context,
     ) -> (Self::Module, Self) {
         (Module(x), self)
     }

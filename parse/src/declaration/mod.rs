@@ -7,8 +7,9 @@ pub mod storage;
 mod type_alias;
 mod view;
 
-use crate::{ast, matcher as m};
+use crate::matcher as m;
 use combine::{choice, parser, Stream};
+use lang::ast;
 
 parser! {
     pub fn declaration[T]()(T) -> ast::raw::Declaration
@@ -28,10 +29,9 @@ parser! {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
     use kore::{assert_eq, str};
-    use lang::Range;
+    use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::Declaration> {
         super::declaration().skip(eof()).easy_parse(Stream::new(s))

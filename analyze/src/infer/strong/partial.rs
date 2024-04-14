@@ -6,7 +6,7 @@ use super::{
     weak::{self, Inference},
     NodeDescriptor,
 };
-use crate::{infer::strong::import, Context};
+use crate::{error::Error, infer::strong::import, Context};
 use kore::invariant;
 use lang::Canonicalize;
 
@@ -38,15 +38,15 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
 
             // capture the type referenced by an identifier
             NodeDescriptor {
-                weak: weak::Type::Infer(Inference::Reference(name)),
+                weak: weak::Type::Infer(Inference::Reference(name, ambient)),
                 ..
-            } => reference::infer(&next, name, &node),
+            } => reference::infer(&next, ambient, name, &node),
 
             // capture the type of dynamic binary operations
             NodeDescriptor {
-                weak: weak::Type::Infer(weak::Inference::Arithmetic(lhs, rhs)),
+                weak: weak::Type::Infer(weak::Inference::Arithmetic(op, lhs, rhs)),
                 ..
-            } => arithmetic::infer(&next, ctx.canonicalize(*lhs), ctx.canonicalize(*rhs)),
+            } => arithmetic::infer(&next, *op, ctx.canonicalize(*lhs), ctx.canonicalize(*rhs)),
 
             // capture the type of a property by name
             NodeDescriptor {
@@ -77,7 +77,10 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
             NodeDescriptor {
                 weak: weak::Type::Infer(Inference::Parameter),
                 ..
-            } => unimplemented!("parameter inference not implemented"),
+            } => {
+                // TODO: replace this with actual type inference
+                Action::Raise(Error::UntypedParameter)
+            }
         };
 
         match action {
@@ -108,14 +111,14 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        fixture,
+        analyze_mock, fixture,
         infer::{
             strong::{data::Type, state::State},
             weak, BindingMap,
         },
-        Context, ModuleMap,
+        AmbientScope, ModuleMap,
     };
-    use kore::{assert_eq, str};
+    use kore::{assert_eq_sorted, str};
     use lang::{
         ast,
         types::{self, Enumerated, Kind},
@@ -141,6 +144,7 @@ mod tests {
                 NamespaceId(1),
                 (
                     CanonicalId(NamespaceId(1), NodeId(0)),
+                    HashMap::new(),
                     HashMap::from_iter(vec![(
                         CanonicalId(NamespaceId(1), NodeId(0)),
                         Rc::new((
@@ -151,7 +155,8 @@ mod tests {
                 ),
             )]),
         };
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!(modules = &modules);
+        let ctx = mock.context();
         let mut weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap::default(),
@@ -165,7 +170,7 @@ mod tests {
             ..State::mock(&ctx)
         };
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&ctx, state(weak.build_descriptors(NamespaceId(0)), vec![])),
             state(
                 vec![],
@@ -183,8 +188,8 @@ mod tests {
     #[test]
     fn type_alias() {
         let fragments = BTreeMap::from_iter(fixture::type_alias::fragments());
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let mut weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap::default(),
@@ -198,7 +203,7 @@ mod tests {
             ..State::mock(&ctx)
         };
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&ctx, state(weak.build_descriptors(NamespaceId(0)), vec![])),
             state(
                 vec![],
@@ -216,8 +221,8 @@ mod tests {
     #[test]
     fn constant() {
         let fragments = BTreeMap::from_iter(fixture::constant::fragments());
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let mut weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap::default(),
@@ -231,7 +236,7 @@ mod tests {
             ..State::mock(&ctx)
         };
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&ctx, state(weak.build_descriptors(NamespaceId(0)), vec![])),
             state(
                 vec![],
@@ -256,8 +261,8 @@ mod tests {
     #[test]
     fn enumerated() {
         let fragments = BTreeMap::from_iter(fixture::enumerated::fragments());
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let mut weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap::default(),
@@ -271,7 +276,7 @@ mod tests {
             ..State::mock(&ctx)
         };
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&ctx, state(weak.build_descriptors(NamespaceId(0)), vec![])),
             state(
                 vec![],
@@ -305,8 +310,8 @@ mod tests {
     #[test]
     fn function() {
         let fragments = BTreeMap::from_iter(fixture::function::fragments());
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
+        let mock = analyze_mock!();
+        let ctx = mock.context();
         let mut weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap::default(),
@@ -320,7 +325,7 @@ mod tests {
             ..State::mock(&ctx)
         };
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&ctx, state(weak.build_descriptors(NamespaceId(0)), vec![])),
             state(
                 vec![],
@@ -384,9 +389,48 @@ mod tests {
 
     #[test]
     fn view() {
+        let mock = analyze_mock!(
+            ambient = &HashMap::from_iter(vec![(AmbientScope::Element, NamespaceId(1))]),
+            modules = &ModuleMap {
+                keys: HashMap::new(),
+                by_key: HashMap::from_iter(vec![(
+                    NamespaceId(1),
+                    (
+                        CanonicalId(NamespaceId(1), NodeId(0)),
+                        HashMap::from_iter(vec![
+                            (str!("div"), CanonicalId(NamespaceId(1), NodeId(1))),
+                            (str!("h1"), CanonicalId(NamespaceId(1), NodeId(2))),
+                            (str!("main"), CanonicalId(NamespaceId(1), NodeId(3))),
+                        ]),
+                        HashMap::from_iter(vec![
+                            (
+                                CanonicalId(NamespaceId(1), NodeId(1)),
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(1)),
+                                    ast::typed::Type(types::Type::View(vec![])),
+                                )),
+                            ),
+                            (
+                                CanonicalId(NamespaceId(1), NodeId(2)),
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(2)),
+                                    ast::typed::Type(types::Type::View(vec![])),
+                                )),
+                            ),
+                            (
+                                CanonicalId(NamespaceId(1), NodeId(3)),
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(3)),
+                                    ast::typed::Type(types::Type::View(vec![])),
+                                )),
+                            ),
+                        ]),
+                    ),
+                )]),
+            }
+        );
+        let ctx = mock.context();
         let fragments = BTreeMap::from_iter(fixture::view::fragments());
-        let modules = ModuleMap::default();
-        let ctx = Context::mock(&modules);
         let mut weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap::default(),
@@ -400,7 +444,7 @@ mod tests {
             ..State::mock(&ctx)
         };
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&ctx, state(weak.build_descriptors(NamespaceId(0)), vec![])),
             state(
                 vec![],
@@ -411,11 +455,14 @@ mod tests {
                     ),
                     (
                         NodeId(1),
-                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
+                        (
+                            Kind::Value,
+                            Ok(Type::Inherit(CanonicalId(NamespaceId(1), NodeId(1))))
+                        )
                     ),
                     (
                         NodeId(2),
-                        (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(1))))
+                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
                     ),
                     (
                         NodeId(3),
@@ -440,7 +487,10 @@ mod tests {
                     ),
                     (
                         NodeId(9),
-                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
+                        (
+                            Kind::Value,
+                            Ok(Type::Inherit(CanonicalId(NamespaceId(1), NodeId(2))))
+                        )
                     ),
                     (
                         NodeId(10),
@@ -464,7 +514,10 @@ mod tests {
                     ),
                     (
                         NodeId(15),
-                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
+                        (
+                            Kind::Value,
+                            Ok(Type::Inherit(CanonicalId(NamespaceId(1), NodeId(3))))
+                        )
                     ),
                     (
                         NodeId(16),
@@ -472,15 +525,15 @@ mod tests {
                     ),
                     (
                         NodeId(17),
-                        (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(16))))
+                        (Kind::Value, Ok(Type::Value(types::Type::Element)))
                     ),
                     (
                         NodeId(18),
-                        (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(16))))
+                        (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(17))))
                     ),
                     (
                         NodeId(19),
-                        (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(16))))
+                        (Kind::Value, Ok(Type::Inherit(CanonicalId::mock(17))))
                     ),
                     (
                         NodeId(20),
@@ -497,42 +550,45 @@ mod tests {
     #[test]
     fn module() {
         let fragments = BTreeMap::from_iter(fixture::module::fragments());
-        let modules = ModuleMap {
-            keys: HashMap::from_iter(vec![(
-                Namespace(NamespaceKind::Internal, vec![str!("theme")]),
-                NamespaceId(1),
-            )]),
-            by_key: HashMap::from_iter(vec![(
-                NamespaceId(1),
-                (
-                    CanonicalId(NamespaceId(1), NodeId(0)),
-                    HashMap::from_iter(vec![
-                        (
-                            CanonicalId(NamespaceId(1), NodeId(0)),
-                            Rc::new((
+        let mock = analyze_mock!(
+            modules = &ModuleMap {
+                keys: HashMap::from_iter(vec![(
+                    Namespace(NamespaceKind::Internal, vec![str!("theme")]),
+                    NamespaceId(1),
+                )]),
+                by_key: HashMap::from_iter(vec![(
+                    NamespaceId(1),
+                    (
+                        CanonicalId(NamespaceId(1), NodeId(0)),
+                        HashMap::new(),
+                        HashMap::from_iter(vec![
+                            (
                                 CanonicalId(NamespaceId(1), NodeId(0)),
-                                ast::typed::Type(types::Type::Module(vec![(
-                                    str!("PRIMARY"),
-                                    Kind::Value,
-                                    Rc::new((
-                                        CanonicalId(NamespaceId(1), NodeId(1)),
-                                        ast::typed::Type(types::Type::String),
-                                    )),
-                                )])),
-                            )),
-                        ),
-                        (
-                            CanonicalId(NamespaceId(1), NodeId(1)),
-                            Rc::new((
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(0)),
+                                    ast::typed::Type(types::Type::Module(vec![(
+                                        str!("PRIMARY"),
+                                        Kind::Value,
+                                        Rc::new((
+                                            CanonicalId(NamespaceId(1), NodeId(1)),
+                                            ast::typed::Type(types::Type::String),
+                                        )),
+                                    )])),
+                                )),
+                            ),
+                            (
                                 CanonicalId(NamespaceId(1), NodeId(1)),
-                                ast::typed::Type(types::Type::String),
-                            )),
-                        ),
-                    ]),
-                ),
-            )]),
-        };
-        let ctx = Context::mock(&modules);
+                                Rc::new((
+                                    CanonicalId(NamespaceId(1), NodeId(1)),
+                                    ast::typed::Type(types::Type::String),
+                                )),
+                            ),
+                        ]),
+                    ),
+                )]),
+            }
+        );
+        let ctx = mock.context();
         let mut weak = weak::Output {
             fragments: &fragments,
             bindings: BindingMap::default(),
@@ -546,7 +602,7 @@ mod tests {
             ..State::mock(&ctx)
         };
 
-        assert_eq!(
+        assert_eq_sorted!(
             super::infer_types(&ctx, state(weak.build_descriptors(NamespaceId(0)), vec![])),
             state(
                 vec![],

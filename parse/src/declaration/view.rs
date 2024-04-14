@@ -1,6 +1,7 @@
 use super::{parameter, storage};
-use crate::{ast, expression, matcher as m};
-use combine::{between, optional, sep_end_by, Parser, Stream};
+use crate::{expression, matcher as m};
+use combine::{optional, Parser, Stream};
+use lang::ast;
 
 // view foo -> nil;
 // view foo -> {};
@@ -18,18 +19,14 @@ where
 {
     m::terminated((
         storage::storage("view"),
-        optional(between(
-            m::symbol('('),
-            m::symbol(')'),
-            sep_end_by(parameter::parameter(), m::symbol(',')),
-        )),
+        optional(m::tuple(parameter::parameter())),
         m::glyph("->"),
         expression::expression(),
     ))
     .map(|((storage, start), attributes, _, body)| {
         let range = &start + body.0.range();
         ast::raw::Declaration::raw(
-            ast::Declaration::view(storage, attributes.unwrap_or_default(), body),
+            ast::Declaration::view(storage, attributes.map(|x| x.0).unwrap_or_default(), body),
             range,
         )
     })

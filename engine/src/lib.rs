@@ -8,7 +8,7 @@ mod write;
 use analyze::ModuleMap;
 use bimap::BiMap;
 use kore::{invariant, Generator, Incrementor};
-use lang::{ast, NamespaceId};
+use lang::{ast, Identify, NamespaceId};
 use link::ImportGraph;
 pub use link::Link;
 pub use report::{CodeFrame, Error, Reporter};
@@ -71,7 +71,7 @@ where
             .ok_or(vec![Error::ModuleNotFound(link.clone())])?;
 
         let (ast, _) =
-            parse::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.clone())])?;
+            parse::program::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.clone())])?;
 
         Ok((input, ast))
     }
@@ -209,11 +209,11 @@ where
 impl<'a, S, R> Engine<S, R>
 where
     S: state::Modules<'a>,
-    S::Context: Clone,
+    S::Meta: Clone,
     R: Resolver,
 {
     /// generate output files by formatting the loaded modules
-    pub fn format(&'a self) -> Writer<&ast::meta::Program<S::Context>> {
+    pub fn format(&'a self) -> Writer<&ast::meta::Program<S::Meta>> {
         Writer(self.state.modules().map(|modules| {
             modules
                 .map(|(link, state::Module { ast, .. })| (link.to_path(), ast))
@@ -292,22 +292,27 @@ where
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
         self.then(|state, _| {
             let mut namespace_id = Incrementor::default();
-            let mut analyzed = HashMap::new();
-            let modules = ModuleMap::default();
+            let mut analyzed = HashMap::default();
+            let mut modules = ModuleMap::default();
+            let ambient = HashMap::default();
 
             for id in state.graph.iter() {
                 let (link, state::Module { id, text, ast }) = Self::get_module(&state, &id);
-                let module_reference = link.clone().to_namespace();
+                let namespace = link.clone().to_namespace();
+                let namespace_id = NamespaceId(namespace_id.increment());
                 let context = analyze::Context {
-                    namespace_id: NamespaceId(namespace_id.increment()),
-                    namespace: &module_reference,
+                    namespace_id,
+                    namespace: &namespace,
                     modules: &modules,
+                    ambient: &ambient,
                 };
-                let typed = analyze::analyze(&context, ast.clone())
+                let (typed, types) = analyze::analyze(&context, ast.clone())
                     .unwrap_or_else(|_| unimplemented!("need to handle errors"));
-                // let module_type = typed.node().meta();
 
-                // module_types.insert(module_reference, module_type);
+                modules.keys.insert(namespace, namespace_id);
+                modules
+                    .by_key
+                    .insert(namespace_id, (*typed.0.id(), typed.exports(), types));
                 analyzed.insert(link.clone(), state::Module::new(*id, text.clone(), typed));
             }
 

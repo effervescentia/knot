@@ -1,5 +1,6 @@
-use crate::{ast, expression, matcher as m, types::typedef};
+use crate::{expression, matcher as m, types::typedef};
 use combine::{optional, Parser, Stream};
+use lang::ast;
 
 pub fn parameter<T>() -> impl Parser<T, Output = ast::raw::Parameter>
 where
