@@ -27,6 +27,14 @@ where
                 println!("cache is stale. cache: {cache_modified:?}, source: {modified:?}");
             }
 
+            (None, Some(modified)) => {
+                println!("not found in cache, source: {modified:?}");
+            }
+
+            (Some(cache_modified), None) => {
+                println!("not found in source, cache: {cache_modified:?}");
+            }
+
             _ => (),
         }
 
