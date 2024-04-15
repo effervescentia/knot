@@ -70,7 +70,6 @@ pub fn analyze(
 
         Expression::PropertyAccess(..) => None,
 
-        // Expression::FunctionCall(_, arguments) => None,
         Expression::FunctionCall(x, arguments) => match x.type_of() {
             Type::Function(parameters, _)
             | Type::Enumerated(Enumerated::Variant(parameters, _)) => {

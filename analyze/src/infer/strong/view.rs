@@ -38,125 +38,66 @@ pub fn infer(state: &State, parameters: &[NodeId]) -> Action {
     Action::Infer(Type::Value(types::Type::View(parameters)))
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use crate::{
-//         analyze_mock,
-//         error::Error,
-//         infer::strong::{
-//             data::{Action, Type},
-//             state::State,
-//         },
-//         Context,
-//     };
-//     use kore::{assert_eq, str};
-//     use lang::{
-//         ast,
-//         types::{self, Kind},
-//         CanonicalId, Fragment, NodeId, ScopeId,
-//     };
-//     use std::collections::BTreeMap;
+#[cfg(test)]
+mod tests {
+    use crate::{
+        analyze_mock,
+        error::Error,
+        infer::strong::{
+            data::{Action, Type},
+            state::State,
+        },
+        Context,
+    };
+    use kore::{assert_eq, str};
+    use lang::{
+        ast,
+        types::{self, Kind},
+        CanonicalId, Fragment, NodeId, ScopeId,
+    };
+    use std::collections::BTreeMap;
 
-//     #[allow(clippy::type_complexity)]
-//     fn mock_state<'a>(
-//         ctx: &'a Context,
-//         fragments: &'a BTreeMap<NodeId, (ScopeId, Fragment)>,
-//         types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
-//     ) -> State<'a> {
-//         State {
-//             fragments,
-//             types: BTreeMap::from_iter(types),
-//             ..State::mock(ctx)
-//         }
-//     }
+    #[allow(clippy::type_complexity)]
+    fn mock_state<'a>(
+        ctx: &'a Context,
+        fragments: &'a BTreeMap<NodeId, (ScopeId, Fragment)>,
+        types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
+    ) -> State<'a> {
+        State {
+            fragments,
+            types: BTreeMap::from_iter(types),
+            ..State::mock(ctx)
+        }
+    }
 
-//     #[test]
-//     fn infer_module() {
-//         let mock = analyze_mock!();
-//         let ctx = mock.context();
-//         let fragments = BTreeMap::from_iter(vec![
-//             (
-//                 NodeId(1),
-//                 (
-//                     ScopeId(vec![]),
-//                     Fragment::Declaration(ast::Declaration::type_alias(
-//                         ast::Storage::public(str!("Foo")),
-//                         NodeId(2),
-//                     )),
-//                 ),
-//             ),
-//             (
-//                 NodeId(3),
-//                 (
-//                     ScopeId(vec![]),
-//                     Fragment::Declaration(ast::Declaration::constant(
-//                         ast::Storage::public(str!("BAR")),
-//                         None,
-//                         NodeId(4),
-//                     )),
-//                 ),
-//             ),
-//         ]);
-//         let state = mock_state(
-//             &ctx,
-//             &fragments,
-//             vec![
-//                 (
-//                     NodeId(1),
-//                     (Kind::Type, Ok(Type::Value(types::Type::Boolean))),
-//                 ),
-//                 (
-//                     NodeId(3),
-//                     (Kind::Value, Ok(Type::Value(types::Type::Integer))),
-//                 ),
-//             ],
-//         );
+    #[test]
+    fn infer_view() {
+        let mock = analyze_mock!();
+        let ctx = mock.context();
+        let fragments = BTreeMap::from_iter(vec![
+            (
+                NodeId(1),
+                (
+                    ScopeId(vec![]),
+                    Fragment::Parameter(ast::Parameter::new(str!("foo"), None, Some(NodeId(2)))),
+                ),
+            ),
+            (
+                NodeId(3),
+                (
+                    ScopeId(vec![]),
+                    Fragment::Parameter(ast::Parameter::new(str!("bar"), None, None)),
+                ),
+            ),
+        ]);
+        let state = mock_state(&ctx, &fragments, vec![]);
 
-//         assert_eq!(
-//             super::infer(&state, &[NodeId(1), NodeId(3)]),
-//             Action::Infer(Type::Value(types::Type::Module(vec![
-//                 (str!("Foo"), Kind::Type, CanonicalId::mock(1)),
-//                 (str!("BAR"), Kind::Value, CanonicalId::mock(3))
-//             ])))
-//         );
-//     }
-
-//     #[test]
-//     fn skip() {
-//         let mock = analyze_mock!();
-//         let ctx = mock.context();
-//         let fragments = BTreeMap::from_iter(vec![
-//             (
-//                 NodeId(1),
-//                 (
-//                     ScopeId(vec![]),
-//                     Fragment::Declaration(ast::Declaration::type_alias(
-//                         ast::Storage::public(str!("Foo")),
-//                         NodeId(2),
-//                     )),
-//                 ),
-//             ),
-//             (
-//                 NodeId(3),
-//                 (
-//                     ScopeId(vec![]),
-//                     Fragment::Declaration(ast::Declaration::type_alias(
-//                         ast::Storage::public(str!("Bar")),
-//                         NodeId(4),
-//                     )),
-//                 ),
-//             ),
-//         ]);
-//         let state = mock_state(
-//             &ctx,
-//             &fragments,
-//             vec![(
-//                 NodeId(3),
-//                 (Kind::Type, Ok(Type::Value(types::Type::Integer))),
-//             )],
-//         );
-
-//         assert_eq!(super::infer(&state, &[NodeId(1)]), Action::Skip);
-//         assert_eq!(super::infer(&state, &[NodeId(1), NodeId(3)]), Action::Skip);
-//     }
-// }
+        assert_eq!(
+            super::infer(&state, &[NodeId(1), NodeId(3)]),
+            Action::Infer(Type::Value(types::Type::View(vec![
+                types::ObjectTypeEntry::Optional(str!("foo"), CanonicalId::mock(1)),
+                types::ObjectTypeEntry::Required(str!("bar"), CanonicalId::mock(3))
+            ])))
+        );
+    }
+}

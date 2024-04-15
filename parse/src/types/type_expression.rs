@@ -1,5 +1,5 @@
 use crate::matcher as m;
-use combine::{attempt, choice, many, parser, sep_end_by, Parser, Stream};
+use combine::{attempt, choice, parser, sep_end_by, Parser, Stream};
 use lang::ast;
 
 fn primitive<T>() -> impl Parser<T, Output = ast::raw::TypeExpression>
@@ -184,7 +184,7 @@ parser! {
 mod tests {
     use combine::{stream::position::Stream, EasyParser};
     use kore::{assert_eq, str};
-    use lang::{ast, Node, Range};
+    use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::TypeExpression> {
         super::type_expression().easy_parse(Stream::new(s))

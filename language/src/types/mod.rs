@@ -88,14 +88,20 @@ impl<T> ObjectTypeEntry<T> {
         }
     }
 
+    pub const fn value(&self) -> &T {
+        match self {
+            Self::Required(_, value) | Self::Optional(_, value) => value,
+        }
+    }
+
     pub fn map<R, F>(&self, f: F) -> ObjectTypeEntry<R>
     where
         F: FnOnce(&T) -> R,
     {
         match self {
-            ObjectTypeEntry::Required(name, x) => ObjectTypeEntry::Required(name.clone(), f(x)),
+            Self::Required(name, x) => ObjectTypeEntry::Required(name.clone(), f(x)),
 
-            ObjectTypeEntry::Optional(name, x) => ObjectTypeEntry::Optional(name.clone(), f(x)),
+            Self::Optional(name, x) => ObjectTypeEntry::Optional(name.clone(), f(x)),
         }
     }
 
@@ -104,9 +110,9 @@ impl<T> ObjectTypeEntry<T> {
         F: FnOnce(&T) -> Option<R>,
     {
         Some(match self {
-            ObjectTypeEntry::Required(name, x) => ObjectTypeEntry::Required(name.clone(), f(x)?),
+            Self::Required(name, x) => ObjectTypeEntry::Required(name.clone(), f(x)?),
 
-            ObjectTypeEntry::Optional(name, x) => ObjectTypeEntry::Optional(name.clone(), f(x)?),
+            Self::Optional(name, x) => ObjectTypeEntry::Optional(name.clone(), f(x)?),
         })
     }
 }

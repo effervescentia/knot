@@ -54,17 +54,18 @@ pub enum Error {
         CanonicalId,
     ),
 
-    /* function-related */
-    NotCallable(
-        // id of the node being called
-        CanonicalId,
-    ),
-
+    /* callable-related */
     /// temporary solution until deeper type inference is implemented
     UntypedParameter,
 
     DefaultValueRejected(
         // id of the default value
+        CanonicalId,
+    ),
+
+    /* function-related */
+    NotCallable(
+        // id of the node being called
         CanonicalId,
     ),
 
@@ -101,6 +102,23 @@ pub enum Error {
         String,
         // end tag
         String,
+    ),
+
+    UnexpectedAttribute(
+        // name of the attribute
+        String,
+    ),
+
+    MissingAttribute(
+        // id of the unfulfilled parameter
+        CanonicalId,
+    ),
+
+    AttributeRejected(
+        // id of the parameter
+        CanonicalId,
+        // id of the argument
+        CanonicalId,
     ),
 
     /* mismatch */
