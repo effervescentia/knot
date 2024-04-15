@@ -99,6 +99,19 @@ fn not_indexable() {
 }
 
 #[test]
+fn property_not_found() {
+    let source = "func foo(args: { bar: integer }) -> args.fizz";
+
+    assert_eq!(
+        Mock::default().parse_and_analyze(source),
+        Err(vec![(
+            NodeId(4),
+            Error::PropertyNotFound(CanonicalId::mock(3), str!("fizz"))
+        ),])
+    );
+}
+
+#[test]
 fn duplicate_property() {
     let source = "
 type foo = {
