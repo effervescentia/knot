@@ -15,13 +15,13 @@ impl Binding {
         Self(Node::raw(x, range))
     }
 
+    pub fn name(&self) -> &str {
+        &self.0.value().0
+    }
+
     #[cfg(feature = "test")]
     pub fn mock(x: &str) -> Self {
         Self::new(super::Binding(x.to_owned()), Range::nil())
-    }
-
-    pub fn name(&self) -> &str {
-        &self.0.value().0
     }
 }
 

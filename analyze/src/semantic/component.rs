@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::Visitor;
 use crate::error::Error;
 use lang::{
@@ -8,6 +6,7 @@ use lang::{
     walk::Visit,
     Identify, TypeOf,
 };
+use std::collections::HashMap;
 
 pub const fn can_render(x: &ast::typed::InnerType) -> bool {
     matches!(
@@ -62,7 +61,7 @@ pub fn analyze(
                         let argument_type = attribute.0.type_of().to_shape();
 
                         if parameter_type != argument_type {
-                            errors.push(Error::ArgumentRejected(
+                            errors.push(Error::AttributeRejected(
                                 *parameter.value().id(),
                                 *attribute.0.id(),
                             ));
@@ -72,15 +71,18 @@ pub fn analyze(
                     }
                 }
 
+                let mut sorted_parameters = unsatisfied_parameters.into_iter().collect::<Vec<_>>();
+                sorted_parameters.sort_by(|l, r| l.0.cmp(&r.0));
+
                 errors.extend(
-                    unsatisfied_parameters
-                        .values()
-                        .map(|x| Error::MissingAttribute(*x.value().id())),
+                    sorted_parameters
+                        .into_iter()
+                        .map(|(_, x)| Error::MissingAttribute(*x.value().id())),
                 );
 
                 errors.extend(
                     unexpected_attributes
-                        .iter()
+                        .into_iter()
                         .map(|x| Error::UnexpectedAttribute(x.0.value().name().to_owned())),
                 );
             } else {
