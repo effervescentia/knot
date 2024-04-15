@@ -12,6 +12,8 @@ mod type_of;
 pub mod types;
 pub mod walk;
 
+use std::fmt::Display;
+
 pub use fragment::{Fragment, FragmentMap};
 pub use identify::Identify;
 pub use namespace::{Namespace, NamespaceKind};
@@ -21,6 +23,12 @@ pub use type_of::TypeOf;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NamespaceId(pub usize);
+
+impl Display for NamespaceId {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NodeId(pub usize);

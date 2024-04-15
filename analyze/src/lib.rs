@@ -10,7 +10,7 @@ mod test;
 
 pub use context::{AmbientMap, Context, ModuleMap, TypeMap};
 pub use error::Error;
-use lang::{ast, NodeId};
+use lang::{ast, walk, NodeId};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum AmbientScope {
@@ -20,9 +20,10 @@ pub enum AmbientScope {
 /// analysis result with possible resolution errors
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, Error)>>;
 
-pub fn analyze<Raw>(ctx: &Context, raw: Raw) -> Result<(ast::typed::Program, TypeMap)>
+pub fn analyze<Raw, Typed>(ctx: &Context, raw: Raw) -> Result<(Typed, TypeMap)>
 where
-    Raw: ast::into_fragments::IntoFragments<NodeId> + into_typed::IntoTyped + Clone,
+    Raw: ast::into_fragments::IntoFragments<NodeId> + into_typed::IntoTyped<Typed> + Clone,
+    Typed: walk::Walk<semantic::Visitor> + Clone,
 {
     let fragments = raw.clone().into_fragments();
 

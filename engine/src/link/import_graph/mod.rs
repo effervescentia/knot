@@ -2,6 +2,7 @@ mod display;
 
 use bimap::BiMap;
 use kore::invariant;
+use lang::NamespaceId;
 use petgraph::{
     algo::is_cyclic_directed,
     stable_graph::{EdgeIndex, NodeIndex, StableDiGraph},
@@ -11,10 +12,10 @@ use petgraph::{
 use std::{collections::HashSet, hash::Hash, iter::empty};
 
 #[derive(Debug, Eq)]
-pub struct Cycle(Vec<usize>);
+pub struct Cycle(Vec<NamespaceId>);
 
 impl Cycle {
-    fn canonical(&self) -> Vec<usize> {
+    fn canonical(&self) -> Vec<NamespaceId> {
         self.0
             .iter()
             .enumerate()
@@ -28,7 +29,7 @@ impl Cycle {
             .unwrap_or_default()
     }
 
-    pub fn to_vec(&self) -> Vec<usize> {
+    pub fn to_vec(&self) -> Vec<NamespaceId> {
         self.canonical()
     }
 }
@@ -46,8 +47,8 @@ impl Hash for Cycle {
 }
 
 pub struct ImportGraph {
-    graph: StableDiGraph<usize, ()>,
-    lookup: BiMap<usize, NodeIndex>,
+    graph: StableDiGraph<NamespaceId, ()>,
+    lookup: BiMap<NamespaceId, NodeIndex>,
 }
 
 impl ImportGraph {
@@ -58,18 +59,18 @@ impl ImportGraph {
         }
     }
 
-    fn index_of(&self, id: &usize) -> Option<NodeIndex> {
+    fn index_of(&self, id: &NamespaceId) -> Option<NodeIndex> {
         self.lookup.get_by_left(id).copied()
     }
 
-    fn get_node(&self, index: &NodeIndex) -> usize {
+    fn get_node(&self, index: &NodeIndex) -> NamespaceId {
         *self
             .lookup
             .get_by_right(index)
             .unwrap_or_else(|| invariant!("node with index {index:?} not found in the lookup"))
     }
 
-    pub fn add_node(&mut self, node: usize) -> NodeIndex {
+    pub fn add_node(&mut self, node: NamespaceId) -> NodeIndex {
         if let Some(index) = self.index_of(&node) {
             return index;
         }
@@ -81,7 +82,7 @@ impl ImportGraph {
         index
     }
 
-    pub fn add_edge(&mut self, from: &usize, to: &usize) -> Result<EdgeIndex, ()> {
+    pub fn add_edge(&mut self, from: &NamespaceId, to: &NamespaceId) -> Result<EdgeIndex, ()> {
         if let (Some(from_index), Some(to_index)) = (self.index_of(from), self.index_of(to)) {
             Ok(self.graph.add_edge(from_index, to_index, ()))
         } else {
@@ -89,7 +90,7 @@ impl ImportGraph {
         }
     }
 
-    pub fn roots(&self) -> impl Iterator<Item = usize> + '_ {
+    pub fn roots(&self) -> impl Iterator<Item = NamespaceId> + '_ {
         self.graph
             .node_weights()
             .filter(|x| self.parents(x).count() == 0)
@@ -98,9 +99,9 @@ impl ImportGraph {
 
     fn neighbors<'a>(
         &'a self,
-        node: &'a usize,
+        node: &'a NamespaceId,
         direction: Direction,
-    ) -> Box<dyn Iterator<Item = usize> + 'a> {
+    ) -> Box<dyn Iterator<Item = NamespaceId> + 'a> {
         if let Some(node_index) = self.index_of(node) {
             Box::new(
                 self.graph
@@ -112,11 +113,11 @@ impl ImportGraph {
         }
     }
 
-    pub fn parents<'a>(&'a self, node: &'a usize) -> impl Iterator<Item = usize> + 'a {
+    pub fn parents<'a>(&'a self, node: &'a NamespaceId) -> impl Iterator<Item = NamespaceId> + 'a {
         self.neighbors(node, Direction::Incoming)
     }
 
-    pub fn children<'a>(&'a self, node: &'a usize) -> impl Iterator<Item = usize> + 'a {
+    pub fn children<'a>(&'a self, node: &'a NamespaceId) -> impl Iterator<Item = NamespaceId> + 'a {
         self.neighbors(node, Direction::Outgoing)
     }
 
@@ -124,12 +125,16 @@ impl ImportGraph {
         is_cyclic_directed(&self.graph)
     }
 
-    fn unvisited_cycles_with(&self, visited: &mut HashSet<usize>, node: usize) -> HashSet<Cycle> {
+    fn unvisited_cycles_with(
+        &self,
+        visited: &mut HashSet<NamespaceId>,
+        node: NamespaceId,
+    ) -> HashSet<Cycle> {
         fn visit(
-            _visited: &mut HashSet<usize>,
+            _visited: &mut HashSet<NamespaceId>,
             graph: &ImportGraph,
-            chain: &[usize],
-            node: usize,
+            chain: &[NamespaceId],
+            node: NamespaceId,
         ) -> Vec<Cycle> {
             let parents = graph.parents(&node);
 
@@ -155,7 +160,7 @@ impl ImportGraph {
         HashSet::from_iter(visit(visited, self, &[node], node))
     }
 
-    pub fn cycles_with(&self, node: &usize) -> HashSet<Cycle> {
+    pub fn cycles_with(&self, node: &NamespaceId) -> HashSet<Cycle> {
         self.unvisited_cycles_with(&mut HashSet::new(), *node)
     }
 
@@ -168,7 +173,7 @@ impl ImportGraph {
             .collect()
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = usize> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = NamespaceId> + '_ {
         let graph = Reversed(&self.graph);
         let reverse_topological_walker = Topo::new(graph);
 
@@ -187,11 +192,12 @@ impl Default for ImportGraph {
 #[cfg(test)]
 mod tests {
     use super::{Cycle, ImportGraph};
+    use lang::NamespaceId;
     use std::collections::HashSet;
 
     #[allow(clippy::multiple_inherent_impl)]
     impl ImportGraph {
-        pub fn from_nodes(nodes: &[usize]) -> Self {
+        pub fn from_nodes(nodes: &[NamespaceId]) -> Self {
             let mut graph = Self::new();
 
             for x in nodes {
@@ -201,7 +207,7 @@ mod tests {
             graph
         }
 
-        pub fn from_edges(edges: &[(usize, usize)]) -> Self {
+        pub fn from_edges(edges: &[(NamespaceId, NamespaceId)]) -> Self {
             let mut graph = Self::new();
 
             for (from, to) in edges {
@@ -218,121 +224,188 @@ mod tests {
     fn add_new_node() {
         let mut graph = ImportGraph::new();
 
-        let index = graph.add_node(0);
+        let index = graph.add_node(NamespaceId(0));
 
         assert_eq!(index.index(), 0);
-        assert_eq!(graph.lookup.left_values().collect::<Vec<_>>(), vec![&0]);
+        assert_eq!(
+            graph.lookup.left_values().collect::<Vec<_>>(),
+            vec![&NamespaceId(0)]
+        );
         assert_eq!(graph.graph.node_count(), 1);
     }
 
     #[test]
     fn add_edge() {
-        let mut graph = ImportGraph::from_nodes(&[0, 1]);
+        let mut graph = ImportGraph::from_nodes(&[NamespaceId(0), NamespaceId(1)]);
 
-        graph.add_edge(&0, &1).ok();
+        graph.add_edge(&NamespaceId(0), &NamespaceId(1)).ok();
 
         assert_eq!(graph.graph.edge_count(), 1);
     }
 
     #[test]
     fn add_existing_node() {
-        let mut graph = ImportGraph::from_nodes(&[0]);
+        let mut graph = ImportGraph::from_nodes(&[NamespaceId(0)]);
 
-        let index = graph.add_node(0);
+        let index = graph.add_node(NamespaceId(0));
 
         assert_eq!(index.index(), 0);
-        assert_eq!(graph.lookup.left_values().collect::<Vec<_>>(), vec![&0]);
+        assert_eq!(
+            graph.lookup.left_values().collect::<Vec<_>>(),
+            vec![&NamespaceId(0)]
+        );
         assert_eq!(graph.graph.node_count(), 1);
     }
 
     #[test]
     fn parents() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (2, 1), (3, 1)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(2), NamespaceId(1)),
+            (NamespaceId(3), NamespaceId(1)),
+        ]);
 
-        assert_eq!(graph.parents(&1).collect::<Vec<_>>(), vec![3, 2, 0]);
+        assert_eq!(
+            graph.parents(&NamespaceId(1)).collect::<Vec<_>>(),
+            vec![NamespaceId(3), NamespaceId(2), NamespaceId(0)]
+        );
     }
 
     #[test]
     fn children() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (0, 2), (0, 3)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(0), NamespaceId(2)),
+            (NamespaceId(0), NamespaceId(3)),
+        ]);
 
-        assert_eq!(graph.children(&0).collect::<Vec<_>>(), vec![3, 2, 1]);
+        assert_eq!(
+            graph.children(&NamespaceId(0)).collect::<Vec<_>>(),
+            vec![NamespaceId(3), NamespaceId(2), NamespaceId(1)]
+        );
     }
 
     #[test]
     fn is_cyclic_false() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 3)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(3)),
+        ]);
 
         assert!(!graph.is_cyclic());
     }
 
     #[test]
     fn is_cyclic_true() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 0)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(0)),
+        ]);
 
         assert!(graph.is_cyclic());
     }
 
     #[test]
     fn cycles_with_none() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 0), (4, 5)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(0)),
+            (NamespaceId(4), NamespaceId(5)),
+        ]);
 
-        assert_eq!(graph.cycles_with(&4), HashSet::new());
+        assert_eq!(graph.cycles_with(&NamespaceId(4)), HashSet::new());
     }
 
     #[test]
     fn cycles_with_one() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 0)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(0)),
+        ]);
 
         assert_eq!(
-            graph.cycles_with(&2),
-            HashSet::from_iter(vec![Cycle(vec![2, 1, 0])])
+            graph.cycles_with(&NamespaceId(2)),
+            HashSet::from_iter(vec![Cycle(vec![
+                NamespaceId(2),
+                NamespaceId(1),
+                NamespaceId(0)
+            ])])
         );
     }
 
     #[test]
     fn cycles_with_multiple() {
-        let graph =
-            ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 0), (2, 3), (3, 2), (2, 4), (4, 1)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(0)),
+            (NamespaceId(2), NamespaceId(3)),
+            (NamespaceId(3), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(4)),
+            (NamespaceId(4), NamespaceId(1)),
+        ]);
 
         assert_eq!(
-            graph.cycles_with(&2),
+            graph.cycles_with(&NamespaceId(2)),
             HashSet::from_iter(vec![
-                Cycle(vec![2, 3]),
-                Cycle(vec![2, 1, 4]),
-                Cycle(vec![2, 1, 0])
+                Cycle(vec![NamespaceId(2), NamespaceId(3)]),
+                Cycle(vec![NamespaceId(2), NamespaceId(1), NamespaceId(4)]),
+                Cycle(vec![NamespaceId(2), NamespaceId(1), NamespaceId(0)])
             ])
         );
     }
 
     #[test]
     fn cycles_none() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 3)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(3)),
+        ]);
 
         assert_eq!(graph.cycles(), HashSet::new());
     }
 
     #[test]
     fn cycles_one() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 0)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(0)),
+        ]);
 
         assert_eq!(
             graph.cycles(),
-            HashSet::from_iter(vec![Cycle(vec![0, 2, 1])])
+            HashSet::from_iter(vec![Cycle(vec![
+                NamespaceId(0),
+                NamespaceId(2),
+                NamespaceId(1)
+            ])])
         );
     }
 
     #[test]
     fn cycles_multiple() {
-        let graph =
-            ImportGraph::from_edges(&[(0, 1), (1, 2), (1, 5), (2, 0), (3, 4), (4, 3), (5, 0)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(1), NamespaceId(5)),
+            (NamespaceId(2), NamespaceId(0)),
+            (NamespaceId(3), NamespaceId(4)),
+            (NamespaceId(4), NamespaceId(3)),
+            (NamespaceId(5), NamespaceId(0)),
+        ]);
 
         assert_eq!(
             graph.cycles(),
             HashSet::from_iter(vec![
-                Cycle(vec![3, 4]),
-                Cycle(vec![0, 5, 1]),
-                Cycle(vec![0, 2, 1])
+                Cycle(vec![NamespaceId(3), NamespaceId(4)]),
+                Cycle(vec![NamespaceId(0), NamespaceId(5), NamespaceId(1)]),
+                Cycle(vec![NamespaceId(0), NamespaceId(2), NamespaceId(1)])
             ])
         );
     }

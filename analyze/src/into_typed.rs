@@ -1,19 +1,26 @@
 use crate::{ast, infer, Context};
 use kore::{invariant, Incrementor};
 use lang::{
-    walk::{CommonVisitor, ProgramVisitor, Walk},
+    walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     CanonicalId, NamespaceId, Node, NodeId, Range,
 };
 use std::{cell::OnceCell, marker::PhantomData};
 
-pub trait IntoTyped: Sized {
-    fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> ast::typed::Program;
+pub trait IntoTyped<Typed>: Sized {
+    fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> Typed;
 }
 
-impl<Meta> IntoTyped for ast::meta::Program<Meta> {
+impl<Meta> IntoTyped<ast::typed::Program> for ast::meta::Program<Meta> {
     fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> ast::typed::Program {
-        let visitor = Visitor::new(ctx.namespace_id, strong);
+        let visitor = Visitor::new(ctx.id, strong);
         ast::meta::Program(self.0.walk(visitor).0)
+    }
+}
+
+impl<Meta> IntoTyped<ast::typed::Typings> for ast::meta::Typings<Meta> {
+    fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> ast::typed::Typings {
+        let visitor = Visitor::new(ctx.id, strong);
+        ast::meta::Typings(self.0.walk(visitor).0)
     }
 }
 
@@ -152,5 +159,26 @@ impl<'a, Meta> ProgramVisitor for Visitor<'a, Meta> {
         (r, _): Self::Context,
     ) -> (Self::Module, Self) {
         self.typed(x, r, ast::meta::Module)
+    }
+}
+
+impl<'a, Meta> TypingsVisitor for Visitor<'a, Meta> {
+    type TypeDeclaration = ast::typed::TypeDeclaration;
+    type TypeModule = ast::typed::TypeModule;
+
+    fn type_declaration(
+        self,
+        x: ast::TypeDeclaration<Self::Binding, Self::TypeExpression>,
+        (r, _): Self::Context,
+    ) -> (Self::TypeDeclaration, Self) {
+        self.typed(x, r, ast::meta::TypeDeclaration)
+    }
+
+    fn type_module(
+        self,
+        x: ast::TypeModule<Self::TypeDeclaration>,
+        (r, _): Self::Context,
+    ) -> (Self::TypeModule, Self) {
+        self.typed(x, r, ast::meta::TypeModule)
     }
 }

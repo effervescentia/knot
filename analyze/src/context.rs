@@ -42,7 +42,7 @@ impl ModuleMap {
 
 #[derive(Debug, PartialEq)]
 pub struct Context<'a> {
-    pub namespace_id: NamespaceId,
+    pub id: NamespaceId,
 
     pub namespace: &'a Namespace,
 
@@ -57,7 +57,7 @@ impl<'a> Context<'a> {
         Self {
             modules,
             ambient,
-            namespace_id: NamespaceId(0),
+            id: NamespaceId(0),
             namespace: Namespace::MOCK,
         }
     }
@@ -65,6 +65,6 @@ impl<'a> Context<'a> {
 
 impl<'a> Canonicalize for Context<'a> {
     fn canonicalize(&self, id: NodeId) -> CanonicalId {
-        CanonicalId(self.namespace_id, id)
+        CanonicalId(self.id, id)
     }
 }

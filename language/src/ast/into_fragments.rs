@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::{
-    walk::{CommonVisitor, ProgramVisitor, Walk},
+    walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     Fragment, FragmentMap, NodeId, Range, ScopeId,
 };
 use kore::Incrementor;
@@ -10,10 +10,17 @@ pub trait IntoFragments<T> {
     fn into_fragments(self) -> FragmentMap<T>;
 }
 
-impl<Context> super::into_fragments::IntoFragments<NodeId> for super::meta::Program<Context> {
+impl<Meta> super::into_fragments::IntoFragments<NodeId> for super::meta::Program<Meta> {
     fn into_fragments(self) -> FragmentMap<NodeId> {
-        self.0
-            .walk(super::into_fragments::Visitor::default())
+        self.walk(super::into_fragments::Visitor::default())
+            .1
+            .fragments()
+    }
+}
+
+impl<Meta> super::into_fragments::IntoFragments<NodeId> for super::meta::Typings<Meta> {
+    fn into_fragments(self) -> FragmentMap<NodeId> {
+        self.walk(super::into_fragments::Visitor::default())
             .1
             .fragments()
     }
@@ -171,6 +178,27 @@ impl<Context> ProgramVisitor for Visitor<Context> {
         _: Self::Context,
     ) -> (Self::Module, Self) {
         self.capture(Fragment::Module(x))
+    }
+}
+
+impl<Context> TypingsVisitor for Visitor<Context> {
+    type TypeDeclaration = NodeId;
+    type TypeModule = NodeId;
+
+    fn type_declaration(
+        self,
+        x: super::TypeDeclaration<String, Self::TypeExpression>,
+        _: Self::Context,
+    ) -> (Self::TypeDeclaration, Self) {
+        self.capture(Fragment::TypeDeclaration(x))
+    }
+
+    fn type_module(
+        self,
+        x: super::TypeModule<Self::TypeDeclaration>,
+        _: Self::Context,
+    ) -> (Self::TypeModule, Self) {
+        self.capture(Fragment::TypeModule(x))
     }
 }
 

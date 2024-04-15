@@ -7,8 +7,8 @@ mod write;
 
 use analyze::ModuleMap;
 use bimap::BiMap;
-use kore::{invariant, Generator, Incrementor};
-use lang::{ast, Identify, NamespaceId};
+use kore::{invariant, str, Generator, Incrementor};
+use lang::{ast, NamespaceId};
 use link::ImportGraph;
 pub use link::Link;
 pub use report::{CodeFrame, Error, Reporter};
@@ -22,12 +22,20 @@ use write::Writer;
 
 pub type Result<T> = std::result::Result<T, Vec<Error>>;
 
-pub struct Context<R>
-where
-    R: Resolver,
-{
+pub struct Context<Resolver> {
     reporter: Reporter,
-    resolver: R,
+    resolver: Resolver,
+    libraries: Vec<String>,
+}
+
+impl<R> Context<R> {
+    pub fn std(reporter: Reporter, resolver: R) -> Self {
+        Self {
+            reporter,
+            resolver,
+            libraries: vec![str!("std")],
+        }
+    }
 }
 
 pub struct Engine<T, R>
@@ -54,16 +62,21 @@ where
         }
     }
 
-    fn to_links<U>(link: &Link, ast: &ast::meta::Program<U>) -> Vec<Link> {
+    fn to_links<U>(link: &Link, ast: &state::Ast<U>) -> Vec<Link> {
         let path = link.to_path();
 
-        ast.imports()
-            .iter()
-            .map(|x| Link::from_import(&path, x.0.value()))
-            .collect::<Vec<_>>()
+        if let state::Ast::Program(program) = ast {
+            program
+                .imports()
+                .iter()
+                .map(|x| Link::from_import(&path, x.0.value()))
+                .collect::<Vec<_>>()
+        } else {
+            vec![]
+        }
     }
 
-    fn parse_one(resolver: &mut R, link: &Link) -> Result<(String, ast::raw::Program)> {
+    fn parse_one(resolver: &mut R, link: &Link) -> Result<(String, state::Ast<()>)> {
         let path = link.to_path();
 
         let input = resolver
@@ -73,7 +86,7 @@ where
         let (ast, _) =
             parse::program::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.clone())])?;
 
-        Ok((input, ast))
+        Ok((input, state::Ast::Program(ast)))
     }
 }
 
@@ -100,11 +113,8 @@ impl<R> Engine<(), R>
 where
     R: Resolver,
 {
-    pub const fn new(reporter: Reporter, resolver: R) -> Self {
-        Self {
-            context: Context { reporter, resolver },
-            state: (),
-        }
+    pub const fn new(context: Context<R>) -> Self {
+        Self { context, state: () }
     }
 
     /// load a module tree from a single entry point
@@ -130,7 +140,7 @@ where
     /// starting from the entry file recursively discover and parse modules
     pub fn parse_and_load(self) -> Engine<Result<state::Parsed>, R> {
         self.map(|state, context| {
-            let mut next_id: usize = 0;
+            let mut incrementor = Incrementor::default();
             let mut queue = VecDeque::from_iter(vec![state.0]);
             let mut parsed = HashMap::new();
             let mut lookup = BiMap::new();
@@ -146,10 +156,9 @@ where
                             }
                         }
 
+                        let next_id = NamespaceId(incrementor.increment());
                         lookup.insert(link.clone(), next_id);
                         parsed.insert(link, state::Module::new(next_id, input, ast));
-
-                        next_id += 1;
                     }
 
                     Err(errs) => context.reporter.raise(errs)?,
@@ -179,17 +188,16 @@ where
                 .iter()
                 .map(Link::from)
                 .collect::<Vec<_>>();
-            let mut next_id: usize = 0;
+            let mut incrementor = Incrementor::default();
             let mut parsed = HashMap::new();
             let mut lookup = BiMap::new();
 
             for link in links {
                 match Self::parse_one(&mut context.resolver, &link) {
                     Ok((text, ast)) => {
+                        let next_id = NamespaceId(incrementor.increment());
                         lookup.insert(link.clone(), next_id);
                         parsed.insert(link, state::Module::new(next_id, text, ast));
-
-                        next_id += 1;
                     }
 
                     Err(errs) => context.reporter.raise(errs)?,
@@ -216,7 +224,10 @@ where
     pub fn format(&'a self) -> Writer<&ast::meta::Program<S::Meta>> {
         Writer(self.state.modules().map(|modules| {
             modules
-                .map(|(link, state::Module { ast, .. })| (link.to_path(), ast))
+                .filter_map(|(link, state::Module { ast, .. })| match ast {
+                    state::Ast::Program(x) => Some((link.to_path(), x)),
+                    state::Ast::Typings(_) => None,
+                })
                 .collect::<Vec<_>>()
         }))
     }
@@ -274,7 +285,7 @@ where
 {
     fn get_module<'a>(
         state: &'a state::Linked,
-        id: &'a usize,
+        id: &'a NamespaceId,
     ) -> (&'a Link, &'a state::Module<()>) {
         let link = state.lookup.get_by_right(id).unwrap_or_else(|| {
             invariant!("did not find link for module with id {id} in state lookup")
@@ -291,7 +302,7 @@ where
 
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
         self.then(|state, _| {
-            let mut namespace_id = Incrementor::default();
+            let mut incrementor = Incrementor::default();
             let mut analyzed = HashMap::default();
             let mut modules = ModuleMap::default();
             let ambient = HashMap::default();
@@ -299,20 +310,27 @@ where
             for id in state.graph.iter() {
                 let (link, state::Module { id, text, ast }) = Self::get_module(&state, &id);
                 let namespace = link.clone().to_namespace();
-                let namespace_id = NamespaceId(namespace_id.increment());
+                let namespace_id = NamespaceId(incrementor.increment());
                 let context = analyze::Context {
-                    namespace_id,
+                    id: namespace_id,
                     namespace: &namespace,
                     modules: &modules,
                     ambient: &ambient,
                 };
-                let (typed, types) = analyze::analyze(&context, ast.clone())
-                    .unwrap_or_else(|_| unimplemented!("need to handle errors"));
+
+                let (typed, types) = match ast {
+                    state::Ast::Program(program) => analyze::analyze(&context, program.clone())
+                        .map(|(typed, types)| (state::Ast::Program(typed), types)),
+
+                    state::Ast::Typings(program) => analyze::analyze(&context, program.clone())
+                        .map(|(typed, types)| (state::Ast::Typings(typed), types)),
+                }
+                .unwrap_or_else(|_| unimplemented!("need to handle errors"));
 
                 modules.keys.insert(namespace, namespace_id);
                 modules
                     .by_key
-                    .insert(namespace_id, (*typed.0.id(), typed.exports(), types));
+                    .insert(namespace_id, (*typed.id(), typed.exports(), types));
                 analyzed.insert(link.clone(), state::Module::new(*id, text.clone(), typed));
             }
 
@@ -338,8 +356,12 @@ where
             Ok(state) => Ok(state
                 .modules
                 .iter()
-                .map(|(key, state::Module { ast, .. })| {
-                    generator.generate(&key.to_path(), ast.clone().to_shape())
+                .filter_map(|(key, state::Module { ast, .. })| {
+                    if let state::Ast::Program(program) = ast {
+                        Some(generator.generate(&key.to_path(), program.clone().to_shape()))
+                    } else {
+                        None
+                    }
                 })
                 .collect()),
 

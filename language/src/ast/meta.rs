@@ -386,6 +386,17 @@ where
     }
 }
 
+impl<Visitor, Meta> Walk<Visitor> for Program<Meta>
+where
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
+{
+    type Output = Visitor::Module;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        self.0.walk(v)
+    }
+}
+
 /* type declaration */
 
 type TypeDeclarationValue<Meta> = super::TypeDeclaration<Binding, TypeExpression<Meta>>;
@@ -478,5 +489,16 @@ where
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         self.clone().to_shape().fmt(f)
+    }
+}
+
+impl<Visitor, Meta> Walk<Visitor> for Typings<Meta>
+where
+    Visitor: TypingsVisitor<Context = (Range, Meta)>,
+{
+    type Output = Visitor::TypeModule;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        self.0.walk(v)
     }
 }

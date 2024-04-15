@@ -140,6 +140,12 @@ impl<Binding, TypeExpression> TypeDeclaration<Binding, TypeExpression> {
             attributes,
         }
     }
+
+    pub const fn binding(&self) -> &Binding {
+        match self {
+            Self::TypeAlias { binding, .. } | Self::View { binding, .. } => binding,
+        }
+    }
 }
 
 impl<Visitor, Context, Binding, TypeExpression> Walk<Visitor>

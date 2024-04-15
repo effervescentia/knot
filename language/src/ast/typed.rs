@@ -41,3 +41,14 @@ impl Program {
 pub type TypeDeclaration = super::meta::TypeDeclaration<Meta>;
 pub type TypeModule = super::meta::TypeModule<Meta>;
 pub type Typings = super::meta::Typings<Meta>;
+
+impl Typings {
+    pub fn exports(&self) -> HashMap<String, CanonicalId> {
+        let Self(super::meta::TypeModule(Node(super::TypeModule { declarations }, ..), ..)) = self;
+
+        declarations
+            .iter()
+            .map(|x| (x.0.value().binding().0.value().0.clone(), x.0.meta().0))
+            .collect()
+    }
+}

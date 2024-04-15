@@ -1,10 +1,44 @@
 use crate::{link::ImportGraph, Link, Result};
 use bimap::BiMap;
-use lang::ast;
+use lang::{ast, CanonicalId, Identify, NamespaceId};
 use std::{
     collections::HashMap,
+    fmt::{Display, Pointer},
     path::{Path, PathBuf},
 };
+
+pub enum Ast<Meta> {
+    Program(ast::meta::Program<Meta>),
+    Typings(ast::meta::Typings<Meta>),
+}
+
+impl Ast<ast::typed::Meta> {
+    pub fn id(&self) -> &CanonicalId {
+        match self {
+            Self::Program(x) => x.0.id(),
+            Self::Typings(x) => x.0.id(),
+        }
+    }
+
+    pub fn exports(&self) -> HashMap<String, CanonicalId> {
+        match self {
+            Self::Program(x) => x.exports(),
+            Self::Typings(x) => x.exports(),
+        }
+    }
+}
+
+impl<Meta> Display for Ast<Meta>
+where
+    Meta: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::Program(x) => x.fmt(f),
+            Self::Typings(x) => x.fmt(f),
+        }
+    }
+}
 
 pub trait Modules<'a> {
     type Meta: 'a;
@@ -14,13 +48,13 @@ pub trait Modules<'a> {
 }
 
 pub struct Module<T> {
-    pub id: usize,
+    pub id: NamespaceId,
     pub text: String,
-    pub ast: ast::meta::Program<T>,
+    pub ast: Ast<T>,
 }
 
 impl<T> Module<T> {
-    pub const fn new(id: usize, text: String, ast: ast::meta::Program<T>) -> Self {
+    pub const fn new(id: NamespaceId, text: String, ast: Ast<T>) -> Self {
         Self { id, text, ast }
     }
 }
@@ -70,7 +104,7 @@ impl<'a> FromGlob<'a> {
 
 pub struct Parsed {
     pub modules: HashMap<Link, Module<()>>,
-    pub lookup: BiMap<Link, usize>,
+    pub lookup: BiMap<Link, NamespaceId>,
 }
 
 impl<'a> Modules<'a> for Parsed {
@@ -96,7 +130,7 @@ impl<'a> Modules<'a> for Result<Parsed> {
 
 pub struct Linked {
     pub modules: HashMap<Link, Module<()>>,
-    pub lookup: BiMap<Link, usize>,
+    pub lookup: BiMap<Link, NamespaceId>,
     pub graph: ImportGraph,
 }
 
@@ -123,7 +157,7 @@ impl<'a> Modules<'a> for Result<Linked> {
 
 pub struct Analyzed {
     pub modules: HashMap<Link, Module<ast::typed::Meta>>,
-    pub lookup: BiMap<Link, usize>,
+    pub lookup: BiMap<Link, NamespaceId>,
     pub graph: ImportGraph,
 }
 

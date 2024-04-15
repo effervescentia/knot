@@ -36,7 +36,7 @@ pub struct State<'a> {
 impl<'a> State<'a> {
     /// create a new `State` from the output of the weak inference phase and the analysis `Context`
     pub fn from_weak(context: &'a Context, mut weak: weak::Output<'a>) -> Self {
-        let nodes = weak.build_descriptors(context.namespace_id);
+        let nodes = weak.build_descriptors(context.id);
 
         Self {
             context,
@@ -80,7 +80,7 @@ impl<'a> State<'a> {
     }
 
     pub fn is_local(&self, id: &CanonicalId) -> bool {
-        id.0 == self.context.namespace_id
+        id.0 == self.context.id
     }
 
     /// resolve the type of a canonical node ID in the scope of the entire program
@@ -200,6 +200,6 @@ impl<'a> State<'a> {
 
 impl<'a> Canonicalize for State<'a> {
     fn canonicalize(&self, id: NodeId) -> CanonicalId {
-        CanonicalId(self.context.namespace_id, id)
+        CanonicalId(self.context.id, id)
     }
 }

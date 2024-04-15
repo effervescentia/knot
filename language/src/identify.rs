@@ -102,3 +102,21 @@ where
         self.0.id()
     }
 }
+
+impl<Meta> Identify for ast::meta::TypeDeclaration<Meta>
+where
+    Meta: Identify,
+{
+    fn id(&self) -> &CanonicalId {
+        self.0.id()
+    }
+}
+
+impl<Meta> Identify for ast::meta::TypeModule<Meta>
+where
+    Meta: Identify,
+{
+    fn id(&self) -> &CanonicalId {
+        self.0.id()
+    }
+}

@@ -1,5 +1,6 @@
 use super::ImportGraph;
 use kore::{invariant, str};
+use lang::NamespaceId;
 use std::{
     collections::HashSet,
     fmt::{Display, Formatter, Write},
@@ -48,7 +49,11 @@ impl Tree {
         }
     }
 
-    fn from_graph(root: usize, graph: &ImportGraph, visited: &mut HashSet<usize>) -> Self {
+    fn from_graph(
+        root: NamespaceId,
+        graph: &ImportGraph,
+        visited: &mut HashSet<NamespaceId>,
+    ) -> Self {
         if visited.contains(&root) {
             return Self::from_root(format!("cycle({root})"));
         }
@@ -309,6 +314,7 @@ impl Display for Block {
 mod tests {
     use super::ImportGraph;
     use kore::{assert_str_eq, str};
+    use lang::NamespaceId;
 
     #[test]
     fn empty() {
@@ -319,7 +325,7 @@ mod tests {
 
     #[test]
     fn roots() {
-        let graph = ImportGraph::from_nodes(&[0, 1, 2]);
+        let graph = ImportGraph::from_nodes(&[NamespaceId(0), NamespaceId(1), NamespaceId(2)]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -330,7 +336,11 @@ mod tests {
 
     #[test]
     fn deep() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (1, 2), (2, 3)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(2), NamespaceId(3)),
+        ]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -347,7 +357,10 @@ mod tests {
 
     #[test]
     fn branching() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (0, 2)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(0), NamespaceId(2)),
+        ]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -361,7 +374,12 @@ mod tests {
 
     #[test]
     fn wide() {
-        let graph = ImportGraph::from_edges(&[(0, 1), (0, 2), (0, 3), (1, 6)]);
+        let graph = ImportGraph::from_edges(&[
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(0), NamespaceId(2)),
+            (NamespaceId(0), NamespaceId(3)),
+            (NamespaceId(1), NamespaceId(6)),
+        ]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -378,14 +396,14 @@ mod tests {
     #[test]
     fn cyclic() {
         let graph = ImportGraph::from_edges(&[
-            (0, 1),
-            (1, 2),
-            (1, 6),
-            (2, 0),
-            (3, 4),
-            (4, 3),
-            (5, 6),
-            (6, 1),
+            (NamespaceId(0), NamespaceId(1)),
+            (NamespaceId(1), NamespaceId(2)),
+            (NamespaceId(1), NamespaceId(6)),
+            (NamespaceId(2), NamespaceId(0)),
+            (NamespaceId(3), NamespaceId(4)),
+            (NamespaceId(4), NamespaceId(3)),
+            (NamespaceId(5), NamespaceId(6)),
+            (NamespaceId(6), NamespaceId(1)),
         ]);
 
         assert_str_eq!(

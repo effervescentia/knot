@@ -6,19 +6,24 @@ mod import;
 mod module;
 mod parameter;
 mod statement;
+mod type_declaration;
 mod type_expression;
+mod type_module;
 
 use crate::{error::Error, Result};
 use lang::{
     ast,
-    walk::{CommonVisitor, ProgramVisitor, Walk},
+    walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     Identify, Node, NodeId, Range,
 };
 
-pub fn analyze(typed: ast::typed::Program) -> Result<ast::typed::Program> {
+pub fn analyze<Typed>(typed: Typed) -> Result<Typed>
+where
+    Typed: Clone + Walk<Visitor>,
+{
     let visitor = Visitor::default();
 
-    let (_, visitor) = typed.0.clone().walk(visitor);
+    let (_, visitor) = typed.clone().walk(visitor);
 
     if visitor.errors.is_empty() {
         Ok(typed)
@@ -161,5 +166,30 @@ impl ProgramVisitor for Visitor {
         self.report(&x, &ctx, module::analyze);
 
         self.node(x, ctx, ast::meta::Module)
+    }
+}
+
+impl TypingsVisitor for Visitor {
+    type TypeDeclaration = ast::typed::TypeDeclaration;
+    type TypeModule = ast::typed::TypeModule;
+
+    fn type_declaration(
+        mut self,
+        x: ast::TypeDeclaration<Self::Binding, Self::TypeExpression>,
+        ctx: Self::Context,
+    ) -> (Self::TypeDeclaration, Self) {
+        self.report(&x, &ctx, type_declaration::analyze);
+
+        self.node(x, ctx, ast::meta::TypeDeclaration)
+    }
+
+    fn type_module(
+        mut self,
+        x: ast::TypeModule<Self::TypeDeclaration>,
+        ctx: Self::Context,
+    ) -> (Self::TypeModule, Self) {
+        self.report(&x, &ctx, type_module::analyze);
+
+        self.node(x, ctx, ast::meta::TypeModule)
     }
 }
