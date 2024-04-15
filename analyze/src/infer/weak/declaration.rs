@@ -3,8 +3,8 @@ use super::{
     to_weak::ToWeak,
 };
 use lang::{
-    ast,
-    types::{self, Enumerated, Kind},
+    ast::{self, ObjectTypeExpressionEntry},
+    types::{self, Enumerated, Kind, ObjectTypeEntry},
     NodeId,
 };
 
@@ -29,7 +29,30 @@ impl ToWeak for ast::Parameter<String, NodeId, NodeId> {
     }
 }
 
-impl ToWeak for ast::TypeExpression<NodeId> {
+fn object_to_weak(entries: &[ObjectTypeExpressionEntry<String, NodeId>]) -> Type {
+    let result = entries
+        .iter()
+        .map(|entry| match entry {
+            ObjectTypeExpressionEntry::Required(name, x) => {
+                Some(ObjectTypeEntry::Required(name.clone(), *x))
+            }
+
+            ObjectTypeExpressionEntry::Optional(name, x) => {
+                Some(ObjectTypeEntry::Optional(name.clone(), *x))
+            }
+
+            ObjectTypeExpressionEntry::Spread(_) => None,
+        })
+        .collect::<Option<Vec<_>>>();
+
+    if let Some(entries) = result {
+        Type::Value(types::Type::Object(entries))
+    } else {
+        Type::Infer(Inference::ObjectType(entries.to_vec()))
+    }
+}
+
+impl ToWeak for ast::TypeExpression<String, NodeId> {
     fn to_weak(&self) -> Weak {
         (
             Kind::Type,
@@ -55,6 +78,8 @@ impl ToWeak for ast::TypeExpression<NodeId> {
                 Self::Function(params, x) => {
                     Type::Value(types::Type::Function(params.clone(), **x))
                 }
+
+                Self::Object(entries) => object_to_weak(entries),
             },
         )
     }
@@ -208,6 +233,44 @@ mod tests {
             (
                 Kind::Type,
                 Type::Value(types::Type::Function(vec![NodeId(1), NodeId(2)], NodeId(3)))
+            )
+        );
+    }
+
+    #[test]
+    fn type_expression_object_known_properties() {
+        assert_eq!(
+            ast::TypeExpression::Object(vec![
+                ast::ObjectTypeExpressionEntry::Required(str!("foo"), NodeId(1)),
+                ast::ObjectTypeExpressionEntry::Optional(str!("bar"), NodeId(2)),
+            ])
+            .to_weak(),
+            (
+                Kind::Type,
+                Type::Value(types::Type::Object(vec![
+                    types::ObjectTypeEntry::Required(str!("foo"), NodeId(1)),
+                    types::ObjectTypeEntry::Optional(str!("bar"), NodeId(2)),
+                ]))
+            )
+        );
+    }
+
+    #[test]
+    fn type_expression_object_inferred_properties() {
+        assert_eq!(
+            ast::TypeExpression::Object(vec![
+                ast::ObjectTypeExpressionEntry::Required(str!("foo"), NodeId(1)),
+                ast::ObjectTypeExpressionEntry::Optional(str!("bar"), NodeId(2)),
+                ast::ObjectTypeExpressionEntry::Spread(NodeId(3)),
+            ])
+            .to_weak(),
+            (
+                Kind::Type,
+                Type::Infer(Inference::ObjectType(vec![
+                    ast::ObjectTypeExpressionEntry::Required(str!("foo"), NodeId(1)),
+                    ast::ObjectTypeExpressionEntry::Optional(str!("bar"), NodeId(2)),
+                    ast::ObjectTypeExpressionEntry::Spread(NodeId(3)),
+                ]))
             )
         );
     }

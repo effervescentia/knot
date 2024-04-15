@@ -70,6 +70,7 @@ pub fn analyze(
 
         Expression::PropertyAccess(..) => None,
 
+        // Expression::FunctionCall(_, arguments) => None,
         Expression::FunctionCall(x, arguments) => match x.type_of() {
             Type::Function(parameters, _)
             | Type::Enumerated(Enumerated::Variant(parameters, _)) => {
@@ -99,8 +100,7 @@ pub fn analyze(
                             errors.push(Error::MissingArgument(*parameter.id()));
                         }
 
-                        // this case is not possible
-                        (None, None) => (),
+                        (None, None) => break,
                     }
                 }
 

@@ -15,9 +15,9 @@ parse = { package = "knot_parse", path = "../parse" }
 analyze = { package = "knot_analyze", path = "../analyze" }
 
 [dev-dependencies]
+knot_engine = { path = ".", features = ["test"] }
 tempfile = "3.8.0"
 kore = { package = "knot_core", path = "../kore", features = ["test"] }
-knot_engine = { path = ".", features = ["test"] }
 
 [features]
 test = []

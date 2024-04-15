@@ -4,21 +4,77 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "language::debug",
+      "name": "debug:lang",
       "cargo": {
         "args": [
           "test",
-          "--no-run",
           "--lib",
-          "--package=knot_language"
+          "--all-features",
+          "--no-run"
         ],
         "filter": {
-          "name": "knot_language",
-          "kind": "lib"
+          "kind": "lib",
+          "name": "knot_language"
         }
       },
       "args": [],
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceRoot}",
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "debug:parse",
+      "cargo": {
+        "args": [
+          "test",
+          "--lib",
+          "--all-features",
+          "--no-run"
+        ],
+        "filter": {
+          "kind": "lib",
+          "name": "knot_parse"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceRoot}",
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "debug:analyze",
+      "cargo": {
+        "args": [
+          "test",
+          "--lib",
+          "--all-features",
+          "--no-run"
+        ],
+        "filter": {
+          "kind": "lib",
+          "name": "knot_analyze"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceRoot}",
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "debug:semantic_errors_test",
+      "cargo": {
+        "args": [
+          "test",
+          "--all-features",
+          "--no-run"
+        ],
+        "filter": {
+          "kind": "test",
+          "name": "semantic_errors_test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceRoot}",
     }
   ]
 }

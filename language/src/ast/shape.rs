@@ -28,7 +28,7 @@ impl Display for Component {
     }
 }
 
-pub struct TypeExpression(pub super::TypeExpression<TypeExpression>);
+pub struct TypeExpression(pub super::TypeExpression<String, TypeExpression>);
 
 impl Display for TypeExpression {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
@@ -144,7 +144,7 @@ impl<Context> Visit for Visitor<Context> {
 
     fn type_expression(
         self,
-        x: super::TypeExpression<Self::TypeExpression>,
+        x: super::TypeExpression<Self::Binding, Self::TypeExpression>,
         _: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         (TypeExpression(x), self)

@@ -116,7 +116,7 @@ impl<Context> Visit for Visitor<Context> {
 
     fn type_expression(
         self,
-        x: ast::TypeExpression<Self::TypeExpression>,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
         _: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         (ast::meta::TypeExpression(Node::raw(x, Range::nil())), self)

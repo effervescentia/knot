@@ -13,6 +13,7 @@ pub enum Inference {
     Arithmetic(ast::BinaryOperator, NodeId, NodeId),
     Product(NodeId),
     Import(ast::ImportSource, Vec<String>, Option<String>),
+    ObjectType(Vec<ast::ObjectTypeExpressionEntry<String, NodeId>>),
     Module(Vec<NodeId>),
     Parameter,
 }

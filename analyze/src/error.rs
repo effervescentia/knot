@@ -37,6 +37,23 @@ pub enum Error {
         String,
     ),
 
+    PropertyNotFound(
+        // id of the object
+        CanonicalId,
+        // name of the expected property
+        String,
+    ),
+
+    DuplicateProperty(
+        // name of the duplicate property
+        String,
+    ),
+
+    NotSpreadable(
+        // id of the expression being spread
+        CanonicalId,
+    ),
+
     /* function-related */
     NotCallable(
         // id of the node being called

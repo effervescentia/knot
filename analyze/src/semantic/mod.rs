@@ -98,7 +98,7 @@ impl Visit for Visitor {
 
     fn type_expression(
         mut self,
-        x: ast::TypeExpression<Self::TypeExpression>,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
         ctx: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         self.report(&x, &ctx, type_expression::analyze);

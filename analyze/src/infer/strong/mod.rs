@@ -5,6 +5,7 @@ mod inherit;
 #[cfg(test)]
 mod mock;
 mod module;
+mod object;
 mod partial;
 mod product;
 mod property;

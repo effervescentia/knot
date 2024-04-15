@@ -121,7 +121,7 @@ impl<Context> Visit for Visitor<Context> {
 
     fn type_expression(
         self,
-        x: super::TypeExpression<Self::TypeExpression>,
+        x: super::TypeExpression<Self::Binding, Self::TypeExpression>,
         _: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         self.capture(Fragment::TypeExpression(x))

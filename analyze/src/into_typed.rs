@@ -102,7 +102,7 @@ impl<'a, Meta> Visit for Visitor<'a, Meta> {
 
     fn type_expression(
         self,
-        x: ast::TypeExpression<Self::TypeExpression>,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
         (r, _): Self::Context,
     ) -> (Self::TypeExpression, Self) {
         self.typed(x, r, ast::meta::TypeExpression)

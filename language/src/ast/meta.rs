@@ -19,6 +19,10 @@ impl Binding {
     pub fn mock(x: &str) -> Self {
         Self::new(super::Binding(x.to_owned()), Range::nil())
     }
+
+    pub fn name(&self) -> &str {
+        &self.0.value().0
+    }
 }
 
 impl<Visitor, Meta> Walk<Visitor> for Binding
@@ -141,21 +145,21 @@ where
 /* type expression */
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct TypeExpression<Meta>(pub Node<super::TypeExpression<Self>, Meta>);
+pub struct TypeExpression<Meta>(pub Node<super::TypeExpression<Binding, Self>, Meta>);
 
 impl<Meta> TypeExpression<Meta> {
-    pub fn typed(v: super::TypeExpression<Self>, m: Meta) -> Self {
+    pub fn typed(v: super::TypeExpression<Binding, Self>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
 
 impl TypeExpression<()> {
-    pub const fn raw(x: super::TypeExpression<Self>, range: Range) -> Self {
+    pub const fn raw(x: super::TypeExpression<Binding, Self>, range: Range) -> Self {
         Self(Node::raw(x, range))
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::TypeExpression<Self>) -> Self {
+    pub fn mock(x: super::TypeExpression<Binding, Self>) -> Self {
         Self::raw(x, Range::nil())
     }
 }

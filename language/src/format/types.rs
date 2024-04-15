@@ -1,20 +1,45 @@
 use crate::ast;
-use kore::format::{SeparateEach, TerminateEach};
-use std::fmt::{Display, Formatter};
+use kore::format::{indented, SeparateEach, TerminateEach};
+use std::fmt::{Display, Formatter, Write};
 
-impl<TypeExpression_> Display for ast::TypeExpression<TypeExpression_>
+impl Display for ast::TypePrimitive {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            Self::Nil => write!(f, "nil"),
+            Self::Boolean => write!(f, "boolean"),
+            Self::Integer => write!(f, "integer"),
+            Self::Float => write!(f, "float"),
+            Self::String => write!(f, "string"),
+            Self::Style => write!(f, "style"),
+            Self::Element => write!(f, "element"),
+        }
+    }
+}
+
+impl<Binding, TypeExpression> Display for ast::ObjectTypeExpressionEntry<Binding, TypeExpression>
 where
-    TypeExpression_: Display,
+    Binding: Display,
+    TypeExpression: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            Self::Primitive(ast::TypePrimitive::Nil) => write!(f, "nil"),
-            Self::Primitive(ast::TypePrimitive::Boolean) => write!(f, "boolean"),
-            Self::Primitive(ast::TypePrimitive::Integer) => write!(f, "integer"),
-            Self::Primitive(ast::TypePrimitive::Float) => write!(f, "float"),
-            Self::Primitive(ast::TypePrimitive::String) => write!(f, "string"),
-            Self::Primitive(ast::TypePrimitive::Style) => write!(f, "style"),
-            Self::Primitive(ast::TypePrimitive::Element) => write!(f, "element"),
+            Self::Required(binding, x) => write!(f, "{binding}: {x}"),
+
+            Self::Optional(binding, x) => write!(f, "{binding}?: {x}"),
+
+            Self::Spread(x) => write!(f, "...{x}"),
+        }
+    }
+}
+
+impl<Binding, TypeExpression> Display for ast::TypeExpression<Binding, TypeExpression>
+where
+    Binding: Display,
+    TypeExpression: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            Self::Primitive(x) => write!(f, "{x}"),
 
             Self::Identifier(x) => write!(f, "{x}"),
 
@@ -28,6 +53,20 @@ where
                     "({parameters}) -> {result}",
                     parameters = SeparateEach(", ", parameters)
                 )
+            }
+
+            Self::Object(entries) if entries.is_empty() => {
+                write!(f, "{{}}")
+            }
+
+            Self::Object(entries) => {
+                writeln!(f, "{{")?;
+                write!(
+                    indented(f),
+                    "{entries}",
+                    entries = TerminateEach(",\n", entries)
+                )?;
+                write!(f, "}}")
             }
         }
     }
@@ -200,6 +239,43 @@ mod tests {
             ))
             .to_string(),
             "(nil, nil) -> nil"
+        );
+    }
+
+    #[test]
+    fn empty_object() {
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Object(vec![])).to_string(),
+            "{}"
+        );
+    }
+
+    #[test]
+    fn object() {
+        assert_eq!(
+            ast::shape::TypeExpression(ast::TypeExpression::Object(vec![
+                ast::ObjectTypeExpressionEntry::Required(
+                    str!("foo"),
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Integer
+                    ))
+                ),
+                ast::ObjectTypeExpressionEntry::Optional(
+                    str!("bar"),
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Boolean
+                    ))
+                ),
+                ast::ObjectTypeExpressionEntry::Spread(ast::shape::TypeExpression(
+                    ast::TypeExpression::Identifier(str!("fizz"))
+                ))
+            ]))
+            .to_string(),
+            "{
+  foo: integer,
+  bar?: boolean,
+  ...fizz,
+}"
         );
     }
 

@@ -44,8 +44,48 @@ impl<T> Enumerated<T> {
         }
     }
 
+    pub fn opt_map<R, F>(&self, f: &F) -> Option<Enumerated<R>>
+    where
+        F: Fn(&T) -> Option<R>,
+    {
+        match self {
+            Self::Declaration(variants) => Some(Enumerated::Declaration(
+                variants
+                    .iter()
+                    .map(|(name, parameters)| {
+                        Some((
+                            name.clone(),
+                            parameters.iter().map(f).collect::<Option<Vec<_>>>()?,
+                        ))
+                    })
+                    .collect::<Option<Vec<_>>>()?,
+            )),
+
+            Self::Variant(parameters, instance) => Some(Enumerated::Variant(
+                parameters.iter().map(f).collect::<Option<Vec<_>>>()?,
+                f(instance)?,
+            )),
+
+            Self::Instance(x) => Some(Enumerated::Instance(f(x)?)),
+        }
+    }
+
     pub fn to_shape(&self) -> Enumerated<()> {
         self.map(&|_| ())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ObjectTypeEntry<T> {
+    Required(String, T),
+    Optional(String, T),
+}
+
+impl<T> ObjectTypeEntry<T> {
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Required(name, _) | Self::Optional(name, _) => name,
+        }
     }
 }
 
@@ -61,6 +101,7 @@ pub enum Type<T> {
 
     Enumerated(Enumerated<T>),
     Function(Vec<T>, T),
+    Object(Vec<ObjectTypeEntry<T>>),
     View(Vec<T>),
     Module(Vec<(String, Kind, T)>),
 }
@@ -85,6 +126,21 @@ impl<T> Type<T> {
                 Type::Function(parameters.iter().map(f).collect(), f(result))
             }
 
+            Self::Object(entries) => Type::Object(
+                entries
+                    .iter()
+                    .map(|entry| match entry {
+                        ObjectTypeEntry::Required(name, x) => {
+                            ObjectTypeEntry::Required(name.clone(), f(x))
+                        }
+
+                        ObjectTypeEntry::Optional(name, x) => {
+                            ObjectTypeEntry::Optional(name.clone(), f(x))
+                        }
+                    })
+                    .collect(),
+            ),
+
             Self::View(parameters) => Type::View(parameters.iter().map(f).collect()),
 
             Self::Module(declarations) => Type::Module(
@@ -93,6 +149,54 @@ impl<T> Type<T> {
                     .map(|(name, kind, x)| (name.clone(), *kind, f(x)))
                     .collect(),
             ),
+        }
+    }
+
+    pub fn opt_map<R, F>(&self, f: &F) -> Option<Type<R>>
+    where
+        F: Fn(&T) -> Option<R>,
+    {
+        match self {
+            Self::Nil => Some(Type::Nil),
+            Self::Boolean => Some(Type::Boolean),
+            Self::Integer => Some(Type::Integer),
+            Self::Float => Some(Type::Float),
+            Self::String => Some(Type::String),
+            Self::Style => Some(Type::Style),
+            Self::Element => Some(Type::Element),
+
+            Self::Enumerated(x) => Some(Type::Enumerated(x.opt_map(f)?)),
+
+            Self::Function(parameters, result) => Some(Type::Function(
+                parameters.iter().map(f).collect::<Option<Vec<_>>>()?,
+                f(result)?,
+            )),
+
+            Self::Object(entries) => Some(Type::Object(
+                entries
+                    .iter()
+                    .map(|entry| match entry {
+                        ObjectTypeEntry::Required(name, x) => {
+                            Some(ObjectTypeEntry::Required(name.clone(), f(x)?))
+                        }
+
+                        ObjectTypeEntry::Optional(name, x) => {
+                            Some(ObjectTypeEntry::Optional(name.clone(), f(x)?))
+                        }
+                    })
+                    .collect::<Option<Vec<_>>>()?,
+            )),
+
+            Self::View(parameters) => Some(Type::View(
+                parameters.iter().map(f).collect::<Option<Vec<_>>>()?,
+            )),
+
+            Self::Module(declarations) => Some(Type::Module(
+                declarations
+                    .iter()
+                    .map(|(name, kind, x)| Some((name.clone(), *kind, f(x)?)))
+                    .collect::<Option<Vec<_>>>()?,
+            )),
         }
     }
 

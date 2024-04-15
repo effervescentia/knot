@@ -6,7 +6,7 @@ pub trait IsInline {
     fn is_inline(&self) -> bool;
 }
 
-impl<Component_, Expression> IsInline for ast::Component<Component_, Expression> {
+impl<Component, Expression> IsInline for ast::Component<Component, Expression> {
     fn is_inline(&self) -> bool {
         matches!(self, Self::Text(_) | Self::Expression(_))
     }

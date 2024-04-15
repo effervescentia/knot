@@ -10,10 +10,9 @@ fn escape_string(s: &str) -> String {
         .replace('\r', "\\r")
 }
 
-impl<Expression_, Statement, Component> Display
-    for ast::Expression<Expression_, Statement, Component>
+impl<Expression, Statement, Component> Display for ast::Expression<Expression, Statement, Component>
 where
-    Expression_: Display,
+    Expression: Display,
     Statement: Display,
     Component: Display,
 {

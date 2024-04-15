@@ -41,7 +41,7 @@ pub trait Visit: Sized {
 
     fn type_expression(
         self,
-        x: ast::TypeExpression<Self::TypeExpression>,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
         c: Self::Context,
     ) -> (Self::TypeExpression, Self);
 

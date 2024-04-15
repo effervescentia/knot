@@ -1,4 +1,4 @@
-use crate::walk::{Visit, Walk};
+use crate::walk::{Visit, Walk, WalkEach};
 use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -13,17 +13,69 @@ pub enum TypePrimitive {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum TypeExpression<TypeExpression_> {
+pub enum ObjectTypeExpressionEntry<Binding, TypeExpression> {
+    Required(Binding, TypeExpression),
+    Optional(Binding, TypeExpression),
+    Spread(TypeExpression),
+}
+
+impl<Binding, TypeExpression> ObjectTypeExpressionEntry<Binding, TypeExpression> {
+    pub const fn binding(&self) -> Option<&Binding> {
+        match self {
+            Self::Required(binding, _) | Self::Optional(binding, _) => Some(binding),
+
+            Self::Spread(_) => None,
+        }
+    }
+}
+
+impl<Visitor, Context, Binding, TypeExpression> Walk<Visitor>
+    for ObjectTypeExpressionEntry<Binding, TypeExpression>
+where
+    Visitor: Visit<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
+    TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
+{
+    type Output = ObjectTypeExpressionEntry<Visitor::Binding, Visitor::TypeExpression>;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        match self {
+            Self::Required(binding, x) => {
+                let ((binding, x), v) = (binding, x).walk_each(v);
+
+                (ObjectTypeExpressionEntry::Required(binding, x), v)
+            }
+
+            Self::Optional(binding, x) => {
+                let ((binding, x), v) = (binding, x).walk_each(v);
+
+                (ObjectTypeExpressionEntry::Optional(binding, x), v)
+            }
+
+            Self::Spread(x) => {
+                let (x, v) = x.walk(v);
+
+                (ObjectTypeExpressionEntry::Spread(x), v)
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum TypeExpression<Binding, TypeExpression_> {
     Primitive(TypePrimitive),
     Identifier(String),
     Group(Box<TypeExpression_>),
     PropertyAccess(Box<TypeExpression_>, String),
     Function(Vec<TypeExpression_>, Box<TypeExpression_>),
+    Object(Vec<ObjectTypeExpressionEntry<Binding, TypeExpression_>>),
 }
 
-impl<Visitor, Context, TypeExpression_> Walk<Visitor> for (TypeExpression<TypeExpression_>, Context)
+impl<Visitor, Context, Binding, TypeExpression_> Walk<Visitor>
+    for (TypeExpression<Binding, TypeExpression_>, Context)
 where
     Visitor: Visit<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
     TypeExpression_: Walk<Visitor, Output = Visitor::TypeExpression>,
 {
     type Output = Visitor::TypeExpression;
@@ -63,6 +115,12 @@ where
                     super::TypeExpression::Function(parameters, Box::new(x)),
                     ctx,
                 )
+            }
+
+            super::TypeExpression::Object(entries) => {
+                let (entries, v) = entries.walk(v);
+
+                v.type_expression(super::TypeExpression::Object(entries), ctx)
             }
         }
     }

@@ -8,7 +8,7 @@ pub enum Fragment {
     Component(ast::Component<NodeId, NodeId>),
     Parameter(ast::Parameter<String, NodeId, NodeId>),
     Declaration(ast::Declaration<String, NodeId, NodeId, NodeId, NodeId>),
-    TypeExpression(ast::TypeExpression<NodeId>),
+    TypeExpression(ast::TypeExpression<String, NodeId>),
     Import(ast::Import),
     Module(ast::Module<NodeId, NodeId>),
 }
