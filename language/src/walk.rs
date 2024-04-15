@@ -5,6 +5,7 @@ pub trait Visit: Sized {
     type Binding;
     type Expression;
     type Statement;
+    type Attribute;
     type Component;
     type TypeExpression;
     type Parameter;
@@ -33,9 +34,15 @@ pub trait Visit: Sized {
         c: Self::Context,
     ) -> (Self::Statement, Self);
 
+    fn attribute(
+        self,
+        x: ast::Attribute<Self::Expression>,
+        c: Self::Context,
+    ) -> (Self::Attribute, Self);
+
     fn component(
         self,
-        x: ast::Component<Self::Component, Self::Expression>,
+        x: ast::Component<Self::Component, Self::Expression, Self::Attribute>,
         c: Self::Context,
     ) -> (Self::Component, Self);
 

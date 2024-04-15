@@ -1,5 +1,5 @@
 use crate::ast;
-use kore::format::{indented, SeparateEach, TerminateEach};
+use kore::format::{indented, SeparateEach, SuffixEach};
 use std::fmt::{Display, Formatter, Write};
 
 impl Display for ast::TypePrimitive {
@@ -64,7 +64,7 @@ where
                 write!(
                     indented(f),
                     "{entries}",
-                    entries = TerminateEach(",\n", entries)
+                    entries = SuffixEach(",\n", entries)
                 )?;
                 write!(f, "}}")
             }
@@ -101,7 +101,7 @@ where
         write!(
             f,
             "{declarations}",
-            declarations = TerminateEach("\n", &self.declarations)
+            declarations = SuffixEach("\n", &self.declarations)
         )
     }
 }

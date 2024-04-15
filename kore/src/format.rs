@@ -48,18 +48,37 @@ where
     }
 }
 
-pub struct TerminateEach<'a, T>(pub &'a str, pub &'a Vec<T>)
+pub struct PrefixEach<'a, T>(pub &'a str, pub &'a Vec<T>)
 where
     T: Display;
 
-impl<'a, T> Display for TerminateEach<'a, T>
+impl<'a, T> Display for PrefixEach<'a, T>
 where
     T: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        self.1
-            .iter()
-            .try_fold((), |_, x| write!(f, "{}{}", x, self.0))
+        for x in self.1 {
+            write!(f, "{}{}", self.0, x)?;
+        }
+
+        Ok(())
+    }
+}
+
+pub struct SuffixEach<'a, T>(pub &'a str, pub &'a Vec<T>)
+where
+    T: Display;
+
+impl<'a, T> Display for SuffixEach<'a, T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        for x in self.1 {
+            write!(f, "{}{}", x, self.0)?;
+        }
+
+        Ok(())
     }
 }
 

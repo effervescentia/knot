@@ -45,64 +45,61 @@ where
         let (value, ctx) = self;
 
         match value {
-            super::Expression::Primitive(x) => v.expression(super::Expression::Primitive(x), ctx),
+            Expression::Primitive(x) => v.expression(Expression::Primitive(x), ctx),
 
-            super::Expression::Identifier(x) => v.expression(super::Expression::Identifier(x), ctx),
+            Expression::Identifier(x) => v.expression(Expression::Identifier(x), ctx),
 
-            super::Expression::Group(x) => {
+            Expression::Group(x) => {
                 let (x, v) = x.walk(v);
 
-                v.expression(super::Expression::Group(Box::new(x)), ctx)
+                v.expression(Expression::Group(Box::new(x)), ctx)
             }
 
-            super::Expression::Closure(xs) => {
+            Expression::Closure(xs) => {
                 let (xs, v) = v.scoped(|v| xs.walk(v));
 
-                v.expression(super::Expression::Closure(xs), ctx)
+                v.expression(Expression::Closure(xs), ctx)
             }
 
-            super::Expression::UnaryOperation(op, x) => {
+            Expression::UnaryOperation(op, x) => {
                 let (x, v) = x.walk(v);
 
-                v.expression(super::Expression::UnaryOperation(op, Box::new(x)), ctx)
+                v.expression(Expression::UnaryOperation(op, Box::new(x)), ctx)
             }
 
-            super::Expression::BinaryOperation(op, l, r) => {
+            Expression::BinaryOperation(op, l, r) => {
                 let (l, v) = l.walk(v);
                 let (r, v) = r.walk(v);
 
                 v.expression(
-                    super::Expression::BinaryOperation(op, Box::new(l), Box::new(r)),
+                    Expression::BinaryOperation(op, Box::new(l), Box::new(r)),
                     ctx,
                 )
             }
 
-            super::Expression::PropertyAccess(x, property) => {
+            Expression::PropertyAccess(x, property) => {
                 let (x, v) = x.walk(v);
 
-                v.expression(
-                    super::Expression::PropertyAccess(Box::new(x), property),
-                    ctx,
-                )
+                v.expression(Expression::PropertyAccess(Box::new(x), property), ctx)
             }
 
-            super::Expression::FunctionCall(x, arguments) => {
+            Expression::FunctionCall(x, arguments) => {
                 let (x, v) = x.walk(v);
                 let (arguments, v) = arguments.walk(v);
 
-                v.expression(super::Expression::FunctionCall(Box::new(x), arguments), ctx)
+                v.expression(Expression::FunctionCall(Box::new(x), arguments), ctx)
             }
 
-            super::Expression::Component(x) => {
+            Expression::Component(x) => {
                 let (x, v) = x.walk(v);
 
-                v.expression(super::Expression::Component(Box::new(x)), ctx)
+                v.expression(Expression::Component(Box::new(x)), ctx)
             }
 
-            super::Expression::Style(xs) => {
+            Expression::Style(xs) => {
                 let (xs, v) = xs.walk(v);
 
-                v.expression(super::Expression::Style(xs), ctx)
+                v.expression(Expression::Style(xs), ctx)
             }
         }
     }
@@ -126,16 +123,16 @@ where
         let (value, ctx) = self;
 
         match value {
-            super::Statement::Expression(x) => {
+            Statement::Expression(x) => {
                 let (x, v) = x.walk(v);
 
-                v.statement(super::Statement::Expression(x), ctx)
+                v.statement(Statement::Expression(x), ctx)
             }
 
-            super::Statement::Variable(binding, x) => {
+            Statement::Variable(binding, x) => {
                 let (x, v) = x.walk(v);
 
-                v.statement(super::Statement::Variable(binding, x), ctx)
+                v.statement(Statement::Variable(binding, x), ctx)
             }
         }
     }

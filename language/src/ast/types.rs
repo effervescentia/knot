@@ -84,43 +84,33 @@ where
         let (value, ctx) = self;
 
         match value {
-            super::TypeExpression::Primitive(x) => {
-                v.type_expression(super::TypeExpression::Primitive(x), ctx)
-            }
+            TypeExpression::Primitive(x) => v.type_expression(TypeExpression::Primitive(x), ctx),
 
-            super::TypeExpression::Identifier(x) => {
-                v.type_expression(super::TypeExpression::Identifier(x), ctx)
-            }
+            TypeExpression::Identifier(x) => v.type_expression(TypeExpression::Identifier(x), ctx),
 
-            super::TypeExpression::Group(x) => {
+            TypeExpression::Group(x) => {
                 let (x, v) = x.walk(v);
 
-                v.type_expression(super::TypeExpression::Group(Box::new(x)), ctx)
+                v.type_expression(TypeExpression::Group(Box::new(x)), ctx)
             }
 
-            super::TypeExpression::PropertyAccess(x, property) => {
+            TypeExpression::PropertyAccess(x, property) => {
                 let (x, v) = x.walk(v);
 
-                v.type_expression(
-                    super::TypeExpression::PropertyAccess(Box::new(x), property),
-                    ctx,
-                )
+                v.type_expression(TypeExpression::PropertyAccess(Box::new(x), property), ctx)
             }
 
-            super::TypeExpression::Function(parameters, x) => {
+            TypeExpression::Function(parameters, x) => {
                 let (parameters, v) = parameters.walk(v);
                 let (x, v) = x.walk(v);
 
-                v.type_expression(
-                    super::TypeExpression::Function(parameters, Box::new(x)),
-                    ctx,
-                )
+                v.type_expression(TypeExpression::Function(parameters, Box::new(x)), ctx)
             }
 
-            super::TypeExpression::Object(entries) => {
+            TypeExpression::Object(entries) => {
                 let (entries, v) = entries.walk(v);
 
-                v.type_expression(super::TypeExpression::Object(entries), ctx)
+                v.type_expression(TypeExpression::Object(entries), ctx)
             }
         }
     }
@@ -163,6 +153,7 @@ impl<Declaration> TypeModule<Declaration> {
     }
 }
 
+// TODO: implement me
 // impl<Visitor, Context, Declaration> Walk<Visitor> for (TypeModule<Declaration>, Context)
 // where
 //     Visitor: Visit<Context = Context>,
@@ -173,7 +164,7 @@ impl<Declaration> TypeModule<Declaration> {
 
 //     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
 //         let (
-//             super::Module {
+//             Module {
 //                 imports,
 //                 declarations,
 //             },
@@ -182,7 +173,7 @@ impl<Declaration> TypeModule<Declaration> {
 //         let ((imports, declarations), v) = (imports, declarations).walk_each(v);
 
 //         v.module(
-//             super::Module {
+//             Module {
 //                 imports,
 //                 declarations,
 //             },

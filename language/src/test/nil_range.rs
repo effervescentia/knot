@@ -79,6 +79,7 @@ impl<Context> Visit for Visitor<Context> {
     type Binding = ast::raw::Binding;
     type Expression = ast::raw::Expression;
     type Statement = ast::raw::Statement;
+    type Attribute = ast::raw::Attribute;
     type Component = ast::raw::Component;
     type TypeExpression = ast::raw::TypeExpression;
     type Parameter = ast::raw::Parameter;
@@ -106,9 +107,17 @@ impl<Context> Visit for Visitor<Context> {
         (ast::meta::Statement(Node::raw(x, Range::nil())), self)
     }
 
+    fn attribute(
+        self,
+        x: ast::Attribute<Self::Expression>,
+        _: Self::Context,
+    ) -> (Self::Attribute, Self) {
+        (ast::meta::Attribute(Node::raw(x, Range::nil())), self)
+    }
+
     fn component(
         self,
-        x: ast::Component<Self::Component, Self::Expression>,
+        x: ast::Component<Self::Component, Self::Expression, Self::Attribute>,
         _: Self::Context,
     ) -> (Self::Component, Self) {
         (ast::meta::Component(Node::raw(x, Range::nil())), self)

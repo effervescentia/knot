@@ -1,6 +1,6 @@
 use crate::ast;
 use kore::{
-    format::{SeparateEach, TerminateEach},
+    format::{SeparateEach, SuffixEach},
     str,
 };
 use std::fmt::{Display, Formatter};
@@ -14,13 +14,13 @@ where
         write!(
             f,
             "{imports}{spacer}{declarations}",
-            imports = TerminateEach(";\n", &self.imports),
+            imports = SuffixEach(";\n", &self.imports),
             spacer = if self.imports.is_empty() || self.declarations.is_empty() {
                 ""
             } else {
                 "\n"
             },
-            declarations = TerminateEach("\n", &self.declarations)
+            declarations = SuffixEach("\n", &self.declarations)
         )
     }
 }

@@ -10,7 +10,7 @@ pub mod shape;
 pub mod typed;
 mod types;
 
-pub use component::Component;
+pub use component::{Attribute, Component};
 pub use declaration::{Binding, Declaration, Parameter, Storage, Visibility};
 pub use expression::{Expression, Primitive, Statement};
 pub use module::{Import, ImportSource, Module};

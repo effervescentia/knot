@@ -1,5 +1,5 @@
 use crate::ast;
-use kore::format::{indented, Block, Indented, SeparateEach, TerminateEach};
+use kore::format::{indented, Block, Indented, SeparateEach, SuffixEach};
 use std::fmt::{Display, Formatter, Write};
 
 fn escape_string(s: &str) -> String {
@@ -41,7 +41,7 @@ where
                 write!(
                     f,
                     "{{{statements}}}",
-                    statements = Indented(Block(TerminateEach("\n", xs)))
+                    statements = Indented(Block(SuffixEach("\n", xs)))
                 )
             }
 

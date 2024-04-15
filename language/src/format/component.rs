@@ -1,12 +1,14 @@
 use crate::ast;
-use kore::format::indented;
+use kore::format::{indented, PrefixEach};
 use std::fmt::{Display, Formatter, Write};
 
 pub trait IsInline {
     fn is_inline(&self) -> bool;
 }
 
-impl<Component, Expression> IsInline for ast::Component<Component, Expression> {
+impl<Component, Expression, Attribute> IsInline
+    for ast::Component<Component, Expression, Attribute>
+{
     fn is_inline(&self) -> bool {
         matches!(self, Self::Text(_) | Self::Expression(_))
     }
@@ -18,10 +20,26 @@ impl IsInline for ast::shape::Component {
     }
 }
 
-impl<Component, Expression> Display for ast::Component<Component, Expression>
+impl<Expression> Display for ast::Attribute<Expression>
+where
+    Expression: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            Self::Punned(name) => write!(f, "{name}"),
+
+            Self::Explicit(name, value) => {
+                write!(f, "{name}={value}")
+            }
+        }
+    }
+}
+
+impl<Component, Expression, Attribute> Display for ast::Component<Component, Expression, Attribute>
 where
     Component: Display + IsInline,
     Expression: Display,
+    Attribute: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
@@ -34,7 +52,7 @@ where
             Self::ClosedElement(tag, attributes) => write!(
                 f,
                 "<{tag}{attributes} />",
-                attributes = Attributes(attributes)
+                attributes = PrefixEach(" ", attributes)
             ),
 
             Self::OpenElement {
@@ -46,34 +64,10 @@ where
                 write!(
                     f,
                     "<{start_tag}{attributes}>{children}</{end_tag}>",
-                    attributes = Attributes(attributes),
+                    attributes = PrefixEach(" ", attributes),
                     children = Children(children)
                 )
             }
-        }
-    }
-}
-
-struct Attributes<'a, T>(&'a Vec<(String, Option<T>)>)
-where
-    T: Display;
-
-impl<'a, T> Display for Attributes<'a, T>
-where
-    T: Display,
-{
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        if self.0.is_empty() {
-            Ok(())
-        } else {
-            self.0.iter().try_fold((), |_, (key, value)| {
-                write!(f, " {key}")?;
-                if let Some(value) = value {
-                    write!(f, "={value}")
-                } else {
-                    Ok(())
-                }
-            })
         }
     }
 }
@@ -182,13 +176,11 @@ mod tests {
             ast::shape::Component(ast::Component::ClosedElement(
                 str!("foo"),
                 vec![
-                    (str!("fizz"), None),
-                    (
+                    ast::shape::Attribute(ast::Attribute::Punned(str!("fizz"))),
+                    ast::shape::Attribute(ast::Attribute::Explicit(
                         str!("buzz"),
-                        Some(ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        )))
-                    ),
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                    )),
                 ]
             ))
             .to_string(),
@@ -216,13 +208,11 @@ mod tests {
             ast::shape::Component(ast::Component::open_element(
                 str!("foo"),
                 vec![
-                    (str!("fizz"), None),
-                    (
+                    ast::shape::Attribute(ast::Attribute::Punned(str!("fizz"))),
+                    ast::shape::Attribute(ast::Attribute::Explicit(
                         str!("buzz"),
-                        Some(ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        )))
-                    ),
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
+                    )),
                 ],
                 vec![],
                 str!("foo"),

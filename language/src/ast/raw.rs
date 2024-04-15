@@ -3,6 +3,7 @@ pub use super::meta::Binding;
 pub type Storage = super::Storage<Binding>;
 pub type Expression = super::meta::Expression<()>;
 pub type Statement = super::meta::Statement<()>;
+pub type Attribute = super::meta::Attribute<()>;
 pub type Component = super::meta::Component<()>;
 pub type TypeExpression = super::meta::TypeExpression<()>;
 pub type Parameter = super::meta::Parameter<()>;

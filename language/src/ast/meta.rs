@@ -107,9 +107,44 @@ where
     }
 }
 
+/* attribute */
+
+type AttributeValue<Meta> = super::Attribute<Expression<Meta>>;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Attribute<Meta>(pub Node<AttributeValue<Meta>, Meta>);
+
+impl<Meta> Attribute<Meta> {
+    pub fn typed(v: AttributeValue<Meta>, m: Meta) -> Self {
+        Self(Node::typed(v, m))
+    }
+}
+
+impl Attribute<()> {
+    pub const fn raw(x: AttributeValue<()>, range: Range) -> Self {
+        Self(Node::raw(x, range))
+    }
+
+    #[cfg(feature = "test")]
+    pub fn mock(x: AttributeValue<()>) -> Self {
+        Self::raw(x, Range::nil())
+    }
+}
+
+impl<Visitor, Meta> Walk<Visitor> for Attribute<Meta>
+where
+    Visitor: Visit<Context = (Range, Meta)>,
+{
+    type Output = Visitor::Attribute;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        self.0.walk(v)
+    }
+}
+
 /* component */
 
-type ComponentValue<Meta> = super::Component<Component<Meta>, Expression<Meta>>;
+type ComponentValue<Meta> = super::Component<Component<Meta>, Expression<Meta>, Attribute<Meta>>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Component<Meta>(pub Node<ComponentValue<Meta>, Meta>);

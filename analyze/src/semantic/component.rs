@@ -17,7 +17,11 @@ pub const fn can_render(x: &ast::typed::InnerType) -> bool {
 }
 
 pub fn analyze(
-    x: &ast::Component<<Visitor as Visit>::Component, <Visitor as Visit>::Expression>,
+    x: &ast::Component<
+        <Visitor as Visit>::Component,
+        <Visitor as Visit>::Expression,
+        <Visitor as Visit>::Attribute,
+    >,
     ctx: &<Visitor as Visit>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
@@ -43,85 +47,47 @@ pub fn analyze(
                 errors.push(Error::ComponentTypo(start_tag.clone(), end_tag.clone()));
             }
 
-            match ctx.type_of() {
-                Type::View(parameters) => {
-                    let mut unsatisfied_parameters = parameters
-                        .iter()
-                        .map(|x| (x.name().to_owned(), x))
-                        .collect::<HashMap<_, _>>();
-                    let mut unexpected_attributes = vec![];
+            if let Type::View(parameters) = ctx.type_of() {
+                let mut unsatisfied_parameters = parameters
+                    .iter()
+                    .map(|x| (x.name().to_owned(), x))
+                    .collect::<HashMap<_, _>>();
+                let mut unexpected_attributes = vec![];
 
-                    for attribute @ (name, value) in attributes {
-                        if let Some(parameter) = unsatisfied_parameters.remove(name) {
-                            let parameter_type = parameter.value().type_of().to_shape();
+                for attribute in attributes {
+                    let name = attribute.0.value().name();
 
-                            let (argument_id, argument_type) = if let Some(expression) = value {
-                                (expression.id(), expression.type_of().to_shape())
-                            } else {
-                            };
+                    if let Some(parameter) = unsatisfied_parameters.remove(name) {
+                        let parameter_type = parameter.value().type_of().to_shape();
+                        let argument_type = attribute.0.type_of().to_shape();
 
-                            if parameter_type != expression.type_of().to_shape() {
-                                errors.push(Error::AttributeRejected(
-                                    *parameter.value().id(),
-                                    *expression.id(),
-                                ));
-                            }
-                        } else {
-                            unexpected_attributes.push(attribute);
+                        if parameter_type != argument_type {
+                            errors.push(Error::ArgumentRejected(
+                                *parameter.value().id(),
+                                *attribute.0.id(),
+                            ));
                         }
+                    } else {
+                        unexpected_attributes.push(attribute);
                     }
-
-                    errors.extend(
-                        unsatisfied_parameters
-                            .values()
-                            .map(|x| Error::MissingAttribute(*x.value().id())),
-                    );
-
-                    errors.extend(
-                        unexpected_attributes
-                            .iter()
-                            .map(|(x, _)| Error::UnexpectedAttribute(x.clone())),
-                    );
-
-                    ()
                 }
 
-                _ => errors.push(Error::InvalidComponent(start_tag.clone())),
+                errors.extend(
+                    unsatisfied_parameters
+                        .values()
+                        .map(|x| Error::MissingAttribute(*x.value().id())),
+                );
+
+                errors.extend(
+                    unexpected_attributes
+                        .iter()
+                        .map(|x| Error::UnexpectedAttribute(x.0.value().name().to_owned())),
+                );
+            } else {
+                errors.push(Error::InvalidComponent(start_tag.clone()));
             }
 
             (!errors.is_empty()).then_some(errors)
-        } /*
-          let mut errors = vec![];
-                  let lhs = parameters.iter().map(Some).chain(std::iter::repeat(None));
-                  let rhs = arguments.iter().map(Some).chain(std::iter::repeat(None));
-
-                  // TODO: handle case where optional parameters appear before required parameters
-                  for pair in lhs.zip(rhs) {
-                      match pair {
-                          // TODO: should this use a more nuanced approach for comparing types?
-                          // how will this handle enumerators for example?
-                          (Some(parameter), Some(argument))
-                              if parameter.to_shape() == argument.type_of().to_shape() => {}
-
-                          (Some(parameter), Some(argument)) => {
-                              errors.push(Error::ArgumentRejected(*parameter.id(), *argument.id()));
-                          }
-
-                          (None, Some(argument)) => {
-                              errors.push(Error::UnexpectedArgument(*argument.id()));
-                          }
-
-                          // TODO: this doesn't take into account default values
-                          // need to bake it into the type definition
-                          (Some(parameter), None) => {
-                              errors.push(Error::MissingArgument(*parameter.id()));
-                          }
-
-                          (None, None) => break,
-                      }
-                  }
-
-                  (!errors.is_empty()).then_some(errors)
-                  */
+        }
     }
 }

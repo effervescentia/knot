@@ -5,7 +5,8 @@ use std::collections::BTreeMap;
 pub enum Fragment {
     Expression(ast::Expression<NodeId, NodeId, NodeId>),
     Statement(ast::Statement<NodeId>),
-    Component(ast::Component<NodeId, NodeId>),
+    Attribute(ast::Attribute<NodeId>),
+    Component(ast::Component<NodeId, NodeId, NodeId>),
     Parameter(ast::Parameter<String, NodeId, NodeId>),
     Declaration(ast::Declaration<String, NodeId, NodeId, NodeId, NodeId>),
     TypeExpression(ast::TypeExpression<String, NodeId>),

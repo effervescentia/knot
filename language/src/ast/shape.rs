@@ -20,7 +20,15 @@ impl Display for Statement {
     }
 }
 
-pub struct Component(pub super::Component<Component, Expression>);
+pub struct Attribute(pub super::Attribute<Expression>);
+
+impl Display for Attribute {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+pub struct Component(pub super::Component<Component, Expression, Attribute>);
 
 impl Display for Component {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
@@ -107,6 +115,7 @@ impl<Context> Visit for Visitor<Context> {
     type Binding = String;
     type Expression = Expression;
     type Statement = Statement;
+    type Attribute = Attribute;
     type Component = Component;
     type TypeExpression = TypeExpression;
     type Parameter = Parameter;
@@ -134,9 +143,17 @@ impl<Context> Visit for Visitor<Context> {
         (Statement(x), self)
     }
 
+    fn attribute(
+        self,
+        x: super::Attribute<Self::Expression>,
+        _: Self::Context,
+    ) -> (Self::Attribute, Self) {
+        (Attribute(x), self)
+    }
+
     fn component(
         self,
-        x: super::Component<Self::Component, Self::Expression>,
+        x: super::Component<Self::Component, Self::Expression, Self::Attribute>,
         _: Self::Context,
     ) -> (Self::Component, Self) {
         (Component(x), self)

@@ -63,6 +63,13 @@ pub enum Error {
         CanonicalId,
     ),
 
+    ArgumentRejected(
+        // id of the parameter
+        CanonicalId,
+        // id of the argument
+        CanonicalId,
+    ),
+
     /* function-related */
     NotCallable(
         // id of the node being called
@@ -76,13 +83,6 @@ pub enum Error {
 
     MissingArgument(
         // id of the unfulfilled parameter
-        CanonicalId,
-    ),
-
-    ArgumentRejected(
-        // id of the parameter
-        CanonicalId,
-        // id of the argument
         CanonicalId,
     ),
 
@@ -111,13 +111,6 @@ pub enum Error {
 
     MissingAttribute(
         // id of the unfulfilled parameter
-        CanonicalId,
-    ),
-
-    AttributeRejected(
-        // id of the parameter
-        CanonicalId,
-        // id of the argument
         CanonicalId,
     ),
 
