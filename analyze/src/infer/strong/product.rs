@@ -5,13 +5,13 @@ use super::{
 };
 use crate::error::Error;
 use lang::{
-    types::{self, Enumerated, Kind},
+    types::{self, Enumerated},
     CanonicalId,
 };
 
-pub fn infer(state: &State, x: CanonicalId, kind: &Kind) -> Action {
+pub fn infer(state: &State, x: CanonicalId) -> Action {
     match state.resolve_any(&x) {
-        Some(Ok(types::Type::Function(_, result))) => inherit::inherit(state, result, kind),
+        Some(Ok(types::Type::Function(_, result))) => inherit::inherit_any(state, result),
 
         Some(Ok(types::Type::Enumerated(Enumerated::Variant(_, instance)))) => Action::Infer(
             Type::Value(types::Type::Enumerated(Enumerated::Instance(instance))),
@@ -66,7 +66,7 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&state, CanonicalId::mock(1), &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1)),
             Action::Infer(Type::Inherit(CanonicalId::mock(2)))
         );
     }
@@ -101,7 +101,7 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&state, CanonicalId::mock(1), &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1)),
             Action::Infer(Type::Value(types::Type::Enumerated(Enumerated::Instance(
                 CanonicalId::mock(2)
             ))))
@@ -114,10 +114,7 @@ mod tests {
         let ctx = mock.context();
         let state = State::from_types(&ctx, vec![]);
 
-        assert_eq!(
-            super::infer(&state, CanonicalId::mock(1), &Kind::Value),
-            Action::Skip
-        );
+        assert_eq!(super::infer(&state, CanonicalId::mock(1)), Action::Skip);
     }
 
     #[test]
@@ -133,7 +130,7 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&state, CanonicalId::mock(1), &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1)),
             Action::Raise(Error::NotCallable(CanonicalId::mock(1)))
         );
     }
@@ -148,7 +145,7 @@ mod tests {
         );
 
         assert_eq!(
-            super::infer(&state, CanonicalId::mock(1), &Kind::Value),
+            super::infer(&state, CanonicalId::mock(1)),
             Action::Raise(Error::NotInferrable(vec![CanonicalId::mock(1)]))
         );
     }

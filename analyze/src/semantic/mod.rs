@@ -1,3 +1,4 @@
+mod attribute;
 mod component;
 mod declaration;
 mod expression;
@@ -55,6 +56,7 @@ impl Visit for Visitor {
     type Binding = ast::typed::Binding;
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;
+    type Attribute = ast::typed::Attribute;
     type Component = ast::typed::Component;
     type TypeExpression = ast::typed::TypeExpression;
     type Parameter = ast::typed::Parameter;
@@ -86,9 +88,19 @@ impl Visit for Visitor {
         self.node(x, ctx, ast::meta::Statement)
     }
 
+    fn attribute(
+        mut self,
+        x: ast::Attribute<Self::Expression>,
+        ctx: Self::Context,
+    ) -> (Self::Attribute, Self) {
+        self.report(&x, &ctx, attribute::analyze);
+
+        self.node(x, ctx, ast::meta::Attribute)
+    }
+
     fn component(
         mut self,
-        x: ast::Component<Self::Component, Self::Expression>,
+        x: ast::Component<Self::Component, Self::Expression, Self::Attribute>,
         ctx: Self::Context,
     ) -> (Self::Component, Self) {
         self.report(&x, &ctx, component::analyze);
@@ -98,7 +110,7 @@ impl Visit for Visitor {
 
     fn type_expression(
         mut self,
-        x: ast::TypeExpression<Self::TypeExpression>,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
         ctx: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         self.report(&x, &ctx, type_expression::analyze);

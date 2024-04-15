@@ -1,6 +1,12 @@
 use super::Visitor;
 use crate::error::Error;
-use lang::{ast, types::Type, walk::Visit, Identify, TypeOf};
+use lang::{
+    ast,
+    types::{ToShape, Type},
+    walk::Visit,
+    Identify, TypeOf,
+};
+use std::collections::HashMap;
 
 pub const fn can_render(x: &ast::typed::InnerType) -> bool {
     matches!(
@@ -10,7 +16,11 @@ pub const fn can_render(x: &ast::typed::InnerType) -> bool {
 }
 
 pub fn analyze(
-    x: &ast::Component<<Visitor as Visit>::Component, <Visitor as Visit>::Expression>,
+    x: &ast::Component<
+        <Visitor as Visit>::Component,
+        <Visitor as Visit>::Expression,
+        <Visitor as Visit>::Attribute,
+    >,
     ctx: &<Visitor as Visit>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
@@ -23,20 +33,63 @@ pub fn analyze(
 
         ast::Component::Fragment(_) => None,
 
-        ast::Component::ClosedElement(tag, ..)
-        | ast::Component::OpenElement { start_tag: tag, .. }
-            if !matches!(ctx.type_of(), Type::View(_)) =>
-        {
-            Some(vec![Error::InvalidComponent(tag.clone())])
+        ast::Component::ClosedElement(start_tag @ end_tag, attributes)
+        | ast::Component::OpenElement {
+            start_tag,
+            end_tag,
+            attributes,
+            ..
+        } => {
+            let mut errors = vec![];
+
+            if start_tag != end_tag {
+                errors.push(Error::ComponentTypo(start_tag.clone(), end_tag.clone()));
+            }
+
+            if let Type::View(parameters) = ctx.type_of() {
+                let mut unsatisfied_parameters = parameters
+                    .iter()
+                    .map(|x| (x.name().to_owned(), x))
+                    .collect::<HashMap<_, _>>();
+                let mut unexpected_attributes = vec![];
+
+                for attribute in attributes {
+                    let name = attribute.0.value().name();
+
+                    if let Some(parameter) = unsatisfied_parameters.remove(name) {
+                        let parameter_type = parameter.value().type_of().to_shape();
+                        let argument_type = attribute.0.type_of().to_shape();
+
+                        if parameter_type != argument_type {
+                            errors.push(Error::AttributeRejected(
+                                *parameter.value().id(),
+                                *attribute.0.id(),
+                            ));
+                        }
+                    } else {
+                        unexpected_attributes.push(attribute);
+                    }
+                }
+
+                let mut sorted_parameters = unsatisfied_parameters.into_iter().collect::<Vec<_>>();
+                sorted_parameters.sort_by(|l, r| l.0.cmp(&r.0));
+
+                errors.extend(
+                    sorted_parameters
+                        .into_iter()
+                        .map(|(_, x)| Error::MissingAttribute(*x.value().id())),
+                );
+
+                errors.extend(
+                    unexpected_attributes
+                        .into_iter()
+                        .map(|x| Error::UnexpectedAttribute(x.0.value().name().to_owned())),
+                );
+            } else {
+                errors.push(Error::InvalidComponent(start_tag.clone()));
+            }
+
+            (!errors.is_empty()).then_some(errors)
         }
-
-        ast::Component::ClosedElement(..) => None,
-
-        ast::Component::OpenElement {
-            start_tag, end_tag, ..
-        } => (start_tag != end_tag).then_some(vec![Error::ComponentTypo(
-            start_tag.clone(),
-            end_tag.clone(),
-        )]),
     }
 }

@@ -5,7 +5,7 @@ use super::{
 };
 use crate::error::Error;
 use lang::{
-    types::{self, Enumerated, Kind},
+    types::{self, Enumerated, Kind, ObjectTypeEntry},
     CanonicalId,
 };
 
@@ -22,6 +22,23 @@ fn infer_module(
         Some((.., id)) => Action::Raise(Error::UnexpectedKind(*id, *allowed_kind)),
 
         None => Action::Raise(Error::DeclarationNotFound(*module, property.to_owned())),
+    }
+}
+
+fn infer_object(
+    state: &State,
+    entries: &[ObjectTypeEntry<CanonicalId>],
+    property: &str,
+    object: &CanonicalId,
+) -> Action {
+    match entries.iter().find(|entry| entry.name() == property) {
+        Some(entry) => match entry {
+            ObjectTypeEntry::Required(_, x) => inherit::inherit_any(state, *x),
+
+            ObjectTypeEntry::Optional(..) => unimplemented!("need to wrap this in an option"),
+        },
+
+        None => Action::Raise(Error::PropertyNotFound(*object, property.to_owned())),
     }
 }
 
@@ -44,6 +61,14 @@ pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kin
         Some(Ok(x)) => match x {
             types::Type::Module(declarations) => {
                 infer_module(state, &declarations, property, allowed_kind, &lhs)
+            }
+
+            types::Type::Object(entries) => {
+                if !allowed_kind.can_accept(&Kind::Value) {
+                    return Action::Raise(Error::UnexpectedKind(lhs, *allowed_kind));
+                }
+
+                infer_object(state, &entries, property, &lhs)
             }
 
             types::Type::Enumerated(Enumerated::Declaration(variants)) => {
@@ -71,7 +96,7 @@ mod tests {
     };
     use kore::{assert_eq, str};
     use lang::{
-        types::{self, Enumerated, Kind},
+        types::{self, Enumerated, Kind, ObjectTypeEntry},
         CanonicalId, NodeId,
     };
 
@@ -128,7 +153,72 @@ mod tests {
     }
 
     #[test]
-    fn infer_module_entry() {
+    fn infer_object_property() {
+        let mock = analyze_mock!();
+        let ctx = mock.context();
+        let state = State::from_types(
+            &ctx,
+            vec![
+                (
+                    NodeId(1),
+                    (
+                        Kind::Value,
+                        Ok(Type::Value(types::Type::Object(vec![
+                            ObjectTypeEntry::Required(str!("foo"), CanonicalId::mock(2)),
+                        ]))),
+                    ),
+                ),
+                (
+                    NodeId(2),
+                    (Kind::Value, Ok(Type::Value(types::Type::Integer))),
+                ),
+            ],
+        );
+
+        assert_eq!(
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
+            Action::Infer(Type::Inherit(CanonicalId::mock(2)))
+        );
+    }
+
+    #[test]
+    fn infer_object_property_not_found() {
+        let mock = analyze_mock!();
+        let ctx = mock.context();
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (Kind::Value, Ok(Type::Value(types::Type::Object(vec![])))),
+            )],
+        );
+
+        assert_eq!(
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
+            Action::Raise(Error::PropertyNotFound(CanonicalId::mock(1), str!("foo")))
+        );
+    }
+
+    #[test]
+    fn infer_object_unexpected_kind() {
+        let mock = analyze_mock!();
+        let ctx = mock.context();
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (Kind::Value, Ok(Type::Value(types::Type::Object(vec![])))),
+            )],
+        );
+
+        assert_eq!(
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Type),
+            Action::Raise(Error::UnexpectedKind(CanonicalId::mock(1), Kind::Type))
+        );
+    }
+
+    #[test]
+    fn infer_module_declaration() {
         let mock = analyze_mock!();
         let ctx = mock.context();
         let state = State::from_types(
@@ -159,7 +249,7 @@ mod tests {
     }
 
     #[test]
-    fn infer_module_entry_not_found() {
+    fn infer_module_declaration_not_found() {
         let mock = analyze_mock!();
         let ctx = mock.context();
         let state = State::from_types(
@@ -180,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn infer_module_entry_unexpected_kind() {
+    fn infer_module_declaration_unexpected_kind() {
         let mock = analyze_mock!();
         let ctx = mock.context();
         let state = State::from_types(

@@ -18,6 +18,7 @@ impl Type {
 pub type Storage = super::Storage<Binding>;
 pub type Expression = super::meta::Expression<Meta>;
 pub type Statement = super::meta::Statement<Meta>;
+pub type Attribute = super::meta::Attribute<Meta>;
 pub type Component = super::meta::Component<Meta>;
 pub type TypeExpression = super::meta::TypeExpression<Meta>;
 pub type Parameter = super::meta::Parameter<Meta>;

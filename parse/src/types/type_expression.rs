@@ -9,7 +9,7 @@ where
 {
     fn bind<U>(
         s: &'static str,
-        f: impl Fn() -> ast::TypeExpression<ast::raw::TypeExpression>,
+        f: impl Fn() -> ast::TypeExpression<ast::raw::Binding, ast::raw::TypeExpression>,
     ) -> impl Parser<U, Output = ast::raw::TypeExpression>
     where
         U: Stream<Token = char>,
@@ -82,6 +82,38 @@ where
     )
 }
 
+fn object<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ast::raw::TypeExpression>
+where
+    T: Stream<Token = char>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::TypeExpression>,
+{
+    let required_entry = (m::binding(), m::symbol(':'), parser())
+        .map(|(binding, _, x)| ast::ObjectTypeExpressionEntry::Required(binding, x));
+
+    let optional_entry = (m::binding(), m::glyph("?:"), parser())
+        .map(|(binding, _, x)| ast::ObjectTypeExpressionEntry::Optional(binding, x));
+
+    let spread_entry =
+        (m::glyph("..."), parser()).map(|(_, x)| ast::ObjectTypeExpressionEntry::Spread(x));
+
+    m::between(
+        m::symbol('{'),
+        m::symbol('}'),
+        sep_end_by(
+            choice((
+                attempt(required_entry),
+                attempt(optional_entry),
+                spread_entry,
+            )),
+            m::symbol(','),
+        ),
+    )
+    .map(|(entries, range)| {
+        ast::raw::TypeExpression::raw(ast::TypeExpression::Object(entries), range)
+    })
+}
+
 fn function<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
@@ -116,6 +148,7 @@ where
     choice((
         function(type_expression),
         group(type_expression()),
+        object(type_expression),
         primitive(),
         identifier(),
     ))
@@ -150,7 +183,7 @@ parser! {
 #[cfg(test)]
 mod tests {
     use combine::{stream::position::Stream, EasyParser};
-    use kore::str;
+    use kore::{assert_eq, str};
     use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::TypeExpression> {
@@ -315,6 +348,61 @@ mod tests {
                     str!("foo")
                 ),
                 Range::new((1, 1), (1, 7))
+            )
+        );
+    }
+
+    #[test]
+    fn empty_object() {
+        assert_eq!(
+            parse("{}").unwrap().0,
+            ast::raw::TypeExpression::raw(
+                ast::TypeExpression::Object(vec![]),
+                Range::new((1, 1), (1, 2))
+            )
+        );
+    }
+
+    #[test]
+    fn object() {
+        assert_eq!(
+            parse(
+                "{
+  foo: integer,
+  bar?: boolean,
+  ...fizz
+}"
+            )
+            .unwrap()
+            .0,
+            ast::raw::TypeExpression::raw(
+                ast::TypeExpression::Object(vec![
+                    ast::ObjectTypeExpressionEntry::Required(
+                        ast::raw::Binding::new(
+                            ast::Binding(str!("foo")),
+                            Range::new((2, 3), (2, 5))
+                        ),
+                        ast::raw::TypeExpression::raw(
+                            ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
+                            Range::new((2, 8), (2, 14))
+                        )
+                    ),
+                    ast::ObjectTypeExpressionEntry::Optional(
+                        ast::raw::Binding::new(
+                            ast::Binding(str!("bar")),
+                            Range::new((3, 3), (3, 5))
+                        ),
+                        ast::raw::TypeExpression::raw(
+                            ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                            Range::new((3, 9), (3, 15))
+                        )
+                    ),
+                    ast::ObjectTypeExpressionEntry::Spread(ast::raw::TypeExpression::raw(
+                        ast::TypeExpression::Identifier(str!("fizz")),
+                        Range::new((4, 6), (4, 9))
+                    ))
+                ]),
+                Range::new((1, 1), (5, 1))
             )
         );
     }

@@ -2,8 +2,8 @@ use super::Visitor;
 use crate::error::Error;
 use lang::{ast, walk::Visit};
 
-pub const fn analyze(
-    x: &ast::TypeExpression<<Visitor as Visit>::TypeExpression>,
+pub fn analyze(
+    x: &ast::TypeExpression<<Visitor as Visit>::Binding, <Visitor as Visit>::TypeExpression>,
     _: &<Visitor as Visit>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
@@ -17,5 +17,22 @@ pub const fn analyze(
         ast::TypeExpression::PropertyAccess(..) => None,
 
         ast::TypeExpression::Function(..) => None,
+
+        ast::TypeExpression::Object(entries) => {
+            let mut names = vec![];
+            let mut errors = vec![];
+
+            for entry in entries {
+                if let Some(name) = entry.binding().map(ast::meta::Binding::name) {
+                    if names.contains(&name) {
+                        errors.push(Error::DuplicateProperty(name.to_owned()));
+                    } else {
+                        names.push(name);
+                    }
+                }
+            }
+
+            (!errors.is_empty()).then_some(errors)
+        }
     }
 }

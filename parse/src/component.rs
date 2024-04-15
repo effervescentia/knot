@@ -71,15 +71,24 @@ where
     })
 }
 
-fn attribute<T>() -> impl Parser<T, Output = (String, Option<ast::raw::Expression>)>
+fn attribute<T>() -> impl Parser<T, Output = ast::raw::Attribute>
 where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
     (
-        m::standard_identifier().map(|(x, _)| x),
+        m::standard_identifier(),
         optional(m::symbol('=').with(expression::component_term())),
     )
+        .map(|((name, start), value)| {
+            if let Some(value) = value {
+                let range = &start + value.0.range();
+
+                ast::raw::Attribute::raw(ast::Attribute::Explicit(name, value), range)
+            } else {
+                ast::raw::Attribute::raw(ast::Attribute::Punned(name), start)
+            }
+        })
 }
 
 pub fn closed_element<T>() -> impl Parser<T, Output = ast::raw::Component>
@@ -187,7 +196,7 @@ parser! {
 mod tests {
     use super::component;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::str;
+    use kore::{assert_eq, str};
     use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::Component> {
@@ -369,12 +378,15 @@ mod tests {
             ast::raw::Component::raw(
                 ast::Component::open_element(
                     str!("foo"),
-                    vec![(
-                        str!("bar"),
-                        Some(ast::raw::Expression::raw(
-                            ast::Expression::Primitive(ast::Primitive::Nil),
-                            Range::new((1, 10), (1, 12))
-                        ))
+                    vec![ast::raw::Attribute::raw(
+                        ast::Attribute::Explicit(
+                            str!("bar"),
+                            ast::raw::Expression::raw(
+                                ast::Expression::Primitive(ast::Primitive::Nil),
+                                Range::new((1, 10), (1, 12))
+                            )
+                        ),
+                        Range::new((1, 6), (1, 12))
                     )],
                     vec![],
                     str!("foo"),
@@ -391,12 +403,15 @@ mod tests {
             ast::raw::Component::raw(
                 ast::Component::ClosedElement(
                     str!("foo"),
-                    vec![(
-                        str!("bar"),
-                        Some(ast::raw::Expression::raw(
-                            ast::Expression::Primitive(ast::Primitive::Nil),
-                            Range::new((1, 10), (1, 12))
-                        ))
+                    vec![ast::raw::Attribute::raw(
+                        ast::Attribute::Explicit(
+                            str!("bar"),
+                            ast::raw::Expression::raw(
+                                ast::Expression::Primitive(ast::Primitive::Nil),
+                                Range::new((1, 10), (1, 12))
+                            )
+                        ),
+                        Range::new((1, 6), (1, 12))
                     )],
                 ),
                 Range::new((1, 1), (1, 15))
@@ -409,7 +424,13 @@ mod tests {
         assert_eq!(
             parse("<foo bar />").unwrap().0,
             ast::raw::Component::raw(
-                ast::Component::ClosedElement(str!("foo"), vec![(str!("bar"), None)],),
+                ast::Component::ClosedElement(
+                    str!("foo"),
+                    vec![ast::raw::Attribute::raw(
+                        ast::Attribute::Punned(str!("bar")),
+                        Range::new((1, 6), (1, 8))
+                    )],
+                ),
                 Range::new((1, 1), (1, 11))
             )
         );

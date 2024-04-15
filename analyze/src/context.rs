@@ -52,7 +52,7 @@ pub struct Context<'a> {
 }
 
 impl<'a> Context<'a> {
-    #[cfg(test)]
+    #[cfg(feature = "test")]
     pub const fn mock(modules: &'a ModuleMap, ambient: &'a AmbientMap) -> Self {
         Self {
             modules,

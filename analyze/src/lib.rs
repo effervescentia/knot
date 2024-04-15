@@ -8,8 +8,8 @@ mod semantic;
 #[cfg(test)]
 mod test;
 
-pub use context::{Context, ModuleMap, TypeMap};
-use error::Error;
+pub use context::{AmbientMap, Context, ModuleMap, TypeMap};
+pub use error::Error;
 use lang::{ast, NodeId};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]

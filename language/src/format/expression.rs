@@ -1,5 +1,5 @@
 use crate::ast;
-use kore::format::{indented, Block, Indented, SeparateEach, TerminateEach};
+use kore::format::{indented, Block, Indented, SeparateEach, SuffixEach};
 use std::fmt::{Display, Formatter, Write};
 
 fn escape_string(s: &str) -> String {
@@ -10,10 +10,9 @@ fn escape_string(s: &str) -> String {
         .replace('\r', "\\r")
 }
 
-impl<Expression_, Statement, Component> Display
-    for ast::Expression<Expression_, Statement, Component>
+impl<Expression, Statement, Component> Display for ast::Expression<Expression, Statement, Component>
 where
-    Expression_: Display,
+    Expression: Display,
     Statement: Display,
     Component: Display,
 {
@@ -42,7 +41,7 @@ where
                 write!(
                     f,
                     "{{{statements}}}",
-                    statements = Indented(Block(TerminateEach("\n", xs)))
+                    statements = Indented(Block(SuffixEach("\n", xs)))
                 )
             }
 

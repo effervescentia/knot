@@ -99,8 +99,7 @@ pub fn analyze(
                             errors.push(Error::MissingArgument(*parameter.id()));
                         }
 
-                        // this case is not possible
-                        (None, None) => (),
+                        (None, None) => break,
                     }
                 }
 

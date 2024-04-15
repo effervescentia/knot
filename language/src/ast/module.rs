@@ -34,7 +34,7 @@ where
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let (
-            super::Import {
+            Import {
                 source,
                 path,
                 alias,
@@ -43,7 +43,7 @@ where
         ) = self;
 
         v.import(
-            super::Import {
+            Import {
                 source,
                 path,
                 alias,
@@ -78,7 +78,7 @@ where
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
         let (
-            super::Module {
+            Module {
                 imports,
                 declarations,
             },
@@ -87,7 +87,7 @@ where
         let ((imports, declarations), v) = (imports, declarations).walk_each(v);
 
         v.module(
-            super::Module {
+            Module {
                 imports,
                 declarations,
             },

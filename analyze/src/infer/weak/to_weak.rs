@@ -11,6 +11,7 @@ impl ToWeak for Fragment {
         match self {
             Self::Expression(x) => x.to_weak(),
             Self::Statement(x) => x.to_weak(),
+            Self::Attribute(x) => x.to_weak(),
             Self::Component(x) => x.to_weak(),
             Self::Parameter(x) => x.to_weak(),
             Self::TypeExpression(x) => x.to_weak(),

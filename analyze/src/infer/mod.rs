@@ -20,7 +20,7 @@ pub struct NodeDescriptor {
 
 impl NodeDescriptor {
     pub fn into_inherit_from(self, from_id: CanonicalId) -> Self {
-        if self.id.0 == from_id.0 {
+        if self.id.0 != from_id.0 {
             invariant!("redirecting inheritance outside of the target module")
         }
 

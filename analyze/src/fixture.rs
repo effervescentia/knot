@@ -297,7 +297,10 @@ pub mod view {
             (NodeId(19), (Kind::Value, weak::Type::Inherit(NodeId(18)))),
             (
                 NodeId(20),
-                (Kind::Value, weak::Type::Value(Type::View(vec![NodeId(3)]))),
+                (
+                    Kind::Value,
+                    weak::Type::Infer(Inference::View(vec![NodeId(3)])),
+                ),
             ),
         ])
     }

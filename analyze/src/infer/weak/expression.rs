@@ -96,7 +96,20 @@ impl ToWeak for ast::Statement<NodeId> {
     }
 }
 
-impl ToWeak for ast::Component<NodeId, NodeId> {
+impl ToWeak for ast::Attribute<NodeId> {
+    fn to_weak(&self) -> Weak {
+        match self {
+            Self::Punned(name) => (
+                Kind::Value,
+                Type::Infer(Inference::Reference(name.clone(), None)),
+            ),
+
+            Self::Explicit(_, id) => (Kind::Value, Type::Inherit(*id)),
+        }
+    }
+}
+
+impl ToWeak for ast::Component<NodeId, NodeId, NodeId> {
     fn to_weak(&self) -> Weak {
         match self {
             Self::Text(..) => (Kind::Value, Type::Value(types::Type::String)),

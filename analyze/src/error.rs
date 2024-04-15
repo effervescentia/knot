@@ -37,17 +37,35 @@ pub enum Error {
         String,
     ),
 
-    /* function-related */
-    NotCallable(
-        // id of the node being called
+    PropertyNotFound(
+        // id of the object
+        CanonicalId,
+        // name of the expected property
+        String,
+    ),
+
+    DuplicateProperty(
+        // name of the duplicate property
+        String,
+    ),
+
+    NotSpreadable(
+        // id of the expression being spread
         CanonicalId,
     ),
 
+    /* callable-related */
     /// temporary solution until deeper type inference is implemented
     UntypedParameter,
 
     DefaultValueRejected(
         // id of the default value
+        CanonicalId,
+    ),
+
+    /* function-related */
+    NotCallable(
+        // id of the node being called
         CanonicalId,
     ),
 
@@ -84,6 +102,23 @@ pub enum Error {
         String,
         // end tag
         String,
+    ),
+
+    UnexpectedAttribute(
+        // name of the attribute
+        String,
+    ),
+
+    MissingAttribute(
+        // id of the unfulfilled parameter
+        CanonicalId,
+    ),
+
+    AttributeRejected(
+        // id of the parameter
+        CanonicalId,
+        // id of the argument
+        CanonicalId,
     ),
 
     /* mismatch */

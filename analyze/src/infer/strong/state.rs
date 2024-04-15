@@ -107,6 +107,10 @@ impl<'a> State<'a> {
         self.resolve(id, &Kind::Value)
     }
 
+    pub fn resolve_type(&self, id: &CanonicalId) -> Option<ResolvedType> {
+        self.resolve(id, &Kind::Type)
+    }
+
     pub fn resolve_any(&self, id: &CanonicalId) -> Option<ResolvedType> {
         self.resolve(id, &Kind::Mixed)
     }
@@ -128,20 +132,18 @@ impl<'a> State<'a> {
         id: NodeId,
         x: &types::Type<CanonicalId>,
         output: &Output,
-    ) -> Rc<ast::typed::Meta> {
-        Rc::new((
+    ) -> Option<Rc<ast::typed::Meta>> {
+        Some(Rc::new((
             self.canonicalize(id),
-            ast::typed::Type(x.map(&|id| {
-                Rc::clone(
-                    (if self.is_local(id) {
-                        output.types.get(&id.1).and_then(OnceCell::get)
-                    } else {
-                        self.context.modules.get_type(*id)
-                    })
-                    .unwrap_or_else(|| invariant!("type not found")),
-                )
-            })),
-        ))
+            ast::typed::Type(x.opt_map(&|id| {
+                (if self.is_local(id) {
+                    output.types.get(&id.1).and_then(OnceCell::get)
+                } else {
+                    self.context.modules.get_type(*id)
+                })
+                .map(Rc::clone)
+            })?),
+        )))
     }
 
     pub fn into_result(self) -> Result<Output> {
@@ -160,7 +162,11 @@ impl<'a> State<'a> {
                 Ok(Type::Value(x)) => {
                     let cell = get_cell(*id);
 
-                    cell.set(self.canonicalize_type(*id, x, &output)).ok();
+                    if let Some(canonical_type) = self.canonicalize_type(*id, x, &output) {
+                        cell.set(canonical_type).ok();
+                    } else {
+                        // errors in dependencies should surface when iterating them
+                    }
                 }
 
                 Ok(Type::Inherit(from_id)) => {

@@ -179,22 +179,20 @@ impl Expression {
         }
     }
 
-    pub fn from_attributes(
-        xs: &Vec<(String, Option<ast::shape::Expression>)>,
-        opts: &Options,
-    ) -> Self {
+    pub fn from_attributes(xs: &Vec<ast::shape::Attribute>, opts: &Options) -> Self {
         if xs.is_empty() {
             return Self::Null;
         }
 
         Self::Object(
             xs.iter()
-                .map(|(name, x)| {
+                .map(|x| {
                     (
-                        name.clone(),
-                        match x {
-                            Some(x) => Self::from_expression(x, opts),
-                            None => Self::Identifier(name.clone()),
+                        x.0.name().to_owned(),
+                        match &x.0 {
+                            ast::Attribute::Explicit(_, x) => Self::from_expression(x, opts),
+
+                            ast::Attribute::Punned(name) => Self::Identifier(name.clone()),
                         },
                     )
                 })
@@ -669,13 +667,13 @@ mod tests {
                     &ast::shape::Component(ast::Component::ClosedElement(
                         str!("Foo"),
                         vec![
-                            (str!("bar"), None),
-                            (
+                            ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
+                            ast::shape::Attribute(ast::Attribute::Explicit(
                                 str!("fizz"),
-                                Some(ast::shape::Expression(ast::Expression::Primitive(
+                                ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Nil
-                                )))
-                            ),
+                                ))
+                            )),
                         ]
                     )),
                     &OPTIONS
@@ -728,13 +726,13 @@ mod tests {
                     &ast::shape::Component(ast::Component::open_element(
                         str!("Foo"),
                         vec![
-                            (str!("bar"), None),
-                            (
+                            ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
+                            ast::shape::Attribute(ast::Attribute::Explicit(
                                 str!("fizz"),
-                                Some(ast::shape::Expression(ast::Expression::Primitive(
+                                ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Nil
-                                )))
-                            ),
+                                ))
+                            )),
                         ],
                         vec![
                             ast::shape::Component(ast::Component::Text(str!("foo"))),
@@ -807,13 +805,13 @@ mod tests {
                     &ast::shape::Component(ast::Component::open_element(
                         str!("Foo"),
                         vec![
-                            (str!("bar"), None),
-                            (
+                            ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
+                            ast::shape::Attribute(ast::Attribute::Explicit(
                                 str!("fizz"),
-                                Some(ast::shape::Expression(ast::Expression::Primitive(
+                                ast::shape::Expression(ast::Expression::Primitive(
                                     ast::Primitive::Nil
-                                )))
-                            ),
+                                ))
+                            )),
                         ],
                         vec![],
                         str!("Foo"),

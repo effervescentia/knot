@@ -73,6 +73,7 @@ impl<Context> Visit for Visitor<Context> {
     type Binding = String;
     type Expression = NodeId;
     type Statement = NodeId;
+    type Attribute = NodeId;
     type Component = NodeId;
     type TypeExpression = NodeId;
     type Parameter = NodeId;
@@ -111,9 +112,17 @@ impl<Context> Visit for Visitor<Context> {
         self.capture(Fragment::Statement(x))
     }
 
+    fn attribute(
+        self,
+        x: super::Attribute<Self::Expression>,
+        _: Self::Context,
+    ) -> (Self::Attribute, Self) {
+        self.capture(Fragment::Attribute(x))
+    }
+
     fn component(
         self,
-        x: super::Component<Self::Expression, Self::Component>,
+        x: super::Component<Self::Expression, Self::Component, Self::Attribute>,
         _: Self::Context,
     ) -> (Self::Component, Self) {
         self.capture(Fragment::Component(x))
@@ -121,7 +130,7 @@ impl<Context> Visit for Visitor<Context> {
 
     fn type_expression(
         self,
-        x: super::TypeExpression<Self::TypeExpression>,
+        x: super::TypeExpression<Self::Binding, Self::TypeExpression>,
         _: Self::Context,
     ) -> (Self::TypeExpression, Self) {
         self.capture(Fragment::TypeExpression(x))
