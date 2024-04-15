@@ -11,6 +11,7 @@ mod product;
 mod property;
 mod reference;
 mod state;
+mod view;
 
 use super::{weak, NodeDescriptor};
 use crate::{Context, Result};

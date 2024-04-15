@@ -1,6 +1,6 @@
 mod context;
 mod error;
-#[cfg(feature = "test")]
+#[cfg(test)]
 mod fixture;
 mod infer;
 mod into_typed;

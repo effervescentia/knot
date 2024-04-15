@@ -121,7 +121,7 @@ impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
 
             Self::View { parameters, .. } => (
                 Kind::Value,
-                Type::Value(types::Type::View(parameters.clone())),
+                Type::Infer(Inference::View(parameters.clone())),
             ),
 
             Self::Module { value, .. } => (Kind::Mixed, Type::Inherit(*value)),
@@ -371,7 +371,7 @@ mod tests {
             .to_weak(),
             (
                 Kind::Value,
-                Type::Value(types::Type::View(vec![NodeId(1), NodeId(2)]))
+                Type::Infer(Inference::View(vec![NodeId(1), NodeId(2)]))
             )
         );
     }

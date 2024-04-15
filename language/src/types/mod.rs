@@ -87,6 +87,28 @@ impl<T> ObjectTypeEntry<T> {
             Self::Required(name, _) | Self::Optional(name, _) => name,
         }
     }
+
+    pub fn map<R, F>(&self, f: F) -> ObjectTypeEntry<R>
+    where
+        F: FnOnce(&T) -> R,
+    {
+        match self {
+            ObjectTypeEntry::Required(name, x) => ObjectTypeEntry::Required(name.clone(), f(x)),
+
+            ObjectTypeEntry::Optional(name, x) => ObjectTypeEntry::Optional(name.clone(), f(x)),
+        }
+    }
+
+    pub fn opt_map<R, F>(&self, f: F) -> Option<ObjectTypeEntry<R>>
+    where
+        F: FnOnce(&T) -> Option<R>,
+    {
+        Some(match self {
+            ObjectTypeEntry::Required(name, x) => ObjectTypeEntry::Required(name.clone(), f(x)?),
+
+            ObjectTypeEntry::Optional(name, x) => ObjectTypeEntry::Optional(name.clone(), f(x)?),
+        })
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -102,7 +124,7 @@ pub enum Type<T> {
     Enumerated(Enumerated<T>),
     Function(Vec<T>, T),
     Object(Vec<ObjectTypeEntry<T>>),
-    View(Vec<T>),
+    View(Vec<ObjectTypeEntry<T>>),
     Module(Vec<(String, Kind, T)>),
 }
 
@@ -126,22 +148,16 @@ impl<T> Type<T> {
                 Type::Function(parameters.iter().map(f).collect(), f(result))
             }
 
-            Self::Object(entries) => Type::Object(
-                entries
-                    .iter()
-                    .map(|entry| match entry {
-                        ObjectTypeEntry::Required(name, x) => {
-                            ObjectTypeEntry::Required(name.clone(), f(x))
-                        }
+            Self::Object(entries) => {
+                Type::Object(entries.iter().map(|entry| entry.map(f)).collect())
+            }
 
-                        ObjectTypeEntry::Optional(name, x) => {
-                            ObjectTypeEntry::Optional(name.clone(), f(x))
-                        }
-                    })
+            Self::View(parameters) => Type::View(
+                parameters
+                    .iter()
+                    .map(|parameter| parameter.map(f))
                     .collect(),
             ),
-
-            Self::View(parameters) => Type::View(parameters.iter().map(f).collect()),
 
             Self::Module(declarations) => Type::Module(
                 declarations
@@ -175,20 +191,15 @@ impl<T> Type<T> {
             Self::Object(entries) => Some(Type::Object(
                 entries
                     .iter()
-                    .map(|entry| match entry {
-                        ObjectTypeEntry::Required(name, x) => {
-                            Some(ObjectTypeEntry::Required(name.clone(), f(x)?))
-                        }
-
-                        ObjectTypeEntry::Optional(name, x) => {
-                            Some(ObjectTypeEntry::Optional(name.clone(), f(x)?))
-                        }
-                    })
+                    .map(|entry| entry.opt_map(f))
                     .collect::<Option<Vec<_>>>()?,
             )),
 
             Self::View(parameters) => Some(Type::View(
-                parameters.iter().map(f).collect::<Option<Vec<_>>>()?,
+                parameters
+                    .iter()
+                    .map(|parameter| parameter.opt_map(f))
+                    .collect::<Option<Vec<_>>>()?,
             )),
 
             Self::Module(declarations) => Some(Type::Module(

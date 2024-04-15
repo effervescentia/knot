@@ -1012,10 +1012,10 @@ pub mod view {
     }
 
     pub fn type_of() -> ast::typed::Type {
-        ast::typed::Type(types::Type::View(vec![Rc::new((
-            CanonicalId::mock(0),
-            ast::typed::Type(types::Type::Element),
-        ))]))
+        ast::typed::Type(types::Type::View(vec![types::ObjectTypeEntry::Optional(
+            str!("inner"),
+            Rc::new((CanonicalId::mock(0), ast::typed::Type(types::Type::Element))),
+        )]))
     }
 
     pub fn typed() -> ast::typed::Declaration {

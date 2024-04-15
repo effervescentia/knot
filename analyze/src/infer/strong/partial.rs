@@ -3,6 +3,7 @@ use super::{
     data::{Action, Type},
     inherit, module, object, product, property, reference,
     state::State,
+    view,
     weak::{self, Inference},
     NodeDescriptor,
 };
@@ -72,6 +73,12 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
                 weak: weak::Type::Infer(Inference::Module(declarations)),
                 ..
             } => module::infer(&next, declarations),
+
+            // capture the result of a module declaration
+            NodeDescriptor {
+                weak: weak::Type::Infer(Inference::View(parameters)),
+                ..
+            } => view::infer(&next, parameters),
 
             // capture a type imported from a different file
             NodeDescriptor {
@@ -544,7 +551,12 @@ mod tests {
                         NodeId(20),
                         (
                             Kind::Value,
-                            Ok(Type::Value(types::Type::View(vec![CanonicalId::mock(3)])))
+                            Ok(Type::Value(types::Type::View(vec![
+                                types::ObjectTypeEntry::Optional(
+                                    str!("inner"),
+                                    CanonicalId::mock(3)
+                                )
+                            ])))
                         )
                     ),
                 ]
