@@ -1,10 +1,13 @@
 use super::Visitor;
 use crate::error::Error;
-use lang::{ast, walk::Visit};
+use lang::{
+    ast,
+    walk::{CommonVisitor, ProgramVisitor},
+};
 
 pub const fn analyze(
-    _: &ast::Module<<Visitor as Visit>::Import, <Visitor as Visit>::Declaration>,
-    _: &<Visitor as Visit>::Context,
+    _: &ast::Module<<Visitor as ProgramVisitor>::Import, <Visitor as ProgramVisitor>::Declaration>,
+    _: &<Visitor as CommonVisitor>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
     None

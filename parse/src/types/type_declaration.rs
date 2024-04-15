@@ -29,12 +29,16 @@ where
     m::terminated((
         m::keyword("view"),
         m::binding(),
-        m::tuple(super::type_expression::type_expression()),
+        m::between(
+            m::symbol('('),
+            m::symbol(')'),
+            super::type_expression::type_expression(),
+        ),
     ))
-    .map(|((_, start), binding, (parameters, end))| {
+    .map(|((_, start), binding, (attributes, end))| {
         let range = &start + &end;
 
-        ast::raw::TypeDeclaration::raw(ast::TypeDeclaration::view(binding, parameters), range)
+        ast::raw::TypeDeclaration::raw(ast::TypeDeclaration::view(binding, attributes), range)
     })
 }
 
@@ -49,7 +53,7 @@ where
 #[cfg(test)]
 mod tests {
     use combine::{stream::position::Stream, EasyParser};
-    use kore::{assert_eq_sorted, str};
+    use kore::{assert_eq, str};
     use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::TypeDeclaration> {
@@ -58,7 +62,7 @@ mod tests {
 
     #[test]
     fn nil() {
-        assert_eq_sorted!(
+        assert_eq!(
             parse("type foo = nil").unwrap().0,
             ast::raw::TypeDeclaration::raw(
                 ast::TypeDeclaration::type_alias(
@@ -75,23 +79,38 @@ mod tests {
 
     #[test]
     fn view() {
-        assert_eq_sorted!(
-            parse("view Foo (nil, boolean)").unwrap().0,
+        assert_eq!(
+            parse("view Foo ({ bar: nil, fizz?: boolean })").unwrap().0,
             ast::raw::TypeDeclaration::raw(
                 ast::TypeDeclaration::view(
                     ast::raw::Binding::new(ast::Binding(str!("Foo")), Range::new((1, 6), (1, 8))),
-                    vec![
-                        ast::raw::TypeExpression::raw(
-                            ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                            Range::new((1, 11), (1, 13))
-                        ),
-                        ast::raw::TypeExpression::raw(
-                            ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
-                            Range::new((1, 16), (1, 22))
-                        )
-                    ]
+                    ast::raw::TypeExpression::raw(
+                        ast::TypeExpression::Object(vec![
+                            ast::ObjectTypeExpressionEntry::Required(
+                                ast::raw::Binding::new(
+                                    ast::Binding(str!("bar")),
+                                    Range::new((1, 13), (1, 15))
+                                ),
+                                ast::raw::TypeExpression::raw(
+                                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                                    Range::new((1, 18), (1, 20))
+                                )
+                            ),
+                            ast::ObjectTypeExpressionEntry::Optional(
+                                ast::raw::Binding::new(
+                                    ast::Binding(str!("fizz")),
+                                    Range::new((1, 23), (1, 26))
+                                ),
+                                ast::raw::TypeExpression::raw(
+                                    ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                                    Range::new((1, 30), (1, 36))
+                                )
+                            )
+                        ]),
+                        Range::new((1, 11), (1, 38))
+                    )
                 ),
-                Range::new((1, 1), (1, 23))
+                Range::new((1, 1), (1, 39))
             )
         );
     }

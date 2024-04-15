@@ -83,12 +83,8 @@ where
 
             Self::View {
                 binding,
-                parameters,
-            } => write!(
-                f,
-                "view {binding} ({parameters});",
-                parameters = SeparateEach(", ", parameters)
-            ),
+                attributes,
+            } => write!(f, "view {binding} ({attributes});",),
         }
     }
 }
@@ -109,11 +105,11 @@ where
 #[cfg(test)]
 mod tests {
     use crate::ast;
-    use kore::str;
+    use kore::{assert_str_eq, str};
 
     #[test]
     fn nil() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil))
                 .to_string(),
             "nil"
@@ -122,7 +118,7 @@ mod tests {
 
     #[test]
     fn boolean() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean))
                 .to_string(),
             "boolean"
@@ -131,7 +127,7 @@ mod tests {
 
     #[test]
     fn integer() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Integer))
                 .to_string(),
             "integer"
@@ -140,7 +136,7 @@ mod tests {
 
     #[test]
     fn float() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Float))
                 .to_string(),
             "float"
@@ -149,7 +145,7 @@ mod tests {
 
     #[test]
     fn string() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::String))
                 .to_string(),
             "string"
@@ -158,7 +154,7 @@ mod tests {
 
     #[test]
     fn style() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Style))
                 .to_string(),
             "style"
@@ -167,7 +163,7 @@ mod tests {
 
     #[test]
     fn element() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Element))
                 .to_string(),
             "element"
@@ -176,7 +172,7 @@ mod tests {
 
     #[test]
     fn identifier() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Identifier(str!("foo"))).to_string(),
             "foo"
         );
@@ -184,7 +180,7 @@ mod tests {
 
     #[test]
     fn group() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Group(Box::new(
                 ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil))
             )))
@@ -195,7 +191,7 @@ mod tests {
 
     #[test]
     fn dot_access() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::PropertyAccess(
                 Box::new(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
                     ast::TypePrimitive::Nil
@@ -209,7 +205,7 @@ mod tests {
 
     #[test]
     fn function_no_parameters() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Function(
                 vec![],
                 Box::new(ast::shape::TypeExpression(ast::TypeExpression::Primitive(
@@ -223,7 +219,7 @@ mod tests {
 
     #[test]
     fn function_with_parameters() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Function(
                 vec![
                     ast::shape::TypeExpression(ast::TypeExpression::Primitive(
@@ -244,7 +240,7 @@ mod tests {
 
     #[test]
     fn empty_object() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Object(vec![])).to_string(),
             "{}"
         );
@@ -252,7 +248,7 @@ mod tests {
 
     #[test]
     fn object() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeExpression(ast::TypeExpression::Object(vec![
                 ast::ObjectTypeExpressionEntry::Required(
                     str!("foo"),
@@ -281,7 +277,7 @@ mod tests {
 
     #[test]
     fn type_alias() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeDeclaration(ast::TypeDeclaration::type_alias(
                 str!("foo"),
                 ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil))
@@ -293,26 +289,35 @@ mod tests {
 
     #[test]
     fn view() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeDeclaration(ast::TypeDeclaration::view(
                 str!("Foo"),
-                vec![
-                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                        ast::TypePrimitive::Nil
-                    )),
-                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                        ast::TypePrimitive::Boolean
-                    ))
-                ]
+                ast::shape::TypeExpression(ast::TypeExpression::Object(vec![
+                    ast::ObjectTypeExpressionEntry::Required(
+                        str!("bar"),
+                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Nil
+                        ))
+                    ),
+                    ast::ObjectTypeExpressionEntry::Optional(
+                        str!("fizz"),
+                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Boolean
+                        ))
+                    )
+                ]))
             ))
             .to_string(),
-            "view Foo (nil, boolean);"
+            "view Foo ({
+  bar: nil,
+  fizz?: boolean,
+});"
         );
     }
 
     #[test]
     fn module() {
-        assert_eq!(
+        assert_str_eq!(
             ast::shape::TypeModule(ast::TypeModule {
                 declarations: vec![
                     ast::shape::TypeDeclaration(ast::TypeDeclaration::type_alias(
@@ -323,20 +328,13 @@ mod tests {
                     )),
                     ast::shape::TypeDeclaration(ast::TypeDeclaration::view(
                         str!("Bar"),
-                        vec![
-                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                                ast::TypePrimitive::Nil
-                            )),
-                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                                ast::TypePrimitive::Boolean
-                            ))
-                        ]
+                        ast::shape::TypeExpression(ast::TypeExpression::Object(vec![]))
                     ))
                 ]
             })
             .to_string(),
             "type foo = nil;
-view Bar (nil, boolean);
+view Bar ({});
 "
         );
     }

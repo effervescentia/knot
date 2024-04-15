@@ -1,4 +1,7 @@
-use crate::{walk::Visit, Range};
+use crate::{
+    walk::{CommonVisitor, ProgramVisitor, TypingsVisitor},
+    Range,
+};
 use std::{
     fmt::{Display, Formatter},
     marker::PhantomData,
@@ -102,6 +105,14 @@ impl Display for TypeModule {
     }
 }
 
+pub struct Typings(pub TypeModule);
+
+impl Display for Typings {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 pub struct Visitor<Context>(PhantomData<Context>);
 
 impl<Context> Default for Visitor<Context> {
@@ -110,22 +121,33 @@ impl<Context> Default for Visitor<Context> {
     }
 }
 
-impl<Context> Visit for Visitor<Context> {
+impl<Context> CommonVisitor for Visitor<Context> {
     type Context = Context;
     type Binding = String;
-    type Expression = Expression;
-    type Statement = Statement;
-    type Attribute = Attribute;
-    type Component = Component;
     type TypeExpression = TypeExpression;
-    type Parameter = Parameter;
-    type Declaration = Declaration;
-    type Import = Import;
-    type Module = Module;
 
     fn binding(self, x: super::Binding, _: Range) -> (Self::Binding, Self) {
         (x.0, self)
     }
+
+    fn type_expression(
+        self,
+        x: super::TypeExpression<Self::Binding, Self::TypeExpression>,
+        _: Self::Context,
+    ) -> (Self::TypeExpression, Self) {
+        (TypeExpression(x), self)
+    }
+}
+
+impl<Context> ProgramVisitor for Visitor<Context> {
+    type Expression = Expression;
+    type Statement = Statement;
+    type Attribute = Attribute;
+    type Component = Component;
+    type Parameter = Parameter;
+    type Declaration = Declaration;
+    type Import = Import;
+    type Module = Module;
 
     fn expression(
         self,
@@ -157,14 +179,6 @@ impl<Context> Visit for Visitor<Context> {
         _: Self::Context,
     ) -> (Self::Component, Self) {
         (Component(x), self)
-    }
-
-    fn type_expression(
-        self,
-        x: super::TypeExpression<Self::Binding, Self::TypeExpression>,
-        _: Self::Context,
-    ) -> (Self::TypeExpression, Self) {
-        (TypeExpression(x), self)
     }
 
     fn parameter(
@@ -199,5 +213,26 @@ impl<Context> Visit for Visitor<Context> {
         _: Self::Context,
     ) -> (Self::Module, Self) {
         (Module(x), self)
+    }
+}
+
+impl<Context> TypingsVisitor for Visitor<Context> {
+    type TypeDeclaration = TypeDeclaration;
+    type TypeModule = TypeModule;
+
+    fn type_declaration(
+        self,
+        x: super::TypeDeclaration<Self::Binding, Self::TypeExpression>,
+        _: Self::Context,
+    ) -> (Self::TypeDeclaration, Self) {
+        (TypeDeclaration(x), self)
+    }
+
+    fn type_module(
+        self,
+        x: super::TypeModule<Self::TypeDeclaration>,
+        _: Self::Context,
+    ) -> (Self::TypeModule, Self) {
+        (TypeModule(x), self)
     }
 }

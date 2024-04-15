@@ -28,7 +28,7 @@ mod tests {
         assert_eq_sorted!(
             parse(
                 "type foo = nil;
-view Foo (nil, boolean);"
+view Foo ({ bar: nil, fizz?: boolean });"
             )
             .unwrap()
             .0,
@@ -53,21 +53,38 @@ view Foo (nil, boolean);"
                                 ast::Binding(str!("Foo")),
                                 Range::new((2, 6), (2, 8))
                             ),
-                            vec![
-                                ast::raw::TypeExpression::raw(
-                                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                                    Range::new((2, 11), (2, 13))
-                                ),
-                                ast::raw::TypeExpression::raw(
-                                    ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
-                                    Range::new((2, 16), (2, 22))
-                                )
-                            ]
+                            ast::raw::TypeExpression::raw(
+                                ast::TypeExpression::Object(vec![
+                                    ast::ObjectTypeExpressionEntry::Required(
+                                        ast::raw::Binding::new(
+                                            ast::Binding(str!("bar")),
+                                            Range::new((2, 13), (2, 15))
+                                        ),
+                                        ast::raw::TypeExpression::raw(
+                                            ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                                            Range::new((2, 18), (2, 20))
+                                        )
+                                    ),
+                                    ast::ObjectTypeExpressionEntry::Optional(
+                                        ast::raw::Binding::new(
+                                            ast::Binding(str!("fizz")),
+                                            Range::new((2, 23), (2, 26))
+                                        ),
+                                        ast::raw::TypeExpression::raw(
+                                            ast::TypeExpression::Primitive(
+                                                ast::TypePrimitive::Boolean
+                                            ),
+                                            Range::new((2, 30), (2, 36))
+                                        )
+                                    )
+                                ]),
+                                Range::new((2, 11), (2, 38))
+                            )
                         ),
-                        Range::new((2, 1), (2, 23))
+                        Range::new((2, 1), (2, 39))
                     )
                 ]),
-                Range::new((1, 1), (2, 24))
+                Range::new((1, 1), (2, 40))
             )
         );
     }

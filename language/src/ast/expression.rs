@@ -1,5 +1,5 @@
 use super::{BinaryOperator, UnaryOperator};
-use crate::walk::{Visit, Walk};
+use crate::walk::{ProgramVisitor, Walk};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -34,7 +34,7 @@ pub enum Expression<Expression_, Statement, Component> {
 impl<Visitor, Context, Expression_, Statement, Component> Walk<Visitor>
     for (Expression<Expression_, Statement, Component>, Context)
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: ProgramVisitor<Context = Context>,
     Expression_: Walk<Visitor, Output = Visitor::Expression>,
     Statement: Walk<Visitor, Output = Visitor::Statement>,
     Component: Walk<Visitor, Output = Visitor::Component>,
@@ -114,7 +114,7 @@ pub enum Statement<Expression> {
 
 impl<Visitor, Context, Expression> Walk<Visitor> for (Statement<Expression>, Context)
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: ProgramVisitor<Context = Context>,
     Expression: Walk<Visitor, Output = Visitor::Expression>,
 {
     type Output = Visitor::Statement;

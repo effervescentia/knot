@@ -1,5 +1,5 @@
 use crate::{
-    walk::{Visit, Walk, WalkEach},
+    walk::{CommonVisitor, ProgramVisitor, Walk, WalkEach},
     Range,
 };
 use std::fmt::Debug;
@@ -9,7 +9,7 @@ pub struct Binding(pub String);
 
 impl<Visitor, Meta> Walk<Visitor> for (Binding, (Range, ()))
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: CommonVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Binding;
 
@@ -51,7 +51,7 @@ impl<Binding> Storage<Binding> {
 
 impl<Visitor, Context, Binding> Walk<Visitor> for Storage<Binding>
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: ProgramVisitor<Context = Context>,
     Binding: Walk<Visitor, Output = Visitor::Binding>,
 {
     type Output = Storage<Visitor::Binding>;
@@ -93,7 +93,7 @@ impl<Binding, Expression, TypeExpression> Parameter<Binding, Expression, TypeExp
 impl<Visitor, Context, Binding, Expression, TypeExpression> Walk<Visitor>
     for (Parameter<Binding, Expression, TypeExpression>, Context)
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: ProgramVisitor<Context = Context>,
     Binding: Walk<Visitor, Output = Visitor::Binding>,
     Expression: Walk<Visitor, Output = Visitor::Expression>,
     TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
@@ -249,7 +249,7 @@ impl<Visitor, Context, Binding, Expression, TypeExpression, Parameter, Module> W
         Context,
     )
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: ProgramVisitor<Context = Context>,
     Binding: Walk<Visitor, Output = Visitor::Binding>,
     Expression: Walk<Visitor, Output = Visitor::Expression>,
     TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,

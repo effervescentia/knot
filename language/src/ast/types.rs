@@ -1,4 +1,4 @@
-use crate::walk::{Visit, Walk, WalkEach};
+use crate::walk::{CommonVisitor, TypingsVisitor, Walk, WalkEach};
 use std::fmt::Debug;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -32,7 +32,7 @@ impl<Binding, TypeExpression> ObjectTypeExpressionEntry<Binding, TypeExpression>
 impl<Visitor, Context, Binding, TypeExpression> Walk<Visitor>
     for ObjectTypeExpressionEntry<Binding, TypeExpression>
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: CommonVisitor<Context = Context>,
     Binding: Walk<Visitor, Output = Visitor::Binding>,
     TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
 {
@@ -74,7 +74,7 @@ pub enum TypeExpression<Binding, TypeExpression_> {
 impl<Visitor, Context, Binding, TypeExpression_> Walk<Visitor>
     for (TypeExpression<Binding, TypeExpression_>, Context)
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: CommonVisitor<Context = Context>,
     Binding: Walk<Visitor, Output = Visitor::Binding>,
     TypeExpression_: Walk<Visitor, Output = Visitor::TypeExpression>,
 {
@@ -125,7 +125,7 @@ pub enum TypeDeclaration<Binding, TypeExpression> {
 
     View {
         binding: Binding,
-        parameters: Vec<TypeExpression>,
+        attributes: TypeExpression,
     },
 }
 
@@ -134,50 +134,73 @@ impl<Binding, TypeExpression> TypeDeclaration<Binding, TypeExpression> {
         Self::TypeAlias { binding, value }
     }
 
-    pub const fn view(binding: Binding, parameters: Vec<TypeExpression>) -> Self {
+    pub const fn view(binding: Binding, attributes: TypeExpression) -> Self {
         Self::View {
             binding,
-            parameters,
+            attributes,
+        }
+    }
+}
+
+impl<Visitor, Context, Binding, TypeExpression> Walk<Visitor>
+    for (TypeDeclaration<Binding, TypeExpression>, Context)
+where
+    Visitor: TypingsVisitor<Context = Context>,
+    Binding: Walk<Visitor, Output = Visitor::Binding>,
+    TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
+{
+    type Output = Visitor::TypeDeclaration;
+
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        let (value, ctx) = self;
+
+        match value {
+            TypeDeclaration::TypeAlias { binding, value } => {
+                let ((binding, value), v) = (binding, value).walk_each(v);
+
+                v.type_declaration(TypeDeclaration::TypeAlias { binding, value }, ctx)
+            }
+
+            TypeDeclaration::View {
+                binding,
+                attributes,
+            } => {
+                let ((binding, attributes), v) = (binding, attributes).walk_each(v);
+
+                v.type_declaration(
+                    TypeDeclaration::View {
+                        binding,
+                        attributes,
+                    },
+                    ctx,
+                )
+            }
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct TypeModule<Declaration> {
-    pub declarations: Vec<Declaration>,
+pub struct TypeModule<TypeDeclaration> {
+    pub declarations: Vec<TypeDeclaration>,
 }
 
-impl<Declaration> TypeModule<Declaration> {
-    pub fn new(declarations: Vec<Declaration>) -> Self {
+impl<TypeDeclaration> TypeModule<TypeDeclaration> {
+    pub fn new(declarations: Vec<TypeDeclaration>) -> Self {
         Self { declarations }
     }
 }
 
-// TODO: implement me
-// impl<Visitor, Context, Declaration> Walk<Visitor> for (TypeModule<Declaration>, Context)
-// where
-//     Visitor: Visit<Context = Context>,
-//     Import: Walk<Visitor, Output = Visitor::Import>,
-//     Declaration: Walk<Visitor, Output = Visitor::Declaration>,
-// {
-//     type Output = Visitor::Module;
+impl<Visitor, Context, TypeDeclaration> Walk<Visitor> for (TypeModule<TypeDeclaration>, Context)
+where
+    Visitor: TypingsVisitor<Context = Context>,
+    TypeDeclaration: Walk<Visitor, Output = Visitor::TypeDeclaration>,
+{
+    type Output = Visitor::TypeModule;
 
-//     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-//         let (
-//             Module {
-//                 imports,
-//                 declarations,
-//             },
-//             ctx,
-//         ) = self;
-//         let ((imports, declarations), v) = (imports, declarations).walk_each(v);
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        let (TypeModule { declarations }, ctx) = self;
+        let (declarations, v) = declarations.walk(v);
 
-//         v.module(
-//             Module {
-//                 imports,
-//                 declarations,
-//             },
-//             ctx,
-//         )
-//     }
-// }
+        v.type_module(TypeModule { declarations }, ctx)
+    }
+}

@@ -3,7 +3,7 @@ use crate::error::Error;
 use lang::{
     ast,
     types::{ToShape, Type},
-    walk::Visit,
+    walk::{CommonVisitor, ProgramVisitor},
     Identify, TypeOf,
 };
 use std::collections::HashMap;
@@ -17,11 +17,11 @@ pub const fn can_render(x: &ast::typed::InnerType) -> bool {
 
 pub fn analyze(
     x: &ast::Component<
-        <Visitor as Visit>::Component,
-        <Visitor as Visit>::Expression,
-        <Visitor as Visit>::Attribute,
+        <Visitor as ProgramVisitor>::Component,
+        <Visitor as ProgramVisitor>::Expression,
+        <Visitor as ProgramVisitor>::Attribute,
     >,
-    ctx: &<Visitor as Visit>::Context,
+    ctx: &<Visitor as CommonVisitor>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
     match x {

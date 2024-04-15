@@ -1,6 +1,11 @@
 use super::Visitor;
 use crate::error::Error;
-use lang::{ast, types::ToShape, walk::Visit, Identify, TypeOf};
+use lang::{
+    ast,
+    types::ToShape,
+    walk::{CommonVisitor, ProgramVisitor},
+    Identify, TypeOf,
+};
 
 pub fn analyze(
     ast::Parameter {
@@ -8,11 +13,11 @@ pub fn analyze(
         default_value,
         ..
     }: &ast::Parameter<
-        <Visitor as Visit>::Binding,
-        <Visitor as Visit>::Expression,
-        <Visitor as Visit>::TypeExpression,
+        <Visitor as CommonVisitor>::Binding,
+        <Visitor as ProgramVisitor>::Expression,
+        <Visitor as CommonVisitor>::TypeExpression,
     >,
-    _: &<Visitor as Visit>::Context,
+    _: &<Visitor as CommonVisitor>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
     match (value_type.as_ref(), default_value.as_ref()) {

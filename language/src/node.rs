@@ -1,7 +1,4 @@
-use crate::{
-    walk::{Visit, Walk},
-    Range,
-};
+use crate::{walk::Walk, Range};
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -50,7 +47,6 @@ impl<Value> Node<Value, ()> {
 
 impl<Visitor, Value, Meta> Walk<Visitor> for Node<Value, Meta>
 where
-    Visitor: Visit,
     (Value, (Range, Meta)): Walk<Visitor>,
 {
     type Output = <(Value, (Range, Meta)) as Walk<Visitor>>::Output;

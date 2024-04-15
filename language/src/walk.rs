@@ -1,17 +1,9 @@
 use crate::{ast, Range};
 
-pub trait Visit: Sized {
+pub trait CommonVisitor: Sized {
     type Context;
     type Binding;
-    type Expression;
-    type Statement;
-    type Attribute;
-    type Component;
     type TypeExpression;
-    type Parameter;
-    type Declaration;
-    type Import;
-    type Module;
 
     fn scoped<T, F>(self, f: F) -> (T, Self)
     where
@@ -21,6 +13,23 @@ pub trait Visit: Sized {
     }
 
     fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self);
+
+    fn type_expression(
+        self,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
+        c: Self::Context,
+    ) -> (Self::TypeExpression, Self);
+}
+
+pub trait ProgramVisitor: CommonVisitor {
+    type Expression;
+    type Statement;
+    type Attribute;
+    type Component;
+    type Parameter;
+    type Declaration;
+    type Import;
+    type Module;
 
     fn expression(
         self,
@@ -45,12 +54,6 @@ pub trait Visit: Sized {
         x: ast::Component<Self::Component, Self::Expression, Self::Attribute>,
         c: Self::Context,
     ) -> (Self::Component, Self);
-
-    fn type_expression(
-        self,
-        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
-        c: Self::Context,
-    ) -> (Self::TypeExpression, Self);
 
     fn parameter(
         self,
@@ -80,10 +83,24 @@ pub trait Visit: Sized {
     ) -> (Self::Module, Self);
 }
 
-pub trait Walk<Visitor>
-where
-    Visitor: Visit,
-{
+pub trait TypingsVisitor: CommonVisitor {
+    type TypeDeclaration;
+    type TypeModule;
+
+    fn type_declaration(
+        self,
+        x: ast::TypeDeclaration<Self::Binding, Self::TypeExpression>,
+        c: Self::Context,
+    ) -> (Self::TypeDeclaration, Self);
+
+    fn type_module(
+        self,
+        x: ast::TypeModule<Self::TypeDeclaration>,
+        c: Self::Context,
+    ) -> (Self::TypeModule, Self);
+}
+
+pub trait Walk<Visitor> {
     type Output;
 
     fn walk(self, visitor: Visitor) -> (Self::Output, Visitor);
@@ -92,7 +109,6 @@ where
 impl<Target, Visitor> Walk<Visitor> for (String, Target)
 where
     Target: Walk<Visitor>,
-    Visitor: Visit,
 {
     type Output = (String, Target::Output);
 
@@ -107,7 +123,6 @@ where
 impl<Target, Visitor> Walk<Visitor> for Option<Target>
 where
     Target: Walk<Visitor>,
-    Visitor: Visit,
 {
     type Output = Option<Target::Output>;
 
@@ -124,7 +139,6 @@ where
 impl<Target, Visitor> Walk<Visitor> for Vec<Target>
 where
     Target: Walk<Visitor>,
-    Visitor: Visit,
 {
     type Output = Vec<Target::Output>;
 
@@ -137,10 +151,7 @@ where
     }
 }
 
-pub trait WalkEach<Visitor>
-where
-    Visitor: Visit,
-{
+pub trait WalkEach<Visitor> {
     type Output;
 
     fn walk_each(self, visitor: Visitor) -> (Self::Output, Visitor);
@@ -150,7 +161,6 @@ impl<T1, T2, Visitor> WalkEach<Visitor> for (T1, T2)
 where
     T1: Walk<Visitor>,
     T2: Walk<Visitor>,
-    Visitor: Visit,
 {
     type Output = (T1::Output, T2::Output);
 
@@ -166,7 +176,6 @@ where
     T1: Walk<Visitor>,
     T2: Walk<Visitor>,
     T3: Walk<Visitor>,
-    Visitor: Visit,
 {
     type Output = (T1::Output, T2::Output, T3::Output);
 
@@ -183,7 +192,6 @@ where
     T2: Walk<Visitor>,
     T3: Walk<Visitor>,
     T4: Walk<Visitor>,
-    Visitor: Visit,
 {
     type Output = (T1::Output, T2::Output, T3::Output, T4::Output);
 

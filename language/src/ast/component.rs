@@ -1,4 +1,4 @@
-use crate::walk::{Visit, Walk, WalkEach};
+use crate::walk::{ProgramVisitor, Walk, WalkEach};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -17,7 +17,7 @@ impl<Expression> Attribute<Expression> {
 
 impl<Visitor, Context, Expression> Walk<Visitor> for (Attribute<Expression>, Context)
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: ProgramVisitor<Context = Context>,
     Expression: Walk<Visitor, Output = Visitor::Expression>,
 {
     type Output = Visitor::Attribute;
@@ -70,7 +70,7 @@ impl<Component_, Expression, Attribute> Component<Component_, Expression, Attrib
 impl<Visitor, Context, Component_, Expression, Attribute> Walk<Visitor>
     for (Component<Component_, Expression, Attribute>, Context)
 where
-    Visitor: Visit<Context = Context>,
+    Visitor: ProgramVisitor<Context = Context>,
     Component_: Walk<Visitor, Output = Visitor::Component>,
     Expression: Walk<Visitor, Output = Visitor::Expression>,
     Attribute: Walk<Visitor, Output = Visitor::Attribute>,

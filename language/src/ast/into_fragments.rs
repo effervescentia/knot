@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use crate::{
-    walk::{Visit, Walk},
+    walk::{CommonVisitor, ProgramVisitor, Walk},
     Fragment, FragmentMap, NodeId, Range, ScopeId,
 };
 use kore::Incrementor;
@@ -68,18 +68,10 @@ impl<Context> Visitor<Context> {
     }
 }
 
-impl<Context> Visit for Visitor<Context> {
+impl<Context> CommonVisitor for Visitor<Context> {
     type Context = Context;
     type Binding = String;
-    type Expression = NodeId;
-    type Statement = NodeId;
-    type Attribute = NodeId;
-    type Component = NodeId;
     type TypeExpression = NodeId;
-    type Parameter = NodeId;
-    type Declaration = NodeId;
-    type Import = NodeId;
-    type Module = NodeId;
 
     fn scoped<T, F>(mut self, f: F) -> (T, Self)
     where
@@ -95,6 +87,25 @@ impl<Context> Visit for Visitor<Context> {
     fn binding(self, x: super::Binding, _: Range) -> (Self::Binding, Self) {
         (x.0, self)
     }
+
+    fn type_expression(
+        self,
+        x: super::TypeExpression<Self::Binding, Self::TypeExpression>,
+        _: Self::Context,
+    ) -> (Self::TypeExpression, Self) {
+        self.capture(Fragment::TypeExpression(x))
+    }
+}
+
+impl<Context> ProgramVisitor for Visitor<Context> {
+    type Expression = NodeId;
+    type Statement = NodeId;
+    type Attribute = NodeId;
+    type Component = NodeId;
+    type Parameter = NodeId;
+    type Declaration = NodeId;
+    type Import = NodeId;
+    type Module = NodeId;
 
     fn expression(
         self,
@@ -126,14 +137,6 @@ impl<Context> Visit for Visitor<Context> {
         _: Self::Context,
     ) -> (Self::Component, Self) {
         self.capture(Fragment::Component(x))
-    }
-
-    fn type_expression(
-        self,
-        x: super::TypeExpression<Self::Binding, Self::TypeExpression>,
-        _: Self::Context,
-    ) -> (Self::TypeExpression, Self) {
-        self.capture(Fragment::TypeExpression(x))
     }
 
     fn parameter(

@@ -1,10 +1,13 @@
 use super::Visitor;
 use crate::error::Error;
-use lang::{ast, walk::Visit};
+use lang::{ast, walk::CommonVisitor};
 
 pub fn analyze(
-    x: &ast::TypeExpression<<Visitor as Visit>::Binding, <Visitor as Visit>::TypeExpression>,
-    _: &<Visitor as Visit>::Context,
+    x: &ast::TypeExpression<
+        <Visitor as CommonVisitor>::Binding,
+        <Visitor as CommonVisitor>::TypeExpression,
+    >,
+    _: &<Visitor as CommonVisitor>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
     match x {

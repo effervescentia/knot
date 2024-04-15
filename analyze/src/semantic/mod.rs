@@ -11,7 +11,7 @@ mod type_expression;
 use crate::{error::Error, Result};
 use lang::{
     ast,
-    walk::{Visit, Walk},
+    walk::{CommonVisitor, ProgramVisitor, Walk},
     Identify, Node, NodeId, Range,
 };
 
@@ -40,9 +40,9 @@ impl Visitor {
         (f(Node(x, r, m)), self)
     }
 
-    fn report<T, F>(&mut self, x: &T, ctx: &<Self as Visit>::Context, analyzer: F)
+    fn report<T, F>(&mut self, x: &T, ctx: &<Self as CommonVisitor>::Context, analyzer: F)
     where
-        F: Fn(&T, &<Self as Visit>::Context, &Self) -> Option<Vec<Error>>,
+        F: Fn(&T, &<Self as CommonVisitor>::Context, &Self) -> Option<Vec<Error>>,
     {
         if let Some(errors) = analyzer(x, ctx, self) {
             self.errors
@@ -51,22 +51,35 @@ impl Visitor {
     }
 }
 
-impl Visit for Visitor {
+impl CommonVisitor for Visitor {
     type Context = (Range, ast::typed::Meta);
     type Binding = ast::typed::Binding;
-    type Expression = ast::typed::Expression;
-    type Statement = ast::typed::Statement;
-    type Attribute = ast::typed::Attribute;
-    type Component = ast::typed::Component;
     type TypeExpression = ast::typed::TypeExpression;
-    type Parameter = ast::typed::Parameter;
-    type Declaration = ast::typed::Declaration;
-    type Import = ast::typed::Import;
-    type Module = ast::typed::Module;
 
     fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self) {
         (ast::typed::Binding(Node::raw(x, r)), self)
     }
+
+    fn type_expression(
+        mut self,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
+        ctx: Self::Context,
+    ) -> (Self::TypeExpression, Self) {
+        self.report(&x, &ctx, type_expression::analyze);
+
+        self.node(x, ctx, ast::meta::TypeExpression)
+    }
+}
+
+impl ProgramVisitor for Visitor {
+    type Expression = ast::typed::Expression;
+    type Statement = ast::typed::Statement;
+    type Attribute = ast::typed::Attribute;
+    type Component = ast::typed::Component;
+    type Parameter = ast::typed::Parameter;
+    type Declaration = ast::typed::Declaration;
+    type Import = ast::typed::Import;
+    type Module = ast::typed::Module;
 
     fn expression(
         mut self,
@@ -106,16 +119,6 @@ impl Visit for Visitor {
         self.report(&x, &ctx, component::analyze);
 
         self.node(x, ctx, ast::meta::Component)
-    }
-
-    fn type_expression(
-        mut self,
-        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
-        ctx: Self::Context,
-    ) -> (Self::TypeExpression, Self) {
-        self.report(&x, &ctx, type_expression::analyze);
-
-        self.node(x, ctx, ast::meta::TypeExpression)
     }
 
     fn parameter(

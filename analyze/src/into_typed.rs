@@ -1,7 +1,7 @@
 use crate::{ast, infer, Context};
 use kore::{invariant, Incrementor};
 use lang::{
-    walk::{Visit, Walk},
+    walk::{CommonVisitor, ProgramVisitor, Walk},
     CanonicalId, NamespaceId, Node, NodeId, Range,
 };
 use std::{cell::OnceCell, marker::PhantomData};
@@ -60,22 +60,33 @@ impl<'a, Meta> Visitor<'a, Meta> {
     }
 }
 
-impl<'a, Meta> Visit for Visitor<'a, Meta> {
+impl<'a, Meta> CommonVisitor for Visitor<'a, Meta> {
     type Context = (Range, Meta);
     type Binding = ast::typed::Binding;
-    type Expression = ast::typed::Expression;
-    type Statement = ast::typed::Statement;
-    type Attribute = ast::typed::Attribute;
-    type Component = ast::typed::Component;
     type TypeExpression = ast::typed::TypeExpression;
-    type Parameter = ast::typed::Parameter;
-    type Declaration = ast::typed::Declaration;
-    type Import = ast::typed::Import;
-    type Module = ast::typed::Module;
 
     fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self) {
         (ast::typed::Binding(Node::raw(x, r)), self)
     }
+
+    fn type_expression(
+        self,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
+        (r, _): Self::Context,
+    ) -> (Self::TypeExpression, Self) {
+        self.typed(x, r, ast::meta::TypeExpression)
+    }
+}
+
+impl<'a, Meta> ProgramVisitor for Visitor<'a, Meta> {
+    type Expression = ast::typed::Expression;
+    type Statement = ast::typed::Statement;
+    type Attribute = ast::typed::Attribute;
+    type Component = ast::typed::Component;
+    type Parameter = ast::typed::Parameter;
+    type Declaration = ast::typed::Declaration;
+    type Import = ast::typed::Import;
+    type Module = ast::typed::Module;
 
     fn expression(
         self,
@@ -107,14 +118,6 @@ impl<'a, Meta> Visit for Visitor<'a, Meta> {
         (r, _): Self::Context,
     ) -> (Self::Component, Self) {
         self.typed(x, r, ast::meta::Component)
-    }
-
-    fn type_expression(
-        self,
-        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
-        (r, _): Self::Context,
-    ) -> (Self::TypeExpression, Self) {
-        self.typed(x, r, ast::meta::TypeExpression)
     }
 
     fn parameter(

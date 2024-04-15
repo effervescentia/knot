@@ -2,15 +2,19 @@
 use kore::assert_str_eq;
 use lang::ast;
 
-fn parse(s: &str) -> knot_parse::Result<ast::raw::Program> {
+fn parse_program(s: &str) -> knot_parse::Result<ast::raw::Program> {
     knot_parse::program::parse(s)
+}
+
+fn parse_typings(s: &str) -> knot_parse::Result<ast::raw::Typings> {
+    knot_parse::typings::parse(s)
 }
 
 #[test]
 fn empty_module() {
     let source = "";
 
-    let ast = parse(source).unwrap().0;
+    let ast = parse_program(source).unwrap().0;
 
     assert_str_eq!(ast.to_shape().to_string(), source);
 }
@@ -38,7 +42,7 @@ module inner {
 }
 ";
 
-    let ast = parse(source).unwrap().0;
+    let ast = parse_program(source).unwrap().0;
 
     assert_str_eq!(ast.to_shape().to_string(), source);
 }
@@ -54,7 +58,20 @@ fn mixed_components() {
 </div>;
 ";
 
-    let ast = parse(source).unwrap().0;
+    let ast = parse_program(source).unwrap().0;
+
+    assert_str_eq!(ast.to_shape().to_string(), source);
+}
+
+#[test]
+fn typings() {
+    let source = "type Props = {
+  foo: integer,
+};
+view Bar (Props);
+";
+
+    let ast = parse_typings(source).unwrap().0;
 
     assert_str_eq!(ast.to_shape().to_string(), source);
 }

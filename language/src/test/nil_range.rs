@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use crate::{
     ast,
-    walk::{Visit, Walk},
+    walk::{CommonVisitor, ProgramVisitor, Walk},
     Node, Range,
 };
 
@@ -74,22 +74,33 @@ impl<Context> Visitor<Context> {
     }
 }
 
-impl<Context> Visit for Visitor<Context> {
+impl<Context> CommonVisitor for Visitor<Context> {
     type Context = Context;
     type Binding = ast::raw::Binding;
-    type Expression = ast::raw::Expression;
-    type Statement = ast::raw::Statement;
-    type Attribute = ast::raw::Attribute;
-    type Component = ast::raw::Component;
     type TypeExpression = ast::raw::TypeExpression;
-    type Parameter = ast::raw::Parameter;
-    type Declaration = ast::raw::Declaration;
-    type Import = ast::raw::Import;
-    type Module = ast::raw::Module;
 
     fn binding(self, x: ast::Binding, _: Range) -> (Self::Binding, Self) {
         (ast::meta::Binding(Node::raw(x, Range::nil())), self)
     }
+
+    fn type_expression(
+        self,
+        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
+        _: Self::Context,
+    ) -> (Self::TypeExpression, Self) {
+        (ast::meta::TypeExpression(Node::raw(x, Range::nil())), self)
+    }
+}
+
+impl<Context> ProgramVisitor for Visitor<Context> {
+    type Expression = ast::raw::Expression;
+    type Statement = ast::raw::Statement;
+    type Attribute = ast::raw::Attribute;
+    type Component = ast::raw::Component;
+    type Parameter = ast::raw::Parameter;
+    type Declaration = ast::raw::Declaration;
+    type Import = ast::raw::Import;
+    type Module = ast::raw::Module;
 
     fn expression(
         self,
@@ -121,14 +132,6 @@ impl<Context> Visit for Visitor<Context> {
         _: Self::Context,
     ) -> (Self::Component, Self) {
         (ast::meta::Component(Node::raw(x, Range::nil())), self)
-    }
-
-    fn type_expression(
-        self,
-        x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
-        _: Self::Context,
-    ) -> (Self::TypeExpression, Self) {
-        (ast::meta::TypeExpression(Node::raw(x, Range::nil())), self)
     }
 
     fn parameter(

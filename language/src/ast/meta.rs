@@ -1,6 +1,6 @@
 use super::shape;
 use crate::{
-    walk::{Visit, Walk},
+    walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     Node, Range,
 };
 use std::fmt::Display;
@@ -27,7 +27,7 @@ impl Binding {
 
 impl<Visitor, Meta> Walk<Visitor> for Binding
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: CommonVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Binding;
 
@@ -63,7 +63,7 @@ impl Expression<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Expression<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Expression;
 
@@ -98,7 +98,7 @@ impl Statement<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Statement<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Statement;
 
@@ -133,7 +133,7 @@ impl Attribute<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Attribute<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Attribute;
 
@@ -168,7 +168,7 @@ impl Component<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Component<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Component;
 
@@ -201,7 +201,7 @@ impl TypeExpression<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for TypeExpression<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: CommonVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::TypeExpression;
 
@@ -236,7 +236,7 @@ impl Parameter<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Parameter<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Parameter;
 
@@ -278,7 +278,7 @@ impl Declaration<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Declaration<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Declaration;
 
@@ -311,7 +311,7 @@ impl Import<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Import<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Import;
 
@@ -346,7 +346,7 @@ impl Module<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Module<Meta>
 where
-    Visitor: Visit<Context = (Range, Meta)>,
+    Visitor: ProgramVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Module;
 
@@ -382,11 +382,7 @@ where
     Meta: Clone,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        self.0
-            .clone()
-            .walk(super::shape::Visitor::default())
-            .0
-            .fmt(f)
+        self.clone().to_shape().0.fmt(f)
     }
 }
 
@@ -414,16 +410,16 @@ impl TypeDeclaration<()> {
     }
 }
 
-// impl<Visitor, Meta> Walk<Visitor> for TypeDeclaration<Meta>
-// where
-//     Visitor: Visit<Context = (Range, Meta)>,
-// {
-//     type Output = Visitor::TypeDeclaration;
+impl<Visitor, Meta> Walk<Visitor> for TypeDeclaration<Meta>
+where
+    Visitor: TypingsVisitor<Context = (Range, Meta)>,
+{
+    type Output = Visitor::TypeDeclaration;
 
-//     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-//         self.0.walk(v)
-//     }
-// }
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        self.0.walk(v)
+    }
+}
 
 /* type module */
 
@@ -449,16 +445,16 @@ impl TypeModule<()> {
     }
 }
 
-// impl<Visitor, Meta> Walk<Visitor> for TypeModule<Meta>
-// where
-//     Visitor: Visit<Context = (Range, Meta)>,
-// {
-//     type Output = Visitor::Module;
+impl<Visitor, Meta> Walk<Visitor> for TypeModule<Meta>
+where
+    Visitor: TypingsVisitor<Context = (Range, Meta)>,
+{
+    type Output = Visitor::TypeModule;
 
-//     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-//         self.0.walk(v)
-//     }
-// }
+    fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
+        self.0.walk(v)
+    }
+}
 
 /* typings */
 
@@ -471,20 +467,16 @@ impl<Meta> Typings<Meta> {
         &module.0
     }
 
-    // pub fn to_shape(self) -> shape::Typings {
-    //     shape::Typings(self.0.walk(super::shape::Visitor::default()).0)
-    // }
+    pub fn to_shape(self) -> shape::Typings {
+        shape::Typings(self.0.walk(super::shape::Visitor::default()).0)
+    }
 }
 
-// impl<Meta> Display for Typings<Meta>
-// where
-//     Meta: Clone,
-// {
-//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-//         self.0
-//             .clone()
-//             .walk(super::shape::Visitor::default())
-//             .0
-//             .fmt(f)
-//     }
-// }
+impl<Meta> Display for Typings<Meta>
+where
+    Meta: Clone,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        self.clone().to_shape().fmt(f)
+    }
+}

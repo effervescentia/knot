@@ -4,17 +4,17 @@ use kore::invariant;
 use lang::{
     ast::{BinaryOperator, Expression, UnaryOperator},
     types::{Enumerated, ToShape, Type},
-    walk::Visit,
+    walk::{CommonVisitor, ProgramVisitor},
     Identify, TypeOf,
 };
 
 pub fn analyze(
     x: &Expression<
-        <Visitor as Visit>::Expression,
-        <Visitor as Visit>::Statement,
-        <Visitor as Visit>::Component,
+        <Visitor as ProgramVisitor>::Expression,
+        <Visitor as ProgramVisitor>::Statement,
+        <Visitor as ProgramVisitor>::Component,
     >,
-    _: &<Visitor as Visit>::Context,
+    _: &<Visitor as CommonVisitor>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {
     match x {
