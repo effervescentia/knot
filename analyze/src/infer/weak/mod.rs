@@ -2,6 +2,7 @@ pub mod data;
 mod declaration;
 mod expression;
 mod to_weak;
+mod types;
 
 pub use data::{Inference, Output, Type, Weak};
 use lang::{FragmentMap, NodeId};

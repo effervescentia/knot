@@ -74,11 +74,17 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
                 ..
             } => module::infer(&next, declarations),
 
-            // capture the result of a module declaration
+            // capture the result of a view declaration
             NodeDescriptor {
                 weak: weak::Type::Infer(Inference::View(parameters)),
                 ..
             } => view::infer(&next, parameters),
+
+            // capture the result of a view type declaration
+            NodeDescriptor {
+                weak: weak::Type::Infer(Inference::ViewType(attributes)),
+                ..
+            } => view::infer_type(&next, ctx.canonicalize(*attributes)),
 
             // capture a type imported from a different file
             NodeDescriptor {

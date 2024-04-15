@@ -18,6 +18,9 @@ impl ToWeak for Fragment {
             Self::Declaration(x) => x.to_weak(),
             Self::Import(x) => x.to_weak(),
             Self::Module(x) => x.to_weak(),
+
+            Self::TypeDeclaration(x) => x.to_weak(),
+            Self::TypeModule(x) => x.to_weak(),
         }
     }
 }
@@ -36,6 +39,14 @@ impl ToWeak for ast::Import {
 }
 
 impl ToWeak for ast::Module<NodeId, NodeId> {
+    fn to_weak(&self) -> Weak {
+        (
+            Kind::Mixed,
+            Type::Infer(Inference::Module(self.declarations.clone())),
+        )
+    }
+}
+impl ToWeak for ast::TypeModule<NodeId> {
     fn to_weak(&self) -> Weak {
         (
             Kind::Mixed,

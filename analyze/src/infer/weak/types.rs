@@ -4,71 +4,74 @@ use super::{
 };
 use lang::{
     ast::{self, ObjectTypeExpressionEntry},
-    types::{self, Enumerated, Kind, ObjectTypeEntry},
+    types::{self, Kind, ObjectTypeEntry},
     NodeId,
 };
 
-impl ToWeak for ast::Parameter<String, NodeId, NodeId> {
+fn object_to_weak(entries: &[ObjectTypeExpressionEntry<String, NodeId>]) -> Type {
+    let result = entries
+        .iter()
+        .map(|entry| match entry {
+            ObjectTypeExpressionEntry::Required(name, x) => {
+                Some(ObjectTypeEntry::Required(name.clone(), *x))
+            }
+
+            ObjectTypeExpressionEntry::Optional(name, x) => {
+                Some(ObjectTypeEntry::Optional(name.clone(), *x))
+            }
+
+            ObjectTypeExpressionEntry::Spread(_) => None,
+        })
+        .collect::<Option<Vec<_>>>();
+
+    if let Some(entries) = result {
+        Type::Value(types::Type::Object(entries))
+    } else {
+        Type::Infer(Inference::ObjectType(entries.to_vec()))
+    }
+}
+
+impl ToWeak for ast::TypeExpression<String, NodeId> {
     fn to_weak(&self) -> Weak {
         (
-            Kind::Value,
+            Kind::Type,
             match self {
-                Self {
-                    value_type: Some(x),
-                    ..
-                } => Type::InheritKind(*x, Kind::Type),
+                Self::Primitive(x) => Type::Value(match x {
+                    ast::TypePrimitive::Nil => types::Type::Nil,
+                    ast::TypePrimitive::Boolean => types::Type::Boolean,
+                    ast::TypePrimitive::Integer => types::Type::Integer,
+                    ast::TypePrimitive::Float => types::Type::Float,
+                    ast::TypePrimitive::String => types::Type::String,
+                    ast::TypePrimitive::Style => types::Type::Style,
+                    ast::TypePrimitive::Element => types::Type::Element,
+                }),
 
-                Self {
-                    default_value: Some(x),
-                    ..
-                } => Type::Inherit(*x),
+                Self::Group(id) => Type::Inherit(**id),
 
-                Self { .. } => Type::Infer(Inference::Parameter),
+                Self::Identifier(x) => Type::Infer(Inference::Reference(x.clone(), None)),
+
+                Self::PropertyAccess(x, property) => {
+                    Type::Infer(Inference::Property(**x, property.clone()))
+                }
+
+                Self::Function(params, x) => {
+                    Type::Value(types::Type::Function(params.clone(), **x))
+                }
+
+                Self::Object(entries) => object_to_weak(entries),
             },
         )
     }
 }
 
-impl ToWeak for ast::Declaration<String, NodeId, NodeId, NodeId, NodeId> {
+impl ToWeak for ast::TypeDeclaration<String, NodeId> {
     fn to_weak(&self) -> Weak {
         match self {
             Self::TypeAlias { value, .. } => (Kind::Type, Type::Inherit(*value)),
 
-            Self::Enumerated { variants, .. } => (
-                Kind::Mixed,
-                Type::Value(types::Type::Enumerated(Enumerated::Declaration(
-                    variants.clone(),
-                ))),
-            ),
-
-            Self::Constant {
-                value_type, value, ..
-            } => (
-                Kind::Value,
-                value_type
-                    .map(|x| Type::InheritKind(x, Kind::Type))
-                    .unwrap_or(Type::Inherit(*value)),
-            ),
-
-            Self::Function {
-                parameters,
-                body_type,
-                body,
-                ..
-            } => (
-                Kind::Value,
-                Type::Value(types::Type::Function(
-                    parameters.clone(),
-                    body_type.unwrap_or(*body),
-                )),
-            ),
-
-            Self::View { parameters, .. } => (
-                Kind::Value,
-                Type::Infer(Inference::View(parameters.clone())),
-            ),
-
-            Self::Module { value, .. } => (Kind::Mixed, Type::Inherit(*value)),
+            Self::View { attributes, .. } => {
+                (Kind::Value, Type::Infer(Inference::ViewType(*attributes)))
+            }
         }
     }
 }

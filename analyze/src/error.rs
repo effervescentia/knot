@@ -104,6 +104,11 @@ pub enum Error {
         String,
     ),
 
+    InvalidAttributes(
+        // id of the attributes type
+        CanonicalId,
+    ),
+
     UnexpectedAttribute(
         // name of the attribute
         String,

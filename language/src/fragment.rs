@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Fragment {
+    /* program */
     Expression(ast::Expression<NodeId, NodeId, NodeId>),
     Statement(ast::Statement<NodeId>),
     Attribute(ast::Attribute<NodeId>),
@@ -12,6 +13,10 @@ pub enum Fragment {
     TypeExpression(ast::TypeExpression<String, NodeId>),
     Import(ast::Import),
     Module(ast::Module<NodeId, NodeId>),
+
+    /* typings */
+    TypeDeclaration(ast::TypeDeclaration<String, NodeId>),
+    TypeModule(ast::TypeModule<NodeId>),
 }
 
 impl Fragment {

@@ -16,6 +16,7 @@ pub enum Inference {
     ObjectType(Vec<ast::ObjectTypeExpressionEntry<String, NodeId>>),
     Module(Vec<NodeId>),
     View(Vec<NodeId>),
+    ViewType(NodeId),
     Parameter,
 }
 
