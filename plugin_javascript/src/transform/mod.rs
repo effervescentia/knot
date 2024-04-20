@@ -9,11 +9,13 @@ use kore::str;
 use lang::ast;
 
 impl JavaScript {
-    pub fn from_module(path_to_root: &str, value: &ast::shape::Module, opts: &Options) -> Self {
+    pub fn from_program(path_to_root: &str, program: &ast::shape::Program, opts: &Options) -> Self {
+        let module = &program.0;
+
         let statements = [
             Statement::import("@knot/runtime", vec![(str!("$knot"), None)], opts),
-            Statement::from_module(path_to_root, value, opts),
-            value
+            Statement::from_module(path_to_root, module, opts),
+            module
                 .0
                 .declarations
                 .iter()
@@ -50,9 +52,9 @@ mod tests {
     #[test]
     fn export_public_values() {
         assert_eq!(
-            JavaScript::from_module(
+            JavaScript::from_program(
                 ".",
-                &ast::shape::Module(ast::Module::new(
+                &ast::shape::Program(ast::shape::Module(ast::Module::new(
                     vec![],
                     vec![
                         ast::shape::Declaration(ast::Declaration::type_alias(
@@ -72,7 +74,7 @@ mod tests {
                             ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                         )),
                     ]
-                )),
+                ))),
                 &OPTIONS
             ),
             JavaScript(vec![
@@ -87,16 +89,16 @@ mod tests {
     #[test]
     fn esm_export() {
         assert_eq!(
-            JavaScript::from_module(
+            JavaScript::from_program(
                 ".",
-                &ast::shape::Module(ast::Module::new(
+                &ast::shape::Program(ast::shape::Module(ast::Module::new(
                     vec![],
                     vec![ast::shape::Declaration(ast::Declaration::constant(
                         ast::Storage::public(str!("bar")),
                         None,
                         ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     ))]
-                )),
+                ))),
                 &OPTIONS
             ),
             JavaScript(vec![
@@ -110,16 +112,16 @@ mod tests {
     #[test]
     fn cjs_export() {
         assert_eq!(
-            JavaScript::from_module(
+            JavaScript::from_program(
                 ".",
-                &ast::shape::Module(ast::Module::new(
+                &ast::shape::Program(ast::shape::Module(ast::Module::new(
                     vec![],
                     vec![ast::shape::Declaration(ast::Declaration::constant(
                         ast::Storage::public(str!("bar")),
                         None,
                         ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     ))]
-                )),
+                ))),
                 &Options {
                     mode: Mode::Prod,
                     module: Module::CJS

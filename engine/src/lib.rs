@@ -325,7 +325,7 @@ where
                     state::Ast::Typings(program) => analyze::analyze(&context, program.clone())
                         .map(|(typed, types)| (state::Ast::Typings(typed), types)),
                 }
-                .unwrap_or_else(|_| unimplemented!("need to handle errors"));
+                .unwrap_or_else(|errs| unimplemented!("need to handle errors:\n{errs:?}"));
 
                 modules.keys.insert(namespace, namespace_id);
                 modules

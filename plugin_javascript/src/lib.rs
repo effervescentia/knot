@@ -45,7 +45,7 @@ impl JavaScriptGenerator {
 }
 
 impl Generator for JavaScriptGenerator {
-    type Input = ast::shape::Module;
+    type Input = ast::shape::Program;
     type Output = JavaScript;
 
     fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output) {
@@ -59,7 +59,7 @@ impl Generator for JavaScriptGenerator {
 
         (
             path.with_extension("js"),
-            JavaScript::from_module(
+            JavaScript::from_program(
                 &path_to_root,
                 &input,
                 &Options {
