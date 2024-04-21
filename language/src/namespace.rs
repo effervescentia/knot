@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum NamespaceKind {
+    Library,
     Internal,
     External(String),
 }
@@ -61,6 +62,8 @@ impl Namespace {
         let Self(kind, module_path) = self;
 
         match kind {
+            // TODO: this should never be implemented, maybe change to an invariant
+            NamespaceKind::Library => unimplemented!("{self:?}"),
             NamespaceKind::External(_namespace) => unimplemented!(),
 
             NamespaceKind::Internal => (),

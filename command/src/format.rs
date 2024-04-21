@@ -12,7 +12,7 @@ pub fn command(opts: &Options) -> engine::Result<()> {
 
     engine
         .from_glob(opts.source_dir, opts.glob)
-        .parse()
+        .parse_matched()
         .format()
         .write(opts.source_dir)
 }

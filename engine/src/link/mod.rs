@@ -1,6 +1,7 @@
 mod import_graph;
 
 pub use import_graph::ImportGraph;
+use kore::str;
 use lang::{ast, Namespace, NamespaceKind};
 use std::{
     ffi::OsStr,
@@ -8,19 +9,40 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::Library;
+
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Link(Namespace);
 
 impl Link {
-    pub fn to_path(&self) -> PathBuf {
-        self.0.to_path("kn")
-    }
-
     pub fn from_import<P>(file_path: P, import: &ast::Import) -> Self
     where
         P: AsRef<Path>,
     {
         Self(Namespace::from_import(file_path, import))
+    }
+
+    pub fn from_library(library: &Library) -> Self {
+        Self(Namespace(
+            NamespaceKind::Library,
+            vec![str!("$knot"), str!("lib"), library.to_string()],
+        ))
+    }
+
+    pub const fn is_library(&self) -> bool {
+        matches!(self, Self(Namespace(NamespaceKind::Library, ..)))
+    }
+
+    pub const fn is_internal(&self) -> bool {
+        matches!(self, Self(Namespace(NamespaceKind::Internal, ..)))
+    }
+
+    pub const fn is_external(&self) -> bool {
+        matches!(self, Self(Namespace(NamespaceKind::External(_), ..)))
+    }
+
+    pub fn to_path(&self) -> PathBuf {
+        self.0.to_path("kn")
     }
 
     pub fn to_namespace(self) -> Namespace {

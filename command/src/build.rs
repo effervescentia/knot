@@ -22,7 +22,7 @@ where
 
     engine
         .from_entry(opts.entry)
-        .parse_and_load()
+        .parse_and_discover()
         .link()
         .analyze()
         .generate(&opts.generator)
