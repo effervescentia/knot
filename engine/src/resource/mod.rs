@@ -28,7 +28,7 @@ impl Display for Library {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str(match self {
             Self::Std => "std",
-            Self::Html => "std",
+            Self::Html => "html",
         })
     }
 }

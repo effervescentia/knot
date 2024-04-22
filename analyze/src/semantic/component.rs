@@ -74,11 +74,10 @@ pub fn analyze(
                 let mut sorted_parameters = unsatisfied_parameters.into_iter().collect::<Vec<_>>();
                 sorted_parameters.sort_by(|l, r| l.0.cmp(&r.0));
 
-                errors.extend(
-                    sorted_parameters
-                        .into_iter()
-                        .map(|(_, x)| Error::MissingAttribute(*x.value().id())),
-                );
+                errors.extend(sorted_parameters.into_iter().filter_map(|(_, x)| {
+                    x.is_required()
+                        .then_some(Error::MissingAttribute(*x.value().id()))
+                }));
 
                 errors.extend(
                     unexpected_attributes

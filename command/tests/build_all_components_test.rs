@@ -27,4 +27,15 @@ fn expression() {
     assert_build_component(stdext::function_name!(), "{2 + 3}", "2 + 3");
 }
 
+#[test]
+fn closed_element() {
+    assert_build_component(
+        stdext::function_name!(),
+        "<div id=\"root\" />",
+        "$knot.plugin.get(\"ksx\", \"createElement\", \"1.0\")(\"div\", {
+    id: \"root\",
+  })",
+    );
+}
+
 // TODO: add better tests for fragments & elements when HTML is in scope

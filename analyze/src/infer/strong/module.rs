@@ -15,6 +15,12 @@ pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
                 Some((declaration.binding().clone(), *kind, state.canonicalize(*x)))
             }
 
+            (_, Fragment::TypeDeclaration(declaration)) => {
+                let (kind, _) = state.types.get(x)?;
+
+                Some((declaration.binding().clone(), *kind, state.canonicalize(*x)))
+            }
+
             _ => invariant!("fragment should not appear as a child of module"),
         })
         .collect::<Option<Vec<_>>>();

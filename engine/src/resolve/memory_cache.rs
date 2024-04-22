@@ -67,7 +67,6 @@ mod tests {
             memory_cache.resolve(Path::new(TARGET_FILE)),
             Some(FILE_CONTENTS.to_owned())
         );
-        println!("{:?}", memory_cache.0);
         assert_eq!(memory_cache.0.get(""), None);
     }
 

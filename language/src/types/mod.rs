@@ -94,6 +94,10 @@ impl<T> ObjectTypeEntry<T> {
         }
     }
 
+    pub const fn is_required(&self) -> bool {
+        matches!(self, Self::Required(..))
+    }
+
     pub fn map<R, F>(&self, f: F) -> ObjectTypeEntry<R>
     where
         F: FnOnce(&T) -> R,

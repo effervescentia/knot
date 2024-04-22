@@ -3,8 +3,8 @@ use super::{
     to_weak::ToWeak,
 };
 use lang::{
-    ast::{self, ObjectTypeExpressionEntry},
-    types::{self, Enumerated, Kind, ObjectTypeEntry},
+    ast,
+    types::{self, Enumerated, Kind},
     NodeId,
 };
 

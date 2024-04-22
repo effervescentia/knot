@@ -1,0 +1,441 @@
+type GlobalAttributes = {
+  accesskey?: string,
+  autocapitalize?: string,
+  autofocus?: boolean,
+  class?: string,
+  contenteditable?: boolean,
+  dir?: string,
+  draggable?: boolean,
+  enterkeyhint?: string,
+  exportparts?: string,
+  hidden?: boolean,
+  id?: string,
+  inert?: boolean,
+  inputmode?: string,
+  is?: string,
+  itemid?: string,
+  itemprop?: string,
+  itemref?: string,
+  itemscope?: boolean,
+  itemtype?: string,
+  lang?: string,
+  nonce?: string,
+  part?: string,
+  popover?: boolean,
+  role?: string,
+  slot?: string,
+  spellcheck?: boolean,
+  style?: string,
+  tabindex?: integer,
+  title?: string,
+  translate?: boolean,
+};
+
+view address (GlobalAttributes);
+view article (GlobalAttributes);
+view aside (GlobalAttributes);
+view footer (GlobalAttributes);
+view header (GlobalAttributes);
+view h1 (GlobalAttributes);
+view h2 (GlobalAttributes);
+view h3 (GlobalAttributes);
+view h4 (GlobalAttributes);
+view h5 (GlobalAttributes);
+view h6 (GlobalAttributes);
+view main (GlobalAttributes);
+view nav (GlobalAttributes);
+view section (GlobalAttributes);
+
+view blockquote ({
+  ...GlobalAttributes,
+  cite?: string,
+});
+view dd (GlobalAttributes);
+view div (GlobalAttributes);
+view dl (GlobalAttributes);
+view dt (GlobalAttributes);
+view figcaption (GlobalAttributes);
+view figure (GlobalAttributes);
+view hr (GlobalAttributes);
+view li ({
+  ...GlobalAttributes,
+  value?: integer
+});
+view menu (GlobalAttributes);
+view ol ({
+  ...GlobalAttributes,
+  reversed?: boolean,
+  start?: integer,
+  type?: string,
+});
+view p (GlobalAttributes);
+view pre (GlobalAttributes);
+view ul (GlobalAttributes);
+
+view a ({
+  ...GlobalAttributes,
+  download?: boolean,
+  href?: string,
+  hreflang?: string,
+  ping?: string,
+  referrerpolicy?: string,
+  rel?: string,
+  target?: string,
+  type?: string,
+});
+view abbr (GlobalAttributes);
+view b (GlobalAttributes);
+view bdi (GlobalAttributes);
+view bdo ({
+  ...GlobalAttributes,
+  dir?: string,
+});
+view br (GlobalAttributes);
+view cite (GlobalAttributes);
+view code (GlobalAttributes);
+view data ({
+  ...GlobalAttributes,
+  value?: string,
+});
+view dfn (GlobalAttributes);
+view em (GlobalAttributes);
+view i (GlobalAttributes);
+view kbd (GlobalAttributes);
+view mark (GlobalAttributes);
+view q ({
+  ...GlobalAttributes,
+  cite?: string,
+});
+view rp (GlobalAttributes);
+view rt (GlobalAttributes);
+view ruby (GlobalAttributes);
+view s (GlobalAttributes);
+view samp (GlobalAttributes);
+view small (GlobalAttributes);
+view span (GlobalAttributes);
+view strong (GlobalAttributes);
+view sub (GlobalAttributes);
+view sup (GlobalAttributes);
+view time ({
+  ...GlobalAttributes,
+  datetime?: string,
+});
+view u (GlobalAttributes);
+view var (GlobalAttributes);
+view wbr (GlobalAttributes);
+
+view area ({
+  ...GlobalAttributes,
+  alt?: string,
+  coords?: string,
+  download?: boolean,
+  href?: string,
+  ping?: string,
+  referrerpolicy?: string,
+  rel?: string,
+  shape?: string,
+  target?: string,
+});
+view audio ({
+  ...GlobalAttributes,
+  autoplay?: boolean,
+  controls?: boolean,
+  controlslist?: string,
+  crossorigin?: string,
+  disableremoteplayback?: boolean,
+  loop?: boolean,
+  muted?: boolean,
+  preload?: string,
+  src?: string,
+});
+view img ({
+  ...GlobalAttributes,
+  alt?: string,
+  crossorigin?: string,
+  decoding?: string,
+  elementtiming?: string,
+  fetchpriority?: string,
+  height?: integer,
+  ismap?: boolean,
+  loading?: string,
+  referrerpolicy?: string,
+  sizes?: string,
+  src?: string,
+  srcset?: string,
+  width?: integer,
+  usemap?: string,
+});
+view map ({
+  ...GlobalAttributes,
+  name?: string,
+});
+view track ({
+  ...GlobalAttributes,
+  default?: boolean,
+  kind?: string,
+  label?: string,
+  src?: string,
+  srclang?: string,
+});
+view video ({
+  ...GlobalAttributes,
+  autoplay?: boolean,
+  controls?: boolean,
+  controlslist?: string,
+  crossorigin?: string,
+  disablepictureinpicture?: boolean,
+  disableremoteplayback?: boolean,
+  height?: integer,
+  loop?: boolean,
+  muted?: boolean,
+  playsinline?: boolean,
+  poster?: string,
+  preload?: string,
+  src?: string,
+  width?: integer,
+});
+
+view embed ({
+  ...GlobalAttributes,
+  height?: integer,
+  src?: string,
+  type?: string,
+  width?: integer,
+});
+view iframe ({
+  ...GlobalAttributes,
+  allow?: string,
+  allowfullscreen?: boolean,
+  height?: integer,
+  loading?: string,
+  name?: string,
+  referrerpolicy?: string,
+  sandbox?: string,
+  src?: string,
+  srcdoc?: string,
+  width?: integer,
+});
+view object ({
+  ...GlobalAttributes,
+  data?: string,
+  form?: string,
+  height?: integer,
+  name?: string,
+  type?: string,
+  width?: integer,
+});
+view picture (GlobalAttributes);
+view portal ({
+  ...GlobalAttributes,
+  referrerpolicy?: string,
+  src?: string,
+});
+view source ({
+  ...GlobalAttributes,
+  type?: string,
+  src?: string,
+  srcset?: string,
+  sizes?: string,
+  media?: string,
+  height?: integer,
+  width?: integer,
+});
+
+view canvas ({
+  ...GlobalAttributes,
+  height?: integer,
+  width?: integer,
+});
+
+view del ({
+  ...GlobalAttributes,
+  cite?: string,
+  datetime?: string,
+});
+view ins ({
+  ...GlobalAttributes,
+  cite?: string,
+  datetime?: string,
+});
+
+view caption (GlobalAttributes);
+view col ({
+  ...GlobalAttributes,
+  span?: integer,
+});
+view colgroup ({
+  ...GlobalAttributes,
+  span?: integer,
+});
+view table (GlobalAttributes);
+view tbody (GlobalAttributes);
+view td ({
+  ...GlobalAttributes,
+  colspan?: integer,
+  headers?: string,
+  rowspan?: integer,
+});
+view tfoot (GlobalAttributes);
+view th ({
+  ...GlobalAttributes,
+  abbr?: string,
+  colspan?: integer,
+  headers?: string,
+  rowspan?: integer,
+  scope?: string,
+});
+view thead (GlobalAttributes);
+view tr (GlobalAttributes);
+
+view button ({
+  ...GlobalAttributes,
+  autofocus?: boolean,
+  disabled?: boolean,
+  form?: string,
+  formaction?: string,
+  formenctype?: string,
+  formmethod?: string,
+  formnovalidate?: boolean,
+  formtarget?: string,
+  name?: string,
+  popovertarget?: string,
+  popovertargetaction?: string,
+  type?: string,
+  value?: string,
+});
+view datalist (GlobalAttributes);
+view fieldset ({
+  ...GlobalAttributes,
+  disabled?: boolean,
+  form?: string,
+  name?: string,
+});
+view form ({
+  ...GlobalAttributes,
+  autocapitalize?: string,
+  autocomplete?: string,
+  name?: string,
+  rel?: string,
+  
+  action?: string,
+  enctype?: string,
+  method?: string,
+  novalidate?: boolean,
+  target?: string,
+});
+view input ({
+  ...GlobalAttributes,
+  accept?: string,
+  alt?: string,
+  autocapitalize?: string,
+  autocomplete?: string,
+  capture?: string,
+  checked?: boolean,
+  dirname?: string,
+  disabled?: boolean,
+  form?: string,
+  formaction?: string,
+  formenctype?: string,
+  formmethod?: string,
+  formnovalidate?: boolean,
+  formtarget?: string,
+  height?: integer,
+  list?: string,
+  max?: integer,
+  maxlength?: integer,
+  min?: integer,
+  minlength?: integer,
+  multiple?: boolean,
+  name?: string,
+  pattern?: string,
+  placeholder?: string,
+  popovertarget?: string,
+  popovertargetaction?: string,
+  readonly?: boolean,
+  required?: boolean,
+  size?: integer,
+  src?: string,
+  step?: float,
+  type?: string,
+  value?: string,
+  width?: integer,
+});
+view label ({
+  ...GlobalAttributes,
+  for?: string,
+});
+view legend (GlobalAttributes);
+view meter ({
+  ...GlobalAttributes,
+  value?: float,
+  min?: float,
+  max?: float,
+  low?: float,
+  high?: float,
+  optimum?: float,
+  form?: string,
+});
+view optgroup ({
+  ...GlobalAttributes,
+  disabled?: boolean,
+  label?: string,
+});
+view option ({
+  ...GlobalAttributes,
+  disabled?: boolean,
+  label?: string,
+  selected?: boolean,
+  value?: string,
+});
+view output ({
+  ...GlobalAttributes,
+  for?: string,
+  form?: string,
+  name?: string,
+});
+view progress ({
+  ...GlobalAttributes,
+  max?: float,
+  value?: float,
+});
+view select ({
+  ...GlobalAttributes,
+  autocomplete?: string,
+  autofocus?: boolean,
+  disabled?: boolean,
+  form?: string,
+  multiple?: boolean,
+  name?: string,
+  required?: boolean,
+  size?: integer,
+});
+view textarea ({
+  ...GlobalAttributes,
+  autocapitalize?: string,
+  autocomplete?: string,
+  autofocus?: boolean,
+  cols?: integer,
+  dirname?: string,
+  disabled?: boolean,
+  form?: string,
+  maxlength?: integer,
+  minlength?: integer,
+  name?: string,
+  placeholder?: string,
+  readonly?: boolean,
+  required?: boolean,
+  rows?: integer,
+  spellcheck?: string,
+  wrap?: string,
+});
+
+view details ({
+  ...GlobalAttributes,
+  open?: boolean,
+  name?: string,
+});
+view dialog ({
+  ...GlobalAttributes,
+  open?: boolean,
+});
+view summary (GlobalAttributes);

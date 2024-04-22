@@ -38,6 +38,8 @@ impl Fragment {
                 alias: Some(alias), ..
             }) => Some((alias.clone(), None)),
 
+            Self::TypeDeclaration(x) => Some((x.binding().clone(), None)),
+
             _ => None,
         }
     }

@@ -3,10 +3,11 @@ use bimap::BiMap;
 use lang::{ast, CanonicalId, Identify, NamespaceId};
 use std::{
     collections::HashMap,
-    fmt::{Display, Pointer},
+    fmt::{Debug, Display, Pointer},
     path::{Path, PathBuf},
 };
 
+#[derive(Debug)]
 pub enum Ast<Meta> {
     Program(ast::meta::Program<Meta>),
     Typings(ast::meta::Typings<Meta>),
@@ -59,7 +60,7 @@ where
 }
 
 pub trait Modules<'a> {
-    type Meta: 'a;
+    type Meta: Debug + 'a;
     type Iter: Iterator<Item = (&'a Link, &'a Module<Self::Meta>)>;
 
     fn modules(&'a self) -> Result<Self::Iter>;
@@ -69,13 +70,20 @@ pub trait Modules<'a> {
 //     fn internal_modules(&'a self) -> Vec<Item = (&Link, &Module<()>)>;
 // }
 
-pub struct Module<T> {
+#[derive(Debug)]
+pub struct Module<T>
+where
+    T: Debug,
+{
     pub id: NamespaceId,
     pub text: String,
     pub ast: Ast<T>,
 }
 
-impl<T> Module<T> {
+impl<T> Module<T>
+where
+    T: Debug,
+{
     pub const fn new(id: NamespaceId, text: String, ast: Ast<T>) -> Self {
         Self { id, text, ast }
     }

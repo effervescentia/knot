@@ -35,7 +35,7 @@ impl<R> Context<R> {
         Self {
             reporter,
             resolver,
-            libraries: HashSet::from_iter(vec![Library::Std]),
+            libraries: HashSet::from_iter(vec![Library::Std, Library::Html]),
         }
     }
 }
