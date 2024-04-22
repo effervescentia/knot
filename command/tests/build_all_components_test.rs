@@ -28,6 +28,15 @@ fn expression() {
 }
 
 #[test]
+fn fragment() {
+    assert_build_component(
+        stdext::function_name!(),
+        "<></>",
+        "$knot.plugin.get(\"ksx\", \"createFragment\", \"1.0\")()",
+    );
+}
+
+#[test]
 fn closed_element() {
     assert_build_component(
         stdext::function_name!(),
@@ -38,4 +47,13 @@ fn closed_element() {
     );
 }
 
-// TODO: add better tests for fragments & elements when HTML is in scope
+#[test]
+fn open_element() {
+    assert_build_component(
+        stdext::function_name!(),
+        "<div id=\"root\">hello</div>",
+        "$knot.plugin.get(\"ksx\", \"createElement\", \"1.0\")(\"div\", {
+    id: \"root\",
+  }, \"hello\")",
+    );
+}
