@@ -65,7 +65,7 @@ impl Statement {
                                 .collect::<Vec<_>>();
 
                             let results = [
-                                vec![Expression::DotAccess(
+                                vec![Expression::PropertyAccess(
                                     Box::new(Expression::Identifier(binding.clone())),
                                     variant_name.clone(),
                                 )],
@@ -99,12 +99,6 @@ impl Statement {
             )],
 
             ast::Declaration::Function {
-                storage: ast::Storage { binding, .. },
-                parameters,
-                body,
-                ..
-            }
-            | ast::Declaration::View {
                 storage: ast::Storage { binding, .. },
                 parameters,
                 body,
@@ -148,6 +142,67 @@ impl Statement {
                 vec![Self::Expression(Expression::Function(
                     Some(binding.clone()),
                     parameters.iter().map(|x| x.0.binding.clone()).collect(),
+                    statements,
+                ))]
+            }
+
+            ast::Declaration::View {
+                storage: ast::Storage { binding, .. },
+                parameters,
+                body,
+                ..
+            } => {
+                let statements = [
+                    parameters
+                        .iter()
+                        .map(|parameter| {
+                            if let Some(default) = &parameter.0.default_value {
+                                Self::Assignment(
+                                    Expression::Identifier(parameter.0.binding.clone()),
+                                    Expression::FunctionCall(
+                                        Box::new(Expression::FunctionCall(
+                                            Box::new(Expression::Identifier(str!(
+                                                "$knot.plugin.get"
+                                            ))),
+                                            vec![
+                                                Expression::String(str!("core")),
+                                                Expression::String(str!("defaultParameter")),
+                                                Expression::String(str!("1.0")),
+                                            ],
+                                        )),
+                                        vec![
+                                            Expression::PropertyAccess(
+                                                Box::new(Expression::Identifier(str!("$props"))),
+                                                parameter.0.binding.clone(),
+                                            ),
+                                            Expression::from_expression(default, opts),
+                                        ],
+                                    ),
+                                )
+                            } else {
+                                Self::Variable(
+                                    parameter.0.binding.clone(),
+                                    Expression::PropertyAccess(
+                                        Box::new(Expression::Identifier(str!("$props"))),
+                                        parameter.0.binding.clone(),
+                                    ),
+                                )
+                            }
+                        })
+                        .collect::<Vec<_>>(),
+                    match Expression::from_expression(body, opts) {
+                        Expression::Closure(xs) => xs,
+
+                        x => vec![Self::Return(Some(x))],
+                    },
+                ]
+                .concat();
+
+                vec![Self::Expression(Expression::Function(
+                    Some(binding.clone()),
+                    (!parameters.is_empty())
+                        .then_some(vec![str!("$props")])
+                        .unwrap_or_default(),
                     statements,
                 ))]
             }
@@ -366,7 +421,7 @@ mod tests {
                                 Some(str!("Bar")),
                                 vec![str!("$param_0")],
                                 vec![Statement::Return(Some(Expression::Array(vec![
-                                    Expression::DotAccess(
+                                    Expression::PropertyAccess(
                                         Box::new(Expression::Identifier(str!("foo"))),
                                         str!("Bar")
                                     ),
@@ -380,7 +435,7 @@ mod tests {
                                 Some(str!("Fizz")),
                                 vec![],
                                 vec![Statement::Return(Some(Expression::Array(vec![
-                                    Expression::DotAccess(
+                                    Expression::PropertyAccess(
                                         Box::new(Expression::Identifier(str!("foo"))),
                                         str!("Fizz")
                                     ),
@@ -518,8 +573,15 @@ mod tests {
                 ),
                 vec![Statement::Expression(Expression::Function(
                     Some(str!("foo")),
-                    vec![str!("bar"), str!("fizz")],
+                    vec![str!("$props")],
                     vec![
+                        Statement::Variable(
+                            str!("bar"),
+                            Expression::PropertyAccess(
+                                Box::new(Expression::Identifier(str!("$props"))),
+                                str!("bar")
+                            )
+                        ),
                         Statement::Assignment(
                             Expression::Identifier(str!("fizz")),
                             Expression::FunctionCall(
@@ -532,7 +594,10 @@ mod tests {
                                     ]
                                 )),
                                 vec![
-                                    Expression::Identifier(str!("fizz")),
+                                    Expression::PropertyAccess(
+                                        Box::new(Expression::Identifier(str!("$props"))),
+                                        str!("fizz")
+                                    ),
                                     Expression::Boolean(true)
                                 ]
                             )

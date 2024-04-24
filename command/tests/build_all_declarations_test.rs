@@ -71,7 +71,8 @@ const GREETING = <Greet name=\"Alex\" />;
 ";
 
     const OUTPUT: &str = "import { $knot } from \"@knot/runtime\";
-function Greet(name) {
+function Greet($props) {
+  var name = $props.name;
   return $knot.plugin.get(\"ksx\", \"createFragment\", \"1.0\")(\"Welcome \", name, \"!\");
 }
 var GREETING = $knot.plugin.get(\"ksx\", \"createElement\", \"1.0\")(Greet, {

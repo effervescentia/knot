@@ -63,7 +63,7 @@ where
     })
 }
 
-fn dot_access<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::TypeExpression>
+fn property_access<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::TypeExpression>
 where
     T: Stream<Token = char>,
     T::Position: m::Position,
@@ -159,7 +159,7 @@ where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    dot_access(type_expression_2())
+    property_access(type_expression_2())
 }
 
 // TODO: use this for lists ([], [][][])
@@ -336,7 +336,7 @@ mod tests {
     }
 
     #[test]
-    fn dot_access() {
+    fn property_access() {
         assert_eq!(
             parse("nil.foo").unwrap().0,
             ast::raw::TypeExpression::raw(

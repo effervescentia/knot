@@ -15,7 +15,7 @@ pub enum Expression {
     UnaryOperation(&'static str, Box<Expression>),
     BinaryOperation(&'static str, Box<Expression>, Box<Expression>),
     // Ternary(Box<Expression>, Box<Expression>, Box<Expression>),
-    DotAccess(Box<Expression>, String),
+    PropertyAccess(Box<Expression>, String),
     FunctionCall(Box<Expression>, Vec<Expression>),
     Function(Option<String>, Vec<String>, Vec<Statement>),
     Array(Vec<Expression>),
@@ -82,7 +82,10 @@ impl Statement {
                 .map(|x| match x {
                     (name, Some(alias)) | (alias @ name, None) => Self::Variable(
                         alias.clone(),
-                        Expression::DotAccess(Box::new(Self::require(namespace)), name.clone()),
+                        Expression::PropertyAccess(
+                            Box::new(Self::require(namespace)),
+                            name.clone(),
+                        ),
                     ),
                 })
                 .collect(),
@@ -104,7 +107,7 @@ impl Statement {
             Module::ESM => Self::Export(name.to_owned()),
 
             Module::CJS => Self::Assignment(
-                Expression::DotAccess(
+                Expression::PropertyAccess(
                     Box::new(Expression::Identifier(str!("exports"))),
                     name.to_owned(),
                 ),

@@ -17,7 +17,7 @@ func my_func(first: boolean, second = 10) -> {
   result;
 };
 
-view MyView(props: string) -> <></>;
+view MyView(name: string) -> <></>;
 
 module my_module {
   const MY_STYLE = style {
@@ -43,7 +43,8 @@ function my_func(first, second) {
   var result = first || second < 5;
   return result;
 }
-function MyView(props) {
+function MyView($props) {
+  var name = $props.name;
   return $knot.plugin.get(\"ksx\", \"createFragment\", \"1.0\")();
 }
 var my_module = (function() {
@@ -91,7 +92,8 @@ function my_func(first, second) {
   var result = first || second < 5;
   return result;
 }
-function MyView(props) {
+function MyView($props) {
+  var name = $props.name;
   return $knot.plugin.get(\"ksx\", \"createFragment\", \"1.0\")();
 }
 var my_module = (function() {

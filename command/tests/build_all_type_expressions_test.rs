@@ -3,13 +3,6 @@ mod common;
 
 use common::assert_build_single;
 
-fn assert_build_type_expression(name: &str, input: &str) {
-    let source = format!("type TYPE = {input};");
-    let compiled = "import { $knot } from \"@knot/runtime\";\n";
-
-    assert_build_single(name, &source, compiled);
-}
-
 fn assert_build_type_expressions(name: &str, inputs: &[&str]) {
     let source = inputs
         .iter()

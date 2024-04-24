@@ -130,7 +130,7 @@ mod tests {
             JavaScript(vec![
                 Statement::Variable(
                     str!("$knot"),
-                    Expression::DotAccess(
+                    Expression::PropertyAccess(
                         Box::new(Expression::FunctionCall(
                             Box::new(Expression::Identifier(str!("require"))),
                             vec![Expression::String(str!("@knot/runtime"))]
@@ -140,7 +140,7 @@ mod tests {
                 ),
                 Statement::Variable(str!("bar"), Expression::Null),
                 Statement::Assignment(
-                    Expression::DotAccess(
+                    Expression::PropertyAccess(
                         Box::new(Expression::Identifier(str!("exports")),),
                         str!("bar")
                     ),

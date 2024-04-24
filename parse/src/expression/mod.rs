@@ -655,7 +655,7 @@ mod tests {
     }
 
     #[test]
-    fn dot_access() {
+    fn property_access() {
         assert_eq!(
             parse("nil.foo").unwrap().0,
             ast::raw::Expression::raw(

@@ -34,7 +34,7 @@ impl Display for Expression {
 
             Self::BinaryOperation(op, lhs, rhs) => write!(f, "{lhs} {op} {rhs}"),
 
-            Self::DotAccess(lhs, rhs) => write!(f, "{lhs}.{rhs}"),
+            Self::PropertyAccess(lhs, rhs) => write!(f, "{lhs}.{rhs}"),
 
             Self::FunctionCall(x, arguments) => {
                 write!(
@@ -166,9 +166,9 @@ mod tests {
     }
 
     #[test]
-    fn dot_access() {
+    fn property_access() {
         assert_eq!(
-            Expression::DotAccess(Box::new(Expression::Null), str!("foo")).to_string(),
+            Expression::PropertyAccess(Box::new(Expression::Null), str!("foo")).to_string(),
             "null.foo"
         );
     }

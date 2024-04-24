@@ -91,7 +91,7 @@ impl Expression {
             }
 
             ast::Expression::PropertyAccess(lhs, rhs) => {
-                Self::DotAccess(Box::new(Self::from_expression(lhs, opts)), rhs.clone())
+                Self::PropertyAccess(Box::new(Self::from_expression(lhs, opts)), rhs.clone())
             }
 
             ast::Expression::FunctionCall(x, arguments) => Self::FunctionCall(
@@ -504,7 +504,7 @@ mod tests {
         }
 
         #[test]
-        fn dot_access() {
+        fn property_access() {
             assert_eq!(
                 Expression::from_expression(
                     &ast::shape::Expression(ast::Expression::PropertyAccess(
@@ -515,7 +515,7 @@ mod tests {
                     )),
                     &OPTIONS
                 ),
-                Expression::DotAccess(Box::new(Expression::Null), str!("foo")),
+                Expression::PropertyAccess(Box::new(Expression::Null), str!("foo")),
             );
         }
 

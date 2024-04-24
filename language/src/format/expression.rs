@@ -393,7 +393,7 @@ mod tests {
     }
 
     #[test]
-    fn dot_access() {
+    fn property_access() {
         assert_eq!(
             ast::shape::Expression(ast::Expression::PropertyAccess(
                 Box::new(ast::shape::Expression(ast::Expression::Primitive(
