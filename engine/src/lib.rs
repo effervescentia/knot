@@ -132,6 +132,10 @@ where
             Err(err) => Err(err),
         })
     }
+
+    pub fn into_result(self) -> Result<T> {
+        self.state
+    }
 }
 
 impl<R> Engine<(), R>

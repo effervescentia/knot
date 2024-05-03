@@ -1,24 +1,15 @@
 use crate::path::AssertExists;
 use engine::{Context, Engine, FileSystem, Reporter};
-use kore::{color::Highlight, Generator};
-use lang::ast;
+use kore::color::Highlight;
 use std::path::Path;
 
-pub struct Options<'a, G>
-where
-    G: Generator,
-{
-    pub generator: G,
+pub struct Options<'a> {
     pub root_dir: &'a Path,
     pub source_dir: &'a Path,
-    pub out_dir: &'a Path,
     pub entry: &'a Path,
 }
 
-pub fn command<G>(opts: &Options<G>) -> engine::Result<()>
-where
-    G: Generator<Input = ast::shape::Program>,
-{
+pub fn command(opts: &Options) -> engine::Result<()> {
     let source_path = opts
         .root_dir
         .assert_dir_exists(engine::Error::RootDirectoryNotFound)?
@@ -34,18 +25,17 @@ where
         .join(opts.entry)
         .assert_file_exists(engine::Error::EntrypointNotFound)?;
 
-    let count = engine
+    let result = engine
         .from_entry(opts.entry)
         .parse_and_discover()
         .link()
         .analyze()
-        .generate(&opts.generator)
-        .write(opts.out_dir)?;
+        .into_result()?;
 
     eprintln!(
         "{} {} {}\n",
-        "transpiled".success(),
-        count,
+        "analyzed".success(),
+        result.graph.size().to_string().focus(),
         "module(s) with no errors".success()
     );
 

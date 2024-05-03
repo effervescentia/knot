@@ -59,6 +59,10 @@ impl ImportGraph {
         }
     }
 
+    pub fn size(&self) -> usize {
+        self.graph.node_count()
+    }
+
     fn index_of(&self, id: &NamespaceId) -> Option<NodeIndex> {
         self.lookup.get_by_left(id).copied()
     }

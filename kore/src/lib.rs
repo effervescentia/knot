@@ -1,3 +1,5 @@
+// #[cfg(feature = "color")]
+pub mod color;
 #[cfg(feature = "format")]
 pub mod format;
 mod incrementor;

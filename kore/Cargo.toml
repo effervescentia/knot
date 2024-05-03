@@ -6,10 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+colored = "2.1.0"
+# colored = { version = "2.1.0", optional = true }
 indenter = { version = "0.3.3", features = ["std"], optional = true }
 pretty_assertions = { version = "1.4.0", optional = true }
 pretty_assertions_sorted = { version = "1.2.3", optional = true }
 
 [features]
 format = ["dep:indenter"]
+# color = ["dep:colored"]
 test = ["dep:pretty_assertions", "dep:pretty_assertions_sorted"]

@@ -6,4 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clap = { version = "4.4.18", features = ["derive"] }
+exitcode = "1.1.2"
+kore = { package = "knot_core", path = "../kore" }
+engine = { package = "knot_engine", path = "../engine" }
 command = { package = "knot_command", path = "../command" }
+js = { package = "knot_plugin_javascript", path = "../plugin_javascript" }

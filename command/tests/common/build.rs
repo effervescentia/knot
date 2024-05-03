@@ -2,7 +2,11 @@ use super::scratch_path;
 use knot_command::build;
 use kore::Generator;
 use lang::ast;
-use std::{collections::HashMap, fs, path::Path};
+use std::{
+    collections::HashMap,
+    fs,
+    path::{Path, PathBuf},
+};
 
 fn write_files(source_dir: &Path, files: &[(&str, &str)]) {
     for (name, data) in files {
@@ -68,7 +72,8 @@ where
     let result = build::command(&build::Options {
         generator,
         entry: Path::new(entry),
-        source_dir: source_dir.as_path(),
+        root_dir: source_dir.as_path(),
+        source_dir: PathBuf::from(".").as_path(),
         out_dir: out_dir.as_path(),
     });
 

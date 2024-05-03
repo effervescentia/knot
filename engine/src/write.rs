@@ -14,7 +14,9 @@ impl<T> Writer<T>
 where
     T: Display,
 {
-    pub fn write(&self, dir: &Path) -> Result<()> {
+    pub fn write(&self, dir: &Path) -> Result<usize> {
+        let mut count = 0;
+
         match &self.0 {
             Ok(xs) => {
                 for (path, generated) in xs {
@@ -31,9 +33,11 @@ where
 
                     write!(writer, "{generated}").ok();
                     writer.flush().ok();
+
+                    count += 1;
                 }
 
-                Ok(())
+                Ok(count)
             }
 
             Err(err) => Err(err.clone()),
