@@ -45,7 +45,7 @@ where
     eprintln!(
         "{} {} {}\n",
         "transpiled".success(),
-        count,
+        count.to_string().focus(),
         "module(s) with no errors".success()
     );
 
