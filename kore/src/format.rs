@@ -39,9 +39,9 @@ where
             if is_first {
                 is_first = false;
             } else {
-                write!(f, "{}", self.0)?;
+                self.0.fmt(f)?;
             }
-            write!(f, "{x}")?;
+            x.fmt(f)?;
         }
 
         Ok(())

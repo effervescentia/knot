@@ -1,12 +1,16 @@
 mod args;
 mod build;
 mod check;
+mod config;
 mod format;
+mod path;
 mod reporter;
 
 use args::{Args, Command};
 use clap::Parser;
 use kore::color::Highlight;
+
+use crate::reporter::Phase;
 
 fn main() {
     let args = Args::parse();
@@ -15,41 +19,44 @@ fn main() {
     eprintln!("{} - running \u{1f680}\n", command.focus());
 
     let result = match args.command {
-        Command::Format { glob, root_dir } => format::command(format::Args { glob, root_dir }),
+        Command::Format {
+            ref root_dir,
+            ref glob,
+        } => format::command(format::Args { root_dir, glob }),
 
         Command::Check {
-            entry,
-            root_dir,
-            source_dir,
+            ref root_dir,
+            ref source_dir,
+            ref entry,
         } => check::command(check::Args {
-            entry,
             root_dir,
             source_dir,
+            entry,
         }),
 
         Command::Build {
             target,
-            entry,
-            root_dir,
-            source_dir,
-            out_dir,
+            ref out_dir,
+            ref root_dir,
+            ref source_dir,
+            ref entry,
         } => build::command(build::Args {
             target,
+            out_dir,
             entry,
             root_dir,
             source_dir,
-            out_dir,
         }),
     };
 
     match result {
         Ok(()) => {
-            eprintln!("{} - passed \u{2705}", command.focus());
+            eprintln!("{}{} - passed \u{2705}", Phase::Result, command.focus());
         }
         Err(errs) => {
             reporter::eprint_report(&errs);
 
-            eprintln!("{} - failed \u{274c}", command.focus());
+            eprintln!("{}{} - failed \u{274c}", Phase::Result, command.focus());
 
             std::process::exit(exitcode::DATAERR);
         }

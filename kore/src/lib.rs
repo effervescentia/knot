@@ -3,6 +3,7 @@ pub mod color;
 #[cfg(feature = "format")]
 pub mod format;
 mod incrementor;
+pub mod pretty;
 mod string;
 
 pub use incrementor::Incrementor;

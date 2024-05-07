@@ -14,6 +14,16 @@ impl<T> Writer<T>
 where
     T: Display,
 {
+    pub fn overwrite(&self, dir: &Path) -> Result<usize> {
+        if dir.exists() {
+            fs::remove_dir_all(dir).map_err(|_| vec![Error::CleanupFailed(dir.to_path_buf())])?;
+        }
+
+        fs::create_dir_all(dir).ok();
+
+        self.write(dir)
+    }
+
     pub fn write(&self, dir: &Path) -> Result<usize> {
         let mut count = 0;
 

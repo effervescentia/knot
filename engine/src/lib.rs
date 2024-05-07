@@ -133,6 +133,17 @@ where
         })
     }
 
+    pub fn inspect<F>(self, f: F) -> Self
+    where
+        F: Fn(&T, &Context<R>),
+    {
+        if let Ok(state) = &self.state {
+            f(state, &self.context);
+        }
+
+        self
+    }
+
     pub fn into_result(self) -> Result<T> {
         self.state
     }

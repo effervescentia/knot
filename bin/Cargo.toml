@@ -12,3 +12,8 @@ kore = { package = "knot_core", path = "../kore" }
 engine = { package = "knot_engine", path = "../engine" }
 command = { package = "knot_command", path = "../command" }
 js = { package = "knot_plugin_javascript", path = "../plugin_javascript" }
+
+[dev-dependencies]
+assert_cmd = "2.0.13"
+predicates = "3.1.0"
+assert_fs = "1.1.1"
