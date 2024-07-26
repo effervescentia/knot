@@ -1,0 +1,58 @@
+entrypoint: Entrypoint
+glob: Glob
+engine: Engine
+target_entrypoint: From Entrypoint
+target_entrypoint.shape: oval
+target_glob: From Glob
+target_glob.shape: oval
+format: Format
+format.shape: oval
+parse: Parse
+parse.shape: oval
+link_: Link
+link_.shape: oval
+analyze: Analyze
+analyze.shape: oval
+generate: Generate
+generate.shape: oval
+format_writer: Writer
+transpile_writer: Writer
+
+context: Context {
+  resolver: Resolver
+  reporter: Reporter
+}
+
+targeted: Engine {
+  state: Source
+}
+
+parsed: Engine {
+  state: Parsed State
+}
+
+linked: Engine {
+  state: Linked State
+}
+
+analyzed: Engine {
+  state: Analyzed State
+}
+
+context -> engine
+entrypoint -> target_entrypoint
+engine -> target_entrypoint
+engine -> target_glob
+glob -> target_glob
+target_entrypoint -> targeted
+target_glob -> targeted
+targeted -> format
+format -> format_writer
+targeted -> parse
+parse -> parsed
+parsed -> link_
+link_ -> linked
+linked -> analyze
+analyze -> analyzed
+analyzed -> generate
+generate -> transpile_writer
