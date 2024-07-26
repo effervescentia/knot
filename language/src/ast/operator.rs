@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum UnaryOperator {
     /* logical */
     Not,
@@ -21,7 +21,7 @@ impl Display for UnaryOperator {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BinaryOperator {
     /* logical */
     And,

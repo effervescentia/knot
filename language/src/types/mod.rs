@@ -3,7 +3,7 @@ mod shape;
 pub use shape::ToShape;
 use std::fmt::Debug;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
     Type,
     Value,

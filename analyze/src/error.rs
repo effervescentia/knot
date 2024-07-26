@@ -1,6 +1,6 @@
 use lang::{ast, types::Kind, CanonicalId};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Error {
     /* inference */
     NotInferrable(
