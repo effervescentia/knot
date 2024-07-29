@@ -1,12 +1,9 @@
 use super::{Errors, ExecutionError};
 use crate::{Report, Result};
-use kore::invariant;
 use lang::{CanonicalId, NamespaceId};
 use std::{
-    borrow::{Borrow, BorrowMut},
     cell::{Ref, RefCell, RefMut},
     collections::HashMap,
-    ops::Deref,
     rc::Rc,
 };
 
