@@ -1,4 +1,4 @@
-use crate::{Error, Result};
+use crate::{ExecutionError, Reporter, Result};
 use std::{
     fmt::Display,
     fs::{self, File},
@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub struct Writer<T>(pub Result<Vec<(PathBuf, T)>>)
+pub struct Writer<T>(pub Result<Vec<(PathBuf, T)>>, pub Reporter)
 where
     T: Display;
 
@@ -14,9 +14,12 @@ impl<T> Writer<T>
 where
     T: Display,
 {
-    pub fn overwrite(&self, dir: &Path) -> Result<usize> {
+    pub fn overwrite(mut self, dir: &Path) -> Result<usize> {
         if dir.exists() {
-            fs::remove_dir_all(dir).map_err(|_| vec![Error::CleanupFailed(dir.to_path_buf())])?;
+            fs::remove_dir_all(dir).map_err(|_| {
+                self.1
+                    .finalize(vec![ExecutionError::CleanupFailed(dir.to_path_buf())])
+            })?;
         }
 
         fs::create_dir_all(dir).ok();
@@ -24,7 +27,7 @@ where
         self.write(dir)
     }
 
-    pub fn write(&self, dir: &Path) -> Result<usize> {
+    pub fn write(mut self, dir: &Path) -> Result<usize> {
         let mut count = 0;
 
         match &self.0 {
@@ -36,10 +39,10 @@ where
                         fs::create_dir_all(parent).ok();
                     }
 
-                    let mut writer =
-                        BufWriter::new(File::create(&path).map_err(|x| {
-                            vec![Error::InvalidWriteTarget(path.clone(), x.kind())]
-                        })?);
+                    let mut writer = BufWriter::new(File::create(&path).map_err(|x| {
+                        self.1
+                            .finalize(vec![ExecutionError::InvalidWriteTarget(path.clone(), x.kind())])
+                    })?);
 
                     write!(writer, "{generated}").ok();
                     writer.flush().ok();

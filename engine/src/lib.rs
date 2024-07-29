@@ -7,22 +7,23 @@ mod validate;
 mod write;
 
 use analyze::ModuleMap;
-use bimap::BiMap;
 use kore::{invariant, Generator, Incrementor};
-use lang::{ast, NamespaceId};
+use lang::{ast, Canonicalize, NamespaceId, NodeId};
 pub use link::Link;
-pub use report::{CodeFrame, Error, Reporter};
+use report::ConfigurationError;
+pub use report::{CodeFrame, ExecutionError, Report, Reporter};
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 pub use resource::Library;
-use state::Modules;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
+    ops::Deref,
     path::Path,
 };
 use validate::Validator;
 use write::Writer;
 
-pub type Result<T> = std::result::Result<T, Vec<Error>>;
+pub type Result<T> = std::result::Result<T, Report>;
+pub type InnerResult<T> = std::result::Result<T, Vec<ExecutionError>>;
 
 pub struct Context<Resolver> {
     reporter: Reporter,
@@ -78,15 +79,18 @@ where
         }
     }
 
-    fn load_and_parse_program(resolver: &mut R, link: &Link) -> Result<(String, state::Ast<()>)> {
+    fn load_and_parse_program(
+        resolver: &mut R,
+        link: &Link,
+    ) -> InnerResult<(String, state::Ast<()>)> {
         let path = link.to_path();
 
         let input = resolver
             .resolve(&path)
-            .ok_or(vec![Error::ModuleNotFound(link.clone())])?;
+            .ok_or(vec![ExecutionError::ModuleNotFound(link.clone())])?;
 
-        let (ast, _) =
-            parse::program::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.clone())])?;
+        let (ast, _) = parse::program::parse(&input)
+            .map_err(|_| vec![ExecutionError::InvalidSyntax(link.clone())])?;
 
         Ok((input, state::Ast::Program(ast)))
     }
@@ -149,6 +153,35 @@ where
     }
 }
 
+impl<'a, S, T, R> Engine<Result<S>, R>
+where
+    S: Deref<Target = state::Base<T>>,
+    T: Clone,
+    R: Resolver,
+{
+    /// generate output files by formatting the loaded modules
+    pub fn format(&'a self) -> Writer<&ast::meta::Program<T>> {
+        Writer(
+            self.state
+                .as_ref()
+                .map(|state| {
+                    state
+                        .modules()
+                        .filter_map(|(link, state::Module { ast, .. })| match ast {
+                            state::Ast::Program(x) if link.is_internal() => {
+                                Some((link.to_path(), x))
+                            }
+
+                            state::Ast::Program(_) | state::Ast::Typings(_) => None,
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .map_err(std::clone::Clone::clone),
+            self.context.reporter.clone(),
+        )
+    }
+}
+
 impl<R> Engine<(), R>
 where
     R: Resolver,
@@ -182,17 +215,12 @@ where
         self.map(|state, context| {
             let mut incrementor = Incrementor::default();
             let mut queue = VecDeque::from_iter(vec![state.0]);
-            let mut ambient = HashMap::new();
-            let mut modules = HashMap::new();
-            let mut lookup = BiMap::new();
+            let mut parsed = state::Parsed::default();
 
             for (library, link, module) in
                 Self::parse_libraries(&mut incrementor, &context.libraries)
             {
-                if let Some(ambient_scope) = library.to_ambient_scope() {
-                    ambient.insert(ambient_scope, module.id);
-                }
-                modules.insert(link, module);
+                parsed.register_library(library, link, module);
             }
 
             while let Some(link) = queue.pop_front() {
@@ -201,14 +229,15 @@ where
                         let links = Self::to_links(&link, &ast);
 
                         for link in links {
-                            if !modules.contains_key(&link) && !queue.contains(&link) {
+                            if !parsed.has_by_link(&link) && !queue.contains(&link) {
                                 queue.push_back(link);
                             }
                         }
 
-                        let namespace_id = NamespaceId(incrementor.increment());
-                        lookup.insert(link.clone(), namespace_id);
-                        modules.insert(link, state::Module::new(namespace_id, input, ast));
+                        let id = NamespaceId(incrementor.increment());
+                        let module = state::Module::new(id, input, ast);
+
+                        parsed.register_source(link, module);
                     }
 
                     Err(errs) => context.reporter.raise(errs)?,
@@ -217,11 +246,7 @@ where
 
             context.reporter.catch()?;
 
-            Ok(state::Parsed {
-                modules,
-                lookup,
-                ambient,
-            })
+            Ok(parsed)
         })
     }
 }
@@ -235,30 +260,26 @@ where
         self.map(move |state, context| {
             let links = state
                 .to_paths()
-                .map_err(|errs| vec![Error::InvalidGlob(errs)])?
+                .map_err(|errs| Report::Configuration(ConfigurationError::InvalidGlob(errs)))?
                 .iter()
                 .map(Link::from)
                 .collect::<Vec<_>>();
             let mut incrementor = Incrementor::default();
-            let mut modules = HashMap::new();
-            let mut ambient = HashMap::new();
-            let mut lookup = BiMap::new();
+            let mut parsed = state::Parsed::default();
 
             for (library, link, module) in
                 Self::parse_libraries(&mut incrementor, &context.libraries)
             {
-                if let Some(ambient_scope) = library.to_ambient_scope() {
-                    ambient.insert(ambient_scope, module.id);
-                }
-                modules.insert(link, module);
+                parsed.register_library(library, link, module);
             }
 
             for link in links {
                 match Self::load_and_parse_program(&mut context.resolver, &link) {
                     Ok((text, ast)) => {
-                        let namespace_id = NamespaceId(incrementor.increment());
-                        lookup.insert(link.clone(), namespace_id);
-                        modules.insert(link, state::Module::new(namespace_id, text, ast));
+                        let id = NamespaceId(incrementor.increment());
+                        let module = state::Module::new(id, text, ast);
+
+                        parsed.register_source(link, module);
                     }
 
                     Err(errs) => context.reporter.raise(errs)?,
@@ -267,32 +288,8 @@ where
 
             context.reporter.catch()?;
 
-            Ok(state::Parsed {
-                modules,
-                lookup,
-                ambient,
-            })
+            Ok(parsed)
         })
-    }
-}
-
-impl<'a, S, R> Engine<S, R>
-where
-    S: state::Modules<'a>,
-    S::Meta: Clone,
-    R: Resolver,
-{
-    /// generate output files by formatting the loaded modules
-    pub fn format(&'a self) -> Writer<&ast::meta::Program<S::Meta>> {
-        Writer(self.state.modules().map(|modules| {
-            modules
-                .filter_map(|(link, state::Module { ast, .. })| match ast {
-                    state::Ast::Program(x) if link.is_internal() => Some((link.to_path(), x)),
-
-                    state::Ast::Program(_) | state::Ast::Typings(_) => None,
-                })
-                .collect::<Vec<_>>()
-        }))
     }
 }
 
@@ -308,12 +305,12 @@ where
                     let links = Self::to_links(link, &module.ast);
 
                     for x in &links {
-                        if let Some(x) = state.lookup.get_by_left(x) {
+                        if let Some(x) = state.get_id_by_link(x) {
                             acc.add_edge(&module.id, x).ok();
                         } else {
                             context
                                 .reporter
-                                .report(Error::UnregisteredModule(x.clone()));
+                                .report(ExecutionError::UnregisteredModule(x.clone()));
                         }
                     }
 
@@ -341,37 +338,41 @@ where
         state: &'a state::Linked,
         id: &'a NamespaceId,
     ) -> (&'a Link, &'a state::Module<()>) {
-        let link = state.lookup.get_by_right(id).unwrap_or_else(|| {
+        state.get_link_and_module_by_id(id).unwrap_or_else(|| {
             invariant!("did not find link for module with id {id} in state lookup")
-        });
+        })
+    }
 
-        (
-            link,
-            state
-                .get_module(link)
-                .unwrap_or_else(|| invariant!("did not find module at link {link}")),
-        )
+    fn bind_errors(
+        context: &analyze::Context,
+        errors: Vec<(NodeId, analyze::Error)>,
+    ) -> Vec<ExecutionError> {
+        errors
+            .into_iter()
+            .map(|(id, err)| ExecutionError::AnalysisError(context.canonicalize(id), err))
+            .collect()
     }
 
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
-        self.then(|state, _| {
+        self.then(|state, context| {
             let mut analyzed = HashMap::default();
             let mut modules = ModuleMap::default();
 
             // TODO: abstract this so the same logic can be re-used between both libraries and source modules
-            for (link, module) in state.modules()?.filter(|(link, _)| link.is_library()) {
+            for (link, module) in state.modules().filter(|(link, _)| link.is_library()) {
                 let namespace = link.clone().to_namespace();
-                let context = analyze::Context {
+                let analyze_context = analyze::Context {
                     id: module.id,
                     namespace: &namespace,
                     modules: &modules,
-                    ambient: &state.ambient,
+                    ambient: state.ambient(),
                 };
 
-                let (typed, types) = module
-                    .ast
-                    .analyze(&context)
-                    .unwrap_or_else(|errs| unimplemented!("need to handle errors:\n{errs:?}"));
+                let (typed, types) = module.ast.analyze(&analyze_context).map_err(|errs| {
+                    context
+                        .reporter
+                        .finalize(Self::bind_errors(&analyze_context, errs))
+                })?;
 
                 modules
                     .by_key
@@ -382,20 +383,21 @@ where
                 );
             }
 
-            for id in state.graph.iter() {
+            for id in state.iter_graph() {
                 let (link, module) = Self::get_module(&state, &id);
                 let namespace = link.clone().to_namespace();
-                let context = analyze::Context {
+                let analyze_context = analyze::Context {
                     id: module.id,
                     namespace: &namespace,
                     modules: &modules,
-                    ambient: &state.ambient,
+                    ambient: state.ambient(),
                 };
 
-                let (typed, types) = module
-                    .ast
-                    .analyze(&context)
-                    .unwrap_or_else(|errs| unimplemented!("need to handle errors:\n{errs:?}"));
+                let (typed, types) = module.ast.analyze(&analyze_context).map_err(|errs| {
+                    context
+                        .reporter
+                        .finalize(Self::bind_errors(&analyze_context, errs))
+                })?;
 
                 modules.keys.insert(namespace, module.id);
                 modules
@@ -421,19 +423,22 @@ where
     where
         T: Generator<Input = ast::shape::Program>,
     {
-        Writer(match &self.state {
-            Ok(state) => Ok(state
-                .internal_modules()
-                .filter_map(|(key, state::Module { ast, .. })| {
-                    if let state::Ast::Program(program) = ast {
-                        Some(generator.generate(&key.to_path(), program.clone().to_shape()))
-                    } else {
-                        None
-                    }
-                })
-                .collect()),
+        Writer(
+            match &self.state {
+                Ok(state) => Ok(state
+                    .internal_modules()
+                    .filter_map(|(key, state::Module { ast, .. })| {
+                        if let state::Ast::Program(program) = ast {
+                            Some(generator.generate(&key.to_path(), program.clone().to_shape()))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect()),
 
-            Err(err) => Err(err.clone()),
-        })
+                Err(err) => Err(err.clone()),
+            },
+            self.context.reporter.clone(),
+        )
     }
 }

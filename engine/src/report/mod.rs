@@ -1,42 +1,64 @@
 mod code_frame;
 mod error;
+mod errors;
 mod reporter;
 
 pub use code_frame::CodeFrame;
-pub use error::Error;
+pub use error::{ConfigurationError, ExecutionError};
+pub use errors::Errors;
+use kore::color::{Colorize, Highlight};
+use lang::{CanonicalId, NamespaceId};
 pub use reporter::Reporter;
-use std::iter::once;
+use std::{collections::HashMap, fmt::Display};
 
-pub trait Errors {
-    type Iter: Iterator<Item = Error>;
-
-    fn errors(self) -> Self::Iter;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Report {
+    Configuration(ConfigurationError),
+    Execution {
+        modules: HashMap<NamespaceId, String>,
+        nodes: HashMap<CanonicalId, String>,
+        errors: Vec<ExecutionError>,
+    },
 }
 
-impl Errors for Error {
-    type Iter = std::iter::Once<Self>;
-
-    fn errors(self) -> Self::Iter {
-        once(self)
-    }
-}
-
-impl Errors for Vec<Error> {
-    type Iter = std::vec::IntoIter<Error>;
-
-    fn errors(self) -> Self::Iter {
-        self.into_iter()
-    }
-}
-
-impl Errors for crate::Result<()> {
-    type Iter = std::vec::IntoIter<Error>;
-
-    fn errors(self) -> Self::Iter {
+impl Display for Report {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Ok(()) => vec![],
-            Err(errs) => errs,
+            Self::Configuration(error) => {
+                // let error_count = errors.len();
+                let error_count_bumper =
+                    format!("finished with {} error(s)", 1.to_string().bold()).error();
+
+                writeln!(f, "{}\n", error_count_bumper)?;
+
+                // for (index, error) in errors.iter().enumerate() {
+                writeln!(f, "{index} {error}\n", index = format!("{})", 1).error())?;
+                // }
+
+                writeln!(f, "{}\n", error_count_bumper)
+            }
+
+            Self::Execution {
+                modules,
+                nodes,
+                errors,
+            } => {
+                let error_count = errors.len();
+                let error_count_bumper =
+                    format!("finished with {} error(s)", error_count.to_string().bold()).error();
+
+                writeln!(f, "{}\n", error_count_bumper)?;
+
+                for (index, error) in errors.iter().enumerate() {
+                    writeln!(
+                        f,
+                        "{index} {error}\n",
+                        index = format!("{})", index + 1).error()
+                    )?;
+                }
+
+                writeln!(f, "{}\n", error_count_bumper)
+            }
         }
-        .errors()
     }
 }

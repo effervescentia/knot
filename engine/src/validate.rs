@@ -1,10 +1,10 @@
-use crate::{link::ImportGraph, state, Error, Result};
+use crate::{link::ImportGraph, state, ExecutionError, InnerResult};
 use kore::invariant;
 
 pub struct Validator<'a>(pub &'a state::Parsed);
 
 impl<'a> Validator<'a> {
-    pub fn assert_no_import_cycles(&self, graph: &ImportGraph) -> Result<()> {
+    pub fn assert_no_import_cycles(&self, graph: &ImportGraph) -> InnerResult<()> {
         if !graph.is_cyclic() {
             return Ok(());
         }
@@ -13,13 +13,12 @@ impl<'a> Validator<'a> {
             .cycles()
             .into_iter()
             .map(|x| {
-                Error::ImportCycle(
+                ExecutionError::ImportCycle(
                     x.to_vec()
                         .iter()
                         .map(|x| {
                             self.0
-                                .lookup
-                                .get_by_right(x)
+                                .get_link_by_id(x)
                                 .unwrap_or_else(|| {
                                     invariant!("lookup did not contain module with id {x}")
                                 })

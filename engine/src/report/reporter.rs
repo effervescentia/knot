@@ -1,20 +1,29 @@
-use super::Errors;
-use crate::{Error, Result};
+use super::{Errors, ExecutionError};
+use crate::{Report, Result};
+use kore::invariant;
+use lang::{CanonicalId, NamespaceId};
 use std::{
+    borrow::{Borrow, BorrowMut},
     cell::{Ref, RefCell, RefMut},
+    collections::HashMap,
+    ops::Deref,
     rc::Rc,
 };
 
 struct ReporterState {
     fail_fast: bool,
-    errors: Vec<Error>,
+    modules: HashMap<NamespaceId, String>,
+    nodes: HashMap<CanonicalId, String>,
+    errors: Vec<ExecutionError>,
 }
 
 impl ReporterState {
-    pub const fn new(fail_fast: bool) -> Self {
+    pub fn new(fail_fast: bool) -> Self {
         Self {
             fail_fast,
-            errors: vec![],
+            modules: Default::default(),
+            nodes: Default::default(),
+            errors: Default::default(),
         }
     }
 }
@@ -38,25 +47,33 @@ impl Reporter {
         (*self.state).borrow_mut()
     }
 
-    fn errors(&self) -> Vec<Error> {
-        self.state_mut().errors.clone()
-    }
-
     fn should_fail_early(&self) -> bool {
         self.state().fail_fast && self.should_fail()
     }
 
     fn should_fail(&self) -> bool {
-        !self.state().errors.is_empty()
+        self.state().errors.is_empty()
     }
 
+    /// report an error
     pub fn report<T>(&mut self, x: T)
     where
         T: Errors,
     {
-        self.state_mut().errors.extend(x.errors());
+        self.state_mut().errors.extend(x.errors())
     }
 
+    /// report an error and return the report
+    pub fn finalize<T>(&mut self, x: T) -> Report
+    where
+        T: Errors,
+    {
+        self.report(x);
+        self.build()
+    }
+
+    /// report an error
+    /// returns an `Err` if configured to fail fast otherwise `Ok(())`
     pub fn raise<I>(&mut self, x: I) -> Result<()>
     where
         I: Errors,
@@ -67,7 +84,7 @@ impl Reporter {
 
     pub fn catch_early(&self) -> Result<()> {
         if self.should_fail_early() {
-            Err(self.errors())
+            Err(self.build())
         } else {
             Ok(())
         }
@@ -75,9 +92,19 @@ impl Reporter {
 
     pub fn catch(&self) -> Result<()> {
         if self.should_fail() {
-            Err(self.errors())
+            Err(self.build())
         } else {
             Ok(())
+        }
+    }
+
+    pub fn build(&self) -> Report {
+        let state = (*self.state).borrow();
+
+        Report::Execution {
+            modules: state.modules.clone(),
+            nodes: state.nodes.clone(),
+            errors: state.errors.clone(),
         }
     }
 }
