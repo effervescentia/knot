@@ -36,7 +36,7 @@ pub fn analyzed() {
 
 pub fn success(status: &str, count: usize) {
     eprintln!(
-        "\n{} {} {}\n",
+        "{} {} {}\n",
         status.success(),
         count.to_string().focus(),
         "module(s) with no errors".success()

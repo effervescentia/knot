@@ -34,6 +34,8 @@ where
         .generate(&opts.generator)
         .overwrite(opts.out_dir)?;
 
+    eprintln!();
+
     log::success("transpiled", count);
     eprintln!(
         "build artifacts written to {}:\n{}\n",

@@ -10,8 +10,7 @@ use analyze::ModuleMap;
 use kore::{invariant, Generator, Incrementor};
 use lang::{ast, Canonicalize, NamespaceId, NodeId};
 pub use link::Link;
-use report::ConfigurationError;
-pub use report::{CodeFrame, ExecutionError, Report, Reporter};
+pub use report::{CodeFrame, ConfigurationError, ExecutionError, Report, Reporter};
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 pub use resource::Library;
 use std::{

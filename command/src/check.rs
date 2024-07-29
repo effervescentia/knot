@@ -22,7 +22,9 @@ pub fn command(opts: &Options) -> engine::Result<()> {
         .analyze()
         .into_result()?;
 
-    log::success("analyzed", result.graph.size());
+    eprintln!();
+
+    log::success("analyzed", result.1.size());
 
     Ok(())
 }

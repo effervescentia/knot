@@ -14,7 +14,7 @@ pub struct Options<'a> {
 pub fn command(opts: &Options) -> engine::Result<()> {
     let resolver = FileSystem(
         opts.root_dir
-            .assert_dir_exists(engine::Error::RootDirectoryNotFound)?,
+            .assert_dir_exists(engine::ConfigurationError::RootDirectoryNotFound)?,
     );
     let engine = Engine::new(Context::std(Reporter::new(false), resolver));
 
@@ -26,6 +26,8 @@ pub fn command(opts: &Options) -> engine::Result<()> {
         .inspect(|state, _| log::parsed_from_glob(state.internal_modules().count()))
         .format()
         .write(opts.root_dir)?;
+
+    eprintln!();
 
     log::success("formatted", count);
 
