@@ -49,7 +49,7 @@ impl Reporter {
     }
 
     fn should_fail(&self) -> bool {
-        self.state().errors.is_empty()
+        !self.state().errors.is_empty()
     }
 
     /// report an error

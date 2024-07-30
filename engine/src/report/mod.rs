@@ -33,27 +33,23 @@ impl Report {
 
 impl Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let format_bumper = |error_count: usize| {
+            format!("finished with {} error(s)", error_count.to_string().bold()).error()
+        };
+
         match self {
             Self::Configuration(error) => {
-                // let error_count = errors.len();
-                let error_count_bumper =
-                    format!("finished with {} error(s)", 1.to_string().bold()).error();
+                let bumper = format_bumper(1);
 
-                writeln!(f, "{}\n", error_count_bumper)?;
-
-                // for (index, error) in errors.iter().enumerate() {
+                writeln!(f, "{}\n", bumper)?;
                 writeln!(f, "{index} {error}\n", index = format!("{})", 1).error())?;
-                // }
-
-                writeln!(f, "{}\n", error_count_bumper)
+                writeln!(f, "{}\n", bumper)
             }
 
             Self::Execution { errors, .. } => {
-                let error_count = errors.len();
-                let error_count_bumper =
-                    format!("finished with {} error(s)", error_count.to_string().bold()).error();
+                let bumper = format_bumper(errors.len());
 
-                writeln!(f, "{}\n", error_count_bumper)?;
+                writeln!(f, "{}\n", bumper)?;
 
                 for (index, error) in errors.iter().enumerate() {
                     writeln!(
@@ -63,7 +59,7 @@ impl Display for Report {
                     )?;
                 }
 
-                writeln!(f, "{}\n", error_count_bumper)
+                writeln!(f, "{}\n", bumper)
             }
         }
     }
