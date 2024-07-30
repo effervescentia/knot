@@ -1,4 +1,4 @@
-use crate::{log, path::AssertExists};
+use crate::{assert::AssertExists, log};
 use engine::{Context, Engine, FileSystem, Reporter};
 use std::path::Path;
 

@@ -14,14 +14,17 @@ pub trait AssertExists: Sized {
         F: Fn(PathBuf) -> ConfigurationError;
 }
 
-impl<'a> AssertExists for &'a Path {
+impl<T> AssertExists for T
+where
+    T: AsRef<Path>,
+{
     fn assert_dir_exists<F>(self, factory: F) -> Result<Self>
     where
         F: Fn(PathBuf) -> ConfigurationError,
     {
-        match fs::metadata(self) {
+        match fs::metadata(&self) {
             Ok(meta) if meta.is_dir() => Ok(self),
-            _ => Err(Report::Configuration(factory(self.to_path_buf()))),
+            _ => Err(Report::Configuration(factory(self.as_ref().to_path_buf()))),
         }
     }
 
@@ -29,9 +32,9 @@ impl<'a> AssertExists for &'a Path {
     where
         F: Fn(PathBuf) -> ConfigurationError,
     {
-        match fs::metadata(self) {
+        match fs::metadata(&self) {
             Ok(meta) if meta.is_file() => Ok(self),
-            _ => Err(Report::Configuration(factory(self.to_path_buf()))),
+            _ => Err(Report::Configuration(factory(self.as_ref().to_path_buf()))),
         }
     }
 }

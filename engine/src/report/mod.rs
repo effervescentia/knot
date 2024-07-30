@@ -21,6 +21,16 @@ pub enum Report {
     },
 }
 
+impl Report {
+    #[cfg(feature = "test")]
+    pub fn exec_errors(&self) -> Option<&Vec<ExecutionError>> {
+        match self {
+            Report::Execution { errors, .. } => Some(errors),
+            Report::Configuration(_) => None,
+        }
+    }
+}
+
 impl Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
@@ -38,11 +48,7 @@ impl Display for Report {
                 writeln!(f, "{}\n", error_count_bumper)
             }
 
-            Self::Execution {
-                modules,
-                nodes,
-                errors,
-            } => {
+            Self::Execution { errors, .. } => {
                 let error_count = errors.len();
                 let error_count_bumper =
                     format!("finished with {} error(s)", error_count.to_string().bold()).error();

@@ -1,11 +1,12 @@
 use crate::{
     args::Target,
     config::Config,
+    log,
     path::{get_out_dir, get_root_dir, get_source_dir, validate_entrypoint},
-    reporter::{eprint_configuration, Phase},
 };
-use command::{ast, build};
+use command::{build, Phase};
 use kore::Generator;
+use lang::ast;
 use std::path::Path;
 
 pub struct Args<'a> {
@@ -26,7 +27,7 @@ impl<'a> Args<'a> {
             target,
         } = self;
 
-        eprint_configuration(vec![
+        log::configuration(vec![
             ("root_dir", Config::Path(root_dir)),
             (
                 "source_dir",

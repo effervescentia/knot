@@ -22,6 +22,7 @@ use validate::Validator;
 use write::Writer;
 
 pub type Result<T> = std::result::Result<T, Report>;
+// TODO: try to get rid of this type
 pub type InnerResult<T> = std::result::Result<T, Vec<ExecutionError>>;
 
 pub struct Context<Resolver> {
