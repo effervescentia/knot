@@ -18,7 +18,7 @@ where
         if dir.exists() {
             fs::remove_dir_all(dir).map_err(|_| {
                 self.1
-                    .finalize(vec![ExecutionError::CleanupFailed(dir.to_path_buf())])
+                    .build_with(vec![ExecutionError::CleanupFailed(dir.to_path_buf())])
             })?;
         }
 
@@ -40,8 +40,10 @@ where
                     }
 
                     let mut writer = BufWriter::new(File::create(&path).map_err(|x| {
-                        self.1
-                            .finalize(vec![ExecutionError::InvalidWriteTarget(path.clone(), x.kind())])
+                        self.1.build_with(vec![ExecutionError::InvalidWriteTarget(
+                            path.clone(),
+                            x.kind(),
+                        )])
                     })?);
 
                     write!(writer, "{generated}").ok();

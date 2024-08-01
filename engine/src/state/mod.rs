@@ -4,7 +4,7 @@ mod base;
 mod linked;
 mod parsed;
 
-use crate::Link;
+use crate::{ConfigurationError, Link, Report, Result};
 pub use analyzed::Analyzed;
 pub use ast::Ast;
 pub use base::Base;
@@ -37,7 +37,7 @@ pub struct FromGlob<'a> {
 }
 
 impl<'a> FromGlob<'a> {
-    pub fn to_paths(&'a self) -> std::result::Result<Vec<PathBuf>, Vec<String>> {
+    pub fn to_paths(&'a self) -> Result<Vec<PathBuf>> {
         let FromGlob { dir, glob } = self;
 
         match glob::glob(&[dir.to_string_lossy().to_string().as_str(), glob].join("/")) {
@@ -69,5 +69,6 @@ impl<'a> FromGlob<'a> {
 
             Err(err) => Err(vec![err.to_string()]),
         }
+        .map_err(|errs| Report::Configuration(ConfigurationError::InvalidGlob(errs)))
     }
 }

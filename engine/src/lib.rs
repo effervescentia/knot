@@ -15,7 +15,7 @@ pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 pub use resource::Library;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    ops::Deref,
+    ops::{Deref, DerefMut},
     path::Path,
 };
 use validate::Validator;
@@ -38,6 +38,13 @@ impl<R> Context<R> {
             resolver,
             libraries: HashSet::from_iter(vec![Library::Std, Library::Html]),
         }
+    }
+
+    pub fn raise<T>(&mut self, x: T) -> Result<()>
+    where
+        T: report::Errors,
+    {
+        self.reporter.raise(x)
     }
 }
 
@@ -62,20 +69,6 @@ where
         Engine {
             context: self.context,
             state,
-        }
-    }
-
-    fn to_links<U>(link: &Link, ast: &state::Ast<U>) -> Vec<Link> {
-        let path = link.to_path();
-
-        if let state::Ast::Program(program) = ast {
-            program
-                .imports()
-                .iter()
-                .map(|x| Link::from_import(&path, x.0.value()))
-                .collect::<Vec<_>>()
-        } else {
-            vec![]
         }
     }
 
@@ -129,9 +122,13 @@ where
     {
         self.map(|state, context| match state {
             Ok(state) => {
-                context.reporter.catch()?;
+                context.reporter.flush()?;
 
-                f(state, context)
+                let result = f(state, context)?;
+
+                context.reporter.flush()?;
+
+                Ok(result)
             }
             Err(err) => Err(err),
         })
@@ -210,41 +207,45 @@ impl<R> Engine<state::FromEntry, R>
 where
     R: Resolver,
 {
+    fn process(
+        parsed: &mut state::Parsed,
+        queue: &mut VecDeque<Link>,
+        link: Link,
+        context: &mut Context<R>,
+    ) -> Result<()> {
+        match Self::load_and_parse_program(&mut context.resolver, &link) {
+            Ok((text, ast)) => {
+                for link in ast.to_links(&link) {
+                    if !parsed.has_by_link(&link) && !queue.contains(&link) {
+                        queue.push_back(link);
+                    }
+                }
+
+                parsed.register_source(link, text, ast);
+
+                Ok(())
+            }
+
+            Err(errs) => context.raise(errs),
+        }
+    }
+
     /// starting from the entry file recursively discover and parse modules
     pub fn parse_and_discover(self) -> Engine<Result<state::Parsed>, R> {
         self.map(|state, context| {
-            let mut incrementor = Incrementor::default();
             let mut queue = VecDeque::from_iter(vec![state.0]);
             let mut parsed = state::Parsed::default();
 
-            for (library, link, module) in
-                Self::parse_libraries(&mut incrementor, &context.libraries)
-            {
+            for (library, link, module) in Self::parse_libraries(
+                parsed.incrementor().borrow_mut().deref_mut(),
+                &context.libraries,
+            ) {
                 parsed.register_library(library, link, module);
             }
 
             while let Some(link) = queue.pop_front() {
-                match Self::load_and_parse_program(&mut context.resolver, &link) {
-                    Ok((input, ast)) => {
-                        let links = Self::to_links(&link, &ast);
-
-                        for link in links {
-                            if !parsed.has_by_link(&link) && !queue.contains(&link) {
-                                queue.push_back(link);
-                            }
-                        }
-
-                        let id = NamespaceId(incrementor.increment());
-                        let module = state::Module::new(id, input, ast);
-
-                        parsed.register_source(link, module);
-                    }
-
-                    Err(errs) => context.reporter.raise(errs)?,
-                }
+                Self::process(&mut parsed, &mut queue, link, context)?
             }
-
-            context.reporter.catch()?;
 
             Ok(parsed)
         })
@@ -255,38 +256,34 @@ impl<'a, R> Engine<state::FromGlob<'a>, R>
 where
     R: Resolver,
 {
+    fn process(parsed: &mut state::Parsed, link: Link, context: &mut Context<R>) -> Result<()> {
+        match Self::load_and_parse_program(&mut context.resolver, &link) {
+            Ok((text, ast)) => {
+                parsed.register_source(link, text, ast);
+
+                Ok(())
+            }
+
+            Err(errs) => context.raise(errs),
+        }
+    }
+
     /// parse all modules that match the glob
     pub fn parse_matched(self) -> Engine<Result<state::Parsed>, R> {
         self.map(move |state, context| {
-            let links = state
-                .to_paths()
-                .map_err(|errs| Report::Configuration(ConfigurationError::InvalidGlob(errs)))?
-                .iter()
-                .map(Link::from)
-                .collect::<Vec<_>>();
-            let mut incrementor = Incrementor::default();
+            let links = state.to_paths()?.iter().map(Link::from).collect::<Vec<_>>();
             let mut parsed = state::Parsed::default();
 
-            for (library, link, module) in
-                Self::parse_libraries(&mut incrementor, &context.libraries)
-            {
+            for (library, link, module) in Self::parse_libraries(
+                parsed.incrementor().borrow_mut().deref_mut(),
+                &context.libraries,
+            ) {
                 parsed.register_library(library, link, module);
             }
 
             for link in links {
-                match Self::load_and_parse_program(&mut context.resolver, &link) {
-                    Ok((text, ast)) => {
-                        let id = NamespaceId(incrementor.increment());
-                        let module = state::Module::new(id, text, ast);
-
-                        parsed.register_source(link, module);
-                    }
-
-                    Err(errs) => context.reporter.raise(errs)?,
-                }
+                Self::process(&mut parsed, link, context)?
             }
-
-            context.reporter.catch()?;
 
             Ok(parsed)
         })
@@ -299,31 +296,9 @@ where
 {
     pub fn link(self) -> Engine<Result<state::Linked>, R> {
         self.then(|state, context| {
-            let linked = state.internal_modules().fold(
-                state.to_import_graph(),
-                |mut acc, (link, module)| {
-                    let links = Self::to_links(link, &module.ast);
+            let linked = state.link_modules(context)?;
 
-                    for x in &links {
-                        if let Some(x) = state.get_id_by_link(x) {
-                            acc.add_edge(&module.id, x).ok();
-                        } else {
-                            context
-                                .reporter
-                                .report(ExecutionError::UnregisteredModule(x.clone()));
-                        }
-                    }
-
-                    acc
-                },
-            );
-
-            context.reporter.catch_early()?;
-
-            let validator = Validator(&state);
-            context
-                .reporter
-                .raise(validator.assert_no_import_cycles(&linked))?;
+            Validator(context).validate(&state, &linked)?;
 
             Ok(state::Linked::new(state, linked))
         })
@@ -371,7 +346,7 @@ where
                 let (typed, types) = module.ast.analyze(&analyze_context).map_err(|errs| {
                     context
                         .reporter
-                        .finalize(Self::bind_errors(&analyze_context, errs))
+                        .build_with(Self::bind_errors(&analyze_context, errs))
                 })?;
 
                 modules
@@ -396,7 +371,7 @@ where
                 let (typed, types) = module.ast.analyze(&analyze_context).map_err(|errs| {
                     context
                         .reporter
-                        .finalize(Self::bind_errors(&analyze_context, errs))
+                        .build_with(Self::bind_errors(&analyze_context, errs))
                 })?;
 
                 modules.keys.insert(namespace, module.id);

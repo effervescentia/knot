@@ -1,3 +1,4 @@
+use crate::Link;
 use lang::{CanonicalId, Identify};
 use std::{
     collections::HashMap,
@@ -8,6 +9,22 @@ use std::{
 pub enum Ast<Meta> {
     Program(lang::ast::meta::Program<Meta>),
     Typings(lang::ast::meta::Typings<Meta>),
+}
+
+impl<Meta> Ast<Meta> {
+    pub fn to_links(&self, link: &Link) -> Vec<Link> {
+        let path = link.to_path();
+
+        if let Self::Program(program) = self {
+            program
+                .imports()
+                .iter()
+                .map(|x| Link::from_import(&path, x.0.value()))
+                .collect::<Vec<_>>()
+        } else {
+            vec![]
+        }
+    }
 }
 
 impl<Meta> Ast<Meta>

@@ -61,7 +61,7 @@ impl<T> Base<T> {
         self.modules.insert(link, module);
     }
 
-    pub fn register_source(&mut self, link: Link, module: Module<T>) {
+    pub fn register_module(&mut self, link: Link, module: Module<T>) {
         self.lookup.insert(link.clone(), module.id);
         self.modules.insert(link, module);
     }

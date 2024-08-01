@@ -6,7 +6,7 @@ mod reporter;
 pub use code_frame::CodeFrame;
 pub use error::{ConfigurationError, ExecutionError};
 pub use errors::Errors;
-use kore::color::{Colorize, Highlight};
+use kore::color::{ColoredString, Colorize, Highlight};
 use lang::{CanonicalId, NamespaceId};
 pub use reporter::Reporter;
 use std::{collections::HashMap, fmt::Display};
@@ -33,9 +33,9 @@ impl Report {
 
 impl Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let format_bumper = |error_count: usize| {
+        fn format_bumper(error_count: usize) -> ColoredString {
             format!("finished with {} error(s)", error_count.to_string().bold()).error()
-        };
+        }
 
         match self {
             Self::Configuration(error) => {

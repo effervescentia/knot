@@ -52,50 +52,15 @@ impl Reporter {
         !self.state().errors.is_empty()
     }
 
-    /// report an error
-    pub fn report<T>(&mut self, x: T)
+    /// add errors to state
+    fn extend<T>(&mut self, x: T)
     where
         T: Errors,
     {
         self.state_mut().errors.extend(x.errors())
     }
 
-    /// report an error and return the report
-    pub fn finalize<T>(&mut self, x: T) -> Report
-    where
-        T: Errors,
-    {
-        self.report(x);
-        self.build()
-    }
-
-    /// report an error
-    /// returns an `Err` if configured to fail fast otherwise `Ok(())`
-    pub fn raise<I>(&mut self, x: I) -> Result<()>
-    where
-        I: Errors,
-    {
-        self.report(x);
-        self.catch_early()
-    }
-
-    pub fn catch_early(&self) -> Result<()> {
-        if self.should_fail_early() {
-            Err(self.build())
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn catch(&self) -> Result<()> {
-        if self.should_fail() {
-            Err(self.build())
-        } else {
-            Ok(())
-        }
-    }
-
-    pub fn build(&self) -> Report {
+    fn to_report(&self) -> Report {
         let state = (*self.state).borrow();
 
         Report::Execution {
@@ -103,6 +68,39 @@ impl Reporter {
             nodes: state.nodes.clone(),
             errors: state.errors.clone(),
         }
+    }
+
+    /// report an error
+    /// returns an `Err` if configured to fail fast otherwise `Ok`
+    pub fn raise<T>(&mut self, x: T) -> Result<()>
+    where
+        T: Errors,
+    {
+        self.extend(x);
+
+        if self.should_fail_early() {
+            Err(self.to_report())
+        } else {
+            Ok(())
+        }
+    }
+
+    /// returns an `Err` if any errors have been reported otherwise `Ok`
+    pub fn flush(&self) -> Result<()> {
+        if self.should_fail() {
+            Err(self.to_report())
+        } else {
+            Ok(())
+        }
+    }
+
+    /// report an error and return the report
+    pub fn build_with<T>(&mut self, x: T) -> Report
+    where
+        T: Errors,
+    {
+        self.extend(x);
+        self.to_report()
     }
 }
 
