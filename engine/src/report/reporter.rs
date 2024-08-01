@@ -95,7 +95,7 @@ impl Reporter {
     }
 
     /// report an error and return the report
-    pub fn build_with<T>(&mut self, x: T) -> Report
+    pub fn fail<T>(&mut self, x: T) -> Report
     where
         T: Errors,
     {

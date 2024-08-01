@@ -46,6 +46,13 @@ impl<R> Context<R> {
     {
         self.reporter.raise(x)
     }
+
+    pub fn fail<T>(&mut self, x: T) -> Report
+    where
+        T: report::Errors,
+    {
+        self.reporter.fail(x)
+    }
 }
 
 pub struct Engine<T, R>
@@ -343,11 +350,11 @@ where
                     ambient: state.ambient(),
                 };
 
-                let (typed, types) = module.ast.analyze(&analyze_context).map_err(|errs| {
-                    context
-                        .reporter
-                        .build_with(Self::bind_errors(&analyze_context, errs))
-                })?;
+                // TODO: see if it's possible to fail after all libraries are processed instead of immediately
+                let (typed, types) = module
+                    .ast
+                    .analyze(&analyze_context)
+                    .map_err(|errs| context.fail(Self::bind_errors(&analyze_context, errs)))?;
 
                 modules
                     .by_key
@@ -368,11 +375,11 @@ where
                     ambient: state.ambient(),
                 };
 
-                let (typed, types) = module.ast.analyze(&analyze_context).map_err(|errs| {
-                    context
-                        .reporter
-                        .build_with(Self::bind_errors(&analyze_context, errs))
-                })?;
+                // TODO: see if it's possible to fail after all modules are processed instead of immediately
+                let (typed, types) = module
+                    .ast
+                    .analyze(&analyze_context)
+                    .map_err(|errs| context.fail(Self::bind_errors(&analyze_context, errs)))?;
 
                 modules.keys.insert(namespace, module.id);
                 modules
