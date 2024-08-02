@@ -22,7 +22,7 @@ pub fn command(opts: &Options) -> engine::Result<()> {
 
     let count = engine
         .from_glob(opts.root_dir, opts.glob)
-        .parse_matched()
+        .parse_all()
         .inspect(|state, _| log::parsed_from_glob(state.internal_modules().count()))
         .format()
         .write(opts.root_dir)?;

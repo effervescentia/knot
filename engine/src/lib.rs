@@ -10,20 +10,38 @@ use analyze::ModuleMap;
 use kore::{invariant, Generator, Incrementor};
 use lang::{ast, Canonicalize, NamespaceId, NodeId};
 pub use link::Link;
-pub use report::{CodeFrame, ConfigurationError, ExecutionError, Report, Reporter};
+pub use report::{
+    CodeFrame, ConfigurationError, EnvironmentError, ExecutionError, Report, Reporter,
+};
+use report::{Enrich, InternalReport};
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 pub use resource::Library;
+use state::FromPaths;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
+    fmt::Display,
     ops::{Deref, DerefMut},
-    path::Path,
+    path::{Path, PathBuf},
 };
 use validate::Validator;
 use write::Writer;
 
 pub type Result<T> = std::result::Result<T, Report>;
-// TODO: try to get rid of this type
-pub type InnerResult<T> = std::result::Result<T, Vec<ExecutionError>>;
+type InternalResult<T> = std::result::Result<T, InternalReport>;
+
+pub trait IntoResult {
+    type Value;
+
+    fn into_result(self) -> Result<Self::Value>;
+}
+
+impl<T> IntoResult for Result<T> {
+    type Value = T;
+
+    fn into_result(self) -> Result<Self::Value> {
+        self
+    }
+}
 
 pub struct Context<Resolver> {
     reporter: Reporter,
@@ -40,18 +58,40 @@ impl<R> Context<R> {
         }
     }
 
-    pub fn raise<T>(&mut self, x: T) -> Result<()>
+    pub fn raise<T>(&mut self, x: T) -> InternalResult<()>
     where
         T: report::Errors,
     {
         self.reporter.raise(x)
     }
 
-    pub fn fail<T>(&mut self, x: T) -> Report
+    pub fn fail<T>(&mut self, x: T) -> InternalReport
     where
         T: report::Errors,
     {
         self.reporter.fail(x)
+    }
+}
+
+impl<R> Context<R>
+where
+    R: Resolver,
+{
+    pub fn load_and_parse_program(
+        &mut self,
+        link: &Link,
+    ) -> InternalResult<(String, state::Ast<()>)> {
+        let path = link.to_path();
+
+        let input = self
+            .resolver
+            .resolve(&path)
+            .ok_or_else(|| self.fail(ExecutionError::ModuleNotFound(link.clone())))?;
+
+        let (ast, _) = parse::program::parse(&input)
+            .map_err(|_| self.fail(ExecutionError::InvalidSyntax(link.clone())))?;
+
+        Ok((input, state::Ast::Program(ast)))
     }
 }
 
@@ -77,22 +117,6 @@ where
             context: self.context,
             state,
         }
-    }
-
-    fn load_and_parse_program(
-        resolver: &mut R,
-        link: &Link,
-    ) -> InnerResult<(String, state::Ast<()>)> {
-        let path = link.to_path();
-
-        let input = resolver
-            .resolve(&path)
-            .ok_or(vec![ExecutionError::ModuleNotFound(link.clone())])?;
-
-        let (ast, _) = parse::program::parse(&input)
-            .map_err(|_| vec![ExecutionError::InvalidSyntax(link.clone())])?;
-
-        Ok((input, state::Ast::Program(ast)))
     }
 
     fn parse_library(library: &Library) -> (String, state::Ast<()>) {
@@ -123,24 +147,6 @@ impl<T, R> Engine<Result<T>, R>
 where
     R: Resolver,
 {
-    pub fn then<F, T2>(self, f: F) -> Engine<Result<T2>, R>
-    where
-        F: Fn(T, &mut Context<R>) -> Result<T2>,
-    {
-        self.map(|state, context| match state {
-            Ok(state) => {
-                context.reporter.flush()?;
-
-                let result = f(state, context)?;
-
-                context.reporter.flush()?;
-
-                Ok(result)
-            }
-            Err(err) => Err(err),
-        })
-    }
-
     pub fn inspect<F>(self, f: F) -> Self
     where
         F: Fn(&T, &Context<R>),
@@ -152,8 +158,50 @@ where
         self
     }
 
-    pub fn into_result(self) -> Result<T> {
-        self.state
+    fn to_writer<F, T2>(&self, f: F) -> Writer<T2>
+    where
+        T2: Display,
+        F: Fn(&T) -> Vec<(PathBuf, T2)>,
+    {
+        Writer(self.state.as_ref().map(f).map_err(std::clone::Clone::clone))
+    }
+}
+
+impl<T, R> Engine<T, R>
+where
+    T: IntoResult,
+    R: Resolver,
+{
+    pub fn into_result(self) -> Result<T::Value> {
+        self.state.into_result()
+    }
+}
+
+impl<T, U, R> Engine<U, R>
+where
+    T: Clone + Enrich,
+    U: IntoResult<Value = T>,
+    R: Resolver,
+{
+    fn then<F, T2>(self, f: F) -> Engine<Result<T2>, R>
+    where
+        F: Fn(T, &mut Context<R>) -> InternalResult<T2>,
+    {
+        let try_apply = |state, context: &mut Context<R>| {
+            context.reporter.flush()?;
+
+            let result = f(state, context)?;
+
+            context.reporter.flush()?;
+
+            Ok(result)
+        };
+
+        self.map(|result, context| {
+            let state = result.into_result()?;
+
+            try_apply(state.clone(), context).map_err(|err| state.enrich(err))
+        })
     }
 }
 
@@ -164,25 +212,19 @@ where
     R: Resolver,
 {
     /// generate output files by formatting the loaded modules
-    pub fn format(&'a self) -> Writer<&ast::meta::Program<T>> {
-        Writer(
-            self.state
-                .as_ref()
-                .map(|state| {
-                    state
-                        .modules()
-                        .filter_map(|(link, state::Module { ast, .. })| match ast {
-                            state::Ast::Program(x) if link.is_internal() => {
-                                Some((link.to_path(), x))
-                            }
+    pub fn format(&'a self) -> Writer<ast::meta::Program<T>> {
+        self.to_writer(|state| {
+            state
+                .modules()
+                .filter_map(|(link, state::Module { ast, .. })| match ast {
+                    state::Ast::Program(x) if link.is_internal() => {
+                        Some((link.to_path(), x.clone()))
+                    }
 
-                            state::Ast::Program(_) | state::Ast::Typings(_) => None,
-                        })
-                        .collect::<Vec<_>>()
+                    state::Ast::Program(_) | state::Ast::Typings(_) => None,
                 })
-                .map_err(std::clone::Clone::clone),
-            self.context.reporter.clone(),
-        )
+                .collect()
+        })
     }
 }
 
@@ -205,41 +247,23 @@ where
     }
 
     /// load all modules that match a glob
-    pub fn from_glob<'a>(self, dir: &'a Path, glob: &'a str) -> Engine<state::FromGlob<'a>, R> {
-        self.map(|(), _| state::FromGlob { dir, glob })
+    pub fn from_glob<'a>(
+        self,
+        dir: &'a Path,
+        glob: &'a str,
+    ) -> Engine<Result<state::FromPaths>, R> {
+        self.map(|(), _| state::FromGlob { dir, glob }.to_paths())
     }
 }
 
-impl<R> Engine<state::FromEntry, R>
+impl<T, R> Engine<T, R>
 where
+    T: IntoResult<Value = state::FromEntry>,
     R: Resolver,
 {
-    fn process(
-        parsed: &mut state::Parsed,
-        queue: &mut VecDeque<Link>,
-        link: Link,
-        context: &mut Context<R>,
-    ) -> Result<()> {
-        match Self::load_and_parse_program(&mut context.resolver, &link) {
-            Ok((text, ast)) => {
-                for link in ast.to_links(&link) {
-                    if !parsed.has_by_link(&link) && !queue.contains(&link) {
-                        queue.push_back(link);
-                    }
-                }
-
-                parsed.register_source(link, text, ast);
-
-                Ok(())
-            }
-
-            Err(errs) => context.raise(errs),
-        }
-    }
-
     /// starting from the entry file recursively discover and parse modules
     pub fn parse_and_discover(self) -> Engine<Result<state::Parsed>, R> {
-        self.map(|state, context| {
+        self.then(|state, context| {
             let mut queue = VecDeque::from_iter(vec![state.0]);
             let mut parsed = state::Parsed::default();
 
@@ -251,7 +275,15 @@ where
             }
 
             while let Some(link) = queue.pop_front() {
-                Self::process(&mut parsed, &mut queue, link, context)?
+                context.load_and_parse_program(&link).map(|(text, ast)| {
+                    for link in ast.to_links(&link) {
+                        if !parsed.has_by_link(&link) && !queue.contains(&link) {
+                            queue.push_back(link);
+                        }
+                    }
+
+                    parsed.register_source(link, text, ast);
+                })?;
             }
 
             Ok(parsed)
@@ -259,26 +291,14 @@ where
     }
 }
 
-impl<'a, R> Engine<state::FromGlob<'a>, R>
+impl<T, R> Engine<T, R>
 where
+    T: IntoResult<Value = state::FromPaths>,
     R: Resolver,
 {
-    fn process(parsed: &mut state::Parsed, link: Link, context: &mut Context<R>) -> Result<()> {
-        match Self::load_and_parse_program(&mut context.resolver, &link) {
-            Ok((text, ast)) => {
-                parsed.register_source(link, text, ast);
-
-                Ok(())
-            }
-
-            Err(errs) => context.raise(errs),
-        }
-    }
-
-    /// parse all modules that match the glob
-    pub fn parse_matched(self) -> Engine<Result<state::Parsed>, R> {
-        self.map(move |state, context| {
-            let links = state.to_paths()?.iter().map(Link::from).collect::<Vec<_>>();
+    /// parse all modules from the provided paths
+    pub fn parse_all(self) -> Engine<Result<state::Parsed>, R> {
+        self.then(|FromPaths(links), context| {
             let mut parsed = state::Parsed::default();
 
             for (library, link, module) in Self::parse_libraries(
@@ -289,7 +309,9 @@ where
             }
 
             for link in links {
-                Self::process(&mut parsed, link, context)?
+                context
+                    .load_and_parse_program(&link)
+                    .map(|(text, ast)| parsed.register_source(link, text, ast))?;
             }
 
             Ok(parsed)
@@ -297,8 +319,9 @@ where
     }
 }
 
-impl<R> Engine<Result<state::Parsed>, R>
+impl<T, R> Engine<T, R>
 where
+    T: IntoResult<Value = state::Parsed>,
     R: Resolver,
 {
     pub fn link(self) -> Engine<Result<state::Linked>, R> {
@@ -312,8 +335,9 @@ where
     }
 }
 
-impl<R> Engine<Result<state::Linked>, R>
+impl<T, R> Engine<T, R>
 where
+    T: IntoResult<Value = state::Linked>,
     R: Resolver,
 {
     fn get_module<'a>(
@@ -405,22 +429,17 @@ where
     where
         T: Generator<Input = ast::shape::Program>,
     {
-        Writer(
-            match &self.state {
-                Ok(state) => Ok(state
-                    .internal_modules()
-                    .filter_map(|(key, state::Module { ast, .. })| {
-                        if let state::Ast::Program(program) = ast {
-                            Some(generator.generate(&key.to_path(), program.clone().to_shape()))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect()),
-
-                Err(err) => Err(err.clone()),
-            },
-            self.context.reporter.clone(),
-        )
+        self.to_writer(|state| {
+            state
+                .internal_modules()
+                .filter_map(|(key, state::Module { ast, .. })| {
+                    if let state::Ast::Program(program) = ast {
+                        Some(generator.generate(&key.to_path(), program.clone().to_shape()))
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        })
     }
 }

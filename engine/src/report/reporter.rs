@@ -1,16 +1,12 @@
 use super::{Errors, ExecutionError};
-use crate::{Report, Result};
-use lang::{CanonicalId, NamespaceId};
+use crate::{InternalReport, InternalResult};
 use std::{
     cell::{Ref, RefCell, RefMut},
-    collections::HashMap,
     rc::Rc,
 };
 
 struct ReporterState {
     fail_fast: bool,
-    modules: HashMap<NamespaceId, String>,
-    nodes: HashMap<CanonicalId, String>,
     errors: Vec<ExecutionError>,
 }
 
@@ -18,8 +14,6 @@ impl ReporterState {
     pub fn new(fail_fast: bool) -> Self {
         Self {
             fail_fast,
-            modules: Default::default(),
-            nodes: Default::default(),
             errors: Default::default(),
         }
     }
@@ -60,19 +54,15 @@ impl Reporter {
         self.state_mut().errors.extend(x.errors())
     }
 
-    fn to_report(&self) -> Report {
+    fn to_report(&self) -> InternalReport {
         let state = (*self.state).borrow();
 
-        Report::Execution {
-            modules: state.modules.clone(),
-            nodes: state.nodes.clone(),
-            errors: state.errors.clone(),
-        }
+        InternalReport::Execution(state.errors.clone())
     }
 
     /// report an error
     /// returns an `Err` if configured to fail fast otherwise `Ok`
-    pub fn raise<T>(&mut self, x: T) -> Result<()>
+    pub fn raise<T>(&mut self, x: T) -> InternalResult<()>
     where
         T: Errors,
     {
@@ -86,7 +76,7 @@ impl Reporter {
     }
 
     /// returns an `Err` if any errors have been reported otherwise `Ok`
-    pub fn flush(&self) -> Result<()> {
+    pub fn flush(&self) -> InternalResult<()> {
         if self.should_fail() {
             Err(self.to_report())
         } else {
@@ -95,7 +85,7 @@ impl Reporter {
     }
 
     /// report an error and return the report
-    pub fn fail<T>(&mut self, x: T) -> Report
+    pub fn fail<T>(&mut self, x: T) -> InternalReport
     where
         T: Errors,
     {

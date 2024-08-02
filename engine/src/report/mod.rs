@@ -3,20 +3,28 @@ mod error;
 mod errors;
 mod reporter;
 
+use crate::Link;
 pub use code_frame::CodeFrame;
-pub use error::{ConfigurationError, ExecutionError};
+pub use error::{ConfigurationError, EnvironmentError, ExecutionError};
 pub use errors::Errors;
 use kore::color::{ColoredString, Colorize, Highlight};
-use lang::{CanonicalId, NamespaceId};
+use lang::{CanonicalId, NamespaceId, Range};
 pub use reporter::Reporter;
 use std::{collections::HashMap, fmt::Display};
+
+pub trait Enrich {
+    fn enrich(&self, internal: InternalReport) -> Report {
+        internal.no_context()
+    }
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Report {
     Configuration(ConfigurationError),
+    Environment(EnvironmentError),
     Execution {
-        modules: HashMap<NamespaceId, String>,
-        nodes: HashMap<CanonicalId, String>,
+        modules: HashMap<NamespaceId, (Link, String)>,
+        nodes: HashMap<CanonicalId, Range>,
         errors: Vec<ExecutionError>,
     },
 }
@@ -25,8 +33,9 @@ impl Report {
     #[cfg(feature = "test")]
     pub fn exec_errors(&self) -> Option<&Vec<ExecutionError>> {
         match self {
-            Report::Execution { errors, .. } => Some(errors),
-            Report::Configuration(_) => None,
+            Self::Execution { errors, .. } => Some(errors),
+            Self::Configuration(_) => None,
+            Self::Environment(_) => None,
         }
     }
 }
@@ -37,16 +46,27 @@ impl Display for Report {
             format!("finished with {} error(s)", error_count.to_string().bold()).error()
         }
 
+        fn write_single<T>(f: &mut std::fmt::Formatter, error: T) -> std::fmt::Result
+        where
+            T: Display,
+        {
+            let bumper = format_bumper(1);
+
+            writeln!(f, "{}\n", bumper)?;
+            writeln!(f, "{index} {error}\n", index = format!("{})", 1).error())?;
+            writeln!(f, "{}\n", bumper)
+        }
+
         match self {
-            Self::Configuration(error) => {
-                let bumper = format_bumper(1);
+            Self::Configuration(error) => write_single(f, error),
 
-                writeln!(f, "{}\n", bumper)?;
-                writeln!(f, "{index} {error}\n", index = format!("{})", 1).error())?;
-                writeln!(f, "{}\n", bumper)
-            }
+            Self::Environment(error) => write_single(f, error),
 
-            Self::Execution { errors, .. } => {
+            Self::Execution {
+                errors,
+                modules,
+                nodes,
+            } => {
                 let bumper = format_bumper(errors.len());
 
                 writeln!(f, "{}\n", bumper)?;
@@ -55,12 +75,30 @@ impl Display for Report {
                     writeln!(
                         f,
                         "{index} {error}\n",
-                        index = format!("{})", index + 1).error()
+                        index = format!("{})", index + 1).error(),
+                        error = error.display(modules, nodes)
                     )?;
                 }
 
                 writeln!(f, "{}\n", bumper)
             }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum InternalReport {
+    Execution(Vec<ExecutionError>),
+}
+
+impl InternalReport {
+    pub fn no_context(self) -> Report {
+        match self {
+            Self::Execution(errors) => Report::Execution {
+                modules: Default::default(),
+                nodes: Default::default(),
+                errors,
+            },
         }
     }
 }

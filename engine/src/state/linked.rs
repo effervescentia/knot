@@ -1,8 +1,12 @@
 use super::{base::Base, Parsed};
-use crate::link::ImportGraph;
+use crate::{
+    link::ImportGraph,
+    report::{Enrich, InternalReport, Report},
+};
 use lang::NamespaceId;
 use std::ops::{Deref, DerefMut};
 
+#[derive(Clone)]
 pub struct Linked(pub Base<()>, pub ImportGraph);
 
 impl Linked {
@@ -26,5 +30,11 @@ impl Deref for Linked {
 impl DerefMut for Linked {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl Enrich for Linked {
+    fn enrich(&self, internal: InternalReport) -> Report {
+        self.0.enrich(internal)
     }
 }

@@ -5,8 +5,10 @@ use kore::{
     pretty::Pretty,
     str,
 };
-use lang::CanonicalId;
-use std::{fmt::Display, io, path::PathBuf};
+use lang::{CanonicalId, NamespaceId, Range};
+use std::{collections::HashMap, fmt::Display, io, path::PathBuf};
+
+use super::CodeFrame;
 
 fn write_error(
     f: &mut std::fmt::Formatter,
@@ -103,13 +105,53 @@ impl Display for ConfigurationError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EnvironmentError {
+    InvalidWriteTarget(PathBuf, io::ErrorKind),
+    CleanupFailed(PathBuf, io::ErrorKind),
+}
+
+impl EnvironmentError {
+    pub const fn code(&self) -> ErrorCode {
+        match self {
+            Self::InvalidWriteTarget(.., io::ErrorKind::NotFound) => {
+                ErrorCode::INVALID_WRITE_TARGET_NOT_FOUND
+            }
+            Self::InvalidWriteTarget(.., io::ErrorKind::PermissionDenied) => {
+                ErrorCode::INVALID_WRITE_TARGET_PERMISSION_DENIED
+            }
+            Self::InvalidWriteTarget(..) => ErrorCode::INVALID_WRITE_TARGET,
+            Self::CleanupFailed(..) => ErrorCode::CLEANUP_FAILED,
+        }
+    }
+}
+
+impl Display for EnvironmentError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let code = self.code();
+
+        let (title, description) = match self {
+            Self::InvalidWriteTarget(path, error) => (
+                "Invalid Write Target",
+                format!(
+                    "attempted write to {} failed with error {error}",
+                    path.pretty()
+                ),
+            ),
+
+            Self::CleanupFailed(path, error) => (
+                "Cleanup Failed",
+                format!("attempted to delete {} but failed with error {error}", path.pretty()),
+            ),
+        };
+
+        write_error(f, code.0, title, &description)
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ExecutionError {
     // internal errors
     UnregisteredModule(Link),
-
-    // environment errors
-    InvalidWriteTarget(PathBuf, io::ErrorKind),
-    CleanupFailed(PathBuf),
 
     // parsing errors
     InvalidSyntax(Link),
@@ -128,16 +170,6 @@ impl ExecutionError {
         match self {
             // internal errors
             Self::UnregisteredModule(..) => ErrorCode::UNREGISTERED_MODULE,
-
-            // environment errors
-            Self::InvalidWriteTarget(.., io::ErrorKind::NotFound) => {
-                ErrorCode::INVALID_WRITE_TARGET_NOT_FOUND
-            }
-            Self::InvalidWriteTarget(.., io::ErrorKind::PermissionDenied) => {
-                ErrorCode::INVALID_WRITE_TARGET_PERMISSION_DENIED
-            }
-            Self::InvalidWriteTarget(..) => ErrorCode::INVALID_WRITE_TARGET,
-            Self::CleanupFailed(..) => ErrorCode::CLEANUP_FAILED,
 
             // parsing errors
             Self::InvalidSyntax(..) => ErrorCode::INVALID_SYNTAX,
@@ -179,128 +211,152 @@ impl ExecutionError {
             },
         }
     }
-}
 
-impl Display for ExecutionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    pub fn display<'a>(
+        &'a self,
+        modules: &'a HashMap<NamespaceId, (Link, String)>,
+        nodes: &'a HashMap<CanonicalId, Range>,
+    ) -> ErrorDisplay<'a> {
         let code = self.code();
 
-        let (title, description) = match self {
-            // internal errors
-            Self::UnregisteredModule(..) => (
-                "Unregistered Module",
-                format!(
-                    "a referenced module was not found when linking\n\n{}",
-                    "(this should not be possible and represents a fatal internal error)".error()
-                ),
-            ),
-
-            // environment errors
-            Self::InvalidWriteTarget(path, error) => (
-                "Invalid Write Target",
-                format!(
-                    "attempted write to {} failed with error {error}",
-                    path.pretty()
-                ),
-            ),
-
-            Self::CleanupFailed(path) => (
-                "Cleanup Failed",
-                format!("unable to delete {} or its contents", path.pretty()),
-            ),
-
-            // parsing errors
-            Self::InvalidSyntax(link) => (
-                "Invalid Syntax",
-                format!(
-                    "the file {} does not appear to contain valid Knot code",
-                    link.to_path().pretty()
-                ),
-            ),
-
-            // linking errors
-            Self::ModuleNotFound(link) => (
-                "Module Not Found",
-                format!("unable to find module {}", link.to_path().pretty()),
-            ),
-
-            Self::ImportCycle(links) => (
-                "Import Cycle",
-                format!(
-                    "an import cycle was found between the following modules:\n\n{}",
-                    SeparateEach(
-                        &format!(" {} ", "->".subtle()),
-                        &links.iter().map(|x| x.to_path().pretty()).collect()
-                    )
-                ),
-            ),
-
-            // analysis errors
-            Self::AnalysisError(_, err) => match err {
-                analyze::Error::NotInferrable(_) => (
-                    "Not Inferrable",
-                    str!("the type of this expression could not be inferred from other types"),
-                ),
-
-                analyze::Error::NotFound(name) => (
-                    "Not Found",
+        let (title, description, code_frame) =
+            match self {
+                // internal errors
+                Self::UnregisteredModule(link) => (
+                    "Unregistered Module",
                     format!(
-                        "unable to resolve identifier {} in the local scope or any inherited scope",
-                        name.bold()
+                        "a referenced module ({}) was not found when linking\n\n{}",
+                        link.to_path().pretty(),
+                        "(this should not be possible and represents a fatal internal error)"
+                            .error()
                     ),
+                    None
                 ),
 
-                analyze::Error::VariantNotFound(_, _) => ("Variant Not Found", format!("")),
+                // parsing errors
+                Self::InvalidSyntax(link) => (
+                    "Invalid Syntax",
+                    format!(
+                        "the file {} does not contain valid Knot code",
+                        link.to_path().pretty()
+                    ),
+                    None
+                ),
 
-                analyze::Error::DeclarationNotFound(_, _) => ("Declaration Not Found", format!("")),
+                // linking errors
+                Self::ModuleNotFound(link) => (
+                    "Module Not Found",
+                    format!("unable to find module {}", link.to_path().pretty()),
+                    None
+                ),
 
-                analyze::Error::NotIndexable(_, _) => ("Not Indexable", format!("")),
+                Self::ImportCycle(links) => (
+                    "Import Cycle",
+                    format!(
+                        "an import cycle was found between the following modules:\n\n{}",
+                        SeparateEach(
+                            &format!(" {} ", "->".subtle()),
+                            &links.iter().map(|x| x.to_path().pretty()).collect()
+                        )
+                    ),
+                    None
+                ),
 
-                analyze::Error::PropertyNotFound(_, _) => ("Property Not Found", format!("")),
+                // analysis errors
+                Self::AnalysisError(id, err) => {
+                    let module = modules.get(&id.0);
+                    let _node = nodes.get(&id);
 
-                analyze::Error::DuplicateProperty(_) => ("Duplicate Property", format!("")),
+                    let (title, description) = match err {
+                        analyze::Error::NotInferrable(_) => (
+                            "Not Inferrable",
+                            str!("the type of this expression could not be inferred from other types"),
+                        ),
+        
+                        analyze::Error::NotFound(name) => (
+                            "Not Found",
+                            format!(
+                                "unable to resolve identifier {} in the local scope or any inherited scope",
+                                name.error()
+                            ),
+                        ),
+        
+                        analyze::Error::VariantNotFound(_, _) => ("Variant Not Found", format!("")),
+        
+                        analyze::Error::DeclarationNotFound(_, _) => ("Declaration Not Found", format!("")),
+        
+                        analyze::Error::NotIndexable(_, _) => ("Not Indexable", format!("")),
+        
+                        analyze::Error::PropertyNotFound(_, _) => ("Property Not Found", format!("")),
+        
+                        analyze::Error::DuplicateProperty(_) => ("Duplicate Property", format!("")),
+        
+                        analyze::Error::NotSpreadable(_) => ("Not Spreadable", format!("")),
+        
+                        analyze::Error::UntypedParameter => ("Untyped Parameter", format!("")),
+        
+                        analyze::Error::DefaultValueRejected(_) => ("Default Value Rejected", format!("")),
+        
+                        analyze::Error::NotCallable(_) => ("Not Callable", format!("")),
+        
+                        analyze::Error::UnexpectedArgument(_) => ("Unexpected Argument", format!("")),
+        
+                        analyze::Error::MissingArgument(_) => ("Missing Argument", format!("")),
+        
+                        analyze::Error::ArgumentRejected(_, _) => ("Argument Rejected", format!("")),
+        
+                        analyze::Error::NotRenderable(_) => ("Not Renderable", format!("")),
+        
+                        analyze::Error::InvalidComponent(_) => ("Invalid Component", format!("")),
+        
+                        analyze::Error::ComponentTypo(_, _) => ("Component Typo", format!("")),
+        
+                        analyze::Error::InvalidAttributes(_) => ("Invalid Attributes", format!("")),
+        
+                        analyze::Error::UnexpectedAttribute(_) => ("Unexpected Attribute", format!("")),
+        
+                        analyze::Error::MissingAttribute(_) => ("Missing Attribute", format!("")),
+        
+                        analyze::Error::AttributeRejected(_, _) => ("Attribute Rejected", format!("")),
+        
+                        analyze::Error::BinaryOperationNotSupported(_, _, _) => {
+                            ("Binary Operation Not Supported", format!(""))
+                        }
+        
+                        analyze::Error::UnaryOperationNotSupported(_, _) => {
+                            ("Unary Operation Not Supported", format!(""))
+                        }
+        
+                        analyze::Error::UnexpectedKind(_, _) => ("Unexpected Kind", format!("")),
+                    };
 
-                analyze::Error::NotSpreadable(_) => ("Not Spreadable", format!("")),
-
-                analyze::Error::UntypedParameter => ("Untyped Parameter", format!("")),
-
-                analyze::Error::DefaultValueRejected(_) => ("Default Value Rejected", format!("")),
-
-                analyze::Error::NotCallable(_) => ("Not Callable", format!("")),
-
-                analyze::Error::UnexpectedArgument(_) => ("Unexpected Argument", format!("")),
-
-                analyze::Error::MissingArgument(_) => ("Missing Argument", format!("")),
-
-                analyze::Error::ArgumentRejected(_, _) => ("Argument Rejected", format!("")),
-
-                analyze::Error::NotRenderable(_) => ("Not Renderable", format!("")),
-
-                analyze::Error::InvalidComponent(_) => ("Invalid Component", format!("")),
-
-                analyze::Error::ComponentTypo(_, _) => ("Component Typo", format!("")),
-
-                analyze::Error::InvalidAttributes(_) => ("Invalid Attributes", format!("")),
-
-                analyze::Error::UnexpectedAttribute(_) => ("Unexpected Attribute", format!("")),
-
-                analyze::Error::MissingAttribute(_) => ("Missing Attribute", format!("")),
-
-                analyze::Error::AttributeRejected(_, _) => ("Attribute Rejected", format!("")),
-
-                analyze::Error::BinaryOperationNotSupported(_, _, _) => {
-                    ("Binary Operation Not Supported", format!(""))
+                    (
+                        title, 
+                        description,
+                        module.map(|(link, text)| CodeFrame::new(link, Range::nil(), text))
+                    )
                 }
+            };
 
-                analyze::Error::UnaryOperationNotSupported(_, _) => {
-                    ("Unary Operation Not Supported", format!(""))
-                }
+        ErrorDisplay {
+            code,
+            title,
+            description,
+            code_frame
+        }
+    }
+}
 
-                analyze::Error::UnexpectedKind(_, _) => ("Unexpected Kind", format!("")),
-            },
-        };
+pub struct ErrorDisplay<'a> {
+    code: ErrorCode,
+    title: &'a str,
+    description: String,
+    code_frame: Option<CodeFrame<'a>>,
+}
 
-        write_error(f, code.0, title, &description)
+impl<'a> Display for ErrorDisplay<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write_error(f, self.code.0, self.title, &self.description)
     }
 }
 

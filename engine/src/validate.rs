@@ -1,20 +1,24 @@
-use crate::{link::ImportGraph, state, Context, ExecutionError, InnerResult, Result};
+use crate::{link::ImportGraph, state, Context, ExecutionError};
 use kore::invariant;
+
+type Result = Option<Vec<ExecutionError>>;
 
 pub struct Validator<'a, R>(pub &'a mut Context<R>);
 
 impl<'a, R> Validator<'a, R> {
-    pub fn validate(self, state: &state::Parsed, graph: &ImportGraph) -> Result<()> {
-        self.0.raise(self.assert_no_import_cycles(state, graph))
+    pub fn validate(self, state: &state::Parsed, graph: &ImportGraph) -> crate::InternalResult<()> {
+        let errors = vec![self.assert_no_import_cycles(state, graph)]
+            .into_iter()
+            .map(|x| x.unwrap_or_default())
+            .flatten()
+            .collect::<Vec<_>>();
+
+        self.0.raise(errors)
     }
 
-    pub fn assert_no_import_cycles(
-        &self,
-        state: &state::Parsed,
-        graph: &ImportGraph,
-    ) -> InnerResult<()> {
+    fn assert_no_import_cycles(&self, state: &state::Parsed, graph: &ImportGraph) -> Result {
         if !graph.is_cyclic() {
-            return Ok(());
+            return None;
         }
 
         let errors = graph
@@ -38,9 +42,9 @@ impl<'a, R> Validator<'a, R> {
             .collect::<Vec<_>>();
 
         if errors.is_empty() {
-            Ok(())
+            None
         } else {
-            Err(errors)
+            Some(errors)
         }
     }
 }

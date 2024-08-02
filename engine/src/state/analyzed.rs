@@ -1,5 +1,9 @@
 use super::{base::Base, Linked, Module};
-use crate::{link::ImportGraph, Link};
+use crate::{
+    link::ImportGraph,
+    report::{Enrich, InternalReport, Report},
+    Link,
+};
 use std::{
     collections::HashMap,
     ops::{Deref, DerefMut},
@@ -24,5 +28,11 @@ impl Deref for Analyzed {
 impl DerefMut for Analyzed {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl Enrich for Analyzed {
+    fn enrich(&self, internal: InternalReport) -> Report {
+        self.0.enrich(internal)
     }
 }

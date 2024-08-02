@@ -46,6 +46,7 @@ impl Hash for Cycle {
     }
 }
 
+#[derive(Clone)]
 pub struct ImportGraph {
     graph: StableDiGraph<NamespaceId, ()>,
     lookup: BiMap<NamespaceId, NodeIndex>,

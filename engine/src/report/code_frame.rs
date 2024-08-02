@@ -2,14 +2,19 @@ use crate::Link;
 use lang::Range;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CodeFrame {
-    link: Link,
+pub struct CodeFrame<'a> {
+    link: &'a Link,
     range: Range,
+    source: &'a str,
 }
 
-impl CodeFrame {
-    pub const fn new(link: Link, range: Range) -> Self {
-        Self { link, range }
+impl<'a> CodeFrame<'a> {
+    pub const fn new(link: &'a Link, range: Range, source: &'a str) -> Self {
+        Self {
+            link,
+            range,
+            source,
+        }
     }
 
     pub const fn link(&self) -> &Link {

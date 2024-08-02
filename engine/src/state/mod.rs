@@ -4,17 +4,17 @@ mod base;
 mod linked;
 mod parsed;
 
-use crate::{ConfigurationError, Link, Report, Result};
+use crate::{
+    report::{Enrich, Report},
+    ConfigurationError, IntoResult, Link, Result,
+};
 pub use analyzed::Analyzed;
 pub use ast::Ast;
 pub use base::Base;
 use lang::NamespaceId;
 pub use linked::Linked;
 pub use parsed::Parsed;
-use std::{
-    fmt::Debug,
-    path::{Path, PathBuf},
-};
+use std::{fmt::Debug, path::Path};
 
 #[derive(Clone, Debug)]
 pub struct Module<T> {
@@ -29,7 +29,31 @@ impl<T> Module<T> {
     }
 }
 
+#[derive(Clone)]
 pub struct FromEntry(pub Link);
+
+impl IntoResult for FromEntry {
+    type Value = Self;
+
+    fn into_result(self) -> Result<Self> {
+        Ok(self)
+    }
+}
+
+impl Enrich for FromEntry {}
+
+#[derive(Clone)]
+pub struct FromPaths(pub Vec<Link>);
+
+impl IntoResult for FromPaths {
+    type Value = Self;
+
+    fn into_result(self) -> Result<Self> {
+        Ok(self)
+    }
+}
+
+impl Enrich for FromPaths {}
 
 pub struct FromGlob<'a> {
     pub dir: &'a Path,
@@ -37,7 +61,7 @@ pub struct FromGlob<'a> {
 }
 
 impl<'a> FromGlob<'a> {
-    pub fn to_paths(&'a self) -> Result<Vec<PathBuf>> {
+    pub fn to_paths(&'a self) -> Result<FromPaths> {
         let FromGlob { dir, glob } = self;
 
         match glob::glob(&[dir.to_string_lossy().to_string().as_str(), glob].join("/")) {
@@ -61,7 +85,7 @@ impl<'a> FromGlob<'a> {
                 });
 
                 if errors.is_empty() {
-                    Ok(paths)
+                    Ok(FromPaths(paths.iter().map(Link::from).collect()))
                 } else {
                     Err(errors)
                 }

@@ -1,4 +1,4 @@
-use crate::{ExecutionError, Reporter, Result};
+use crate::{EnvironmentError, Report, Result};
 use std::{
     fmt::Display,
     fs::{self, File},
@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub struct Writer<T>(pub Result<Vec<(PathBuf, T)>>, pub Reporter)
+pub struct Writer<T>(pub Result<Vec<(PathBuf, T)>>)
 where
     T: Display;
 
@@ -14,11 +14,13 @@ impl<T> Writer<T>
 where
     T: Display,
 {
-    pub fn overwrite(mut self, dir: &Path) -> Result<usize> {
+    pub fn overwrite(self, dir: &Path) -> Result<usize> {
         if dir.exists() {
-            fs::remove_dir_all(dir).map_err(|_| {
-                self.1
-                    .fail(ExecutionError::CleanupFailed(dir.to_path_buf()))
+            fs::remove_dir_all(dir).map_err(|err| {
+                Report::Environment(EnvironmentError::CleanupFailed(
+                    dir.to_path_buf(),
+                    err.kind(),
+                ))
             })?
         }
 
@@ -27,44 +29,35 @@ where
         self.write(dir)
     }
 
-    pub fn write(mut self, dir: &Path) -> Result<usize> {
-        let mut count = 0;
+    pub fn write(self, dir: &Path) -> Result<usize> {
+        self.0.and_then(|files| {
+            let mut count = 0;
 
-        match &self.0 {
-            Ok(xs) => {
-                for (path, generated) in xs {
-                    let path = dir.join(path);
+            for (path, generated) in files {
+                let path = dir.join(path);
 
-                    if let Some(parent) = path.parent() {
-                        fs::create_dir_all(parent).ok();
-                    }
-
-                    let file = match File::create(&path) {
-                        Ok(x) => Ok(x),
-
-                        Err(err) => {
-                            self.1.raise(ExecutionError::InvalidWriteTarget(
-                                path.clone(),
-                                err.kind(),
-                            ))?;
-                            continue;
-                        }
-                    }?;
-
-                    let mut writer = BufWriter::new(file);
-
-                    write!(writer, "{generated}").ok();
-                    writer.flush().ok();
-
-                    count += 1;
+                if let Some(parent) = path.parent() {
+                    fs::create_dir_all(parent).ok();
                 }
 
-                self.1.flush()?;
+                let file = match File::create(&path) {
+                    Ok(x) => Ok(x),
 
-                Ok(count)
+                    Err(err) => Err(Report::Environment(EnvironmentError::InvalidWriteTarget(
+                        path.clone(),
+                        err.kind(),
+                    ))),
+                }?;
+
+                let mut writer = BufWriter::new(file);
+
+                write!(writer, "{generated}").ok();
+                writer.flush().ok();
+
+                count += 1;
             }
 
-            Err(err) => Err(err.clone()),
-        }
+            Ok(count)
+        })
     }
 }

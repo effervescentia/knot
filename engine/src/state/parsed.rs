@@ -1,5 +1,9 @@
 use super::{base::Base, Ast, Module};
-use crate::{link::ImportGraph, Context, ExecutionError, Link, Result};
+use crate::{
+    link::ImportGraph,
+    report::{Enrich, InternalReport, Report},
+    Context, ExecutionError, InternalResult, Link,
+};
 use kore::Incrementor;
 use lang::NamespaceId;
 use std::{
@@ -8,7 +12,7 @@ use std::{
     rc::Rc,
 };
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Parsed(pub Base<()>, pub Rc<RefCell<Incrementor>>);
 
 impl Parsed {
@@ -24,7 +28,7 @@ impl Parsed {
             })
     }
 
-    pub fn link_modules<R>(&self, context: &mut Context<R>) -> Result<ImportGraph> {
+    pub fn link_modules<R>(&self, context: &mut Context<R>) -> InternalResult<ImportGraph> {
         self.internal_modules()
             .try_fold(self.to_import_graph(), |mut acc, (link, module)| {
                 let links = module.ast.to_links(link);
@@ -64,5 +68,11 @@ impl Deref for Parsed {
 impl DerefMut for Parsed {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl Enrich for Parsed {
+    fn enrich(&self, internal: InternalReport) -> Report {
+        self.0.enrich(internal)
     }
 }
