@@ -13,7 +13,7 @@ pub struct Namespace(pub NamespaceKind, pub Vec<String>);
 
 impl Namespace {
     #[cfg(feature = "test")]
-    pub const MOCK: &Self = &Self(NamespaceKind::Internal, vec![]);
+    pub const MOCK: &'static Self = &Self(NamespaceKind::Internal, vec![]);
 
     #[cfg(feature = "test")]
     pub fn mock() -> Self {

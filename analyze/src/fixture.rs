@@ -3,7 +3,6 @@ use crate::{
     AmbientScope, TypeMap as StrongTypes,
 };
 use kore::str;
-pub use lang::test::fixture::*;
 use lang::{
     ast,
     types::{Enumerated, Kind, Type},

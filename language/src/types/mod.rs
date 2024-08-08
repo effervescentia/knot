@@ -1,7 +1,7 @@
 mod shape;
 
 pub use shape::ToShape;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
@@ -11,8 +11,26 @@ pub enum Kind {
 }
 
 impl Kind {
+    pub const fn invert(&self) -> Self {
+        match self {
+            Self::Type => Self::Value,
+            Self::Value => Self::Type,
+            Self::Mixed => Self::Mixed,
+        }
+    }
+
     pub fn can_accept(&self, other: &Self) -> bool {
         self == other || matches!((self, other), (Self::Mixed, _) | (_, Self::Mixed))
+    }
+}
+
+impl Display for Kind {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            Self::Type => write!(f, "type"),
+            Self::Value => write!(f, "value"),
+            Self::Mixed => write!(f, "mixed"),
+        }
     }
 }
 

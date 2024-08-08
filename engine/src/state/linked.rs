@@ -1,8 +1,5 @@
 use super::{base::Base, Parsed};
-use crate::{
-    link::ImportGraph,
-    report::{Enrich, InternalReport, Report},
-};
+use crate::{link::ImportGraph, report};
 use lang::NamespaceId;
 use std::ops::{Deref, DerefMut};
 
@@ -33,8 +30,8 @@ impl DerefMut for Linked {
     }
 }
 
-impl Enrich for Linked {
-    fn enrich(&self, internal: InternalReport) -> Report {
-        self.0.enrich(internal)
+impl report::Enrich for Linked {
+    fn enrich(&self, failure: report::Failure) -> report::Report {
+        self.0.enrich(failure)
     }
 }

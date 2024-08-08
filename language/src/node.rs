@@ -21,11 +21,17 @@ impl<Value, Meta> Node<Value, Meta> {
         &self.2
     }
 
-    pub fn map_value<T>(self, f: impl FnOnce(Value) -> T) -> Node<T, Meta> {
+    pub fn map_value<T, F>(self, f: F) -> Node<T, Meta>
+    where
+        F: FnOnce(Value) -> T,
+    {
         Node(f(self.0), self.1, self.2)
     }
 
-    pub fn map_range(self, f: impl FnOnce(Range) -> Range) -> Self {
+    pub fn map_range<F>(self, f: F) -> Self
+    where
+        F: FnOnce(Range) -> Range,
+    {
         Self(self.0, f(self.1), self.2)
     }
 

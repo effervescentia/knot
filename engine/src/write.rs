@@ -21,7 +21,7 @@ where
                     dir.to_path_buf(),
                     err.kind(),
                 ))
-            })?
+            })?;
         }
 
         fs::create_dir_all(dir).ok();

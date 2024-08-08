@@ -1,10 +1,7 @@
 use super::{Ast, Module};
-use crate::{
-    report::{Enrich, InternalReport, Report},
-    Library, Link,
-};
+use crate::{report, Library, Link};
 use bimap::BiMap;
-use kore::{invariant, Incrementor};
+use kore::Incrementor;
 use lang::{
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     CanonicalId, NamespaceId, NodeId, Range,
@@ -82,13 +79,13 @@ impl<T> Base<T> {
     }
 }
 
-impl<T> Enrich for Base<T>
+impl<T> report::Enrich for Base<T>
 where
     T: Clone,
 {
-    fn enrich(&self, internal: InternalReport) -> Report {
-        match internal {
-            InternalReport::Execution(errors) => Report::Execution {
+    fn enrich(&self, failure: report::Failure) -> report::Report {
+        match failure {
+            report::Failure::Execution(errors) => report::Report::Execution {
                 errors,
 
                 modules: self
@@ -101,9 +98,11 @@ where
                     .modules
                     .values()
                     .flat_map(|module| {
+                        let visitor = Visitor::new(module.id);
+
                         match module.ast.clone() {
-                            Ast::Program(x) => x.walk(Visitor::new(module.id)),
-                            Ast::Typings(x) => x.walk(Visitor::new(module.id)),
+                            Ast::Program(x) => x.walk(visitor),
+                            Ast::Typings(x) => x.walk(visitor),
                         }
                         .1
                         .nodes

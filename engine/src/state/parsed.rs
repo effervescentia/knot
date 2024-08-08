@@ -1,9 +1,5 @@
 use super::{base::Base, Ast, Module};
-use crate::{
-    link::ImportGraph,
-    report::{Enrich, InternalReport, Report},
-    Context, ExecutionError, InternalResult, Link,
-};
+use crate::{link::ImportGraph, report, Context, ExecutionError, Link};
 use kore::Incrementor;
 use lang::NamespaceId;
 use std::{
@@ -28,7 +24,7 @@ impl Parsed {
             })
     }
 
-    pub fn link_modules<R>(&self, context: &mut Context<R>) -> InternalResult<ImportGraph> {
+    pub fn link_modules<R>(&self, context: &mut Context<R>) -> crate::Internal<ImportGraph> {
         self.internal_modules()
             .try_fold(self.to_import_graph(), |mut acc, (link, module)| {
                 let links = module.ast.to_links(link);
@@ -53,7 +49,7 @@ impl Parsed {
             ast,
         };
 
-        self.0.register_module(link, module)
+        self.0.register_module(link, module);
     }
 }
 
@@ -71,8 +67,8 @@ impl DerefMut for Parsed {
     }
 }
 
-impl Enrich for Parsed {
-    fn enrich(&self, internal: InternalReport) -> Report {
-        self.0.enrich(internal)
+impl report::Enrich for Parsed {
+    fn enrich(&self, failure: report::Failure) -> report::Report {
+        self.0.enrich(failure)
     }
 }

@@ -1,0 +1,55 @@
+use super::{code::ToCode, Display, ErrorCode, ErrorDisplay};
+use kore::pretty::Pretty;
+use std::{io, path::PathBuf};
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EnvironmentError {
+    InvalidWriteTarget(PathBuf, io::ErrorKind),
+    CleanupFailed(PathBuf, io::ErrorKind),
+}
+
+impl ToCode for EnvironmentError {
+    fn to_code(&self) -> ErrorCode {
+        match self {
+            Self::InvalidWriteTarget(.., io::ErrorKind::NotFound) => {
+                ErrorCode::INVALID_WRITE_TARGET_NOT_FOUND
+            }
+            Self::InvalidWriteTarget(.., io::ErrorKind::PermissionDenied) => {
+                ErrorCode::INVALID_WRITE_TARGET_PERMISSION_DENIED
+            }
+            Self::InvalidWriteTarget(..) => ErrorCode::INVALID_WRITE_TARGET,
+            Self::CleanupFailed(..) => ErrorCode::CLEANUP_FAILED,
+        }
+    }
+}
+
+impl<'a> Display<'a> for EnvironmentError {
+    type Context = ();
+
+    fn display(&'a self, (): Self::Context) -> ErrorDisplay<'a> {
+        let bind = |title, description| ErrorDisplay {
+            code: self.to_code(),
+            title,
+            description,
+            code_frame: None,
+        };
+
+        match self {
+            Self::InvalidWriteTarget(path, error) => bind(
+                "Invalid Write Target",
+                format!(
+                    "attempted write to {} failed with error {error}",
+                    path.pretty()
+                ),
+            ),
+
+            Self::CleanupFailed(path, error) => bind(
+                "Cleanup Failed",
+                format!(
+                    "attempted to delete {} but failed with error {error}",
+                    path.pretty()
+                ),
+            ),
+        }
+    }
+}

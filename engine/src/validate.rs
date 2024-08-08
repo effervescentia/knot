@@ -6,17 +6,16 @@ type Result = Option<Vec<ExecutionError>>;
 pub struct Validator<'a, R>(pub &'a mut Context<R>);
 
 impl<'a, R> Validator<'a, R> {
-    pub fn validate(self, state: &state::Parsed, graph: &ImportGraph) -> crate::InternalResult<()> {
-        let errors = vec![self.assert_no_import_cycles(state, graph)]
+    pub fn validate(self, state: &state::Parsed, graph: &ImportGraph) -> crate::Internal<()> {
+        let errors = vec![Self::assert_no_import_cycles(state, graph)]
             .into_iter()
-            .map(|x| x.unwrap_or_default())
-            .flatten()
+            .flat_map(std::option::Option::unwrap_or_default)
             .collect::<Vec<_>>();
 
         self.0.raise(errors)
     }
 
-    fn assert_no_import_cycles(&self, state: &state::Parsed, graph: &ImportGraph) -> Result {
+    fn assert_no_import_cycles(state: &state::Parsed, graph: &ImportGraph) -> Result {
         if !graph.is_cyclic() {
             return None;
         }

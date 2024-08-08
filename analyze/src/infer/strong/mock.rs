@@ -7,7 +7,7 @@ pub const FRAGMENTS: &BTreeMap<NodeId, (ScopeId, Fragment)> = &BTreeMap::new();
 
 impl<'a> State<'a> {
     #[allow(clippy::type_complexity)]
-    pub fn mock(context: &'a Context) -> State<'a> {
+    pub fn mock(context: &'a Context) -> Self {
         State {
             context,
             fragments: FRAGMENTS,
@@ -22,7 +22,7 @@ impl<'a> State<'a> {
     pub fn from_types(
         context: &'a Context,
         types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
-    ) -> State<'a> {
+    ) -> Self {
         State {
             types: BTreeMap::from_iter(types),
             ..Self::mock(context)

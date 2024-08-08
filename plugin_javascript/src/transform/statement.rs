@@ -218,13 +218,12 @@ impl Statement {
                             .0
                             .declarations
                             .iter()
-                            .filter_map(|x| {
-                                x.0.is_public().then(|| {
-                                    (
-                                        x.0.binding().clone(),
-                                        Expression::Identifier(x.0.binding().clone()),
-                                    )
-                                })
+                            .filter(|x| x.0.is_public())
+                            .map(|x| {
+                                (
+                                    x.0.binding().clone(),
+                                    Expression::Identifier(x.0.binding().clone()),
+                                )
                             })
                             .collect(),
                     )))],

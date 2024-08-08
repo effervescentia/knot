@@ -1,0 +1,6 @@
+enum Foo = 
+  | Fizz
+  | Buzz
+;
+
+const BAR = Foo.Bar;

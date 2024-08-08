@@ -1,5 +1,4 @@
-use super::{Errors, ExecutionError};
-use crate::{InternalReport, InternalResult};
+use super::{ExecutionError, Failure, IntoErrors};
 use std::{
     cell::{Ref, RefCell, RefMut},
     rc::Rc,
@@ -49,48 +48,48 @@ impl Reporter {
     /// add errors to state
     fn extend<T>(&mut self, x: T)
     where
-        T: Errors,
+        T: IntoErrors,
     {
-        self.state_mut().errors.extend(x.errors())
+        self.state_mut().errors.extend(x.into_errors());
     }
 
-    fn to_report(&self) -> InternalReport {
+    fn to_failure(&self) -> Failure {
         let state = (*self.state).borrow();
 
-        InternalReport::Execution(state.errors.clone())
+        Failure::Execution(state.errors.clone())
     }
 
     /// report an error
     /// returns an `Err` if configured to fail fast otherwise `Ok`
-    pub fn raise<T>(&mut self, x: T) -> InternalResult<()>
+    pub fn raise<T>(&mut self, x: T) -> crate::Internal<()>
     where
-        T: Errors,
+        T: IntoErrors,
     {
         self.extend(x);
 
         if self.should_fail_early() {
-            Err(self.to_report())
+            Err(self.to_failure())
         } else {
             Ok(())
         }
     }
 
     /// returns an `Err` if any errors have been reported otherwise `Ok`
-    pub fn flush(&self) -> InternalResult<()> {
+    pub fn flush(&self) -> crate::Internal<()> {
         if self.should_fail() {
-            Err(self.to_report())
+            Err(self.to_failure())
         } else {
             Ok(())
         }
     }
 
     /// report an error and return the report
-    pub fn fail<T>(&mut self, x: T) -> InternalReport
+    pub fn fail<T>(&mut self, x: T) -> Failure
     where
-        T: Errors,
+        T: IntoErrors,
     {
         self.extend(x);
-        self.to_report()
+        self.to_failure()
     }
 }
 

@@ -4,7 +4,7 @@ mod expression;
 mod to_weak;
 mod types;
 
-pub use data::{Inference, Output, Type, Weak};
+pub use data::{Inference, Output, Type};
 use lang::{FragmentMap, NodeId};
 use to_weak::ToWeak;
 

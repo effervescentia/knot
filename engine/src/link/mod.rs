@@ -70,6 +70,6 @@ where
 
 impl Display for Link {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        self.to_path().fmt(f)
+        std::fmt::Display::fmt(&self.to_path().display(), f)
     }
 }

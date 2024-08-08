@@ -10,24 +10,26 @@ use analyze::ModuleMap;
 use kore::{invariant, Generator, Incrementor};
 use lang::{ast, Canonicalize, NamespaceId, NodeId};
 pub use link::Link;
+use report::Enrich;
 pub use report::{
     CodeFrame, ConfigurationError, EnvironmentError, ExecutionError, Report, Reporter,
 };
-use report::{Enrich, InternalReport};
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 pub use resource::Library;
 use state::FromPaths;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fmt::Display,
-    ops::{Deref, DerefMut},
+    ops::Deref,
     path::{Path, PathBuf},
 };
 use validate::Validator;
 use write::Writer;
 
 pub type Result<T> = std::result::Result<T, Report>;
-type InternalResult<T> = std::result::Result<T, InternalReport>;
+
+/// internal result type used to propagate errors
+type Internal<T> = std::result::Result<T, report::Failure>;
 
 pub trait IntoResult {
     type Value;
@@ -58,16 +60,16 @@ impl<R> Context<R> {
         }
     }
 
-    pub fn raise<T>(&mut self, x: T) -> InternalResult<()>
+    pub fn raise<T>(&mut self, x: T) -> Internal<()>
     where
-        T: report::Errors,
+        T: report::IntoErrors,
     {
         self.reporter.raise(x)
     }
 
-    pub fn fail<T>(&mut self, x: T) -> InternalReport
+    pub fn fail<T>(&mut self, x: T) -> report::Failure
     where
-        T: report::Errors,
+        T: report::IntoErrors,
     {
         self.reporter.fail(x)
     }
@@ -77,10 +79,7 @@ impl<R> Context<R>
 where
     R: Resolver,
 {
-    pub fn load_and_parse_program(
-        &mut self,
-        link: &Link,
-    ) -> InternalResult<(String, state::Ast<()>)> {
+    pub fn load_and_parse_program(&mut self, link: &Link) -> Internal<(String, state::Ast<()>)> {
         let path = link.to_path();
 
         let input = self
@@ -185,7 +184,7 @@ where
 {
     fn then<F, T2>(self, f: F) -> Engine<Result<T2>, R>
     where
-        F: Fn(T, &mut Context<R>) -> InternalResult<T2>,
+        F: Fn(T, &mut Context<R>) -> Internal<T2>,
     {
         let try_apply = |state, context: &mut Context<R>| {
             context.reporter.flush()?;
@@ -267,10 +266,9 @@ where
             let mut queue = VecDeque::from_iter(vec![state.0]);
             let mut parsed = state::Parsed::default();
 
-            for (library, link, module) in Self::parse_libraries(
-                parsed.incrementor().borrow_mut().deref_mut(),
-                &context.libraries,
-            ) {
+            for (library, link, module) in
+                Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
+            {
                 parsed.register_library(library, link, module);
             }
 
@@ -301,10 +299,9 @@ where
         self.then(|FromPaths(links), context| {
             let mut parsed = state::Parsed::default();
 
-            for (library, link, module) in Self::parse_libraries(
-                parsed.incrementor().borrow_mut().deref_mut(),
-                &context.libraries,
-            ) {
+            for (library, link, module) in
+                Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
+            {
                 parsed.register_library(library, link, module);
             }
 

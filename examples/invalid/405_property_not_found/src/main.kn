@@ -1,0 +1,4 @@
+type Foo = {
+  bar: string,
+};
+type Fizz = Foo.fizz;
