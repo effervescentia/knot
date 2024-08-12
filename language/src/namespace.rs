@@ -1,4 +1,5 @@
 use crate::ast;
+use kore::str;
 use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -17,7 +18,7 @@ impl Namespace {
 
     #[cfg(feature = "test")]
     pub fn mock() -> Self {
-        Self(NamespaceKind::Internal, vec![])
+        Self(NamespaceKind::Internal, vec![str!("mock")])
     }
 
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self

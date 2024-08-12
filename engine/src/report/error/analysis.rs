@@ -46,7 +46,7 @@ impl<'a> Display<'a> for analyze::Error {
             let range = nodes.get(id);
 
             let code_frame = match (module, range) {
-                (Some((link, text)), Some(range)) => Some(CodeFrame::new(link, *range, text)),
+                (Some((link, text)), Some(range)) => Some(CodeFrame::color(link, text, *range)),
                 _ => None,
             };
 
@@ -194,7 +194,7 @@ impl<'a> Display<'a> for analyze::Error {
             Self::BinaryOperationNotSupported(op, _, _) => bind(
                 "Binary Operation Not Supported",
                 format!(
-                    "the operation {} can not be applied to the arguments provided",
+                    "the operator {} cannot be applied to the arguments provided",
                     op.to_string().highlight()
                 ),
             ),
@@ -202,7 +202,7 @@ impl<'a> Display<'a> for analyze::Error {
             Self::UnaryOperationNotSupported(op, _) => bind(
                 "Unary Operation Not Supported",
                 format!(
-                    "the operation {} cannot be applied to the argument provided",
+                    "the operator {} cannot be applied to the argument provided",
                     op.to_string().highlight()
                 ),
             ),

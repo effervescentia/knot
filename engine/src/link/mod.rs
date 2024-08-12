@@ -15,6 +15,11 @@ use crate::Library;
 pub struct Link(Namespace);
 
 impl Link {
+    #[cfg(feature = "test")]
+    pub fn mock() -> Self {
+        Self(Namespace::mock())
+    }
+
     pub fn from_import<P>(file_path: P, import: &ast::Import) -> Self
     where
         P: AsRef<Path>,

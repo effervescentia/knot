@@ -1,5 +1,5 @@
 use crate::Link;
-use kore::color::{Colorize, Highlight};
+use kore::color::{ClearIf, Colorize, Highlight};
 use lang::Range;
 use std::fmt::Display;
 
@@ -13,14 +13,25 @@ pub struct CodeFrame<'a> {
     link: &'a Link,
     range: Range,
     source: &'a str,
+    color: bool,
 }
 
 impl<'a> CodeFrame<'a> {
-    pub const fn new(link: &'a Link, range: Range, source: &'a str) -> Self {
+    pub const fn color(link: &'a Link, source: &'a str, range: Range) -> Self {
         Self {
             link,
             range,
             source,
+            color: true,
+        }
+    }
+
+    pub const fn no_color(link: &'a Link, source: &'a str, range: Range) -> Self {
+        Self {
+            link,
+            range,
+            source,
+            color: false,
         }
     }
 
@@ -58,6 +69,7 @@ impl<'a> CodeFrame<'a> {
         while let Some((_, line)) = lines.last() {
             if line.is_empty() {
                 lines.pop();
+                last_row -= 1;
             } else {
                 break;
             }
@@ -73,8 +85,8 @@ impl<'a> CodeFrame<'a> {
 
 impl<'a> Display for CodeFrame<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn format_caret(gutter_width: usize, Range(start, end): Range) -> String {
-            let mut caret = format!("{}{} ", " ".repeat(gutter_width), BORDER.subtle());
+        fn format_caret(gutter_width: usize, Range(start, end): Range, no_color: bool) -> String {
+            let mut caret = String::new();
 
             for _ in 0..start.1 - 1 {
                 caret.push(' ');
@@ -84,42 +96,48 @@ impl<'a> Display for CodeFrame<'a> {
                 caret.push('^');
             }
 
-            caret
+            format!(
+                "{}{} {}",
+                " ".repeat(gutter_width),
+                BORDER.subtle().clear_if(no_color),
+                caret.error().clear_if(no_color)
+            )
         }
 
-        fn format_header(gutter_width: usize, link: &Link) -> String {
+        fn format_header(gutter_width: usize, link: &Link, no_color: bool) -> String {
             let gutter = " ".repeat(gutter_width);
 
             format!(
                 "{gutter}{} {}\n{}",
-                CORNER.subtle(),
-                link.to_string().highlight(),
-                format!("{gutter}{BORDER}").subtle()
+                CORNER.subtle().clear_if(no_color),
+                link.to_string().highlight().clear_if(no_color),
+                format!("{gutter}{BORDER}").subtle().clear_if(no_color)
             )
         }
 
-        fn format_line(gutter_width: usize, line: usize, code: &str) -> String {
+        fn format_line(gutter_width: usize, line: usize, code: &str, no_color: bool) -> String {
             format!(
                 "{:>gutter_width$}{} {}",
-                line.to_string().subtle(),
-                BORDER.subtle(),
-                code.dimmed(),
+                line.to_string().subtle().clear_if(no_color),
+                BORDER.subtle().clear_if(no_color),
+                code.dimmed().clear_if(no_color),
             )
         }
 
+        let no_color = !self.color;
         let Lines {
             gutter,
             last_row,
             lines,
         } = self.get_lines();
 
-        writeln!(f, "{}", format_header(gutter, self.link))?;
+        writeln!(f, "{}", format_header(gutter, self.link, no_color))?;
 
         for (row, line) in lines {
-            write!(f, "{}", format_line(gutter, row, line))?;
+            write!(f, "{}", format_line(gutter, row, line, no_color))?;
 
             if row == self.range.0 .0 {
-                write!(f, "\n{}", format_caret(gutter, self.range).error())?;
+                write!(f, "\n{}", format_caret(gutter, self.range, no_color))?;
             }
 
             if row != last_row {
@@ -135,4 +153,50 @@ struct Lines<'a> {
     gutter: usize,
     last_row: usize,
     lines: Vec<(usize, &'a str)>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CodeFrame;
+    use crate::Link;
+    use kore::assert_str_eq;
+    use lang::Range;
+
+    #[test]
+    fn highlight_range() {
+        let link = Link::mock();
+        let source = "const FOO = 123;
+const BAR = FOO + 10;
+type Fizz = integer;
+type Buzz = boolean;";
+
+        assert_str_eq!(
+            CodeFrame::no_color(&link, source, Range::new((2, 13), (2, 15))).to_string(),
+            " \u{256d}\u{2500} mock.kn
+ \u{2502}
+1\u{2502} const FOO = 123;
+2\u{2502} const BAR = FOO + 10;
+ \u{2502}             ^^^
+3\u{2502} type Fizz = integer;
+4\u{2502} type Buzz = boolean;"
+        );
+    }
+
+    #[test]
+    fn trim_empty_lines() {
+        let link = Link::mock();
+        let source = "
+
+const FOO = 123;
+
+";
+
+        assert_str_eq!(
+            CodeFrame::no_color(&link, source, Range::new((3, 13), (3, 15))).to_string(),
+            " \u{256d}\u{2500} mock.kn
+ \u{2502}
+3\u{2502} const FOO = 123;
+ \u{2502}             ^^^"
+        );
+    }
 }

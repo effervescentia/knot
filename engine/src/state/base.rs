@@ -145,8 +145,8 @@ impl<T> CommonVisitor for Visitor<T> {
     type Binding = ();
     type TypeExpression = ();
 
-    fn binding(self, _: lang::ast::Binding, r: Range) -> (Self::Binding, Self) {
-        self.bind(r)
+    fn binding(self, _: lang::ast::Binding, _: Range) -> (Self::Binding, Self) {
+        ((), self)
     }
 
     fn type_expression(
