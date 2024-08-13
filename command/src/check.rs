@@ -1,5 +1,5 @@
 use crate::log;
-use engine::{Context, Engine, FileSystem, Reporter};
+use engine::Engine;
 use std::path::Path;
 
 pub struct Options<'a> {
@@ -8,12 +8,9 @@ pub struct Options<'a> {
 }
 
 pub fn command(opts: &Options) -> engine::Result<()> {
-    let resolver = FileSystem(opts.source_dir);
-    let engine = Engine::new(Context::std(Reporter::new(false), resolver));
-
     log::entrypoint(opts.entry);
 
-    let result = engine
+    let result = Engine::new(opts.source_dir)
         .from_entry(opts.entry)
         .parse_and_discover()
         .inspect(|state, _| log::parsed_from_entry(state.internal_modules().count()))

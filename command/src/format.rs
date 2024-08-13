@@ -1,5 +1,5 @@
 use crate::{log, AssertExists};
-use engine::{ConfigurationError, Context, Engine, FileSystem, Reporter};
+use engine::{ConfigurationError, Engine};
 use std::path::Path;
 
 pub struct Options<'a> {
@@ -12,15 +12,13 @@ pub struct Options<'a> {
 }
 
 pub fn command(opts: &Options) -> engine::Result<()> {
-    let resolver = FileSystem(
-        opts.root_dir
-            .assert_dir_exists(ConfigurationError::RootDirectoryNotFound)?,
-    );
-    let engine = Engine::new(Context::std(Reporter::new(false), resolver));
+    let root_dir = opts
+        .root_dir
+        .assert_dir_exists(ConfigurationError::RootDirectoryNotFound)?;
 
     log::glob(opts.glob);
 
-    let count = engine
+    let count = Engine::new(root_dir)
         .from_glob(opts.root_dir, opts.glob)
         .parse_all()
         .inspect(|state, _| log::parsed_from_glob(state.internal_modules().count()))

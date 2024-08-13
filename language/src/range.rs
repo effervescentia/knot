@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::{fmt::Display, ops::Add};
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct Point(pub usize, pub usize);
@@ -10,6 +10,12 @@ impl Point {
 
     pub const fn offset(&self, (offset_row, offset_column): (usize, usize)) -> Self {
         Self(self.0 + offset_row, self.1 + offset_column)
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}:{}", self.0, self.1)
     }
 }
 

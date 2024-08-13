@@ -83,7 +83,7 @@ impl<'a> Display<'a> for analyze::Error {
             Self::DeclarationNotFound(_, name) => bind(
                 "Declaration Not Found",
                 format!(
-                    "this module does not contain a declaration named {}",
+                    "This module does not contain a declaration named {}.",
                     name.error()
                 ),
             ),

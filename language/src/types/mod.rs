@@ -1,7 +1,7 @@
 mod shape;
 
 pub use shape::ToShape;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
@@ -25,7 +25,7 @@ impl Kind {
 }
 
 impl Display for Kind {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::Type => write!(f, "type"),
             Self::Value => write!(f, "value"),

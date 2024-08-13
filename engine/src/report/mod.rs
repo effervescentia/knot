@@ -24,6 +24,7 @@ pub enum Report {
     Configuration(ConfigurationError),
     Environment(EnvironmentError),
     Execution {
+        root_dir: String,
         modules: HashMap<NamespaceId, (Link, String)>,
         nodes: HashMap<CanonicalId, Range>,
         errors: Vec<ExecutionError>,
@@ -67,6 +68,7 @@ impl std::fmt::Display for Report {
                 errors,
                 modules,
                 nodes,
+                ..
             } => {
                 let errors = errors
                     .iter()
@@ -106,6 +108,7 @@ impl Failure {
     pub fn no_context(self) -> Report {
         match self {
             Self::Execution(errors) => Report::Execution {
+                root_dir: Default::default(),
                 modules: Default::default(),
                 nodes: Default::default(),
                 errors,

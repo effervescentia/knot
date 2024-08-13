@@ -1,5 +1,5 @@
 use crate::{walk::Walk, Range};
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Node<Value, Meta>(pub Value, pub Range, pub Meta);
@@ -66,7 +66,7 @@ impl<Value, Meta> Display for Node<Value, Meta>
 where
     Value: Display,
 {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         self.value().fmt(f)
     }
 }

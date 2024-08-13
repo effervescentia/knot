@@ -1,6 +1,6 @@
 use crate::Link;
 use kore::color::{ClearIf, Colorize, Highlight};
-use lang::Range;
+use lang::{Point, Range};
 use std::fmt::Display;
 
 const CODE_PADDING: usize = 2;
@@ -104,13 +104,14 @@ impl<'a> Display for CodeFrame<'a> {
             )
         }
 
-        fn format_header(gutter_width: usize, link: &Link, no_color: bool) -> String {
+        fn format_header(gutter_width: usize, link: &Link, point: Point, no_color: bool) -> String {
             let gutter = " ".repeat(gutter_width);
 
             format!(
-                "{gutter}{} {}\n{}",
+                "{gutter}{} {} {}\n{}",
                 CORNER.subtle().clear_if(no_color),
                 link.to_string().highlight().clear_if(no_color),
+                format!("({link}:{point})").subtle().clear_if(no_color),
                 format!("{gutter}{BORDER}").subtle().clear_if(no_color)
             )
         }
@@ -131,7 +132,11 @@ impl<'a> Display for CodeFrame<'a> {
             lines,
         } = self.get_lines();
 
-        writeln!(f, "{}", format_header(gutter, self.link, no_color))?;
+        writeln!(
+            f,
+            "{}",
+            format_header(gutter, self.link, self.range.0, no_color)
+        )?;
 
         for (row, line) in lines {
             write!(f, "{}", format_line(gutter, row, line, no_color))?;

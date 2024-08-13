@@ -5,7 +5,7 @@ use kore::str;
 use lang::{ast, Namespace, NamespaceKind};
 use std::{
     ffi::OsStr,
-    fmt::{Debug, Display, Formatter},
+    fmt::{Debug, Display},
     path::{Path, PathBuf},
 };
 
@@ -74,7 +74,7 @@ where
 }
 
 impl Display for Link {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         std::fmt::Display::fmt(&self.to_path().display(), f)
     }
 }
