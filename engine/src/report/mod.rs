@@ -1,5 +1,6 @@
 mod code_frame;
 mod error;
+mod example;
 mod into_errors;
 mod reporter;
 

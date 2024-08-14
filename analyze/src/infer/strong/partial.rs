@@ -93,11 +93,11 @@ pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
             } => import::infer(ctx, source, path),
 
             NodeDescriptor {
-                weak: weak::Type::Infer(Inference::Parameter),
+                weak: weak::Type::Infer(Inference::Parameter(name)),
                 ..
             } => {
                 // TODO: replace this with actual type inference
-                Action::Raise(Error::UntypedParameter)
+                Action::Raise(Error::UntypedParameter(name.to_owned()))
             }
         };
 

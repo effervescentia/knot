@@ -17,7 +17,7 @@ pub enum Inference {
     Module(Vec<NodeId>),
     View(Vec<NodeId>),
     ViewType(NodeId),
-    Parameter,
+    Parameter(String),
 }
 
 /// the inferred type for nodes in a weakly typed AST

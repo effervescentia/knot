@@ -25,7 +25,21 @@ pub struct ErrorDisplay<'a> {
     title: &'a str,
     description: String,
     suggestion: Option<String>,
+    examples: Vec<(String, String)>,
     code_frame: Option<CodeFrame<'a>>,
+}
+
+impl<'a> ErrorDisplay<'a> {
+    pub fn simple(code: ErrorCode, title: &'a str, description: String) -> Self {
+        Self {
+            code,
+            title,
+            description,
+            suggestion: None,
+            examples: vec![],
+            code_frame: None,
+        }
+    }
 }
 
 impl<'a> std::fmt::Display for ErrorDisplay<'a> {
@@ -48,6 +62,21 @@ impl<'a> std::fmt::Display for ErrorDisplay<'a> {
                 "\n\n{}\n\n{}",
                 Indented("How to Fix".success().bold().underline()),
                 Indented(suggestion)
+            )?;
+        }
+
+        for (title, summary) in &self.examples {
+            write!(
+                f,
+                "\n\n{}",
+                Indented(format!(
+                    "{header}\n\n{summary}",
+                    header = format!(
+                        "{} {}",
+                        "Example:".highlight(),
+                        title.highlight().bold().underline()
+                    ),
+                ))
             )?;
         }
 

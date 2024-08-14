@@ -27,13 +27,7 @@ impl<'a> Display<'a> for EnvironmentError {
     type Context = ();
 
     fn display(&'a self, (): Self::Context) -> ErrorDisplay<'a> {
-        let bind = |title, description| ErrorDisplay {
-            code: self.to_code(),
-            title,
-            description,
-            suggestion: None,
-            code_frame: None,
-        };
+        let bind = |title, description| ErrorDisplay::simple(self.to_code(), title, description);
 
         match self {
             Self::InvalidWriteTarget(path, error) => bind(

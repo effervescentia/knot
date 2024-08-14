@@ -48,14 +48,7 @@ impl<'a> Display<'a> for ExecutionError {
     );
 
     fn display(&'a self, (root_dir, modules, nodes): Self::Context) -> super::ErrorDisplay<'a> {
-        let code = self.to_code();
-        let simple = |title, description| ErrorDisplay {
-            code,
-            title,
-            description,
-            suggestion: None,
-            code_frame: None,
-        };
+        let simple = |title, description| ErrorDisplay::simple(self.to_code(), title, description);
 
         match self {
             // internal errors

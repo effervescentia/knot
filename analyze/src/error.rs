@@ -56,7 +56,7 @@ pub enum Error {
 
     /* callable-related */
     /// temporary solution until deeper type inference is implemented
-    UntypedParameter,
+    UntypedParameter(String),
 
     DefaultValueRejected(
         // id of the default value

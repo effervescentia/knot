@@ -1,5 +1,11 @@
+use crate::report::example;
+
 use super::{code::ToCode, CodeFrame, Display, ErrorCode, ErrorDisplay};
-use kore::{color::Highlight, format::Indented, str};
+use kore::{
+    color::{Colorize, Highlight},
+    format::Indented,
+    str,
+};
 use std::collections::HashMap;
 
 impl ToCode for analyze::Error {
@@ -13,7 +19,7 @@ impl ToCode for analyze::Error {
             Self::PropertyNotFound(..) => ErrorCode::PROPERTY_NOT_FOUND,
             Self::DuplicateProperty(_) => ErrorCode::DUPLICATE_PROPERTY,
             Self::NotSpreadable(_) => ErrorCode::NOT_SPREADABLE,
-            Self::UntypedParameter => ErrorCode::UNTYPED_PARAMETER,
+            Self::UntypedParameter(_) => ErrorCode::UNTYPED_PARAMETER,
             Self::DefaultValueRejected(_) => ErrorCode::DEFAULT_VALUE_REJECTED,
             Self::NotCallable(_) => ErrorCode::NOT_CALLABLE,
             Self::UnexpectedArgument(_) => ErrorCode::UNEXPECTED_ARGUMENT,
@@ -42,13 +48,29 @@ impl<'a> Display<'a> for analyze::Error {
     );
 
     fn display(&'a self, (id, root_dir, modules, nodes): Self::Context) -> ErrorDisplay<'a> {
-        let bind = |title, description, suggestion| {
+        let bind = |title, description, target, suggestion, examples| {
             let module = modules.get(&id.0);
             let range = nodes.get(id);
 
-            let code_frame = match (module, range) {
-                (Some((link, text)), Some(range)) => {
-                    Some(CodeFrame::color(root_dir, link, text, *range))
+            let code_frame = match (target, module, range) {
+                (Some((highlight, error)), Some((link, text)), _) => {
+                    Some(CodeFrame::DualTarget {
+                        root_dir,
+                        link,
+                        source: text,
+                        highlight,
+                        error,
+                        color: true
+                    })
+                }
+                (None, Some((link, text)), Some(range)) => {
+                    Some(CodeFrame::SingleTarget {
+                        root_dir,
+                        link,
+                        source: text,
+                        error: *range,
+                        color: true
+                    })
                 }
                 _ => None,
             };
@@ -58,15 +80,17 @@ impl<'a> Display<'a> for analyze::Error {
                 title,
                 description,
                 suggestion,
+                examples,
                 code_frame,
             }
         };
 
+        let temp = |title, description| bind(title, description, None, None, vec![]);
+
         match self {
-            Self::NotInferrable(_) => bind(
+            Self::NotInferrable(_) => temp(
                 "Not Inferrable",
                 str!("the type of this expression could not be inferred from other types"),
-                None,
             ),
 
             Self::NotFound(name) => bind(
@@ -75,184 +99,180 @@ impl<'a> Display<'a> for analyze::Error {
                     "This expression references a variable named {} which does not exist.",
                     name.error()
                 ),
-                Some(format!(
-                    "You may have misspelled the variable name or forgotten to declare it.
-
-The {} keyword can be used to declare a local variable.
-
-{}",
-                    "let".success(),
-                    Indented(format!("let {} = 123;", name).success())
-                )),
+                None,
+                Some(str!("Check the spelling of the variable name or declare a new variable.")),
+                vec![example::local_variables(name)]
             ),
 
             // TODO: use a two-target code frame
-            Self::VariantNotFound(_, variant) => bind(
+            Self::VariantNotFound(_, variant) => temp(
                 "Variant Not Found",
                 format!(
-                    "enumerator X does not have a variant named {}",
+                    "{} does not have a variant named {}.",
+                    "This enumerated type".highlight(),
                     variant.error()
                 ),
-                None,
             ),
 
             // TODO: use a two-target code frame
-            Self::DeclarationNotFound(_, name) => bind(
+            Self::DeclarationNotFound(_, name) => temp(
                 "Declaration Not Found",
                 format!(
                     "This module does not contain a declaration named {}.",
                     name.error()
                 ),
-                None,
             ),
 
             // TODO: use a two-target code frame
-            Self::NotIndexable(_, name) => bind(
+            Self::NotIndexable(_, name) => temp(
                 "Not Indexable",
                 // TODO: fix this error message
                 format!(
                     "The property {} cannot be accessed because this type of value does not named",
                     name.error()
                 ), // format!("the property {} cannot be accessed because this type of value does not support named properties", name.error())
-                None,
             ),
 
             // TODO: use a two-target code frame
-            Self::PropertyNotFound(_, name) => bind(
+            Self::PropertyNotFound(_, name) => temp(
                 "Property Not Found",
                 format!("a property with the name {} was not found", name.error()),
-                None,
             ),
 
             Self::DuplicateProperty(name) => bind(
                 "Duplicate Property",
                 format!(
-                    "a property with the name {} has already been declared",
+                    "This expression contains two or more properties named {}. All property names must be unique.",
                     name.error()
                 ),
                 None,
+                Some(
+                    format!("Remove or rename any repeated {} properties to avoid conflict.", name.highlight())
+                ),
+                vec![example::object_properties(&format!("{}_0", name), &format!("{}_1", name))]
             ),
 
-            Self::NotSpreadable(_) => bind(
+            // TODO: use a two-target code frame
+            Self::NotSpreadable(_) => temp(
                 "Not Spreadable",
                 str!("only object-like types can be spread"),
-                None,
             ),
 
-            Self::UntypedParameter => bind(
+            Self::UntypedParameter(name) => bind(
                 "Untyped Parameter",
-                str!("all function parameters must have an explicit type"),
+                format!("The parameter {} is missing a type annotation.", name.error()),
                 None,
+                Some(
+                    format!("Add an annotation describing the type of the {} parameter.", name.highlight())
+                ),
+                vec![example::parameter_types()]
             ),
 
-            Self::DefaultValueRejected(_) => bind(
+            // TODO: use a two-target code frame
+            Self::DefaultValueRejected(_) => temp(
                 "Default Value Rejected",
-                "the type of the default value does not match the declared type of the parameter"
+                "The type of the default value does not match the annotated type of the parameter."
                     .to_string(),
-                None,
             ),
 
-            Self::NotCallable(_) => bind(
+            // TODO: use a two-target code frame
+            Self::NotCallable(_) => temp(
                 "Not Callable",
                 str!("this expression is not a function and cannot be called"),
-                None,
+                
             ),
 
-            Self::UnexpectedArgument(_) => bind(
+            // TODO: use a two-target code frame
+            Self::UnexpectedArgument(_) => temp(
                 "Unexpected Argument",
                 str!("this function call expects fewer arguments than were provided"),
-                None,
+                
             ),
 
-            Self::MissingArgument(_) => bind(
+            Self::MissingArgument(_) => temp(
                 "Missing Argument",
                 str!("this function call expects an additional argument that was not provided"),
-                None,
+                
             ),
 
-            Self::ArgumentRejected(_, _) => bind(
+            Self::ArgumentRejected(_, _) => temp(
                 "Argument Rejected",
                 str!(
                     "this argument did not match the expected type based on the function signature"
                 ),
-                None,
+                
             ),
 
-            Self::NotRenderable(_) => bind(
+            Self::NotRenderable(_) => temp(
                 "Not Renderable",
                 str!("this expression is not a component and cannot be rendered"),
-                None,
+                
             ),
 
-            Self::InvalidComponent(name) => bind(
+            Self::InvalidComponent(name) => temp(
                 "Invalid Component",
                 format!(
                     "the variable {} does not reference a valid component type",
                     name.error()
                 ),
-                None,
             ),
 
             Self::ComponentTypo(start_tag, end_tag) => bind(
                 "Component Typo",
                 format!(
-                    "the start ({}) and end ({}) tags of this component do not match",
-                    start_tag.error(),
-                    end_tag.error(),
+                    "The start {} and end {} tags of this component do not match.",
+                    format!("<{start_tag}>").error(),
+                    format!("</{end_tag}>").error(),
                 ),
                 None,
+                Some(str!("Change the end tag to match the start tag.")),
+                vec![example::open_component(start_tag)]
             ),
 
-            Self::InvalidAttributes(_) => bind("Invalid Attributes", format!(""), None),
+            Self::InvalidAttributes(_) => temp("Invalid Attributes", format!("")),
 
-            Self::UnexpectedAttribute(name) => bind(
+            Self::UnexpectedAttribute(name) => temp(
                 "Unexpected Attribute",
                 format!(
                     "this component does not accept an attribute named {}",
                     name.error()
                 ),
-                None,
             ),
 
-            Self::MissingAttribute(_) => bind(
+            Self::MissingAttribute(_) => temp(
                 "Missing Attribute",
                 str!("this component expected an attribute that was not provided"),
-                None,
             ),
 
-            Self::AttributeRejected(_, _) => bind(
+            Self::AttributeRejected(_, _) => temp(
                 "Attribute Rejected",
                 "this attribute did not match the expected type based on the component signature"
                     .to_owned(),
-                None,
             ),
 
-            Self::BinaryOperationNotSupported(op, _, _) => bind(
+            Self::BinaryOperationNotSupported(op, _, _) => temp(
                 "Binary Operation Not Supported",
                 format!(
                     "the operator {} cannot be applied to the arguments provided",
                     op.to_string().highlight()
                 ),
-                None,
             ),
 
-            Self::UnaryOperationNotSupported(op, _) => bind(
+            Self::UnaryOperationNotSupported(op, _) => temp(
                 "Unary Operation Not Supported",
                 format!(
                     "the operator {} cannot be applied to the argument provided",
                     op.to_string().highlight()
                 ),
-                None,
             ),
 
-            Self::UnexpectedKind(_, kind) => bind(
+            Self::UnexpectedKind(_, kind) => temp(
                 "Unexpected Kind",
                 format!(
                     "this expression should be a {} but instead found a {}",
                     kind.to_string().success(),
                     kind.invert().to_string().error()
                 ),
-                None,
             ),
         }
     }

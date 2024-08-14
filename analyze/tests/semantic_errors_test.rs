@@ -157,7 +157,7 @@ fn untyped_parameter() {
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
-        Err(vec![(NodeId(0), Error::UntypedParameter)])
+        Err(vec![(NodeId(0), Error::UntypedParameter(str!("bar")))])
     );
 }
 
