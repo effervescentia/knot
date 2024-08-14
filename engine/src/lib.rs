@@ -19,6 +19,7 @@ pub use resource::Library;
 use state::FromPaths;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
+    env::current_dir,
     fmt::Display,
     ops::Deref,
     path::{Path, PathBuf},
@@ -26,10 +27,10 @@ use std::{
 use validate::Validator;
 use write::Writer;
 
-pub type Result<T> = std::result::Result<T, Report>;
+pub type Result<T> = std::result::Result<T, Box<Report>>;
 
 /// internal result type used to propagate errors
-type Internal<T> = std::result::Result<T, report::Failure>;
+type Internal<T> = std::result::Result<T, Box<report::Failure>>;
 
 pub trait IntoResult {
     type Value;
@@ -94,10 +95,8 @@ where
     }
 }
 
-pub struct Engine<T, R>
-where
-    R: Resolver,
-{
+pub struct Engine<T, R> {
+    root_dir: String,
     context: Context<R>,
     state: T,
 }
@@ -113,6 +112,7 @@ where
         let state = f(self.state, &mut self.context);
 
         Engine {
+            root_dir: self.root_dir,
             context: self.context,
             state,
         }
@@ -186,7 +186,7 @@ where
     where
         F: Fn(T, &mut Context<R>) -> Internal<T2>,
     {
-        let try_apply = |state, context: &mut Context<R>| {
+        let try_apply = |state, context: &mut Context<R>| -> Internal<T2> {
             context.reporter.flush()?;
 
             let result = f(state, context)?;
@@ -196,22 +196,24 @@ where
             Ok(result)
         };
 
+        let root_dir = self.root_dir.clone();
         self.map(|result, context| {
             let state = result.into_result()?;
 
-            try_apply(state.clone(), context).map_err(|err| state.enrich(err))
+            try_apply(state.clone(), context)
+                .map_err(|err| Box::new(state.enrich(root_dir.clone(), *err)))
         })
     }
 }
 
-impl<'a, S, T, R> Engine<Result<S>, R>
+impl<S, T, R> Engine<Result<S>, R>
 where
     S: Deref<Target = state::Base<T>>,
     T: Clone,
     R: Resolver,
 {
     /// generate output files by formatting the loaded modules
-    pub fn format(&'a self) -> Writer<ast::meta::Program<T>> {
+    pub fn format(&self) -> Writer<ast::meta::Program<T>> {
         self.to_writer(|state| {
             state
                 .modules()
@@ -227,14 +229,28 @@ where
     }
 }
 
+impl<'a> Engine<(), FileSystem<'a>> {
+    pub fn new(root_dir: &'a Path) -> Self {
+        let context = Context::std(Reporter::new(false), FileSystem(root_dir));
+
+        let relative_root = if let Ok(working_dir) = current_dir() {
+            root_dir.strip_prefix(working_dir).unwrap_or(root_dir)
+        } else {
+            root_dir
+        };
+
+        Self {
+            context,
+            root_dir: relative_root.to_string_lossy().to_string(),
+            state: (),
+        }
+    }
+}
+
 impl<R> Engine<(), R>
 where
     R: Resolver,
 {
-    pub const fn new(context: Context<R>) -> Self {
-        Self { context, state: () }
-    }
-
     /// load a module tree from a single entry point
     pub fn from_entry(self, entry: &Path) -> Engine<state::FromEntry, R> {
         assert!(

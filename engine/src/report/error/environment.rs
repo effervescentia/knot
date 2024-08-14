@@ -31,6 +31,7 @@ impl<'a> Display<'a> for EnvironmentError {
             code: self.to_code(),
             title,
             description,
+            suggestion: None,
             code_frame: None,
         };
 

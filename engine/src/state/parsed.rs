@@ -68,7 +68,7 @@ impl DerefMut for Parsed {
 }
 
 impl report::Enrich for Parsed {
-    fn enrich(&self, failure: report::Failure) -> report::Report {
-        self.0.enrich(failure)
+    fn enrich(&self, root_dir: String, failure: report::Failure) -> report::Report {
+        self.0.enrich(root_dir, failure)
     }
 }

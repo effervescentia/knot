@@ -28,7 +28,7 @@ impl DerefMut for Analyzed {
 }
 
 impl report::Enrich for Analyzed {
-    fn enrich(&self, failure: report::Failure) -> report::Report {
-        self.0.enrich(failure)
+    fn enrich(&self, root_dir: String, failure: report::Failure) -> report::Report {
+        self.0.enrich(root_dir, failure)
     }
 }

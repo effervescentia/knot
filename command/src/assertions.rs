@@ -24,7 +24,9 @@ where
     {
         match fs::metadata(&self) {
             Ok(meta) if meta.is_dir() => Ok(self),
-            _ => Err(Report::Configuration(factory(self.as_ref().to_path_buf()))),
+            _ => Err(Box::new(Report::Configuration(factory(
+                self.as_ref().to_path_buf(),
+            )))),
         }
     }
 
@@ -34,7 +36,9 @@ where
     {
         match fs::metadata(&self) {
             Ok(meta) if meta.is_file() => Ok(self),
-            _ => Err(Report::Configuration(factory(self.as_ref().to_path_buf()))),
+            _ => Err(Box::new(Report::Configuration(factory(
+                self.as_ref().to_path_buf(),
+            )))),
         }
     }
 }

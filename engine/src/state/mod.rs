@@ -93,6 +93,6 @@ impl<'a> FromGlob<'a> {
 
             Err(err) => Err(vec![err.to_string()]),
         }
-        .map_err(|errs| Report::Configuration(ConfigurationError::InvalidGlob(errs)))
+        .map_err(|errs| Box::new(Report::Configuration(ConfigurationError::InvalidGlob(errs))))
     }
 }

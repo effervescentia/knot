@@ -65,7 +65,7 @@ impl Namespace {
         match kind {
             // TODO: this should never be implemented, maybe change to an invariant
             NamespaceKind::Library => unimplemented!("{self:?}"),
-            NamespaceKind::External(_namespace) => unimplemented!(),
+            NamespaceKind::External(_namespace) => unimplemented!("{self:?}"),
 
             NamespaceKind::Internal => (),
         }

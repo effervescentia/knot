@@ -68,7 +68,7 @@ impl Reporter {
         self.extend(x);
 
         if self.should_fail_early() {
-            Err(self.to_failure())
+            Err(Box::new(self.to_failure()))
         } else {
             Ok(())
         }
@@ -77,7 +77,7 @@ impl Reporter {
     /// returns an `Err` if any errors have been reported otherwise `Ok`
     pub fn flush(&self) -> crate::Internal<()> {
         if self.should_fail() {
-            Err(self.to_failure())
+            Err(Box::new(self.to_failure()))
         } else {
             Ok(())
         }

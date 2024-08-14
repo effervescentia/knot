@@ -1,5 +1,5 @@
 use super::{code::ToCode, CodeFrame, Display, ErrorCode, ErrorDisplay};
-use kore::{color::Highlight, str};
+use kore::{color::Highlight, format::Indented, str};
 use std::collections::HashMap;
 
 impl ToCode for analyze::Error {
@@ -36,17 +36,20 @@ impl ToCode for analyze::Error {
 impl<'a> Display<'a> for analyze::Error {
     type Context = (
         &'a lang::CanonicalId,
+        &'a str,
         &'a HashMap<lang::NamespaceId, (crate::Link, String)>,
         &'a HashMap<lang::CanonicalId, lang::Range>,
     );
 
-    fn display(&'a self, (id, modules, nodes): Self::Context) -> ErrorDisplay<'a> {
-        let bind = |title, description| {
+    fn display(&'a self, (id, root_dir, modules, nodes): Self::Context) -> ErrorDisplay<'a> {
+        let bind = |title, description, suggestion| {
             let module = modules.get(&id.0);
             let range = nodes.get(id);
 
             let code_frame = match (module, range) {
-                (Some((link, text)), Some(range)) => Some(CodeFrame::color(link, text, *range)),
+                (Some((link, text)), Some(range)) => {
+                    Some(CodeFrame::color(root_dir, link, text, *range))
+                }
                 _ => None,
             };
 
@@ -54,6 +57,7 @@ impl<'a> Display<'a> for analyze::Error {
                 code: self.to_code(),
                 title,
                 description,
+                suggestion,
                 code_frame,
             }
         };
@@ -62,44 +66,62 @@ impl<'a> Display<'a> for analyze::Error {
             Self::NotInferrable(_) => bind(
                 "Not Inferrable",
                 str!("the type of this expression could not be inferred from other types"),
+                None,
             ),
 
             Self::NotFound(name) => bind(
                 "Not Found",
                 format!(
-                    "unable to resolve identifier {} in the local scope or any inherited scope",
+                    "This expression references a variable named {} which does not exist.",
                     name.error()
                 ),
+                Some(format!(
+                    "You may have misspelled the variable name or forgotten to declare it.
+
+The {} keyword can be used to declare a local variable.
+
+{}",
+                    "let".success(),
+                    Indented(format!("let {} = 123;", name).success())
+                )),
             ),
 
+            // TODO: use a two-target code frame
             Self::VariantNotFound(_, variant) => bind(
                 "Variant Not Found",
                 format!(
                     "enumerator X does not have a variant named {}",
                     variant.error()
                 ),
+                None,
             ),
 
+            // TODO: use a two-target code frame
             Self::DeclarationNotFound(_, name) => bind(
                 "Declaration Not Found",
                 format!(
                     "This module does not contain a declaration named {}.",
                     name.error()
                 ),
+                None,
             ),
 
+            // TODO: use a two-target code frame
             Self::NotIndexable(_, name) => bind(
                 "Not Indexable",
                 // TODO: fix this error message
                 format!(
-                    "the property {} cannot be accessed because this type of value does not named",
+                    "The property {} cannot be accessed because this type of value does not named",
                     name.error()
                 ), // format!("the property {} cannot be accessed because this type of value does not support named properties", name.error())
+                None,
             ),
 
+            // TODO: use a two-target code frame
             Self::PropertyNotFound(_, name) => bind(
                 "Property Not Found",
                 format!("a property with the name {} was not found", name.error()),
+                None,
             ),
 
             Self::DuplicateProperty(name) => bind(
@@ -108,37 +130,44 @@ impl<'a> Display<'a> for analyze::Error {
                     "a property with the name {} has already been declared",
                     name.error()
                 ),
+                None,
             ),
 
             Self::NotSpreadable(_) => bind(
                 "Not Spreadable",
                 str!("only object-like types can be spread"),
+                None,
             ),
 
             Self::UntypedParameter => bind(
                 "Untyped Parameter",
                 str!("all function parameters must have an explicit type"),
+                None,
             ),
 
             Self::DefaultValueRejected(_) => bind(
                 "Default Value Rejected",
                 "the type of the default value does not match the declared type of the parameter"
                     .to_string(),
+                None,
             ),
 
             Self::NotCallable(_) => bind(
                 "Not Callable",
                 str!("this expression is not a function and cannot be called"),
+                None,
             ),
 
             Self::UnexpectedArgument(_) => bind(
                 "Unexpected Argument",
                 str!("this function call expects fewer arguments than were provided"),
+                None,
             ),
 
             Self::MissingArgument(_) => bind(
                 "Missing Argument",
                 str!("this function call expects an additional argument that was not provided"),
+                None,
             ),
 
             Self::ArgumentRejected(_, _) => bind(
@@ -146,11 +175,13 @@ impl<'a> Display<'a> for analyze::Error {
                 str!(
                     "this argument did not match the expected type based on the function signature"
                 ),
+                None,
             ),
 
             Self::NotRenderable(_) => bind(
                 "Not Renderable",
                 str!("this expression is not a component and cannot be rendered"),
+                None,
             ),
 
             Self::InvalidComponent(name) => bind(
@@ -159,6 +190,7 @@ impl<'a> Display<'a> for analyze::Error {
                     "the variable {} does not reference a valid component type",
                     name.error()
                 ),
+                None,
             ),
 
             Self::ComponentTypo(start_tag, end_tag) => bind(
@@ -168,9 +200,10 @@ impl<'a> Display<'a> for analyze::Error {
                     start_tag.error(),
                     end_tag.error(),
                 ),
+                None,
             ),
 
-            Self::InvalidAttributes(_) => bind("Invalid Attributes", format!("")),
+            Self::InvalidAttributes(_) => bind("Invalid Attributes", format!(""), None),
 
             Self::UnexpectedAttribute(name) => bind(
                 "Unexpected Attribute",
@@ -178,17 +211,20 @@ impl<'a> Display<'a> for analyze::Error {
                     "this component does not accept an attribute named {}",
                     name.error()
                 ),
+                None,
             ),
 
             Self::MissingAttribute(_) => bind(
                 "Missing Attribute",
                 str!("this component expected an attribute that was not provided"),
+                None,
             ),
 
             Self::AttributeRejected(_, _) => bind(
                 "Attribute Rejected",
                 "this attribute did not match the expected type based on the component signature"
-                    .to_string(),
+                    .to_owned(),
+                None,
             ),
 
             Self::BinaryOperationNotSupported(op, _, _) => bind(
@@ -197,6 +233,7 @@ impl<'a> Display<'a> for analyze::Error {
                     "the operator {} cannot be applied to the arguments provided",
                     op.to_string().highlight()
                 ),
+                None,
             ),
 
             Self::UnaryOperationNotSupported(op, _) => bind(
@@ -205,6 +242,7 @@ impl<'a> Display<'a> for analyze::Error {
                     "the operator {} cannot be applied to the argument provided",
                     op.to_string().highlight()
                 ),
+                None,
             ),
 
             Self::UnexpectedKind(_, kind) => bind(
@@ -214,6 +252,7 @@ impl<'a> Display<'a> for analyze::Error {
                     kind.to_string().success(),
                     kind.invert().to_string().error()
                 ),
+                None,
             ),
         }
     }

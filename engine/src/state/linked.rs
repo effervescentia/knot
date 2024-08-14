@@ -31,7 +31,7 @@ impl DerefMut for Linked {
 }
 
 impl report::Enrich for Linked {
-    fn enrich(&self, failure: report::Failure) -> report::Report {
-        self.0.enrich(failure)
+    fn enrich(&self, root_dir: String, failure: report::Failure) -> report::Report {
+        self.0.enrich(root_dir, failure)
     }
 }

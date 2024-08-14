@@ -79,13 +79,14 @@ impl<T> Base<T> {
     }
 }
 
-impl<T> report::Enrich for Base<T>
+impl<T> Base<T>
 where
     T: Clone,
 {
-    fn enrich(&self, failure: report::Failure) -> report::Report {
+    pub fn enrich(&self, root_dir: String, failure: report::Failure) -> report::Report {
         match failure {
             report::Failure::Execution(errors) => report::Report::Execution {
+                root_dir,
                 errors,
 
                 modules: self

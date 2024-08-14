@@ -14,8 +14,8 @@ pub use reporter::Reporter;
 use std::collections::HashMap;
 
 pub trait Enrich {
-    fn enrich(&self, failure: Failure) -> Report {
-        failure.no_context()
+    fn enrich(&self, root_dir: String, failure: Failure) -> Report {
+        failure.no_context(root_dir)
     }
 }
 
@@ -45,7 +45,12 @@ impl Report {
 impl std::fmt::Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         fn format_bumper(error_count: usize) -> ColoredString {
-            format!("finished with {} error(s)", error_count.to_string().bold()).error()
+            format!(
+                "finished with {} {}",
+                error_count.to_string().bold(),
+                if error_count > 1 { "errors" } else { "error" }
+            )
+            .error()
         }
 
         fn write_single<T>(f: &mut std::fmt::Formatter, error: T) -> std::fmt::Result
@@ -66,9 +71,9 @@ impl std::fmt::Display for Report {
 
             Self::Execution {
                 errors,
+                root_dir,
                 modules,
                 nodes,
-                ..
             } => {
                 let errors = errors
                     .iter()
@@ -89,7 +94,7 @@ impl std::fmt::Display for Report {
                         f,
                         "{index} {error}\n",
                         index = format!("{})", index + 1).error(),
-                        error = error.display((modules, nodes))
+                        error = error.display((root_dir, modules, nodes))
                     )?;
                 }
 
@@ -105,10 +110,10 @@ pub enum Failure {
 }
 
 impl Failure {
-    pub fn no_context(self) -> Report {
+    pub fn no_context(self, root_dir: String) -> Report {
         match self {
             Self::Execution(errors) => Report::Execution {
-                root_dir: Default::default(),
+                root_dir,
                 modules: Default::default(),
                 nodes: Default::default(),
                 errors,

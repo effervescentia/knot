@@ -10,6 +10,7 @@ const CORNER: &str = "\u{256d}\u{2500}";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CodeFrame<'a> {
+    root_dir: &'a str,
     link: &'a Link,
     range: Range,
     source: &'a str,
@@ -17,8 +18,9 @@ pub struct CodeFrame<'a> {
 }
 
 impl<'a> CodeFrame<'a> {
-    pub const fn color(link: &'a Link, source: &'a str, range: Range) -> Self {
+    pub const fn color(root_dir: &'a str, link: &'a Link, source: &'a str, range: Range) -> Self {
         Self {
+            root_dir,
             link,
             range,
             source,
@@ -26,8 +28,14 @@ impl<'a> CodeFrame<'a> {
         }
     }
 
-    pub const fn no_color(link: &'a Link, source: &'a str, range: Range) -> Self {
+    pub const fn no_color(
+        root_dir: &'a str,
+        link: &'a Link,
+        source: &'a str,
+        range: Range,
+    ) -> Self {
         Self {
+            root_dir,
             link,
             range,
             source,
@@ -104,14 +112,22 @@ impl<'a> Display for CodeFrame<'a> {
             )
         }
 
-        fn format_header(gutter_width: usize, link: &Link, point: Point, no_color: bool) -> String {
+        fn format_header(
+            gutter_width: usize,
+            root_dir: &str,
+            link: &Link,
+            point: Point,
+            no_color: bool,
+        ) -> String {
             let gutter = " ".repeat(gutter_width);
 
             format!(
                 "{gutter}{} {} {}\n{}",
                 CORNER.subtle().clear_if(no_color),
                 link.to_string().highlight().clear_if(no_color),
-                format!("({link}:{point})").subtle().clear_if(no_color),
+                format!("({root_dir}/{link}:{point})")
+                    .subtle()
+                    .clear_if(no_color),
                 format!("{gutter}{BORDER}").subtle().clear_if(no_color)
             )
         }
@@ -135,7 +151,7 @@ impl<'a> Display for CodeFrame<'a> {
         writeln!(
             f,
             "{}",
-            format_header(gutter, self.link, self.range.0, no_color)
+            format_header(gutter, self.root_dir, self.link, self.range.0, no_color)
         )?;
 
         for (row, line) in lines {
@@ -176,7 +192,7 @@ type Fizz = integer;
 type Buzz = boolean;";
 
         assert_str_eq!(
-            CodeFrame::no_color(&link, source, Range::new((2, 13), (2, 15))).to_string(),
+            CodeFrame::no_color("./src", &link, source, Range::new((2, 13), (2, 15))).to_string(),
             " \u{256d}\u{2500} mock.kn
  \u{2502}
 1\u{2502} const FOO = 123;
@@ -197,7 +213,7 @@ const FOO = 123;
 ";
 
         assert_str_eq!(
-            CodeFrame::no_color(&link, source, Range::new((3, 13), (3, 15))).to_string(),
+            CodeFrame::no_color("./src", &link, source, Range::new((3, 13), (3, 15))).to_string(),
             " \u{256d}\u{2500} mock.kn
  \u{2502}
 3\u{2502} const FOO = 123;

@@ -17,9 +17,9 @@ pub fn get_root_dir(path: &Path) -> Result<PathBuf> {
 
 pub fn get_source_dir(root_dir: &Path, path: &Path) -> Result<PathBuf> {
     if path.is_absolute() {
-        return Err(Report::Configuration(
+        return Err(Box::new(Report::Configuration(
             ConfigurationError::SourceDirectoryNotRelative(path.to_path_buf()),
-        ));
+        )));
     }
 
     root_dir
@@ -37,9 +37,9 @@ pub fn get_out_dir(root_dir: &Path, path: &Path) -> PathBuf {
 
 pub fn validate_entrypoint(source_dir: &Path, path: &Path) -> Result<()> {
     if path.is_absolute() {
-        return Err(Report::Configuration(
+        return Err(Box::new(Report::Configuration(
             ConfigurationError::EntrypointNotRelative(path.to_path_buf()),
-        ));
+        )));
     }
 
     source_dir

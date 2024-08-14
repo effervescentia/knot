@@ -42,16 +42,18 @@ impl ToCode for ExecutionError {
 
 impl<'a> Display<'a> for ExecutionError {
     type Context = (
+        &'a str,
         &'a HashMap<lang::NamespaceId, (Link, String)>,
         &'a HashMap<lang::CanonicalId, lang::Range>,
     );
 
-    fn display(&'a self, (modules, nodes): Self::Context) -> super::ErrorDisplay<'a> {
+    fn display(&'a self, (root_dir, modules, nodes): Self::Context) -> super::ErrorDisplay<'a> {
         let code = self.to_code();
         let simple = |title, description| ErrorDisplay {
             code,
             title,
             description,
+            suggestion: None,
             code_frame: None,
         };
 
@@ -93,7 +95,7 @@ impl<'a> Display<'a> for ExecutionError {
             ),
 
             // analysis errors
-            Self::AnalysisError(id, err) => err.display((id, modules, nodes)),
+            Self::AnalysisError(id, err) => err.display((id, root_dir, modules, nodes)),
         }
     }
 }

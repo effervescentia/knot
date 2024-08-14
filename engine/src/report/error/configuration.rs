@@ -33,6 +33,7 @@ impl<'a> Display<'a> for ConfigurationError {
             code: self.to_code(),
             title,
             description,
+            suggestion: None,
             code_frame: None,
         };
 
