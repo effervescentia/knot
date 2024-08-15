@@ -1,12 +1,8 @@
-use crate::report::example;
-
-use super::{code::ToCode, CodeFrame, Display, ErrorCode, ErrorDisplay};
-use kore::{
-    color::{Colorize, Highlight},
-    format::Indented,
-    str,
+use super::{
+    code::ToCode, CodeFrame, Display, ErrorCode, ErrorContext, ErrorDisplay, ErrorDisplayBuilder,
 };
-use std::collections::HashMap;
+use crate::report::example;
+use kore::{color::Highlight, str};
 
 impl ToCode for analyze::Error {
     fn to_code(&self) -> ErrorCode {
@@ -40,240 +36,251 @@ impl ToCode for analyze::Error {
 }
 
 impl<'a> Display<'a> for analyze::Error {
-    type Context = (
-        &'a lang::CanonicalId,
-        &'a str,
-        &'a HashMap<lang::NamespaceId, (crate::Link, String)>,
-        &'a HashMap<lang::CanonicalId, lang::Range>,
-    );
+    type Context = (&'a lang::CanonicalId, &'a ErrorContext);
 
-    fn display(&'a self, (id, root_dir, modules, nodes): Self::Context) -> ErrorDisplay<'a> {
-        let bind = |title, description, target, suggestion, examples| {
-            let module = modules.get(&id.0);
-            let range = nodes.get(id);
+    fn display(
+        &'a self,
+        (
+            id,
+            ErrorContext {
+                root_dir,
+                modules,
+                nodes,
+                types,
+            },
+        ): Self::Context,
+    ) -> ErrorDisplay<'a> {
+        let module = modules.get(&id.0);
+        let range = nodes.get(id);
 
-            let code_frame = match (target, module, range) {
-                (Some((highlight, error)), Some((link, text)), _) => {
-                    Some(CodeFrame::DualTarget {
-                        root_dir,
-                        link,
-                        source: text,
-                        highlight,
-                        error,
-                        color: true
-                    })
-                }
-                (None, Some((link, text)), Some(range)) => {
-                    Some(CodeFrame::SingleTarget {
-                        root_dir,
-                        link,
-                        source: text,
-                        error: *range,
-                        color: true
-                    })
-                }
-                _ => None,
-            };
+        let builder = |title, description| {
+            let builder = ErrorDisplayBuilder::new(self.to_code(), title, description);
 
-            ErrorDisplay {
-                code: self.to_code(),
-                title,
-                description,
-                suggestion,
-                examples,
-                code_frame,
+            match (module, range) {
+                (Some((link, text)), Some(range)) => builder.code_frame(CodeFrame {
+                    root_dir,
+                    link,
+                    source: text,
+                    range: *range,
+                    color: true,
+                }),
+                _ => builder,
             }
         };
 
-        let temp = |title, description| bind(title, description, None, None, vec![]);
-
         match self {
-            Self::NotInferrable(_) => temp(
+            Self::NotInferrable(_) => builder(
                 "Not Inferrable",
                 str!("the type of this expression could not be inferred from other types"),
-            ),
+            )
+            .build(),
 
-            Self::NotFound(name) => bind(
+            Self::NotFound(name) => builder(
                 "Not Found",
                 format!(
                     "This expression references a variable named {} which does not exist.",
                     name.error()
                 ),
-                None,
-                Some(str!("Check the spelling of the variable name or declare a new variable.")),
-                vec![example::local_variables(name)]
-            ),
+            )
+            .suggestion(str!(
+                "Check the spelling of the variable name or declare a new variable."
+            ))
+            .example(example::local_variables(name))
+            .build(),
 
             // TODO: use a two-target code frame
-            Self::VariantNotFound(_, variant) => temp(
+            Self::VariantNotFound(_, variant) => builder(
                 "Variant Not Found",
                 format!(
                     "{} does not have a variant named {}.",
                     "This enumerated type".highlight(),
                     variant.error()
                 ),
-            ),
+            )
+            .build(),
 
             // TODO: use a two-target code frame
-            Self::DeclarationNotFound(_, name) => temp(
+            Self::DeclarationNotFound(_, name) => builder(
                 "Declaration Not Found",
                 format!(
                     "This module does not contain a declaration named {}.",
                     name.error()
                 ),
-            ),
+            )
+            .build(),
 
             // TODO: use a two-target code frame
-            Self::NotIndexable(_, name) => temp(
+            Self::NotIndexable(_, name) => builder(
                 "Not Indexable",
                 // TODO: fix this error message
                 format!(
                     "The property {} cannot be accessed because this type of value does not named",
                     name.error()
                 ), // format!("the property {} cannot be accessed because this type of value does not support named properties", name.error())
-            ),
+            )
+            .build(),
 
             // TODO: use a two-target code frame
-            Self::PropertyNotFound(_, name) => temp(
+            Self::PropertyNotFound(_, name) => builder(
                 "Property Not Found",
                 format!("a property with the name {} was not found", name.error()),
-            ),
+            )
+            .build(),
 
-            Self::DuplicateProperty(name) => bind(
-                "Duplicate Property",
-                format!(
+            Self::DuplicateProperty(name) => {
+                // caused the whole file to not format when inlined
+                let description = format!(
                     "This expression contains two or more properties named {}. All property names must be unique.",
-                    name.error()
-                ),
-                None,
-                Some(
-                    format!("Remove or rename any repeated {} properties to avoid conflict.", name.highlight())
-                ),
-                vec![example::object_properties(&format!("{}_0", name), &format!("{}_1", name))]
-            ),
+                    name.error(),
+                );
+
+                builder("Duplicate Property", description)
+                    .suggestion(format!(
+                        "Remove or rename any repeated {} properties to avoid conflict.",
+                        name.highlight()
+                    ))
+                    .example(example::object_properties(
+                        &format!("{}_0", name),
+                        &format!("{}_1", name),
+                    ))
+                    .build()
+            }
 
             // TODO: use a two-target code frame
-            Self::NotSpreadable(_) => temp(
+            Self::NotSpreadable(_) => builder(
                 "Not Spreadable",
                 str!("only object-like types can be spread"),
-            ),
+            )
+            .build(),
 
-            Self::UntypedParameter(name) => bind(
+            Self::UntypedParameter(name) => builder(
                 "Untyped Parameter",
-                format!("The parameter {} is missing a type annotation.", name.error()),
-                None,
-                Some(
-                    format!("Add an annotation describing the type of the {} parameter.", name.highlight())
+                format!(
+                    "The parameter {} is missing a type annotation.",
+                    name.error()
                 ),
-                vec![example::parameter_types()]
-            ),
+            )
+            .suggestion(format!(
+                "Add an annotation describing the type of the {} parameter.",
+                name.highlight()
+            ))
+            .example(example::parameter_types())
+            .build(),
 
             // TODO: use a two-target code frame
-            Self::DefaultValueRejected(_) => temp(
-                "Default Value Rejected",
-                "The type of the default value does not match the annotated type of the parameter."
-                    .to_string(),
-            ),
+            Self::DefaultValueRejected(_) => {
+                // caused the whole file to not format when inlined
+                let description = str!("The type of the default value does not match the annotated type of the parameter.");
+
+                builder("Default Value Rejected", description).build()
+            }
 
             // TODO: use a two-target code frame
-            Self::NotCallable(_) => temp(
+            Self::NotCallable(_) => builder(
                 "Not Callable",
                 str!("this expression is not a function and cannot be called"),
-                
-            ),
+            )
+            .build(),
 
             // TODO: use a two-target code frame
-            Self::UnexpectedArgument(_) => temp(
+            Self::UnexpectedArgument(_) => builder(
                 "Unexpected Argument",
                 str!("this function call expects fewer arguments than were provided"),
-                
-            ),
+            )
+            .build(),
 
-            Self::MissingArgument(_) => temp(
+            Self::MissingArgument(_) => builder(
                 "Missing Argument",
                 str!("this function call expects an additional argument that was not provided"),
-                
-            ),
+            )
+            .build(),
 
-            Self::ArgumentRejected(_, _) => temp(
+            Self::ArgumentRejected(_, _) => builder(
                 "Argument Rejected",
                 str!(
                     "this argument did not match the expected type based on the function signature"
                 ),
-                
-            ),
+            )
+            .build(),
 
-            Self::NotRenderable(_) => temp(
+            Self::NotRenderable(_) => builder(
                 "Not Renderable",
                 str!("this expression is not a component and cannot be rendered"),
-                
-            ),
+            )
+            .build(),
 
-            Self::InvalidComponent(name) => temp(
+            Self::InvalidComponent(name) => builder(
                 "Invalid Component",
                 format!(
                     "the variable {} does not reference a valid component type",
                     name.error()
                 ),
-            ),
+            )
+            .build(),
 
-            Self::ComponentTypo(start_tag, end_tag) => bind(
+            Self::ComponentTypo(start_tag, end_tag) => builder(
                 "Component Typo",
                 format!(
                     "The start {} and end {} tags of this component do not match.",
                     format!("<{start_tag}>").error(),
                     format!("</{end_tag}>").error(),
                 ),
-                None,
-                Some(str!("Change the end tag to match the start tag.")),
-                vec![example::open_component(start_tag)]
-            ),
+            )
+            .suggestion(str!("Change the end tag to match the start tag."))
+            .example(example::open_component(start_tag))
+            .build(),
 
-            Self::InvalidAttributes(_) => temp("Invalid Attributes", format!("")),
+            Self::InvalidAttributes(_) => builder("Invalid Attributes", format!("")).build(),
 
-            Self::UnexpectedAttribute(name) => temp(
+            Self::UnexpectedAttribute(name) => builder(
                 "Unexpected Attribute",
                 format!(
                     "this component does not accept an attribute named {}",
                     name.error()
                 ),
-            ),
+            )
+            .build(),
 
-            Self::MissingAttribute(_) => temp(
+            Self::MissingAttribute(_) => builder(
                 "Missing Attribute",
                 str!("this component expected an attribute that was not provided"),
-            ),
+            )
+            .build(),
 
-            Self::AttributeRejected(_, _) => temp(
-                "Attribute Rejected",
-                "this attribute did not match the expected type based on the component signature"
-                    .to_owned(),
-            ),
+            Self::AttributeRejected(_, _) => {
+                // caused the whole file to not format when inlined
+                let description = str!("this attribute did not match the expected type based on the component signature");
 
-            Self::BinaryOperationNotSupported(op, _, _) => temp(
+                builder("Attribute Rejected", description).build()
+            }
+
+            Self::BinaryOperationNotSupported(op, _, _) => builder(
                 "Binary Operation Not Supported",
                 format!(
                     "the operator {} cannot be applied to the arguments provided",
                     op.to_string().highlight()
                 ),
-            ),
+            )
+            .build(),
 
-            Self::UnaryOperationNotSupported(op, _) => temp(
+            Self::UnaryOperationNotSupported(op, _) => builder(
                 "Unary Operation Not Supported",
                 format!(
                     "the operator {} cannot be applied to the argument provided",
                     op.to_string().highlight()
                 ),
-            ),
+            )
+            .build(),
 
-            Self::UnexpectedKind(_, kind) => temp(
+            Self::UnexpectedKind(_, kind) => builder(
                 "Unexpected Kind",
                 format!(
                     "this expression should be a {} but instead found a {}",
                     kind.to_string().success(),
                     kind.invert().to_string().error()
                 ),
-            ),
+            )
+            .build(),
         }
     }
 }

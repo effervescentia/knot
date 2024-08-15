@@ -2,7 +2,7 @@ pub trait ToCode {
     fn to_code(&self) -> ErrorCode;
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct ErrorCode(pub u16);
 
 impl ErrorCode {

@@ -86,30 +86,35 @@ where
     pub fn enrich(&self, root_dir: String, failure: report::Failure) -> report::Report {
         match failure {
             report::Failure::Execution(errors) => report::Report::Execution {
-                root_dir,
                 errors,
 
-                modules: self
-                    .modules
-                    .iter()
-                    .map(|(link, module)| (module.id, (link.clone(), module.text.clone())))
-                    .collect(),
+                context: report::ErrorContext {
+                    root_dir,
 
-                nodes: self
-                    .modules
-                    .values()
-                    .flat_map(|module| {
-                        let visitor = Visitor::new(module.id);
+                    modules: self
+                        .modules
+                        .iter()
+                        .map(|(link, module)| (module.id, (link.clone(), module.text.clone())))
+                        .collect(),
 
-                        match module.ast.clone() {
-                            Ast::Program(x) => x.walk(visitor),
-                            Ast::Typings(x) => x.walk(visitor),
-                        }
-                        .1
-                        .nodes
-                        .into_iter()
-                    })
-                    .collect(),
+                    nodes: self
+                        .modules
+                        .values()
+                        .flat_map(|module| {
+                            let visitor = Visitor::new(module.id);
+
+                            match module.ast.clone() {
+                                Ast::Program(x) => x.walk(visitor),
+                                Ast::Typings(x) => x.walk(visitor),
+                            }
+                            .1
+                            .nodes
+                            .into_iter()
+                        })
+                        .collect(),
+
+                    types: Default::default(),
+                },
             },
         }
     }

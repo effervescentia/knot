@@ -4,6 +4,8 @@ mod configuration;
 mod environment;
 mod execution;
 
+use std::collections::HashMap;
+
 use super::CodeFrame;
 use code::ErrorCode;
 pub use configuration::ConfigurationError;
@@ -20,24 +22,34 @@ pub trait Display<'a> {
     fn display(&'a self, context: Self::Context) -> ErrorDisplay<'a>;
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ErrorContext {
+    pub root_dir: String,
+    pub modules: HashMap<lang::NamespaceId, (crate::Link, String)>,
+    pub nodes: HashMap<lang::CanonicalId, lang::Range>,
+    pub types: HashMap<lang::CanonicalId, ()>,
+}
+
 pub struct ErrorDisplay<'a> {
     code: ErrorCode,
-    title: &'a str,
+    title: String,
     description: String,
+    code_frame: Option<CodeFrame<'a>>,
+    references: Vec<(String, CodeFrame<'a>)>,
     suggestion: Option<String>,
     examples: Vec<(String, String)>,
-    code_frame: Option<CodeFrame<'a>>,
 }
 
 impl<'a> ErrorDisplay<'a> {
     pub fn simple(code: ErrorCode, title: &'a str, description: String) -> Self {
         Self {
             code,
-            title,
+            title: title.to_owned(),
             description,
+            code_frame: None,
+            references: vec![],
             suggestion: None,
             examples: vec![],
-            code_frame: None,
         }
     }
 }
@@ -81,5 +93,47 @@ impl<'a> std::fmt::Display for ErrorDisplay<'a> {
         }
 
         Ok(())
+    }
+}
+
+pub struct ErrorDisplayBuilder<T>(T);
+
+impl ErrorDisplayBuilder<ErrorCode> {
+    pub const fn factory(code: ErrorCode) -> Self {
+        Self(code)
+    }
+
+    pub fn new(
+        code: ErrorCode,
+        title: &str,
+        description: String,
+    ) -> ErrorDisplayBuilder<ErrorDisplay> {
+        ErrorDisplayBuilder(ErrorDisplay::simple(code, title, description))
+    }
+}
+
+impl<'a> ErrorDisplayBuilder<ErrorDisplay<'a>> {
+    pub const fn code_frame(mut self, code_frame: CodeFrame<'a>) -> Self {
+        self.0.code_frame = Some(code_frame);
+        self
+    }
+
+    pub fn reference(mut self, title: String, code_frame: CodeFrame<'a>) -> Self {
+        self.0.references.push((title, code_frame));
+        self
+    }
+
+    pub fn suggestion(mut self, suggestion: String) -> Self {
+        self.0.suggestion = Some(suggestion);
+        self
+    }
+
+    pub fn example(mut self, example: (String, String)) -> Self {
+        self.0.examples.push(example);
+        self
+    }
+
+    pub fn build(self) -> ErrorDisplay<'a> {
+        self.0
     }
 }

@@ -1,8 +1,7 @@
-use super::{code::ToCode, Display, ErrorCode, ErrorDisplay};
+use super::{code::ToCode, Display, ErrorCode, ErrorContext, ErrorDisplay};
 use crate::Link;
 use kore::{color::Highlight, format::SeparateEach, pretty::Pretty};
 use lang::CanonicalId;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ExecutionError {
@@ -41,13 +40,9 @@ impl ToCode for ExecutionError {
 }
 
 impl<'a> Display<'a> for ExecutionError {
-    type Context = (
-        &'a str,
-        &'a HashMap<lang::NamespaceId, (Link, String)>,
-        &'a HashMap<lang::CanonicalId, lang::Range>,
-    );
+    type Context = &'a ErrorContext;
 
-    fn display(&'a self, (root_dir, modules, nodes): Self::Context) -> super::ErrorDisplay<'a> {
+    fn display(&'a self, context: Self::Context) -> super::ErrorDisplay<'a> {
         let simple = |title, description| ErrorDisplay::simple(self.to_code(), title, description);
 
         match self {
@@ -88,7 +83,7 @@ impl<'a> Display<'a> for ExecutionError {
             ),
 
             // analysis errors
-            Self::AnalysisError(id, err) => err.display((id, root_dir, modules, nodes)),
+            Self::AnalysisError(id, err) => err.display((id, context)),
         }
     }
 }

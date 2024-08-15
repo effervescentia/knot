@@ -9,59 +9,21 @@ const BORDER: &str = "\u{2502}";
 const CORNER: &str = "\u{256d}\u{2500}";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum CodeFrame<'a> {
-    SingleTarget {
-        root_dir: &'a str,
-        link: &'a Link,
-        source: &'a str,
-        color: bool,
-
-        error: Range,
-    },
-
-    DualTarget {
-        root_dir: &'a str,
-        link: &'a Link,
-        source: &'a str,
-        color: bool,
-
-        highlight: Range,
-        error: Range,
-    },
+pub struct CodeFrame<'a> {
+    pub root_dir: &'a str,
+    pub link: &'a Link,
+    pub source: &'a str,
+    pub color: bool,
+    pub range: Range,
 }
 
 impl<'a> CodeFrame<'a> {
     pub const fn link(&self) -> &Link {
-        match self {
-            Self::SingleTarget { link, .. } | Self::DualTarget { link, .. } => link,
-        }
-    }
-
-    const fn root_dir(&self) -> &str {
-        match self {
-            Self::SingleTarget { root_dir, .. } | Self::DualTarget { root_dir, .. } => root_dir,
-        }
-    }
-
-    const fn source(&self) -> &str {
-        match self {
-            Self::SingleTarget { source, .. } | Self::DualTarget { source, .. } => source,
-        }
-    }
-
-    const fn is_color(&self) -> bool {
-        match self {
-            Self::SingleTarget { color, .. } | Self::DualTarget { color, .. } => *color,
-        }
+        self.link
     }
 
     fn get_lines(&self) -> Lines {
-        let Range(start, end) = match self {
-            Self::SingleTarget { error, .. } => error,
-            Self::DualTarget {
-                error, highlight, ..
-            } => &(error + highlight),
-        };
+        let Range(start, end) = self.range;
 
         let sample_start = start.0.checked_sub(CODE_PADDING).unwrap_or_default();
         let sample_end = end.0 + CODE_PADDING + 1;
@@ -73,7 +35,7 @@ impl<'a> CodeFrame<'a> {
         for row in sample_start..sample_end {
             if let Some(line) = row
                 .checked_sub(1)
-                .and_then(|index| self.source().lines().nth(index))
+                .and_then(|index| self.source.lines().nth(index))
             {
                 // ignore preceding empty lines
                 if lines.is_empty() && line.is_empty() {
@@ -106,18 +68,18 @@ impl<'a> CodeFrame<'a> {
     fn format_header(&self, gutter_width: usize, no_color: bool) -> String {
         let gutter = " ".repeat(gutter_width);
         let link = self.link();
-        let root_dir = self.root_dir();
-        let point = match self {
-            Self::SingleTarget { error, .. } | Self::DualTarget { error, .. } => error.0,
-        };
 
         format!(
             "{gutter}{} {} {}\n{}\n",
             CORNER.subtle().clear_if(no_color),
             link.to_string().highlight().clear_if(no_color),
-            format!("({root_dir}/{link}:{point})")
-                .subtle()
-                .clear_if(no_color),
+            format!(
+                "({root_dir}/{link}:{point})",
+                root_dir = self.root_dir,
+                point = self.range.0
+            )
+            .subtle()
+            .clear_if(no_color),
             format!("{gutter}{BORDER}").subtle().clear_if(no_color)
         )
     }
@@ -228,7 +190,7 @@ impl<'a> Display for CodeFrame<'a> {
             )
         }
 
-        let no_color = !self.is_color();
+        let no_color = !self.color;
         let Lines {
             gutter,
             last_row,
@@ -240,36 +202,12 @@ impl<'a> Display for CodeFrame<'a> {
         for (row, line) in lines {
             format_line(gutter, row, line, no_color).fmt(f)?;
 
-            match self {
-                Self::SingleTarget { error, .. } => {
-                    if row >= error.0 .0 && row <= error.1 .0 {
-                        write!(
-                            f,
-                            "\n{}",
-                            format_single_caret(gutter, line.len(), row, *error, no_color)
-                        )?;
-                    }
-                }
-                Self::DualTarget {
-                    error, highlight, ..
-                } => {
-                    if row >= error.0 .0 && row <= error.1 .0
-                        || row >= highlight.0 .0 && row <= highlight.1 .0
-                    {
-                        write!(
-                            f,
-                            "\n{}",
-                            format_dual_caret(
-                                gutter,
-                                line.len(),
-                                row,
-                                *highlight,
-                                *error,
-                                no_color
-                            )
-                        )?;
-                    }
-                }
+            if row >= self.range.0 .0 && row <= self.range.1 .0 {
+                write!(
+                    f,
+                    "\n{}",
+                    format_single_caret(gutter, line.len(), row, self.range, no_color)
+                )?;
             }
 
             if row != last_row {
@@ -303,11 +241,11 @@ type Fizz = integer;
 type Buzz = boolean;";
 
         assert_str_eq!(
-            CodeFrame::SingleTarget {
+            CodeFrame {
                 root_dir: "./src",
                 link: &link,
                 source,
-                error: Range::new((2, 13), (2, 15)),
+                range: Range::new((2, 13), (2, 15)),
                 color: false
             }
             .to_string(),
@@ -331,11 +269,11 @@ const FOO = 123;
 ";
 
         assert_str_eq!(
-            CodeFrame::SingleTarget {
+            CodeFrame {
                 root_dir: "./src",
                 link: &link,
                 source,
-                error: Range::new((3, 13), (3, 15)),
+                range: Range::new((3, 13), (3, 15)),
                 color: false
             }
             .to_string(),

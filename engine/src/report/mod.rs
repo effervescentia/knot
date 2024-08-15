@@ -4,15 +4,12 @@ mod example;
 mod into_errors;
 mod reporter;
 
-use crate::Link;
 pub use code_frame::CodeFrame;
 use error::Display;
-pub use error::{ConfigurationError, EnvironmentError, ExecutionError};
+pub use error::{ConfigurationError, EnvironmentError, ErrorContext, ExecutionError};
 pub use into_errors::IntoErrors;
 use kore::color::{ColoredString, Colorize, Highlight};
-use lang::{CanonicalId, NamespaceId, Range};
 pub use reporter::Reporter;
-use std::collections::HashMap;
 
 pub trait Enrich {
     fn enrich(&self, root_dir: String, failure: Failure) -> Report {
@@ -25,10 +22,8 @@ pub enum Report {
     Configuration(ConfigurationError),
     Environment(EnvironmentError),
     Execution {
-        root_dir: String,
-        modules: HashMap<NamespaceId, (Link, String)>,
-        nodes: HashMap<CanonicalId, Range>,
         errors: Vec<ExecutionError>,
+        context: ErrorContext,
     },
 }
 
@@ -70,12 +65,7 @@ impl std::fmt::Display for Report {
 
             Self::Environment(error) => write_single(f, error.display(())),
 
-            Self::Execution {
-                errors,
-                root_dir,
-                modules,
-                nodes,
-            } => {
+            Self::Execution { errors, context } => {
                 let errors = errors
                     .iter()
                     .filter(|error| {
@@ -95,7 +85,7 @@ impl std::fmt::Display for Report {
                         f,
                         "{index} {error}\n",
                         index = format!("{})", index + 1).error(),
-                        error = error.display((root_dir, modules, nodes))
+                        error = error.display(context)
                     )?;
                 }
 
@@ -114,10 +104,13 @@ impl Failure {
     pub fn no_context(self, root_dir: String) -> Report {
         match self {
             Self::Execution(errors) => Report::Execution {
-                root_dir,
-                modules: Default::default(),
-                nodes: Default::default(),
                 errors,
+                context: ErrorContext {
+                    root_dir,
+                    modules: Default::default(),
+                    nodes: Default::default(),
+                    types: Default::default(),
+                },
             },
         }
     }
