@@ -1,6 +1,6 @@
 use knot_analyze::{AmbientMap, Context, Error, ModuleMap, Result, TypeMap};
 use kore::{assert_eq, str};
-use lang::{ast, CanonicalId, NodeId};
+use lang::{ast, types, CanonicalId, NodeId};
 
 #[derive(Default)]
 struct Mock {
@@ -56,7 +56,11 @@ const bar = foo.Other;";
         Err(vec![
             (
                 NodeId(3),
-                Error::VariantNotFound(CanonicalId::mock(2), str!("Other"))
+                Error::VariantNotFound(
+                    CanonicalId::mock(2),
+                    vec![str!("Integer"), str!("Empty")],
+                    str!("Other")
+                )
             ),
             (NodeId(4), Error::NotInferrable(vec![CanonicalId::mock(3)]))
         ])
@@ -66,7 +70,9 @@ const bar = foo.Other;";
 #[test]
 fn declaration_not_found() {
     let source = "
-module foo {}
+module foo {
+  const buzz = 123;
+}
 
 const bar = foo.fizz;";
 
@@ -75,7 +81,7 @@ const bar = foo.fizz;";
         Err(vec![
             (
                 NodeId(3),
-                Error::DeclarationNotFound(CanonicalId::mock(2), str!("fizz"))
+                Error::DeclarationNotFound(CanonicalId::mock(2), vec![str!("buzz")], str!("fizz"))
             ),
             (NodeId(4), Error::NotInferrable(vec![CanonicalId::mock(3)]))
         ])
@@ -106,7 +112,7 @@ fn property_not_found() {
         Mock::default().parse_and_analyze(source),
         Err(vec![(
             NodeId(4),
-            Error::PropertyNotFound(CanonicalId::mock(3), str!("fizz"))
+            Error::PropertyNotFound(CanonicalId::mock(3), vec![str!("bar")], str!("fizz"))
         ),])
     );
 }
@@ -169,7 +175,10 @@ fn default_value_rejected() {
         Mock::default().parse_and_analyze(source),
         Err(vec![(
             NodeId(2),
-            Error::DefaultValueRejected(CanonicalId::mock(1))
+            Error::DefaultValueRejected(
+                (CanonicalId::mock(0), types::Shape(types::Type::Integer)),
+                (CanonicalId::mock(1), types::Shape(types::Type::Boolean))
+            )
         )])
     );
 }
@@ -185,7 +194,7 @@ const bar = foo(123);";
         Mock::default().parse_and_analyze(source),
         Err(vec![(
             NodeId(4),
-            Error::UnexpectedArgument(CanonicalId::mock(3))
+            Error::UnexpectedArgument(CanonicalId::mock(3), 0)
         )])
     );
 }
@@ -200,8 +209,14 @@ const bar = foo(123, true);";
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
-            (NodeId(5), Error::UnexpectedArgument(CanonicalId::mock(3))),
-            (NodeId(5), Error::UnexpectedArgument(CanonicalId::mock(4)))
+            (
+                NodeId(5),
+                Error::UnexpectedArgument(CanonicalId::mock(3), 0)
+            ),
+            (
+                NodeId(5),
+                Error::UnexpectedArgument(CanonicalId::mock(4), 0)
+            )
         ])
     );
 }
@@ -217,7 +232,7 @@ const bar = foo();";
         Mock::default().parse_and_analyze(source),
         Err(vec![(
             NodeId(5),
-            Error::MissingArgument(CanonicalId::mock(0))
+            Error::MissingArgument(CanonicalId::mock(0), types::Shape(types::Type::Integer))
         )])
     );
 }
@@ -232,8 +247,14 @@ const bar = foo();";
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
-            (NodeId(7), Error::MissingArgument(CanonicalId::mock(0))),
-            (NodeId(7), Error::MissingArgument(CanonicalId::mock(2)))
+            (
+                NodeId(7),
+                Error::MissingArgument(CanonicalId::mock(0), types::Shape(types::Type::Integer))
+            ),
+            (
+                NodeId(7),
+                Error::MissingArgument(CanonicalId::mock(2), types::Shape(types::Type::Float))
+            )
         ])
     );
 }
@@ -249,7 +270,10 @@ const bar = foo(true);";
         Mock::default().parse_and_analyze(source),
         Err(vec![(
             NodeId(6),
-            Error::ArgumentRejected(CanonicalId::mock(0), CanonicalId::mock(5))
+            Error::ArgumentRejected(
+                (CanonicalId::mock(0), types::Shape(types::Type::Integer)),
+                (CanonicalId::mock(5), types::Shape(types::Type::Boolean))
+            )
         )])
     );
 }
@@ -266,11 +290,17 @@ const bar = foo(true, nil);";
         Err(vec![
             (
                 NodeId(9),
-                Error::ArgumentRejected(CanonicalId::mock(0), CanonicalId::mock(7))
+                Error::ArgumentRejected(
+                    (CanonicalId::mock(0), types::Shape(types::Type::Integer)),
+                    (CanonicalId::mock(7), types::Shape(types::Type::Boolean))
+                )
             ),
             (
                 NodeId(9),
-                Error::ArgumentRejected(CanonicalId::mock(2), CanonicalId::mock(8))
+                Error::ArgumentRejected(
+                    (CanonicalId::mock(2), types::Shape(types::Type::Float)),
+                    (CanonicalId::mock(8), types::Shape(types::Type::Nil))
+                )
             )
         ])
     );
@@ -285,7 +315,10 @@ const bar = <foo a=123 />;";
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
-        Err(vec![(NodeId(4), Error::UnexpectedAttribute(str!("a")))])
+        Err(vec![(
+            NodeId(4),
+            Error::UnexpectedAttribute(CanonicalId::mock(3), str!("a"))
+        )])
     );
 }
 
@@ -299,8 +332,14 @@ const bar = <foo a=123 b=nil />;";
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
-            (NodeId(6), Error::UnexpectedAttribute(str!("a"))),
-            (NodeId(6), Error::UnexpectedAttribute(str!("b")))
+            (
+                NodeId(6),
+                Error::UnexpectedAttribute(CanonicalId::mock(3), str!("a"))
+            ),
+            (
+                NodeId(6),
+                Error::UnexpectedAttribute(CanonicalId::mock(5), str!("b"))
+            )
         ])
     );
 }
@@ -316,7 +355,11 @@ const bar = <foo />;";
         Mock::default().parse_and_analyze(source),
         Err(vec![(
             NodeId(4),
-            Error::MissingAttribute(CanonicalId::mock(0))
+            Error::MissingAttribute(
+                CanonicalId::mock(0),
+                str!("a"),
+                types::Shape(types::Type::Integer)
+            )
         )])
     );
 }
@@ -331,8 +374,22 @@ const bar = <foo />;";
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
-            (NodeId(6), Error::MissingAttribute(CanonicalId::mock(0))),
-            (NodeId(6), Error::MissingAttribute(CanonicalId::mock(2)))
+            (
+                NodeId(6),
+                Error::MissingAttribute(
+                    CanonicalId::mock(0),
+                    str!("a"),
+                    types::Shape(types::Type::Integer)
+                )
+            ),
+            (
+                NodeId(6),
+                Error::MissingAttribute(
+                    CanonicalId::mock(2),
+                    str!("b"),
+                    types::Shape(types::Type::Float)
+                )
+            )
         ])
     );
 }
@@ -348,7 +405,14 @@ const bar = <foo a=true />;";
         Mock::default().parse_and_analyze(source),
         Err(vec![(
             NodeId(6),
-            Error::AttributeRejected(CanonicalId::mock(0), CanonicalId::mock(5))
+            Error::AttributeRejected(
+                (
+                    CanonicalId::mock(0),
+                    str!("a"),
+                    types::Shape(types::Type::Integer)
+                ),
+                (CanonicalId::mock(5), types::Shape(types::Type::Boolean))
+            )
         )])
     );
 }
@@ -365,11 +429,25 @@ const bar = <foo a=true b=nil />;";
         Err(vec![
             (
                 NodeId(10),
-                Error::AttributeRejected(CanonicalId::mock(0), CanonicalId::mock(7))
+                Error::AttributeRejected(
+                    (
+                        CanonicalId::mock(0),
+                        str!("a"),
+                        types::Shape(types::Type::Integer)
+                    ),
+                    (CanonicalId::mock(7), types::Shape(types::Type::Boolean))
+                )
             ),
             (
                 NodeId(10),
-                Error::AttributeRejected(CanonicalId::mock(2), CanonicalId::mock(9))
+                Error::AttributeRejected(
+                    (
+                        CanonicalId::mock(2),
+                        str!("b"),
+                        types::Shape(types::Type::Float)
+                    ),
+                    (CanonicalId::mock(9), types::Shape(types::Type::Nil))
+                )
             )
         ])
     );
@@ -400,7 +478,10 @@ const bar = <foo />;";
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
-        Err(vec![(NodeId(2), Error::InvalidComponent(str!("foo")))])
+        Err(vec![(
+            NodeId(2),
+            Error::InvalidComponent(str!("foo"), types::Shape(types::Type::Integer))
+        )])
     );
 }
 
@@ -431,8 +512,8 @@ fn binary_operation_not_supported() {
                 NodeId(2),
                 Error::BinaryOperationNotSupported(
                     ast::BinaryOperator::Add,
-                    CanonicalId::mock(0),
-                    CanonicalId::mock(1)
+                    (CanonicalId::mock(0), None),
+                    (CanonicalId::mock(1), None)
                 )
             ),
             (NodeId(3), Error::NotInferrable(vec![CanonicalId::mock(2)]))
@@ -448,7 +529,13 @@ fn unary_operation_not_supported() {
         Mock::default().parse_and_analyze(source),
         Err(vec![(
             NodeId(1),
-            Error::UnaryOperationNotSupported(ast::UnaryOperator::Not, CanonicalId::mock(0),)
+            Error::UnaryOperationNotSupported(
+                ast::UnaryOperator::Not,
+                (
+                    CanonicalId::mock(0),
+                    Some(types::Shape(types::Type::Integer))
+                )
+            )
         ),])
     );
 }

@@ -4,8 +4,6 @@ mod configuration;
 mod environment;
 mod execution;
 
-use std::collections::HashMap;
-
 use super::CodeFrame;
 use code::ErrorCode;
 pub use configuration::ConfigurationError;
@@ -13,8 +11,9 @@ pub use environment::EnvironmentError;
 pub use execution::ExecutionError;
 use kore::{
     color::{Colorize, Highlight},
-    format::Indented,
+    format::{indented, Indented},
 };
+use std::{collections::HashMap, fmt::Write};
 
 pub trait Display<'a> {
     type Context;
@@ -27,7 +26,6 @@ pub struct ErrorContext {
     pub root_dir: String,
     pub modules: HashMap<lang::NamespaceId, (crate::Link, String)>,
     pub nodes: HashMap<lang::CanonicalId, lang::Range>,
-    pub types: HashMap<lang::CanonicalId, ()>,
 }
 
 pub struct ErrorDisplay<'a> {
@@ -65,30 +63,27 @@ impl<'a> std::fmt::Display for ErrorDisplay<'a> {
         )?;
 
         if let Some(code_frame) = &self.code_frame {
-            write!(f, "\n\n{}", Indented(code_frame))?;
+            write!(indented(f), "\n\n{code_frame}")?;
+        }
+
+        for (description, code_frame) in &self.references {
+            write!(indented(f), "\n\n{description}\n\n{code_frame}")?;
         }
 
         if let Some(suggestion) = &self.suggestion {
             write!(
-                f,
-                "\n\n{}\n\n{}",
-                Indented("How to Fix".success().bold().underline()),
-                Indented(suggestion)
+                indented(f),
+                "\n\n{}\n\n{suggestion}",
+                "How to Fix".success().bold().underline()
             )?;
         }
 
         for (title, summary) in &self.examples {
             write!(
-                f,
-                "\n\n{}",
-                Indented(format!(
-                    "{header}\n\n{summary}",
-                    header = format!(
-                        "{} {}",
-                        "Example:".highlight(),
-                        title.highlight().bold().underline()
-                    ),
-                ))
+                indented(f),
+                "\n\n{label} {title}\n\n{summary}",
+                label = "Example:".highlight(),
+                title = title.highlight().bold().underline()
             )?;
         }
 
@@ -96,44 +91,75 @@ impl<'a> std::fmt::Display for ErrorDisplay<'a> {
     }
 }
 
-pub struct ErrorDisplayBuilder<T>(T);
-
-impl ErrorDisplayBuilder<ErrorCode> {
-    pub const fn factory(code: ErrorCode) -> Self {
-        Self(code)
-    }
-
-    pub fn new(
-        code: ErrorCode,
-        title: &str,
-        description: String,
-    ) -> ErrorDisplayBuilder<ErrorDisplay> {
-        ErrorDisplayBuilder(ErrorDisplay::simple(code, title, description))
-    }
+#[derive(Default)]
+pub struct ErrorDisplayBuilder<'a> {
+    code: Option<ErrorCode>,
+    title: Option<String>,
+    description: Option<String>,
+    code_frame: Option<CodeFrame<'a>>,
+    references: Vec<(String, CodeFrame<'a>)>,
+    suggestion: Option<String>,
+    examples: Vec<(String, String)>,
 }
 
-impl<'a> ErrorDisplayBuilder<ErrorDisplay<'a>> {
+impl<'a> ErrorDisplayBuilder<'a> {
+    pub const fn code(mut self, code: ErrorCode) -> Self {
+        self.code = Some(code);
+        self
+    }
+
+    pub fn title<T>(mut self, title: T) -> Self
+    where
+        T: AsRef<str>,
+    {
+        self.title = Some(title.as_ref().to_owned());
+        self
+    }
+
+    pub fn description<T>(mut self, description: T) -> Self
+    where
+        T: AsRef<str>,
+    {
+        self.description = Some(description.as_ref().to_owned());
+        self
+    }
+
     pub const fn code_frame(mut self, code_frame: CodeFrame<'a>) -> Self {
-        self.0.code_frame = Some(code_frame);
+        self.code_frame = Some(code_frame);
         self
     }
 
-    pub fn reference(mut self, title: String, code_frame: CodeFrame<'a>) -> Self {
-        self.0.references.push((title, code_frame));
+    pub fn reference<T>(mut self, description: T, code_frame: CodeFrame<'a>) -> Self
+    where
+        T: AsRef<str>,
+    {
+        self.references
+            .push((description.as_ref().to_owned(), code_frame));
         self
     }
 
-    pub fn suggestion(mut self, suggestion: String) -> Self {
-        self.0.suggestion = Some(suggestion);
+    pub fn suggestion<T>(mut self, suggestion: T) -> Self
+    where
+        T: AsRef<str>,
+    {
+        self.suggestion = Some(suggestion.as_ref().to_owned());
         self
     }
 
     pub fn example(mut self, example: (String, String)) -> Self {
-        self.0.examples.push(example);
+        self.examples.push(example);
         self
     }
 
     pub fn build(self) -> ErrorDisplay<'a> {
-        self.0
+        ErrorDisplay {
+            code: self.code.expect("missing error code"),
+            title: self.title.expect("missing error title"),
+            description: self.description.expect("missing error description"),
+            code_frame: self.code_frame,
+            references: self.references,
+            suggestion: self.suggestion,
+            examples: self.examples,
+        }
     }
 }

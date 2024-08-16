@@ -3,10 +3,15 @@ use kore::color::{ClearIf, Colorize, Highlight};
 use lang::Range;
 use std::fmt::Display;
 
-const CODE_PADDING: usize = 2;
-
 const BORDER: &str = "\u{2502}";
 const CORNER: &str = "\u{256d}\u{2500}";
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Focus {
+    Error,
+    Success,
+    Highlight,
+}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CodeFrame<'a> {
@@ -14,7 +19,9 @@ pub struct CodeFrame<'a> {
     pub link: &'a Link,
     pub source: &'a str,
     pub color: bool,
+    pub focus: Focus,
     pub range: Range,
+    pub padding: usize,
 }
 
 impl<'a> CodeFrame<'a> {
@@ -25,8 +32,8 @@ impl<'a> CodeFrame<'a> {
     fn get_lines(&self) -> Lines {
         let Range(start, end) = self.range;
 
-        let sample_start = start.0.checked_sub(CODE_PADDING).unwrap_or_default();
-        let sample_end = end.0 + CODE_PADDING + 1;
+        let sample_start = start.0.checked_sub(self.padding).unwrap_or_default();
+        let sample_end = end.0 + self.padding + 1;
 
         let mut lines = vec![];
         let mut gutter = 1;
@@ -86,11 +93,12 @@ impl<'a> CodeFrame<'a> {
 }
 
 impl<'a> Display for CodeFrame<'a> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn format_single_caret(
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fn format_caret(
             gutter_width: usize,
             line_width: usize,
             row: usize,
+            focus: Focus,
             Range(start, end): Range,
             no_color: bool,
         ) -> String {
@@ -102,7 +110,11 @@ impl<'a> Display for CodeFrame<'a> {
                     caret.push(' ');
                 }
                 for _ in from..to {
-                    caret.push('^');
+                    match focus {
+                        Focus::Error => caret.push('^'),
+                        Focus::Success => caret.push('~'),
+                        Focus::Highlight => caret.push('-'),
+                    }
                 }
             };
 
@@ -122,62 +134,12 @@ impl<'a> Display for CodeFrame<'a> {
                 "{}{} {}",
                 " ".repeat(gutter_width),
                 BORDER.subtle().clear_if(no_color),
-                caret.error().clear_if(no_color)
-            )
-        }
-
-        fn format_dual_caret(
-            gutter_width: usize,
-            line_width: usize,
-            row: usize,
-            Range(start_highlight, end_highlight): Range,
-            Range(start_error, end_error): Range,
-            no_color: bool,
-        ) -> String {
-            let mut highlight_caret = String::new();
-            let mut error_caret = String::new();
-
-            let fill_range = |caret: &mut String, from, to| {
-                for _ in 0..from {
-                    caret.push(' ');
+                match focus {
+                    Focus::Error => caret.error(),
+                    Focus::Success => caret.success(),
+                    Focus::Highlight => caret.highlight(),
                 }
-                for _ in from..to {
-                    caret.push('^');
-                }
-            };
-
-            let is_highlight_wrapping = start_highlight.0 != end_highlight.0;
-            if is_highlight_wrapping {
-                if row == start_highlight.0 {
-                    fill_range(&mut highlight_caret, start_highlight.1 - 1, line_width);
-                } else if row < end_highlight.0 {
-                    fill_range(&mut highlight_caret, 0, line_width);
-                } else if row == end_highlight.0 {
-                    fill_range(&mut highlight_caret, 0, end_highlight.1);
-                }
-            } else {
-                fill_range(&mut highlight_caret, start_error.1 - 1, end_error.1);
-            }
-
-            let is_error_wrapping = start_error.0 != end_error.0;
-            if is_error_wrapping {
-                if row == start_error.0 {
-                    fill_range(&mut error_caret, start_error.1 - 1, line_width);
-                } else if row < end_error.0 {
-                    fill_range(&mut error_caret, 0, line_width);
-                } else if row == end_error.0 {
-                    fill_range(&mut error_caret, 0, end_error.1);
-                }
-            } else {
-                fill_range(&mut error_caret, start_error.1 - 1, end_error.1);
-            }
-
-            format!(
-                "{}{} {}{}",
-                " ".repeat(gutter_width),
-                BORDER.subtle().clear_if(no_color),
-                highlight_caret.highlight().clear_if(no_color),
-                error_caret.error().clear_if(no_color)
+                .clear_if(no_color)
             )
         }
 
@@ -206,7 +168,7 @@ impl<'a> Display for CodeFrame<'a> {
                 write!(
                     f,
                     "\n{}",
-                    format_single_caret(gutter, line.len(), row, self.range, no_color)
+                    format_caret(gutter, line.len(), row, self.focus, self.range, no_color)
                 )?;
             }
 
@@ -227,7 +189,7 @@ struct Lines<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::CodeFrame;
+    use super::{CodeFrame, Focus};
     use crate::Link;
     use kore::assert_str_eq;
     use lang::Range;
@@ -246,6 +208,8 @@ type Buzz = boolean;";
                 link: &link,
                 source,
                 range: Range::new((2, 13), (2, 15)),
+                focus: Focus::Error,
+                padding: 2,
                 color: false
             }
             .to_string(),
@@ -274,6 +238,8 @@ const FOO = 123;
                 link: &link,
                 source,
                 range: Range::new((3, 13), (3, 15)),
+                focus: Focus::Error,
+                padding: 2,
                 color: false
             }
             .to_string(),

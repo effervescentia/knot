@@ -42,10 +42,6 @@ impl Statement {
         value: &ast::shape::Declaration,
         opts: &Options,
     ) -> Vec<Self> {
-        fn parameter_name(suffix: &String) -> String {
-            format!("$param_{suffix}")
-        }
-
         match &value.0 {
             ast::Declaration::TypeAlias { .. } => vec![],
 
@@ -61,7 +57,7 @@ impl Statement {
                             let parameters = variant_parameters
                                 .iter()
                                 .enumerate()
-                                .map(|(index, _)| parameter_name(&index.to_string()))
+                                .map(|(index, _)| format!("$param_{}", index))
                                 .collect::<Vec<_>>();
 
                             let results = [

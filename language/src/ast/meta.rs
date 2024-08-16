@@ -10,6 +10,12 @@ use std::fmt::Display;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Binding(pub Node<super::Binding, ()>);
 
+impl AsRef<str> for Binding {
+    fn as_ref(&self) -> &str {
+        self.0.value().0.as_str()
+    }
+}
+
 impl Binding {
     pub const fn new(x: super::Binding, range: Range) -> Self {
         Self(Node::raw(x, range))

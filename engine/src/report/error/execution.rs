@@ -76,8 +76,8 @@ impl<'a> Display<'a> for ExecutionError {
                 format!(
                     "an import cycle was found between the following modules:\n\n{}",
                     SeparateEach(
-                        &format!(" {} ", "->".subtle()),
-                        &links.iter().map(|x| x.to_path().pretty()).collect()
+                        format!(" {} ", "->".subtle()),
+                        links.iter().map(|x| x.to_path().pretty())
                     )
                 ),
             ),

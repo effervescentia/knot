@@ -1,8 +1,17 @@
 use crate::ast;
-use std::rc::Rc;
+use std::{
+    fmt::{Debug, Display},
+    rc::Rc,
+};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Type(pub super::Type<Box<Type>>);
+
+impl Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        Display::fmt(&self.0, f)
+    }
+}
 
 pub trait ToShape {
     fn to_shape(&self) -> Type;

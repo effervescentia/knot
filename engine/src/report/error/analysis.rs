@@ -1,32 +1,37 @@
 use super::{
     code::ToCode, CodeFrame, Display, ErrorCode, ErrorContext, ErrorDisplay, ErrorDisplayBuilder,
 };
-use crate::report::example;
-use kore::{color::Highlight, str};
+use crate::report::{example, Focus};
+use kore::{
+    color::{ColoredString, Colorize, Highlight},
+    format::SeparateEach,
+    invariant,
+};
+use lang::{ast, types};
 
 impl ToCode for analyze::Error {
     fn to_code(&self) -> ErrorCode {
         match self {
-            Self::NotInferrable(_) => ErrorCode::NOT_INFERRABLE,
-            Self::NotFound(_) => ErrorCode::NOT_FOUND,
+            Self::NotInferrable(..) => ErrorCode::NOT_INFERRABLE,
+            Self::NotFound(..) => ErrorCode::NOT_FOUND,
             Self::VariantNotFound(..) => ErrorCode::VARIANT_NOT_FOUND,
             Self::DeclarationNotFound(..) => ErrorCode::DECLARATION_NOT_FOUND,
             Self::NotIndexable(..) => ErrorCode::NOT_INDEXABLE,
             Self::PropertyNotFound(..) => ErrorCode::PROPERTY_NOT_FOUND,
-            Self::DuplicateProperty(_) => ErrorCode::DUPLICATE_PROPERTY,
-            Self::NotSpreadable(_) => ErrorCode::NOT_SPREADABLE,
-            Self::UntypedParameter(_) => ErrorCode::UNTYPED_PARAMETER,
-            Self::DefaultValueRejected(_) => ErrorCode::DEFAULT_VALUE_REJECTED,
-            Self::NotCallable(_) => ErrorCode::NOT_CALLABLE,
-            Self::UnexpectedArgument(_) => ErrorCode::UNEXPECTED_ARGUMENT,
-            Self::MissingArgument(_) => ErrorCode::MISSING_ARGUMENT,
+            Self::DuplicateProperty(..) => ErrorCode::DUPLICATE_PROPERTY,
+            Self::NotSpreadable(..) => ErrorCode::NOT_SPREADABLE,
+            Self::UntypedParameter(..) => ErrorCode::UNTYPED_PARAMETER,
+            Self::DefaultValueRejected(..) => ErrorCode::DEFAULT_VALUE_REJECTED,
+            Self::NotCallable(..) => ErrorCode::NOT_CALLABLE,
+            Self::UnexpectedArgument(..) => ErrorCode::UNEXPECTED_ARGUMENT,
+            Self::MissingArgument(..) => ErrorCode::MISSING_ARGUMENT,
             Self::ArgumentRejected(..) => ErrorCode::ARGUMENT_REJECTED,
-            Self::NotRenderable(_) => ErrorCode::NOT_RENDERABLE,
-            Self::InvalidComponent(_) => ErrorCode::INVALID_COMPONENT,
+            Self::NotRenderable(..) => ErrorCode::NOT_RENDERABLE,
+            Self::InvalidComponent(..) => ErrorCode::INVALID_COMPONENT,
             Self::ComponentTypo(..) => ErrorCode::COMPONENT_TYPO,
-            Self::InvalidAttributes(_) => ErrorCode::INVALID_ATTRIBUTES,
-            Self::UnexpectedAttribute(_) => ErrorCode::UNEXPECTED_ATTRIBUTE,
-            Self::MissingAttribute(_) => ErrorCode::MISSING_ATTRIBUTE,
+            Self::InvalidAttributes(..) => ErrorCode::INVALID_ATTRIBUTES,
+            Self::UnexpectedAttribute(..) => ErrorCode::UNEXPECTED_ATTRIBUTE,
+            Self::MissingAttribute(..) => ErrorCode::MISSING_ATTRIBUTE,
             Self::AttributeRejected(..) => ErrorCode::ATTRIBUTE_REJECTED,
             Self::BinaryOperationNotSupported(..) => ErrorCode::BINARY_OPERATION_NOT_SUPPORTED,
             Self::UnaryOperationNotSupported(..) => ErrorCode::UNARY_OPERATION_NOT_SUPPORTED,
@@ -46,241 +51,529 @@ impl<'a> Display<'a> for analyze::Error {
                 root_dir,
                 modules,
                 nodes,
-                types,
             },
         ): Self::Context,
     ) -> ErrorDisplay<'a> {
-        let module = modules.get(&id.0);
-        let range = nodes.get(id);
+        fn format_list<T, U>(
+            items: U,
+        ) -> SeparateEach<ColoredString, ColoredString, Vec<ColoredString>>
+        where
+            T: AsRef<str>,
+            U: IntoIterator<Item = T>,
+        {
+            let success_items = items
+                .into_iter()
+                .map(|x| x.as_ref().success())
+                .collect::<Vec<_>>();
 
-        let builder = |title, description| {
-            let builder = ErrorDisplayBuilder::new(self.to_code(), title, description);
+            SeparateEach(
+                ", ".subtle(),
+                if success_items.is_empty() {
+                    vec!["(None)".subtle()]
+                } else {
+                    success_items
+                },
+            )
+        }
 
-            match (module, range) {
-                (Some((link, text)), Some(range)) => builder.code_frame(CodeFrame {
-                    root_dir,
-                    link,
-                    source: text,
-                    range: *range,
-                    color: true,
-                }),
-                _ => builder,
+        let code_frame = |focus, id| {
+            let range = *nodes
+                .get(id)
+                .unwrap_or_else(|| invariant!("node {id:?} does not exist in error context"));
+            let (link, text) = modules
+                .get(&id.0)
+                .unwrap_or_else(|| invariant!("module {:?} does not exist in error context", id.0));
+
+            CodeFrame {
+                root_dir,
+                link,
+                source: text,
+                focus,
+                range,
+                padding: 0,
+                color: true,
             }
         };
 
+        let error = ErrorDisplayBuilder::default()
+            .code(self.to_code())
+            .code_frame(code_frame(Focus::Error, id));
+
         match self {
-            Self::NotInferrable(_) => builder(
-                "Not Inferrable",
-                str!("the type of this expression could not be inferred from other types"),
-            )
-            .build(),
-
-            Self::NotFound(name) => builder(
-                "Not Found",
-                format!(
-                    "This expression references a variable named {} which does not exist.",
-                    name.error()
-                ),
-            )
-            .suggestion(str!(
-                "Check the spelling of the variable name or declare a new variable."
-            ))
-            .example(example::local_variables(name))
-            .build(),
-
-            // TODO: use a two-target code frame
-            Self::VariantNotFound(_, variant) => builder(
-                "Variant Not Found",
-                format!(
-                    "{} does not have a variant named {}.",
-                    "This enumerated type".highlight(),
-                    variant.error()
-                ),
-            )
-            .build(),
-
-            // TODO: use a two-target code frame
-            Self::DeclarationNotFound(_, name) => builder(
-                "Declaration Not Found",
-                format!(
-                    "This module does not contain a declaration named {}.",
-                    name.error()
-                ),
-            )
-            .build(),
-
-            // TODO: use a two-target code frame
-            Self::NotIndexable(_, name) => builder(
-                "Not Indexable",
-                // TODO: fix this error message
-                format!(
-                    "The property {} cannot be accessed because this type of value does not named",
-                    name.error()
-                ), // format!("the property {} cannot be accessed because this type of value does not support named properties", name.error())
-            )
-            .build(),
-
-            // TODO: use a two-target code frame
-            Self::PropertyNotFound(_, name) => builder(
-                "Property Not Found",
-                format!("a property with the name {} was not found", name.error()),
-            )
-            .build(),
-
-            Self::DuplicateProperty(name) => {
-                // caused the whole file to not format when inlined
-                let description = format!(
-                    "This expression contains two or more properties named {}. All property names must be unique.",
-                    name.error(),
+            Self::NotInferrable(references) => {
+                let mut builder = error.title("Not Inferrable").description(
+                    "The type of this expression could not be inferred from other types.",
                 );
 
-                builder("Duplicate Property", description)
-                    .suggestion(format!(
-                        "Remove or rename any repeated {} properties to avoid conflict.",
-                        name.highlight()
-                    ))
-                    .example(example::object_properties(
-                        &format!("{}_0", name),
-                        &format!("{}_1", name),
-                    ))
-                    .build()
+                for reference_id in references {
+                    builder = builder.reference(
+                        format!(
+                            "This {} is an unresolved dependency.",
+                            "expression".highlight()
+                        ),
+                        code_frame(Focus::Highlight, reference_id),
+                    );
+                }
+
+                builder
             }
 
-            // TODO: use a two-target code frame
-            Self::NotSpreadable(_) => builder(
-                "Not Spreadable",
-                str!("only object-like types can be spread"),
-            )
-            .build(),
+            Self::NotFound(name) => error
+                .title("Not Found")
+                .description(format!(
+                    "This expression references a variable named {} which does not exist.",
+                    name.error()
+                ))
+                .suggestion("Check the spelling of the variable name or declare a new variable.")
+                .example(example::local_variables(name)),
 
-            Self::UntypedParameter(name) => builder(
-                "Untyped Parameter",
-                format!(
+            Self::VariantNotFound(enum_id, valid_variants, expected_variant) => error
+                .title("Variant Not Found")
+                .description(format!(
+                    "There is no variant named {name} declared on this enumerated type.",
+                    name = expected_variant.error()
+                ))
+                .reference(
+                    format!("The {} is referenced here.", "enumerated type".highlight()),
+                    code_frame(Focus::Highlight, enum_id),
+                )
+                .suggestion(format!(
+                    "Declare a new variant or select an existing variant.
+
+  {} {}",
+                    "variants:".subtle(),
+                    format_list(valid_variants)
+                ))
+                .example(example::enumerated_type_variants("First", expected_variant)),
+
+            Self::DeclarationNotFound(module_id, valid_entities, expected_entity) => error
+                .title("Declaration Not Found")
+                .description(format!(
+                    "There are no entities named {name} declared in this module.",
+                    name = expected_entity.error()
+                ))
+                .reference(
+                    format!("The {} is referenced here.", "module".highlight()),
+                    code_frame(Focus::Highlight, module_id),
+                )
+                .suggestion(format!(
+                    "Declare a new entity or select an existing entity.
+
+  {} {}",
+                    "entities:".subtle(),
+                    format_list(valid_entities)
+                ))
+                .example(example::constants(expected_entity)),
+
+            Self::NotIndexable(value_id, name) => error
+                .title("Not Indexable")
+                .description(format!(
+                    "The property {} cannot be accessed. This value does not support properties.",
+                    name.error()
+                ))
+                .reference(
+                    format!("The {} is referenced here.", "value".highlight()),
+                    code_frame(Focus::Highlight, value_id),
+                )
+                .suggestion("Remove the property access and use the value directly."),
+
+            // TODO: cannot trigger this error
+            Self::PropertyNotFound(value_id, valid_properties, expected_property) => error
+                .title("Property Not Found")
+                .description(format!(
+                    "There is no property named {} on this value.",
+                    expected_property.error()
+                ))
+                .reference(
+                    format!("The {} is referenced here.", "value".highlight()),
+                    code_frame(Focus::Highlight, value_id),
+                )
+                .suggestion(format!(
+                    "Declare a new property or select an existing property instead.
+
+  {} {}",
+                    "properties:".subtle(),
+                    format_list(valid_properties)
+                ))
+                .example(example::object_properties("first", expected_property)),
+
+            Self::DuplicateProperty(name) => error
+                .title("Duplicate Property")
+                .description(format!(
+                    "This expression includes multiple properties named {name}.",
+                    name = name.error(),
+                ))
+                .suggestion(format!(
+                    "Remove or rename any repeated {name} properties to avoid conflict.",
+                    name = name.highlight()
+                ))
+                .example(example::object_properties(
+                    format!("{}_0", name),
+                    format!("{}_1", name),
+                )),
+
+            Self::NotSpreadable(node_id) => error
+                .title("Not Spreadable")
+                .description(format!(
+                    "{} cannot be spread because it is not object-like.",
+                    "This expression".error()
+                ))
+                .code_frame(code_frame(Focus::Error, node_id)),
+
+            Self::UntypedParameter(name) => error
+                .title("Untyped Parameter")
+                .description(format!(
                     "The parameter {} is missing a type annotation.",
                     name.error()
-                ),
-            )
-            .suggestion(format!(
-                "Add an annotation describing the type of the {} parameter.",
-                name.highlight()
-            ))
-            .example(example::parameter_types())
-            .build(),
+                ))
+                .suggestion(format!(
+                    "Add an annotation describing the type of the {} parameter.",
+                    name.highlight()
+                ))
+                .example(example::parameter_types()),
 
-            // TODO: use a two-target code frame
-            Self::DefaultValueRejected(_) => {
-                // caused the whole file to not format when inlined
-                let description = str!("The type of the default value does not match the annotated type of the parameter.");
+            Self::DefaultValueRejected((typedef_id, typedef_type), (default_id, default_type)) => {
+                let mut suggestion = format!(
+                    "Remove the default value or replace it with a value accepted by {}.",
+                    typedef_type.to_string().highlight()
+                );
 
-                builder("Default Value Rejected", description).build()
+                let example_value = match typedef_type {
+                    types::Shape(types::Type::Nil) => Some("nil"),
+                    types::Shape(types::Type::Boolean) => Some("true"),
+                    types::Shape(types::Type::Integer) => Some("123"),
+                    types::Shape(types::Type::Float) => Some("4.56"),
+                    types::Shape(types::Type::String) => Some("\"text\""),
+                    types::Shape(types::Type::Style) => Some("style {}"),
+                    _ => None,
+                };
+
+                if let Some(example_value) = example_value {
+                    suggestion.push_str(&format!(
+                        "\n\n  {} {}",
+                        "example:".subtle(),
+                        example_value.highlight()
+                    ));
+                }
+
+                error
+                    .title("Default Value Rejected")
+                    .description(format!(
+                        "The type of this {} does not match the parameter's type.
+                
+  {} {}
+  {} {}",
+                        "default value".error(),
+                        "expected:".subtle(),
+                        typedef_type.to_string().success(),
+                        "found:".subtle(),
+                        default_type.to_string().error()
+                    ))
+                    .code_frame(code_frame(Focus::Error, default_id))
+                    .reference(
+                        format!("The {} is declared here.", "parameter's type".highlight()),
+                        code_frame(Focus::Highlight, typedef_id),
+                    )
+                    .suggestion(suggestion)
             }
 
-            // TODO: use a two-target code frame
-            Self::NotCallable(_) => builder(
-                "Not Callable",
-                str!("this expression is not a function and cannot be called"),
-            )
-            .build(),
+            Self::NotCallable(value_id) => error
+                .title("Not Callable")
+                .description(format!(
+                    "This expression is {} and cannot be called.",
+                    "not a function".error()
+                ))
+                .reference(
+                    format!("The {} is referenced here.", "expression".highlight()),
+                    code_frame(Focus::Highlight, value_id),
+                )
+                .suggestion(format!(
+                    "Remove the arguments and parentheses {} to use this value directly.",
+                    "()".highlight()
+                )),
 
-            // TODO: use a two-target code frame
-            Self::UnexpectedArgument(_) => builder(
-                "Unexpected Argument",
-                str!("this function call expects fewer arguments than were provided"),
-            )
-            .build(),
+            Self::UnexpectedArgument(argument_id, parameter_count) => error
+                .title("Unexpected Argument")
+                .description(format!(
+                    "This {} was not expected by the function call.",
+                    "argument".error()
+                ))
+                .code_frame(code_frame(Focus::Error, argument_id))
+                .reference(
+                    format!(
+                        "The {} being called here expects {} arguments.",
+                        "function".highlight(),
+                        parameter_count.to_string().highlight()
+                    ),
+                    code_frame(Focus::Highlight, id),
+                )
+                .suggestion("Remove this argument from the function call."),
 
-            Self::MissingArgument(_) => builder(
-                "Missing Argument",
-                str!("this function call expects an additional argument that was not provided"),
-            )
-            .build(),
+            Self::MissingArgument(parameter_id, parameter_type) => error
+                .title("Missing Argument")
+                .description(format!(
+                    "This {} expects an argument of type {} that was not provided.",
+                    "function call".error(),
+                    parameter_type.to_string().success()
+                ))
+                .reference(
+                    "The unfulfilled parameter type is declared here.",
+                    code_frame(Focus::Highlight, parameter_id),
+                )
+                .suggestion(format!(
+                    "Add an argument of type {} to the function call.",
+                    parameter_type.to_string().highlight()
+                )),
 
-            Self::ArgumentRejected(_, _) => builder(
-                "Argument Rejected",
-                str!(
-                    "this argument did not match the expected type based on the function signature"
-                ),
-            )
-            .build(),
+            Self::ArgumentRejected(
+                (parameter_id, parameter_type),
+                (argument_id, argument_type),
+            ) => error
+                .title("Argument Rejected")
+                .description(format!(
+                    "The type of {} does not match the expected type.
 
-            Self::NotRenderable(_) => builder(
-                "Not Renderable",
-                str!("this expression is not a component and cannot be rendered"),
-            )
-            .build(),
+  {} {}
+  {} {}",
+                    "this argument".error(),
+                    "expected:".subtle(),
+                    parameter_type.to_string().success(),
+                    "actual:".subtle(),
+                    argument_type.to_string().error(),
+                ))
+                .code_frame(code_frame(Focus::Error, argument_id))
+                .reference(
+                    format!(
+                        "The {} of the argument is declared here.",
+                        "expected type".highlight()
+                    ),
+                    code_frame(Focus::Highlight, parameter_id),
+                )
+                .suggestion(format!(
+                    "Replace this argument with a value of type {}.",
+                    parameter_type.to_string().highlight()
+                )),
 
-            Self::InvalidComponent(name) => builder(
-                "Invalid Component",
-                format!(
-                    "the variable {} does not reference a valid component type",
-                    name.error()
-                ),
-            )
-            .build(),
+            Self::NotRenderable(node_id) => error
+                .title("Not Renderable")
+                .description(format!(
+                    "The {} of this view cannot be rendered.",
+                    "return value".error()
+                ))
+                .code_frame(code_frame(Focus::Error, node_id))
+                .reference(
+                    format!("The {} is declared here.", "view".highlight()),
+                    code_frame(Focus::Highlight, id),
+                )
+                .suggestion(format!(
+                    "Return a value that can be rendered.
+This includes {} and primitive types: {}.",
+                    "element".success(),
+                    format_list(["nil", "boolean", "integer", "float", "string"]),
+                )),
 
-            Self::ComponentTypo(start_tag, end_tag) => builder(
-                "Component Typo",
-                format!(
+            Self::InvalidComponent(name, actual_type) => {
+                error.title("Invalid Component").description(format!(
+                    "The variable {} does not reference a valid component type.
+                    
+  {} {}
+  {} {}",
+                    name.error(),
+                    "expected:".subtle(),
+                    "view {}".success(),
+                    "actual:".subtle(),
+                    actual_type.to_string().error(),
+                ))
+            }
+
+            Self::ComponentTypo(start_tag, end_tag) => error
+                .title("Component Typo")
+                .description(format!(
                     "The start {} and end {} tags of this component do not match.",
                     format!("<{start_tag}>").error(),
                     format!("</{end_tag}>").error(),
-                ),
-            )
-            .suggestion(str!("Change the end tag to match the start tag."))
-            .example(example::open_component(start_tag))
-            .build(),
+                ))
+                .suggestion("Change the end tag to match the start tag.")
+                .example(example::open_component(start_tag)),
 
-            Self::InvalidAttributes(_) => builder("Invalid Attributes", format!("")).build(),
+            // this is only possible when parsing type modules
+            Self::InvalidAttributes(_) => error
+                .title("Invalid Attributes")
+                .description("The provided attributes are not an object type."),
 
-            Self::UnexpectedAttribute(name) => builder(
-                "Unexpected Attribute",
-                format!(
-                    "this component does not accept an attribute named {}",
+            Self::UnexpectedAttribute(attribute_id, name) => error
+                .title("Unexpected Attribute")
+                .description(format!(
+                    "An attribute named {} was not expected by this component.",
                     name.error()
-                ),
-            )
-            .build(),
+                ))
+                .code_frame(code_frame(Focus::Error, attribute_id))
+                .reference(
+                    format!("The {} is rendered here.", "component".highlight()),
+                    code_frame(Focus::Highlight, id),
+                )
+                .suggestion(format!(
+                    "Remove the attribute {} from the component.",
+                    name.highlight()
+                )),
 
-            Self::MissingAttribute(_) => builder(
-                "Missing Attribute",
-                str!("this component expected an attribute that was not provided"),
-            )
-            .build(),
+            Self::MissingAttribute(attribute_id, attribute_name, attribute_type) => error
+                .title("Missing Attribute")
+                .description(format!(
+                    "This component expects an attribute {} of type {} that was not provided.",
+                    attribute_name.success(),
+                    attribute_type.to_string().success()
+                ))
+                .reference(
+                    format!(
+                        "The {} of the missing attribute is declare here.",
+                        "expected type".highlight()
+                    ),
+                    code_frame(Focus::Highlight, attribute_id),
+                )
+                .suggestion(format!(
+                    "Add an attribute {} of type {}.",
+                    attribute_name.highlight(),
+                    attribute_type.to_string().highlight()
+                ))
+                .example(example::component_attributes("first", attribute_name)),
 
-            Self::AttributeRejected(_, _) => {
-                // caused the whole file to not format when inlined
-                let description = str!("this attribute did not match the expected type based on the component signature");
+            Self::AttributeRejected(
+                (attribute_id, attribute_name, attribute_type),
+                (argument_id, argument_type),
+            ) => error
+                .title("Attribute Rejected")
+                .description(format!(
+                    "The type of the attribute {} does not match the expected type.
+                
+  {} {}
+  {} {}",
+                    attribute_name.error(),
+                    "expected:".subtle(),
+                    attribute_type.to_string().success(),
+                    "actual:".subtle(),
+                    argument_type.to_string().error(),
+                ))
+                .code_frame(code_frame(Focus::Error, argument_id))
+                .reference(
+                    format!(
+                        "The {} of the attribute is declared here.",
+                        "expected type".highlight()
+                    ),
+                    code_frame(Focus::Highlight, attribute_id),
+                )
+                .suggestion(format!(
+                    "Replace the attribute {} with a value of type {}.",
+                    attribute_name.highlight(),
+                    attribute_type.to_string().highlight()
+                )),
 
-                builder("Attribute Rejected", description).build()
+            Self::BinaryOperationNotSupported(op, (lhs_id, lhs_type), (rhs_id, rhs_type)) => {
+                let mut builder =
+                    error
+                        .title("Binary Operation Not Supported")
+                        .description(format!(
+                            "The operator {} cannot be applied to the arguments provided.",
+                            op.to_string().highlight().bold()
+                        ));
+
+                if let Some(type_) = lhs_type {
+                    builder = builder.reference(
+                        format!(
+                            "The left-hand side of this operation has type {}.",
+                            type_.to_string().highlight()
+                        ),
+                        code_frame(Focus::Highlight, lhs_id),
+                    );
+                }
+
+                if let Some(type_) = rhs_type {
+                    builder = builder.reference(
+                        format!(
+                            "The right-hand side of this operation has type {}.",
+                            type_.to_string().highlight()
+                        ),
+                        code_frame(Focus::Highlight, rhs_id),
+                    );
+                }
+
+                builder.suggestion(format!(
+                    "Make sure that both arguments have the correct types for this operator.\n{}",
+                    match op {
+                        ast::BinaryOperator::Add
+                        | ast::BinaryOperator::Subtract
+                        | ast::BinaryOperator::Multiply
+                        | ast::BinaryOperator::Divide
+                        | ast::BinaryOperator::Exponent
+                        | ast::BinaryOperator::LessThan
+                        | ast::BinaryOperator::LessThanOrEqual
+                        | ast::BinaryOperator::GreaterThan
+                        | ast::BinaryOperator::GreaterThanOrEqual => format!(
+                            "The operator {} can only be applied to numbers like {} or {}.",
+                            op.to_string().highlight().bold(),
+                            "integer".success(),
+                            "float".success(),
+                        ),
+
+                        ast::BinaryOperator::And | ast::BinaryOperator::Or => format!(
+                            "The operator {} can only be applied to {} values.",
+                            op.to_string().highlight().bold(),
+                            "boolean".success(),
+                        ),
+
+                        ast::BinaryOperator::Equal | ast::BinaryOperator::NotEqual => format!(
+                            "The operator {} can only be applied to values of the same type.",
+                            op.to_string().highlight().bold(),
+                        ),
+                    }
+                ))
             }
 
-            Self::BinaryOperationNotSupported(op, _, _) => builder(
-                "Binary Operation Not Supported",
-                format!(
-                    "the operator {} cannot be applied to the arguments provided",
-                    op.to_string().highlight()
-                ),
-            )
-            .build(),
+            Self::UnaryOperationNotSupported(op, (rhs_id, rhs_type)) => {
+                let mut builder =
+                    error
+                        .title("Unary Operation Not Supported")
+                        .description(format!(
+                            "The operator {} cannot be applied to the argument provided.",
+                            op.to_string().highlight().bold()
+                        ));
 
-            Self::UnaryOperationNotSupported(op, _) => builder(
-                "Unary Operation Not Supported",
-                format!(
-                    "the operator {} cannot be applied to the argument provided",
-                    op.to_string().highlight()
-                ),
-            )
-            .build(),
+                if let Some(type_) = rhs_type {
+                    builder = builder.reference(
+                        format!(
+                            "The right-hand side of this operation has type {}.",
+                            type_.to_string().highlight()
+                        ),
+                        code_frame(Focus::Highlight, rhs_id),
+                    );
+                }
 
-            Self::UnexpectedKind(_, kind) => builder(
-                "Unexpected Kind",
-                format!(
-                    "this expression should be a {} but instead found a {}",
-                    kind.to_string().success(),
-                    kind.invert().to_string().error()
-                ),
-            )
-            .build(),
+                builder.suggestion(format!(
+                    "Replace the argument with one matching the expected type for this operator.
+{}",
+                    match op {
+                        ast::UnaryOperator::Absolute | ast::UnaryOperator::Negate => format!(
+                            "The operator {} can only be applied to numbers like {} or {}.",
+                            op.to_string().highlight().bold(),
+                            "integer".success(),
+                            "float".success(),
+                        ),
+
+                        ast::UnaryOperator::Not => format!(
+                            "The operator {} can only be applied to {} values.",
+                            op.to_string().highlight().bold(),
+                            "boolean".success(),
+                        ),
+                    }
+                ))
+            }
+
+            Self::UnexpectedKind(_, kind) => error.title("Unexpected Kind").description(format!(
+                "This expression should be a {} but instead found a {}.",
+                format!("{kind} expression").success(),
+                format!("{kind} expression", kind = kind.invert()).error()
+            )),
         }
+        .build()
     }
 }

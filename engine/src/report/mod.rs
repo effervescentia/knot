@@ -4,7 +4,7 @@ mod example;
 mod into_errors;
 mod reporter;
 
-pub use code_frame::CodeFrame;
+pub use code_frame::{CodeFrame, Focus};
 use error::Display;
 pub use error::{ConfigurationError, EnvironmentError, ErrorContext, ExecutionError};
 pub use into_errors::IntoErrors;
@@ -109,7 +109,6 @@ impl Failure {
                     root_dir,
                     modules: Default::default(),
                     nodes: Default::default(),
-                    types: Default::default(),
                 },
             },
         }

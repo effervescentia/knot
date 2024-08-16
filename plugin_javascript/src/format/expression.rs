@@ -54,7 +54,7 @@ impl Display for Expression {
                     "{{{properties}}}",
                     properties = Indented(Block(SuffixEach(
                         ",\n",
-                        &xs.iter().map(|(key, value)| Property(key, value)).collect()
+                        xs.iter().map(|(key, value)| Property(key, value))
                     )))
                 )
             }

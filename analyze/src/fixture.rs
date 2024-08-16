@@ -169,7 +169,10 @@ pub mod function {
         HashMap::from_iter(vec![
             (
                 NodeId(0),
-                (Kind::Value, weak::Type::Infer(Inference::Parameter)),
+                (
+                    Kind::Value,
+                    weak::Type::Infer(Inference::Parameter(str!("first"))),
+                ),
             ),
             (NodeId(1), (Kind::Type, weak::Type::Value(Type::Integer))),
             (

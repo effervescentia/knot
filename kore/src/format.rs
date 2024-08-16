@@ -7,35 +7,22 @@ where
     indenter::indented(f).with_str("  ")
 }
 
-struct Parameters<'a, T>(&'a Vec<T>)
-where
-    T: Display;
-
-impl<'a, T> Display for Parameters<'a, T>
+pub struct SeparateEach<T, U, I>(pub T, pub I)
 where
     T: Display,
-{
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        if self.0.is_empty() {
-            Ok(())
-        } else {
-            write!(f, "({})", SeparateEach(", ", self.0))
-        }
-    }
-}
+    U: Display,
+    I: IntoIterator<Item = U>;
 
-pub struct SeparateEach<'a, T>(pub &'a str, pub &'a Vec<T>)
-where
-    T: Display;
-
-impl<'a, T> Display for SeparateEach<'a, T>
+impl<T, U, I> Display for SeparateEach<T, U, I>
 where
     T: Display,
+    U: Display,
+    I: Clone + IntoIterator<Item = U>,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         let mut is_first = true;
 
-        for x in self.1 {
+        for x in self.1.clone() {
             if is_first {
                 is_first = false;
             } else {
@@ -48,16 +35,18 @@ where
     }
 }
 
-pub struct PrefixEach<'a, T>(pub &'a str, pub &'a Vec<T>)
-where
-    T: Display;
-
-impl<'a, T> Display for PrefixEach<'a, T>
+pub struct PrefixEach<'a, T, I>(pub &'a str, pub I)
 where
     T: Display,
+    I: IntoIterator<Item = T>;
+
+impl<'a, T, I> Display for PrefixEach<'a, T, I>
+where
+    T: Display,
+    I: Clone + IntoIterator<Item = T>,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        for x in self.1 {
+        for x in self.1.clone() {
             write!(f, "{}{}", self.0, x)?;
         }
 
@@ -65,16 +54,18 @@ where
     }
 }
 
-pub struct SuffixEach<'a, T>(pub &'a str, pub &'a Vec<T>)
-where
-    T: Display;
-
-impl<'a, T> Display for SuffixEach<'a, T>
+pub struct SuffixEach<'a, T, I>(pub &'a str, pub I)
 where
     T: Display,
+    I: IntoIterator<Item = T>;
+
+impl<'a, T, I> Display for SuffixEach<'a, T, I>
+where
+    T: Display,
+    I: Clone + IntoIterator<Item = T>,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        for x in self.1 {
+        for x in self.1.clone() {
             write!(f, "{}{}", x, self.0)?;
         }
 

@@ -31,7 +31,10 @@ pub fn analyze(
 
             (UnaryOperator::Absolute | UnaryOperator::Negate, Type::Integer | Type::Float) => None,
 
-            _ => Some(vec![Error::UnaryOperationNotSupported(*op, *x.id())]),
+            _ => Some(vec![Error::UnaryOperationNotSupported(
+                *op,
+                (*x.id(), Some(x.type_of().to_shape())),
+            )]),
         },
 
         Expression::BinaryOperation(op, lhs, rhs) => {
@@ -60,10 +63,10 @@ pub fn analyze(
                     None
                 }
 
-                _ => Some(vec![Error::BinaryOperationNotSupported(
+                (_, lhs_type, rhs_type) => Some(vec![Error::BinaryOperationNotSupported(
                     *op,
-                    *lhs.id(),
-                    *rhs.id(),
+                    (*lhs.id(), Some(lhs_type.to_shape())),
+                    (*rhs.id(), Some(rhs_type.to_shape())),
                 )]),
             }
         }
@@ -82,21 +85,30 @@ pub fn analyze(
                     match pair {
                         // TODO: should this use a more nuanced approach for comparing types?
                         // how will this handle enumerators for example?
-                        (Some(parameter), Some(argument))
-                            if parameter.to_shape() == argument.type_of().to_shape() => {}
-
                         (Some(parameter), Some(argument)) => {
-                            errors.push(Error::ArgumentRejected(*parameter.id(), *argument.id()));
+                            let parameter_shape = parameter.to_shape();
+                            let argument_shape = argument.type_of().to_shape();
+
+                            if parameter_shape != argument_shape {
+                                errors.push(Error::ArgumentRejected(
+                                    (*parameter.id(), parameter_shape),
+                                    (*argument.id(), argument_shape),
+                                ));
+                            }
                         }
 
                         (None, Some(argument)) => {
-                            errors.push(Error::UnexpectedArgument(*argument.id()));
+                            errors
+                                .push(Error::UnexpectedArgument(*argument.id(), parameters.len()));
                         }
 
                         // TODO: this doesn't take into account default values
                         // need to bake it into the type definition
                         (Some(parameter), None) => {
-                            errors.push(Error::MissingArgument(*parameter.id()));
+                            errors.push(Error::MissingArgument(
+                                *parameter.id(),
+                                parameter.to_shape(),
+                            ));
                         }
 
                         (None, None) => break,

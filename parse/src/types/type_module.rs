@@ -28,7 +28,7 @@ mod tests {
         assert_eq_sorted!(
             parse(
                 "type foo = nil;
-view Foo ({ bar: nil, fizz?: boolean });"
+view Foo { bar: nil, fizz?: boolean };"
             )
             .unwrap()
             .0,

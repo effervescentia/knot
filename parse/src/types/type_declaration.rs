@@ -29,14 +29,10 @@ where
     m::terminated((
         m::keyword("view"),
         m::binding(),
-        m::between(
-            m::symbol('('),
-            m::symbol(')'),
-            super::type_expression::type_expression(),
-        ),
+        super::type_expression::type_expression(),
     ))
-    .map(|((_, start), binding, (attributes, end))| {
-        let range = &start + &end;
+    .map(|((_, start), binding, attributes)| {
+        let range = &start + attributes.0.range();
 
         ast::raw::TypeDeclaration::raw(ast::TypeDeclaration::view(binding, attributes), range)
     })
@@ -80,7 +76,7 @@ mod tests {
     #[test]
     fn view() {
         assert_eq!(
-            parse("view Foo ({ bar: nil, fizz?: boolean })").unwrap().0,
+            parse("view Foo { bar: nil, fizz?: boolean }").unwrap().0,
             ast::raw::TypeDeclaration::raw(
                 ast::TypeDeclaration::view(
                     ast::raw::Binding::new(ast::Binding(str!("Foo")), Range::new((1, 6), (1, 8))),

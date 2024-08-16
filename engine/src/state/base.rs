@@ -112,8 +112,6 @@ where
                             .into_iter()
                         })
                         .collect(),
-
-                    types: Default::default(),
                 },
             },
         }

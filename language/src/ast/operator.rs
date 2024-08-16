@@ -11,7 +11,7 @@ pub enum UnaryOperator {
 }
 
 impl Display for UnaryOperator {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Self::Not => write!(f, "!"),
 
@@ -46,7 +46,7 @@ pub enum BinaryOperator {
 }
 
 impl Display for BinaryOperator {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Self::And => write!(f, "&&"),
             Self::Or => write!(f, "||"),

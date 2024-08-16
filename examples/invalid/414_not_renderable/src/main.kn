@@ -1,3 +1,1 @@
-const Foo = 123;
-
-const BAR = <Foo />;
+view Foo -> style {};
