@@ -1,4 +1,4 @@
-#![allow(dead_code, clippy::expect_used, clippy::create_dir)]
+#![allow(dead_code, unused_imports, clippy::expect_used, clippy::create_dir)]
 mod build;
 mod format;
 

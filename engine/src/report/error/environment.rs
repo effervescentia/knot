@@ -33,7 +33,7 @@ impl<'a> Display<'a> for EnvironmentError {
             Self::InvalidWriteTarget(path, error) => bind(
                 "Invalid Write Target",
                 format!(
-                    "attempted write to {} failed with error {error}",
+                    "Attempted write to {} failed with error {error}.",
                     path.pretty()
                 ),
             ),
@@ -41,7 +41,7 @@ impl<'a> Display<'a> for EnvironmentError {
             Self::CleanupFailed(path, error) => bind(
                 "Cleanup Failed",
                 format!(
-                    "attempted to delete {} but failed with error {error}",
+                    "Attempted to delete {} but failed with error {error}.",
                     path.pretty()
                 ),
             ),

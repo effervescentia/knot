@@ -213,7 +213,7 @@ type Buzz = boolean;";
                 color: false
             }
             .to_string(),
-            " \u{256d}\u{2500} mock.kn
+            " \u{256d}\u{2500} mock.kn (./src/mock.kn:2:13)
  \u{2502}
 1\u{2502} const FOO = 123;
 2\u{2502} const BAR = FOO + 10;
@@ -243,7 +243,7 @@ const FOO = 123;
                 color: false
             }
             .to_string(),
-            " \u{256d}\u{2500} mock.kn
+            " \u{256d}\u{2500} mock.kn (./src/mock.kn:3:13)
  \u{2502}
 3\u{2502} const FOO = 123;
  \u{2502}             ^^^"

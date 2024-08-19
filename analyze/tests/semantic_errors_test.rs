@@ -80,10 +80,10 @@ const bar = foo.fizz;";
         Mock::default().parse_and_analyze(source),
         Err(vec![
             (
-                NodeId(3),
-                Error::DeclarationNotFound(CanonicalId::mock(2), vec![str!("buzz")], str!("fizz"))
+                NodeId(5),
+                Error::DeclarationNotFound(CanonicalId::mock(4), vec![str!("buzz")], str!("fizz"))
             ),
-            (NodeId(4), Error::NotInferrable(vec![CanonicalId::mock(3)]))
+            (NodeId(6), Error::NotInferrable(vec![CanonicalId::mock(5)]))
         ])
     );
 }

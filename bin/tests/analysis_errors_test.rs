@@ -17,7 +17,7 @@ fn not_found() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().failure().stderr(predicates::str::contains(
         "Not Found (E#401)
 
-unable to resolve identifier BAR in the local scope or any inherited scope",
+  This expression references a variable named BAR which does not exist.",
     ));
 
     root_dir.close()?;

@@ -50,9 +50,11 @@ impl<'a> Display<'a> for ExecutionError {
             Self::UnregisteredModule(link) => simple(
                 "Unregistered Module",
                 format!(
-                    "a referenced module ({}) was not found when linking\n\n{}",
+                    "A referenced module ({}) was not found when linking.
+
+{}",
                     link.to_path().pretty(),
-                    "(this should not be possible and represents a fatal internal error)".error()
+                    "This should not be possible and represents a fatal internal error.".error()
                 ),
             ),
 
@@ -60,7 +62,7 @@ impl<'a> Display<'a> for ExecutionError {
             Self::InvalidSyntax(link) => simple(
                 "Invalid Syntax",
                 format!(
-                    "the file {} does not contain valid Knot code",
+                    "The file {} does not contain valid Knot code.",
                     link.to_path().pretty()
                 ),
             ),
@@ -68,13 +70,15 @@ impl<'a> Display<'a> for ExecutionError {
             // linking errors
             Self::ModuleNotFound(link) => simple(
                 "Module Not Found",
-                format!("unable to find module {}", link.to_path().pretty()),
+                format!("Unable to find module {}.", link.to_path().pretty()),
             ),
 
             Self::ImportCycle(links) => simple(
                 "Import Cycle",
                 format!(
-                    "an import cycle was found between the following modules:\n\n{}",
+                    "An import cycle was found between the following modules:
+
+{}",
                     SeparateEach(
                         format!(" {} ", "->".subtle()),
                         links.iter().map(|x| x.to_path().pretty())

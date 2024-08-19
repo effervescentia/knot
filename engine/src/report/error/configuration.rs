@@ -48,18 +48,18 @@ impl<'a> Display<'a> for ConfigurationError {
 
             Self::RootDirectoryNotFound(path) => bind(
                 "Root Directory Not Found",
-                format!("no folder was found at the path {}", path.pretty()),
+                format!("No folder was found at the path {}.", path.pretty()),
             ),
 
             Self::SourceDirectoryNotFound(path) => bind(
                 "Source Directory Not Found",
-                format!("no folder was found at the path {}", path.pretty()),
+                format!("No folder was found at the path {}.", path.pretty()),
             ),
 
             Self::SourceDirectoryNotRelative(path) => bind(
                 "Source Directory Not Relative",
                 format!(
-                    "the path to the source directory should be relative to the {} but found {}",
+                    "The path to the source directory should be relative to the {} but found {}.",
                     "root_dir".highlight(),
                     path.pretty().error()
                 ),
@@ -67,13 +67,13 @@ impl<'a> Display<'a> for ConfigurationError {
 
             Self::EntrypointNotFound(path) => bind(
                 "Entrypoint Not Found",
-                format!("no module was found at the path {}", path.pretty()),
+                format!("No module was found at the path {}.", path.pretty()),
             ),
 
             Self::EntrypointNotRelative(path) => bind(
                 "Entrypoint Not Relative",
                 format!(
-                    "the path to the entrypoint should be relative to the {} but found {}",
+                    "The path to the entrypoint should be relative to the {} but found {}.",
                     "source_dir".highlight(),
                     path.pretty().error()
                 ),
