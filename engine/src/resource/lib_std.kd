@@ -1,0 +1,1 @@
+func render (element, string) -> nil;

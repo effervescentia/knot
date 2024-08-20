@@ -2,7 +2,7 @@ use crate::{ast, format::Object};
 use kore::format::SuffixEach;
 use std::fmt::{Display, Formatter};
 
-use super::Lambda;
+use super::{Lambda, Parameters};
 
 impl Display for ast::TypePrimitive {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
@@ -68,7 +68,21 @@ where
             Self::View {
                 binding,
                 attributes,
-            } => write!(f, "view {binding} {attributes};",),
+            } => write!(f, "view {binding} {attributes};"),
+
+            Self::Function {
+                binding,
+                parameters,
+                result,
+            } => {
+                write!(f, "func {binding}")?;
+
+                if !parameters.is_empty() {
+                    write!(f, " {parameters}", parameters = Parameters(parameters))?;
+                }
+
+                write!(f, " -> {result};")
+            }
         }
     }
 }
@@ -259,67 +273,110 @@ mod tests {
         );
     }
 
-    #[test]
-    fn type_alias() {
-        assert_str_eq!(
-            ast::shape::TypeDeclaration(ast::TypeDeclaration::type_alias(
-                str!("foo"),
-                ast::shape::TypeExpression(ast::TypeExpression::Primitive(ast::TypePrimitive::Nil))
-            ))
-            .to_string(),
-            "type foo = nil;"
-        );
-    }
+    mod type_module {
+        use super::*;
 
-    #[test]
-    fn view() {
-        assert_str_eq!(
-            ast::shape::TypeDeclaration(ast::TypeDeclaration::view(
-                str!("Foo"),
-                ast::shape::TypeExpression(ast::TypeExpression::Object(vec![
-                    ast::ObjectTypeExpressionEntry::Required(
-                        str!("bar"),
-                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                            ast::TypePrimitive::Nil
-                        ))
-                    ),
-                    ast::ObjectTypeExpressionEntry::Optional(
-                        str!("fizz"),
-                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                            ast::TypePrimitive::Boolean
-                        ))
-                    )
-                ]))
-            ))
-            .to_string(),
-            "view Foo {
+        #[test]
+        fn type_alias() {
+            assert_str_eq!(
+                ast::shape::TypeDeclaration(ast::TypeDeclaration::type_alias(
+                    str!("foo"),
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Nil
+                    ))
+                ))
+                .to_string(),
+                "type foo = nil;"
+            );
+        }
+
+        #[test]
+        fn view() {
+            assert_str_eq!(
+                ast::shape::TypeDeclaration(ast::TypeDeclaration::view(
+                    str!("Foo"),
+                    ast::shape::TypeExpression(ast::TypeExpression::Object(vec![
+                        ast::ObjectTypeExpressionEntry::Required(
+                            str!("bar"),
+                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                                ast::TypePrimitive::Nil
+                            ))
+                        ),
+                        ast::ObjectTypeExpressionEntry::Optional(
+                            str!("fizz"),
+                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                                ast::TypePrimitive::Boolean
+                            ))
+                        )
+                    ]))
+                ))
+                .to_string(),
+                "view Foo {
   bar: nil,
   fizz?: boolean,
 };"
-        );
-    }
+            );
+        }
 
-    #[test]
-    fn module() {
-        assert_str_eq!(
-            ast::shape::TypeModule(ast::TypeModule {
-                declarations: vec![
-                    ast::shape::TypeDeclaration(ast::TypeDeclaration::type_alias(
-                        str!("foo"),
-                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                            ast::TypePrimitive::Nil
-                        ))
-                    )),
-                    ast::shape::TypeDeclaration(ast::TypeDeclaration::view(
-                        str!("Bar"),
-                        ast::shape::TypeExpression(ast::TypeExpression::Object(vec![]))
+        #[test]
+        fn function_no_parameters() {
+            assert_str_eq!(
+                ast::shape::TypeDeclaration(ast::TypeDeclaration::function(
+                    str!("foo"),
+                    vec![],
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::String
                     ))
-                ]
-            })
-            .to_string(),
-            "type foo = nil;
+                ))
+                .to_string(),
+                "func foo -> string;"
+            );
+        }
+
+        #[test]
+        fn function_with_parameters() {
+            assert_str_eq!(
+                ast::shape::TypeDeclaration(ast::TypeDeclaration::function(
+                    str!("foo"),
+                    vec![
+                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Integer
+                        )),
+                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Boolean
+                        ))
+                    ],
+                    ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::String
+                    ))
+                ))
+                .to_string(),
+                "func foo (integer, boolean) -> string;"
+            );
+        }
+
+        #[test]
+        fn module() {
+            assert_str_eq!(
+                ast::shape::TypeModule(ast::TypeModule {
+                    declarations: vec![
+                        ast::shape::TypeDeclaration(ast::TypeDeclaration::type_alias(
+                            str!("foo"),
+                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                                ast::TypePrimitive::Nil
+                            ))
+                        )),
+                        ast::shape::TypeDeclaration(ast::TypeDeclaration::view(
+                            str!("Bar"),
+                            ast::shape::TypeExpression(ast::TypeExpression::Object(vec![]))
+                        ))
+                    ]
+                })
+                .to_string(),
+                "type foo = nil;
 view Bar {};
 "
-        );
+            );
+        }
     }
 }

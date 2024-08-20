@@ -1,6 +1,6 @@
 use super::storage;
 use crate::{matcher as m, types::type_expression};
-use combine::{attempt, choice, optional, sep_end_by, sep_end_by1, Parser, Stream};
+use combine::{attempt, choice, optional, sep_end_by1, Parser, Stream};
 use kore::invariant;
 use lang::{ast, Range};
 
@@ -12,11 +12,7 @@ where
     choice((
         attempt((
             m::standard_identifier(),
-            m::between(
-                m::symbol('('),
-                m::symbol(')'),
-                sep_end_by::<Vec<_>, _, _, _>(type_expression::type_expression(), m::symbol(',')),
-            ),
+            m::tuple(type_expression::type_expression()),
         ))
         .map(|((name, start), (parameters, end))| (name, parameters, &start + &end)),
         m::standard_identifier().map(|(name, range)| (name, vec![], range)),

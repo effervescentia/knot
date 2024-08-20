@@ -127,6 +127,12 @@ pub enum TypeDeclaration<Binding, TypeExpression> {
         binding: Binding,
         attributes: TypeExpression,
     },
+
+    Function {
+        binding: Binding,
+        parameters: Vec<TypeExpression>,
+        result: TypeExpression,
+    },
 }
 
 impl<Binding, TypeExpression> TypeDeclaration<Binding, TypeExpression> {
@@ -141,9 +147,23 @@ impl<Binding, TypeExpression> TypeDeclaration<Binding, TypeExpression> {
         }
     }
 
+    pub const fn function(
+        binding: Binding,
+        parameters: Vec<TypeExpression>,
+        result: TypeExpression,
+    ) -> Self {
+        Self::Function {
+            binding,
+            parameters,
+            result,
+        }
+    }
+
     pub const fn binding(&self) -> &Binding {
         match self {
-            Self::TypeAlias { binding, .. } | Self::View { binding, .. } => binding,
+            Self::TypeAlias { binding, .. }
+            | Self::View { binding, .. }
+            | Self::Function { binding, .. } => binding,
         }
     }
 }
@@ -177,6 +197,23 @@ where
                     TypeDeclaration::View {
                         binding,
                         attributes,
+                    },
+                    ctx,
+                )
+            }
+
+            TypeDeclaration::Function {
+                binding,
+                parameters,
+                result,
+            } => {
+                let ((binding, parameters, result), v) = (binding, parameters, result).walk_each(v);
+
+                v.type_declaration(
+                    TypeDeclaration::Function {
+                        binding,
+                        parameters,
+                        result,
                     },
                     ctx,
                 )

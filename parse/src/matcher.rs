@@ -168,6 +168,25 @@ where
     between(symbol('('), symbol(')'), sep_end_by(parser, symbol(',')))
 }
 
+pub fn closure<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
+where
+    T: Stream<Token = char>,
+    T::Position: Position,
+    P: Parser<T, Output = R>,
+{
+    between(symbol('{'), symbol('}'), parser)
+}
+
+pub fn lambda<T, LR, RR, LP, RP>(lhs: LP, rhs: RP) -> impl Parser<T, Output = (LR, RR)>
+where
+    T: Stream<Token = char>,
+    T::Position: Position,
+    LP: Parser<T, Output = LR>,
+    RP: Parser<T, Output = RR>,
+{
+    (attempt(lhs.skip(glyph("->"))), rhs)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{

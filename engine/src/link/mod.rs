@@ -1,5 +1,6 @@
 mod import_graph;
 
+use crate::Library;
 pub use import_graph::ImportGraph;
 use kore::str;
 use lang::{ast, Namespace, NamespaceKind};
@@ -8,8 +9,6 @@ use std::{
     fmt::{Debug, Display},
     path::{Path, PathBuf},
 };
-
-use crate::Library;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Link(Namespace);

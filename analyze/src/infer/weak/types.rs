@@ -72,6 +72,13 @@ impl ToWeak for ast::TypeDeclaration<String, NodeId> {
             Self::View { attributes, .. } => {
                 (Kind::Value, Type::Infer(Inference::ViewType(*attributes)))
             }
+
+            Self::Function {
+                parameters, result, ..
+            } => (
+                Kind::Value,
+                Type::Value(types::Type::Function(parameters.clone(), *result)),
+            ),
         }
     }
 }
@@ -328,6 +335,34 @@ mod tests {
         assert_eq!(
             ast::Declaration::module(ast::Storage::public(str!("foo")), NodeId(1)).to_weak(),
             (Kind::Mixed, Type::Inherit(NodeId(1)))
+        );
+    }
+
+    #[test]
+    fn type_declaration_type_alias() {
+        assert_eq!(
+            ast::TypeDeclaration::type_alias(str!("Foo"), NodeId(1)).to_weak(),
+            (Kind::Type, Type::Inherit(NodeId(1)))
+        );
+    }
+
+    #[test]
+    fn type_declaration_view() {
+        assert_eq!(
+            ast::TypeDeclaration::view(str!("Foo"), NodeId(1)).to_weak(),
+            (Kind::Value, Type::Infer(Inference::ViewType(NodeId(1))))
+        );
+    }
+
+    #[test]
+    fn type_declaration_function() {
+        assert_eq!(
+            ast::TypeDeclaration::function(str!("foo"), vec![NodeId(1), NodeId(2)], NodeId(3))
+                .to_weak(),
+            (
+                Kind::Value,
+                Type::Value(types::Type::Function(vec![NodeId(1), NodeId(2)], NodeId(3)))
+            )
         );
     }
 }

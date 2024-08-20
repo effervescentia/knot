@@ -12,12 +12,8 @@ where
         (m::standard_identifier(), m::symbol(':'), parser()).map(|((lhs, _), _, rhs)| (lhs, rhs))
     };
 
-    m::between(
-        m::symbol('{'),
-        m::symbol('}'),
-        sep_end_by(style_rule(), m::symbol(',')),
-    )
-    .map(|(xs, range)| ast::raw::Expression::raw(ast::Expression::Style(xs), range))
+    m::closure(sep_end_by(style_rule(), m::symbol(',')))
+        .map(|(xs, range)| ast::raw::Expression::raw(ast::Expression::Style(xs), range))
 }
 
 pub fn style<T, P, F>(parser: F) -> impl Parser<T, Output = ast::raw::Expression>

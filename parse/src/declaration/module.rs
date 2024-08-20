@@ -8,11 +8,9 @@ where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    (
-        storage::storage("module"),
-        m::between(m::symbol('{'), m::symbol('}'), module::module()),
-    )
-        .map(|((storage, start), (value, end))| {
+    (storage::storage("module"), m::closure(module::module())).map(
+        |((storage, start), (value, end))| {
             ast::raw::Declaration::raw(ast::Declaration::module(storage, value), &start + &end)
-        })
+        },
+    )
 }

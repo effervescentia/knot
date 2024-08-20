@@ -97,18 +97,14 @@ where
     let spread_entry =
         (m::glyph("..."), parser()).map(|(_, x)| ast::ObjectTypeExpressionEntry::Spread(x));
 
-    m::between(
-        m::symbol('{'),
-        m::symbol('}'),
-        sep_end_by(
-            choice((
-                attempt(required_entry),
-                attempt(optional_entry),
-                spread_entry,
-            )),
-            m::symbol(','),
-        ),
-    )
+    m::closure(sep_end_by(
+        choice((
+            attempt(required_entry),
+            attempt(optional_entry),
+            spread_entry,
+        )),
+        m::symbol(','),
+    ))
     .map(|(entries, range)| {
         ast::raw::TypeExpression::raw(ast::TypeExpression::Object(entries), range)
     })
@@ -120,24 +116,13 @@ where
     T::Position: m::Position,
     P: Parser<T, Output = ast::raw::TypeExpression>,
 {
-    (
-        attempt(
-            m::between(
-                m::symbol('('),
-                m::symbol(')'),
-                sep_end_by(parser(), m::symbol(',')),
-            )
-            .skip(m::glyph("->")),
-        ),
-        parser(),
-    )
-        .map(|((parameters, start), result)| {
-            let range = &start + result.0.range();
-            ast::raw::TypeExpression::raw(
-                ast::TypeExpression::Function(parameters, Box::new(result)),
-                range,
-            )
-        })
+    m::lambda(m::tuple(parser()), parser()).map(|((parameters, start), result)| {
+        let range = &start + result.0.range();
+        ast::raw::TypeExpression::raw(
+            ast::TypeExpression::Function(parameters, Box::new(result)),
+            range,
+        )
+    })
 }
 
 fn type_expression_2<T>() -> impl Parser<T, Output = ast::raw::TypeExpression>

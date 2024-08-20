@@ -14,5 +14,7 @@ pub const fn analyze(
         ast::TypeDeclaration::TypeAlias { .. } => None,
 
         ast::TypeDeclaration::View { .. } => None,
+
+        ast::TypeDeclaration::Function { .. } => None,
     }
 }

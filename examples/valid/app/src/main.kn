@@ -1,0 +1,3 @@
+use std/jsx;
+
+func main -> JSX.render(<Stylish />, id);

@@ -1,5 +1,5 @@
 use crate::matcher as m;
-use combine::{choice, Parser, Stream};
+use combine::{choice, optional, Parser, Stream};
 use lang::ast;
 
 fn type_alias<T>() -> impl Parser<T, Output = ast::raw::TypeDeclaration>
@@ -38,12 +38,39 @@ where
     })
 }
 
+fn function<T>() -> impl Parser<T, Output = ast::raw::TypeDeclaration>
+where
+    T: Stream<Token = char>,
+    T::Position: m::Position,
+{
+    m::terminated((
+        m::keyword("func"),
+        m::binding(),
+        m::lambda(
+            optional(m::tuple(super::type_expression::type_expression())),
+            super::type_expression::type_expression(),
+        ),
+    ))
+    .map(|((_, start), binding, (parameters, result))| {
+        let range = &start + result.0.range();
+
+        ast::raw::TypeDeclaration::raw(
+            ast::TypeDeclaration::function(
+                binding,
+                parameters.map(|x| x.0).unwrap_or_default(),
+                result,
+            ),
+            range,
+        )
+    })
+}
+
 pub fn type_declaration<T>() -> impl Parser<T, Output = ast::raw::TypeDeclaration>
 where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    choice((type_alias(), view()))
+    choice((type_alias(), view(), function()))
 }
 
 #[cfg(test)]
@@ -104,6 +131,51 @@ mod tests {
                             )
                         ]),
                         Range::new((1, 10), (1, 37))
+                    )
+                ),
+                Range::new((1, 1), (1, 37))
+            )
+        );
+    }
+
+    #[test]
+    fn function_no_parameters() {
+        assert_eq!(
+            parse("func foo -> string;").unwrap().0,
+            ast::raw::TypeDeclaration::raw(
+                ast::TypeDeclaration::function(
+                    ast::raw::Binding::new(ast::Binding(str!("foo")), Range::new((1, 6), (1, 8))),
+                    vec![],
+                    ast::raw::TypeExpression::raw(
+                        ast::TypeExpression::Primitive(ast::TypePrimitive::String),
+                        Range::new((1, 13), (1, 18))
+                    )
+                ),
+                Range::new((1, 1), (1, 18))
+            )
+        );
+    }
+
+    #[test]
+    fn function_with_parameters() {
+        assert_eq!(
+            parse("func foo (integer, boolean) -> string;").unwrap().0,
+            ast::raw::TypeDeclaration::raw(
+                ast::TypeDeclaration::function(
+                    ast::raw::Binding::new(ast::Binding(str!("foo")), Range::new((1, 6), (1, 8))),
+                    vec![
+                        ast::raw::TypeExpression::raw(
+                            ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
+                            Range::new((1, 11), (1, 17))
+                        ),
+                        ast::raw::TypeExpression::raw(
+                            ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
+                            Range::new((1, 20), (1, 26))
+                        )
+                    ],
+                    ast::raw::TypeExpression::raw(
+                        ast::TypeExpression::Primitive(ast::TypePrimitive::String),
+                        Range::new((1, 32), (1, 37))
                     )
                 ),
                 Range::new((1, 1), (1, 37))

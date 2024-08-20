@@ -7,7 +7,7 @@ use crate::{
     matcher::{self as m, Position},
     statement,
 };
-use combine::{choice, many, parser, position, sep_end_by, Parser, Stream};
+use combine::{choice, many, parser, position, Parser, Stream};
 use lang::ast;
 
 fn primitive<T>() -> impl Parser<T, Output = ast::raw::Expression>
@@ -44,12 +44,8 @@ where
     T::Position: m::Position,
     P: Parser<T, Output = ast::raw::Expression>,
 {
-    m::between(
-        m::symbol('{'),
-        m::symbol('}'),
-        many::<Vec<_>, _, _>(statement::statement(parser)),
-    )
-    .map(|(xs, range)| ast::raw::Expression::raw(ast::Expression::Closure(xs), range))
+    m::closure(many::<Vec<_>, _, _>(statement::statement(parser)))
+        .map(|(xs, range)| ast::raw::Expression::raw(ast::Expression::Closure(xs), range))
 }
 
 fn unary_operation<T, P>(parser: impl Fn() -> P) -> impl Parser<T, Output = ast::raw::Expression>
@@ -98,19 +94,11 @@ where
     P1: Parser<T, Output = ast::raw::Expression>,
     P2: Parser<T, Output = ast::raw::Expression>,
 {
-    m::folding(
-        lhs,
-        m::between(
-            m::symbol('('),
-            m::symbol(')'),
-            sep_end_by::<Vec<_>, _, _, _>(rhs, m::symbol(',')),
-        ),
-        |acc, (args, end)| {
-            let range = acc.0.range() + &end;
+    m::folding(lhs, m::tuple(rhs), |acc, (args, end)| {
+        let range = acc.0.range() + &end;
 
-            ast::raw::Expression::raw(ast::Expression::FunctionCall(Box::new(acc), args), range)
-        },
-    )
+        ast::raw::Expression::raw(ast::Expression::FunctionCall(Box::new(acc), args), range)
+    })
 }
 
 fn component<T>() -> impl Parser<T, Output = ast::raw::Expression>

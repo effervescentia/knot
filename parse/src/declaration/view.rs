@@ -19,11 +19,12 @@ where
 {
     m::terminated((
         storage::storage("view"),
-        optional(m::tuple(parameter::parameter())),
-        m::glyph("->"),
-        expression::expression(),
+        m::lambda(
+            optional(m::tuple(parameter::parameter())),
+            expression::expression(),
+        ),
     ))
-    .map(|((storage, start), attributes, _, body)| {
+    .map(|((storage, start), (attributes, body))| {
         let range = &start + body.0.range();
         ast::raw::Declaration::raw(
             ast::Declaration::view(storage, attributes.map(|x| x.0).unwrap_or_default(), body),

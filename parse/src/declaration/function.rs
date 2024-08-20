@@ -18,12 +18,15 @@ where
 {
     m::terminated((
         storage::storage("func"),
-        optional(m::tuple(parameter::parameter())),
-        typedef::typedef(),
-        m::glyph("->"),
-        expression::expression(),
+        m::lambda(
+            (
+                optional(m::tuple(parameter::parameter())),
+                typedef::typedef(),
+            ),
+            expression::expression(),
+        ),
     ))
-    .map(|((storage, start), parameters, body_type, _, body)| {
+    .map(|((storage, start), ((parameters, body_type), body))| {
         let range = &start + body.0.range();
 
         ast::raw::Declaration::raw(
