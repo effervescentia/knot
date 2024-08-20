@@ -1,10 +1,17 @@
-use std::path::{Path, PathBuf, StripPrefixError};
+use std::{
+    env,
+    path::{Path, PathBuf, StripPrefixError},
+};
 
 use assert_cmd::Command;
 use assert_fs::fixture::{FileWriteStr, PathChild, PathCreateDir, TempDir};
 
 fn prefix_private(path: &Path) -> Result<PathBuf, StripPrefixError> {
-    Ok(Path::new("/private").join(path.strip_prefix("/")?))
+    if env::consts::ARCH == "aarch64" {
+        return Ok(Path::new("/private").join(path.strip_prefix("/")?));
+    }
+
+    Ok(path.to_path_buf())
 }
 
 #[test]
