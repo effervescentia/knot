@@ -1,9 +1,9 @@
 use crate::{
     config::Config,
+    log,
     path::{get_root_dir, get_source_dir, validate_entrypoint},
-    reporter::{eprint_configuration, Phase},
 };
-use command::check;
+use command::{check, Phase};
 use std::path::Path;
 
 pub struct Args<'a> {
@@ -20,7 +20,7 @@ impl<'a> Args<'a> {
             entry,
         } = self;
 
-        eprint_configuration(vec![
+        log::configuration(vec![
             ("root_dir", Config::Path(root_dir)),
             (
                 "source_dir",

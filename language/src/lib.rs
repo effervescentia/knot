@@ -12,13 +12,12 @@ mod type_of;
 pub mod types;
 pub mod walk;
 
-use std::fmt::Display;
-
 pub use fragment::{Fragment, FragmentMap};
 pub use identify::Identify;
 pub use namespace::{Namespace, NamespaceKind};
 pub use node::Node;
 pub use range::{Point, Range};
+use std::fmt::Display;
 pub use type_of::TypeOf;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

@@ -410,6 +410,7 @@ dependencies = [
  "knot_command",
  "knot_core",
  "knot_engine",
+ "knot_language",
  "knot_plugin_javascript",
  "predicates",
 ]

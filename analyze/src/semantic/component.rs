@@ -46,7 +46,8 @@ pub fn analyze(
                 errors.push(Error::ComponentTypo(start_tag.clone(), end_tag.clone()));
             }
 
-            if let Type::View(parameters) = ctx.type_of() {
+            let type_ = ctx.type_of();
+            if let Type::View(parameters) = type_ {
                 let mut unsatisfied_parameters = parameters
                     .iter()
                     .map(|x| (x.name().to_owned(), x))
@@ -62,8 +63,12 @@ pub fn analyze(
 
                         if parameter_type != argument_type {
                             errors.push(Error::AttributeRejected(
-                                *parameter.value().id(),
-                                *attribute.0.id(),
+                                (
+                                    *parameter.value().id(),
+                                    parameter.name().to_owned(),
+                                    parameter.value().to_shape(),
+                                ),
+                                (*attribute.0.id(), attribute.0.type_of().to_shape()),
                             ));
                         }
                     } else {
@@ -75,17 +80,22 @@ pub fn analyze(
                 sorted_parameters.sort_by(|l, r| l.0.cmp(&r.0));
 
                 errors.extend(sorted_parameters.into_iter().filter_map(|(_, x)| {
-                    x.is_required()
-                        .then_some(Error::MissingAttribute(*x.value().id()))
+                    let value = x.value();
+
+                    x.is_required().then_some(Error::MissingAttribute(
+                        *value.id(),
+                        x.name().to_owned(),
+                        value.type_of().to_shape(),
+                    ))
                 }));
 
                 errors.extend(
-                    unexpected_attributes
-                        .into_iter()
-                        .map(|x| Error::UnexpectedAttribute(x.0.value().name().to_owned())),
+                    unexpected_attributes.into_iter().map(|x| {
+                        Error::UnexpectedAttribute(*x.0.id(), x.0.value().name().to_owned())
+                    }),
                 );
             } else {
-                errors.push(Error::InvalidComponent(start_tag.clone()));
+                errors.push(Error::InvalidComponent(start_tag.clone(), type_.to_shape()));
             }
 
             (!errors.is_empty()).then_some(errors)

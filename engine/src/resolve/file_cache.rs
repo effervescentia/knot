@@ -5,6 +5,15 @@ pub struct FileCache<'a, T>(FileSystem<'a>, T)
 where
     T: Resolver;
 
+impl<'a, T> FileCache<'a, T>
+where
+    T: Resolver,
+{
+    pub const fn new(cache_dir: &'a Path, inner: T) -> Self {
+        Self(FileSystem(cache_dir), inner)
+    }
+}
+
 impl<'a, T> Resolver for FileCache<'a, T>
 where
     T: Resolver,

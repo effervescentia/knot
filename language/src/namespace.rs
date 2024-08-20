@@ -1,4 +1,5 @@
 use crate::ast;
+use kore::str;
 use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -13,11 +14,11 @@ pub struct Namespace(pub NamespaceKind, pub Vec<String>);
 
 impl Namespace {
     #[cfg(feature = "test")]
-    pub const MOCK: &Self = &Self(NamespaceKind::Internal, vec![]);
+    pub const MOCK: &'static Self = &Self(NamespaceKind::Internal, vec![]);
 
     #[cfg(feature = "test")]
     pub fn mock() -> Self {
-        Self(NamespaceKind::Internal, vec![])
+        Self(NamespaceKind::Internal, vec![str!("mock")])
     }
 
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self
@@ -64,7 +65,7 @@ impl Namespace {
         match kind {
             // TODO: this should never be implemented, maybe change to an invariant
             NamespaceKind::Library => unimplemented!("{self:?}"),
-            NamespaceKind::External(_namespace) => unimplemented!(),
+            NamespaceKind::External(_namespace) => unimplemented!("{self:?}"),
 
             NamespaceKind::Internal => (),
         }

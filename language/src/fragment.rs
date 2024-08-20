@@ -1,6 +1,8 @@
 use crate::{ast, NodeId, ScopeId};
 use std::collections::BTreeMap;
 
+pub type FragmentMap<T> = BTreeMap<T, (ScopeId, Fragment)>;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Fragment {
     /* program */
@@ -44,5 +46,3 @@ impl Fragment {
         }
     }
 }
-
-pub type FragmentMap<T> = BTreeMap<T, (ScopeId, Fragment)>;

@@ -1,5 +1,5 @@
 use crate::log;
-use engine::{Context, Engine, FileSystem, Reporter};
+use engine::Engine;
 use kore::{color::Highlight, pretty::Pretty, Generator};
 use lang::ast;
 use std::path::Path;
@@ -18,12 +18,9 @@ pub fn command<G>(opts: &Options<G>) -> engine::Result<()>
 where
     G: Generator<Input = ast::shape::Program>,
 {
-    let resolver = FileSystem(opts.source_dir);
-    let engine = Engine::new(Context::std(Reporter::new(false), resolver));
-
     log::entrypoint(opts.entry);
 
-    let count = engine
+    let count = Engine::new(opts.source_dir)
         .from_entry(opts.entry)
         .parse_and_discover()
         .inspect(|state, _| log::parsed_from_entry(state.internal_modules().count()))
@@ -33,6 +30,8 @@ where
         .inspect(|_, _| log::analyzed())
         .generate(&opts.generator)
         .overwrite(opts.out_dir)?;
+
+    eprintln!();
 
     log::success("transpiled", count);
     eprintln!(

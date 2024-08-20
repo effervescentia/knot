@@ -21,9 +21,15 @@ pub fn analyze(
     _: &Visitor,
 ) -> Option<Vec<Error>> {
     match (value_type.as_ref(), default_value.as_ref()) {
-        (Some(typdef), Some(default)) => (typdef.type_of().to_shape()
-            != default.type_of().to_shape())
-        .then_some(vec![Error::DefaultValueRejected(*default.id())]),
+        (Some(typedef), Some(default)) => {
+            let typedef_shape = typedef.type_of().to_shape();
+            let default_shape = default.type_of().to_shape();
+
+            (typedef_shape != default_shape).then_some(vec![Error::DefaultValueRejected(
+                (*typedef.id(), typedef_shape),
+                (*default.id(), default_shape),
+            )])
+        }
 
         _ => None,
     }

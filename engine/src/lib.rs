@@ -7,22 +7,44 @@ mod validate;
 mod write;
 
 use analyze::ModuleMap;
-use bimap::BiMap;
 use kore::{invariant, Generator, Incrementor};
-use lang::{ast, NamespaceId};
+use lang::{ast, Canonicalize, NamespaceId, NodeId};
 pub use link::Link;
-pub use report::{CodeFrame, Error, Reporter};
+use report::Enrich;
+pub use report::{
+    CodeFrame, ConfigurationError, EnvironmentError, ExecutionError, Report, Reporter,
+};
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 pub use resource::Library;
-use state::Modules;
+use state::FromPaths;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    path::Path,
+    env::current_dir,
+    fmt::Display,
+    ops::Deref,
+    path::{Path, PathBuf},
 };
 use validate::Validator;
 use write::Writer;
 
-pub type Result<T> = std::result::Result<T, Vec<Error>>;
+pub type Result<T> = std::result::Result<T, Box<Report>>;
+
+/// internal result type used to propagate errors
+type Internal<T> = std::result::Result<T, Box<report::Failure>>;
+
+pub trait IntoResult {
+    type Value;
+
+    fn into_result(self) -> Result<Self::Value>;
+}
+
+impl<T> IntoResult for Result<T> {
+    type Value = T;
+
+    fn into_result(self) -> Result<Self::Value> {
+        self
+    }
+}
 
 pub struct Context<Resolver> {
     reporter: Reporter,
@@ -38,12 +60,43 @@ impl<R> Context<R> {
             libraries: HashSet::from_iter(vec![Library::Std, Library::Html]),
         }
     }
+
+    pub fn raise<T>(&mut self, x: T) -> Internal<()>
+    where
+        T: report::IntoErrors,
+    {
+        self.reporter.raise(x)
+    }
+
+    pub fn fail<T>(&mut self, x: T) -> report::Failure
+    where
+        T: report::IntoErrors,
+    {
+        self.reporter.fail(x)
+    }
 }
 
-pub struct Engine<T, R>
+impl<R> Context<R>
 where
     R: Resolver,
 {
+    pub fn load_and_parse_program(&mut self, link: &Link) -> Internal<(String, state::Ast<()>)> {
+        let path = link.to_path();
+
+        let input = self
+            .resolver
+            .resolve(&path)
+            .ok_or_else(|| self.fail(ExecutionError::ModuleNotFound(link.clone())))?;
+
+        let (ast, _) = parse::program::parse(&input)
+            .map_err(|_| self.fail(ExecutionError::InvalidSyntax(link.clone())))?;
+
+        Ok((input, state::Ast::Program(ast)))
+    }
+}
+
+pub struct Engine<T, R> {
+    root_dir: String,
     context: Context<R>,
     state: T,
 }
@@ -59,36 +112,10 @@ where
         let state = f(self.state, &mut self.context);
 
         Engine {
+            root_dir: self.root_dir,
             context: self.context,
             state,
         }
-    }
-
-    fn to_links<U>(link: &Link, ast: &state::Ast<U>) -> Vec<Link> {
-        let path = link.to_path();
-
-        if let state::Ast::Program(program) = ast {
-            program
-                .imports()
-                .iter()
-                .map(|x| Link::from_import(&path, x.0.value()))
-                .collect::<Vec<_>>()
-        } else {
-            vec![]
-        }
-    }
-
-    fn load_and_parse_program(resolver: &mut R, link: &Link) -> Result<(String, state::Ast<()>)> {
-        let path = link.to_path();
-
-        let input = resolver
-            .resolve(&path)
-            .ok_or(vec![Error::ModuleNotFound(link.clone())])?;
-
-        let (ast, _) =
-            parse::program::parse(&input).map_err(|_| vec![Error::InvalidSyntax(link.clone())])?;
-
-        Ok((input, state::Ast::Program(ast)))
     }
 
     fn parse_library(library: &Library) -> (String, state::Ast<()>) {
@@ -119,20 +146,6 @@ impl<T, R> Engine<Result<T>, R>
 where
     R: Resolver,
 {
-    pub fn then<F, T2>(self, f: F) -> Engine<Result<T2>, R>
-    where
-        F: Fn(T, &mut Context<R>) -> Result<T2>,
-    {
-        self.map(|state, context| match state {
-            Ok(state) => {
-                context.reporter.catch()?;
-
-                f(state, context)
-            }
-            Err(err) => Err(err),
-        })
-    }
-
     pub fn inspect<F>(self, f: F) -> Self
     where
         F: Fn(&T, &Context<R>),
@@ -144,8 +157,93 @@ where
         self
     }
 
-    pub fn into_result(self) -> Result<T> {
-        self.state
+    fn to_writer<F, T2>(&self, f: F) -> Writer<T2>
+    where
+        T2: Display,
+        F: Fn(&T) -> Vec<(PathBuf, T2)>,
+    {
+        Writer(self.state.as_ref().map(f).map_err(std::clone::Clone::clone))
+    }
+}
+
+impl<T, R> Engine<T, R>
+where
+    T: IntoResult,
+    R: Resolver,
+{
+    pub fn into_result(self) -> Result<T::Value> {
+        self.state.into_result()
+    }
+}
+
+impl<T, U, R> Engine<U, R>
+where
+    T: Clone + Enrich,
+    U: IntoResult<Value = T>,
+    R: Resolver,
+{
+    fn then<F, T2>(self, f: F) -> Engine<Result<T2>, R>
+    where
+        F: Fn(T, &mut Context<R>) -> Internal<T2>,
+    {
+        let try_apply = |state, context: &mut Context<R>| -> Internal<T2> {
+            context.reporter.flush()?;
+
+            let result = f(state, context)?;
+
+            context.reporter.flush()?;
+
+            Ok(result)
+        };
+
+        let root_dir = self.root_dir.clone();
+        self.map(|result, context| {
+            let state = result.into_result()?;
+
+            try_apply(state.clone(), context)
+                .map_err(|err| Box::new(state.enrich(root_dir.clone(), *err)))
+        })
+    }
+}
+
+impl<S, T, R> Engine<Result<S>, R>
+where
+    S: Deref<Target = state::Base<T>>,
+    T: Clone,
+    R: Resolver,
+{
+    /// generate output files by formatting the loaded modules
+    pub fn format(&self) -> Writer<ast::meta::Program<T>> {
+        self.to_writer(|state| {
+            state
+                .modules()
+                .filter_map(|(link, state::Module { ast, .. })| match ast {
+                    state::Ast::Program(x) if link.is_internal() => {
+                        Some((link.to_path(), x.clone()))
+                    }
+
+                    state::Ast::Program(_) | state::Ast::Typings(_) => None,
+                })
+                .collect()
+        })
+    }
+}
+
+impl<'a> Engine<(), FileSystem<'a>> {
+    pub fn new(root_dir: &'a Path) -> Self {
+        let context = Context::std(Reporter::new(false), FileSystem(root_dir));
+
+        let relative_root = if let Ok(working_dir) = current_dir() {
+            root_dir.strip_prefix(working_dir).unwrap_or(root_dir)
+        } else {
+            root_dir
+        };
+
+        Self {
+            context,
+            root_dir: relative_root.to_string_lossy().to_string(),
+            state: (),
+        }
     }
 }
 
@@ -153,10 +251,6 @@ impl<R> Engine<(), R>
 where
     R: Resolver,
 {
-    pub const fn new(context: Context<R>) -> Self {
-        Self { context, state: () }
-    }
-
     /// load a module tree from a single entry point
     pub fn from_entry(self, entry: &Path) -> Engine<state::FromEntry, R> {
         assert!(
@@ -168,210 +262,136 @@ where
     }
 
     /// load all modules that match a glob
-    pub fn from_glob<'a>(self, dir: &'a Path, glob: &'a str) -> Engine<state::FromGlob<'a>, R> {
-        self.map(|(), _| state::FromGlob { dir, glob })
+    pub fn from_glob<'a>(
+        self,
+        dir: &'a Path,
+        glob: &'a str,
+    ) -> Engine<Result<state::FromPaths>, R> {
+        self.map(|(), _| state::FromGlob { dir, glob }.to_paths())
     }
 }
 
-impl<R> Engine<state::FromEntry, R>
+impl<T, R> Engine<T, R>
 where
+    T: IntoResult<Value = state::FromEntry>,
     R: Resolver,
 {
     /// starting from the entry file recursively discover and parse modules
     pub fn parse_and_discover(self) -> Engine<Result<state::Parsed>, R> {
-        self.map(|state, context| {
-            let mut incrementor = Incrementor::default();
+        self.then(|state, context| {
             let mut queue = VecDeque::from_iter(vec![state.0]);
-            let mut ambient = HashMap::new();
-            let mut modules = HashMap::new();
-            let mut lookup = BiMap::new();
+            let mut parsed = state::Parsed::default();
 
             for (library, link, module) in
-                Self::parse_libraries(&mut incrementor, &context.libraries)
+                Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
             {
-                if let Some(ambient_scope) = library.to_ambient_scope() {
-                    ambient.insert(ambient_scope, module.id);
-                }
-                modules.insert(link, module);
+                parsed.register_library(library, link, module);
             }
 
             while let Some(link) = queue.pop_front() {
-                match Self::load_and_parse_program(&mut context.resolver, &link) {
-                    Ok((input, ast)) => {
-                        let links = Self::to_links(&link, &ast);
-
-                        for link in links {
-                            if !modules.contains_key(&link) && !queue.contains(&link) {
-                                queue.push_back(link);
-                            }
+                context.load_and_parse_program(&link).map(|(text, ast)| {
+                    for link in ast.to_links(&link) {
+                        if !parsed.has_by_link(&link) && !queue.contains(&link) {
+                            queue.push_back(link);
                         }
-
-                        let namespace_id = NamespaceId(incrementor.increment());
-                        lookup.insert(link.clone(), namespace_id);
-                        modules.insert(link, state::Module::new(namespace_id, input, ast));
                     }
 
-                    Err(errs) => context.reporter.raise(errs)?,
-                }
+                    parsed.register_source(link, text, ast);
+                })?;
             }
 
-            context.reporter.catch()?;
-
-            Ok(state::Parsed {
-                modules,
-                lookup,
-                ambient,
-            })
+            Ok(parsed)
         })
     }
 }
 
-impl<'a, R> Engine<state::FromGlob<'a>, R>
+impl<T, R> Engine<T, R>
 where
+    T: IntoResult<Value = state::FromPaths>,
     R: Resolver,
 {
-    /// parse all modules that match the glob
-    pub fn parse_matched(self) -> Engine<Result<state::Parsed>, R> {
-        self.map(move |state, context| {
-            let links = state
-                .to_paths()
-                .map_err(|errs| vec![Error::InvalidGlob(errs)])?
-                .iter()
-                .map(Link::from)
-                .collect::<Vec<_>>();
-            let mut incrementor = Incrementor::default();
-            let mut modules = HashMap::new();
-            let mut ambient = HashMap::new();
-            let mut lookup = BiMap::new();
+    /// parse all modules from the provided paths
+    pub fn parse_all(self) -> Engine<Result<state::Parsed>, R> {
+        self.then(|FromPaths(links), context| {
+            let mut parsed = state::Parsed::default();
 
             for (library, link, module) in
-                Self::parse_libraries(&mut incrementor, &context.libraries)
+                Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
             {
-                if let Some(ambient_scope) = library.to_ambient_scope() {
-                    ambient.insert(ambient_scope, module.id);
-                }
-                modules.insert(link, module);
+                parsed.register_library(library, link, module);
             }
 
             for link in links {
-                match Self::load_and_parse_program(&mut context.resolver, &link) {
-                    Ok((text, ast)) => {
-                        let namespace_id = NamespaceId(incrementor.increment());
-                        lookup.insert(link.clone(), namespace_id);
-                        modules.insert(link, state::Module::new(namespace_id, text, ast));
-                    }
-
-                    Err(errs) => context.reporter.raise(errs)?,
-                }
+                context
+                    .load_and_parse_program(&link)
+                    .map(|(text, ast)| parsed.register_source(link, text, ast))?;
             }
 
-            context.reporter.catch()?;
-
-            Ok(state::Parsed {
-                modules,
-                lookup,
-                ambient,
-            })
+            Ok(parsed)
         })
     }
 }
 
-impl<'a, S, R> Engine<S, R>
+impl<T, R> Engine<T, R>
 where
-    S: state::Modules<'a>,
-    S::Meta: Clone,
-    R: Resolver,
-{
-    /// generate output files by formatting the loaded modules
-    pub fn format(&'a self) -> Writer<&ast::meta::Program<S::Meta>> {
-        Writer(self.state.modules().map(|modules| {
-            modules
-                .filter_map(|(link, state::Module { ast, .. })| match ast {
-                    state::Ast::Program(x) if link.is_internal() => Some((link.to_path(), x)),
-
-                    state::Ast::Program(_) | state::Ast::Typings(_) => None,
-                })
-                .collect::<Vec<_>>()
-        }))
-    }
-}
-
-impl<R> Engine<Result<state::Parsed>, R>
-where
+    T: IntoResult<Value = state::Parsed>,
     R: Resolver,
 {
     pub fn link(self) -> Engine<Result<state::Linked>, R> {
         self.then(|state, context| {
-            let linked = state.internal_modules().fold(
-                state.to_import_graph(),
-                |mut acc, (link, module)| {
-                    let links = Self::to_links(link, &module.ast);
+            let linked = state.link_modules(context)?;
 
-                    for x in &links {
-                        if let Some(x) = state.lookup.get_by_left(x) {
-                            acc.add_edge(&module.id, x).ok();
-                        } else {
-                            context
-                                .reporter
-                                .report(Error::UnregisteredModule(x.clone()));
-                        }
-                    }
-
-                    acc
-                },
-            );
-
-            context.reporter.catch_early()?;
-
-            let validator = Validator(&state);
-            context
-                .reporter
-                .raise(validator.assert_no_import_cycles(&linked))?;
+            Validator(context).validate(&state, &linked)?;
 
             Ok(state::Linked::new(state, linked))
         })
     }
 }
 
-impl<R> Engine<Result<state::Linked>, R>
+impl<T, R> Engine<T, R>
 where
+    T: IntoResult<Value = state::Linked>,
     R: Resolver,
 {
     fn get_module<'a>(
         state: &'a state::Linked,
         id: &'a NamespaceId,
     ) -> (&'a Link, &'a state::Module<()>) {
-        let link = state.lookup.get_by_right(id).unwrap_or_else(|| {
+        state.get_link_and_module_by_id(id).unwrap_or_else(|| {
             invariant!("did not find link for module with id {id} in state lookup")
-        });
+        })
+    }
 
-        (
-            link,
-            state
-                .get_module(link)
-                .unwrap_or_else(|| invariant!("did not find module at link {link}")),
-        )
+    fn bind_errors(
+        context: &analyze::Context,
+        errors: Vec<(NodeId, analyze::Error)>,
+    ) -> Vec<ExecutionError> {
+        errors
+            .into_iter()
+            .map(|(id, err)| ExecutionError::AnalysisError(context.canonicalize(id), err))
+            .collect()
     }
 
     pub fn analyze(self) -> Engine<Result<state::Analyzed>, R> {
-        self.then(|state, _| {
+        self.then(|state, context| {
             let mut analyzed = HashMap::default();
             let mut modules = ModuleMap::default();
 
             // TODO: abstract this so the same logic can be re-used between both libraries and source modules
-            for (link, module) in state.modules()?.filter(|(link, _)| link.is_library()) {
+            for (link, module) in state.modules().filter(|(link, _)| link.is_library()) {
                 let namespace = link.clone().to_namespace();
-                let context = analyze::Context {
+                let analyze_context = analyze::Context {
                     id: module.id,
                     namespace: &namespace,
                     modules: &modules,
-                    ambient: &state.ambient,
+                    ambient: state.ambient(),
                 };
 
+                // TODO: see if it's possible to fail after all libraries are processed instead of immediately
                 let (typed, types) = module
                     .ast
-                    .analyze(&context)
-                    .unwrap_or_else(|errs| unimplemented!("need to handle errors:\n{errs:?}"));
+                    .analyze(&analyze_context)
+                    .map_err(|errs| context.fail(Self::bind_errors(&analyze_context, errs)))?;
 
                 modules
                     .by_key
@@ -382,20 +402,21 @@ where
                 );
             }
 
-            for id in state.graph.iter() {
+            for id in state.iter_graph() {
                 let (link, module) = Self::get_module(&state, &id);
                 let namespace = link.clone().to_namespace();
-                let context = analyze::Context {
+                let analyze_context = analyze::Context {
                     id: module.id,
                     namespace: &namespace,
                     modules: &modules,
-                    ambient: &state.ambient,
+                    ambient: state.ambient(),
                 };
 
+                // TODO: see if it's possible to fail after all modules are processed instead of immediately
                 let (typed, types) = module
                     .ast
-                    .analyze(&context)
-                    .unwrap_or_else(|errs| unimplemented!("need to handle errors:\n{errs:?}"));
+                    .analyze(&analyze_context)
+                    .map_err(|errs| context.fail(Self::bind_errors(&analyze_context, errs)))?;
 
                 modules.keys.insert(namespace, module.id);
                 modules
@@ -421,8 +442,8 @@ where
     where
         T: Generator<Input = ast::shape::Program>,
     {
-        Writer(match &self.state {
-            Ok(state) => Ok(state
+        self.to_writer(|state| {
+            state
                 .internal_modules()
                 .filter_map(|(key, state::Module { ast, .. })| {
                     if let state::Ast::Program(program) = ast {
@@ -431,9 +452,7 @@ where
                         None
                     }
                 })
-                .collect()),
-
-            Err(err) => Err(err.clone()),
+                .collect()
         })
     }
 }

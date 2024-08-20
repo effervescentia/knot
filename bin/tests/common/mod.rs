@@ -1,5 +1,6 @@
 use std::{collections::HashSet, path::Path};
 
+#[allow(dead_code)]
 pub trait AssertDirContents {
     fn assert_dir_contents(&self, expected_contents: &[&str]);
 }

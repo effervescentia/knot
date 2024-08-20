@@ -1,6 +1,8 @@
-use crate::ast;
-use kore::format::{indented, SeparateEach, SuffixEach};
-use std::fmt::{Display, Formatter, Write};
+use crate::{ast, format::Object};
+use kore::format::SuffixEach;
+use std::fmt::{Display, Formatter};
+
+use super::Lambda;
 
 impl Display for ast::TypePrimitive {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
@@ -47,27 +49,9 @@ where
 
             Self::PropertyAccess(lhs, rhs) => write!(f, "{lhs}.{rhs}"),
 
-            Self::Function(parameters, result) => {
-                write!(
-                    f,
-                    "({parameters}) -> {result}",
-                    parameters = SeparateEach(", ", parameters)
-                )
-            }
+            Self::Function(parameters, result) => Lambda(parameters, result).fmt(f),
 
-            Self::Object(entries) if entries.is_empty() => {
-                write!(f, "{{}}")
-            }
-
-            Self::Object(entries) => {
-                writeln!(f, "{{")?;
-                write!(
-                    indented(f),
-                    "{entries}",
-                    entries = SuffixEach(",\n", entries)
-                )?;
-                write!(f, "}}")
-            }
+            Self::Object(entries) => Object(entries).fmt(f),
         }
     }
 }
@@ -84,7 +68,7 @@ where
             Self::View {
                 binding,
                 attributes,
-            } => write!(f, "view {binding} ({attributes});",),
+            } => write!(f, "view {binding} {attributes};",),
         }
     }
 }
@@ -308,10 +292,10 @@ mod tests {
                 ]))
             ))
             .to_string(),
-            "view Foo ({
+            "view Foo {
   bar: nil,
   fizz?: boolean,
-});"
+};"
         );
     }
 
@@ -334,7 +318,7 @@ mod tests {
             })
             .to_string(),
             "type foo = nil;
-view Bar ({});
+view Bar {};
 "
         );
     }

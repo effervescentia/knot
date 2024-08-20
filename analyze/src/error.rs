@@ -1,6 +1,10 @@
-use lang::{ast, types::Kind, CanonicalId};
+use lang::{
+    ast,
+    types::{self, Kind},
+    CanonicalId,
+};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Error {
     /* inference */
     NotInferrable(
@@ -17,6 +21,8 @@ pub enum Error {
     VariantNotFound(
         // id of the enum declaration
         CanonicalId,
+        // names of the valid variants
+        Vec<String>,
         // name of the expected variant
         String,
     ),
@@ -25,6 +31,8 @@ pub enum Error {
     DeclarationNotFound(
         // id of the enum declaration
         CanonicalId,
+        // names of the valid declarations
+        Vec<String>,
         // name of the expected declaration
         String,
     ),
@@ -40,6 +48,8 @@ pub enum Error {
     PropertyNotFound(
         // id of the object
         CanonicalId,
+        // names of the valid properties
+        Vec<String>,
         // name of the expected property
         String,
     ),
@@ -56,11 +66,21 @@ pub enum Error {
 
     /* callable-related */
     /// temporary solution until deeper type inference is implemented
-    UntypedParameter,
+    UntypedParameter(String),
 
     DefaultValueRejected(
-        // id of the default value
-        CanonicalId,
+        (
+            // id of the type definition
+            CanonicalId,
+            // the type of the parameter
+            types::Shape,
+        ),
+        (
+            // id of the default value
+            CanonicalId,
+            // the type of the default value
+            types::Shape,
+        ),
     ),
 
     /* function-related */
@@ -72,18 +92,30 @@ pub enum Error {
     UnexpectedArgument(
         // id of the argument
         CanonicalId,
+        // number of arguments expected
+        usize,
     ),
 
     MissingArgument(
         // id of the unfulfilled parameter
         CanonicalId,
+        // the type of the parameter
+        types::Shape,
     ),
 
     ArgumentRejected(
-        // id of the parameter
-        CanonicalId,
-        // id of the argument
-        CanonicalId,
+        (
+            // id of the parameter
+            CanonicalId,
+            // the type of the parameter
+            types::Shape,
+        ),
+        (
+            // id of the argument
+            CanonicalId,
+            // the type of the argument
+            types::Shape,
+        ),
     ),
 
     /* component-related */
@@ -95,6 +127,8 @@ pub enum Error {
     InvalidComponent(
         // tag name
         String,
+        // the type of the value
+        types::Shape,
     ),
 
     ComponentTypo(
@@ -110,37 +144,65 @@ pub enum Error {
     ),
 
     UnexpectedAttribute(
+        // id of the unexpected attribute
+        CanonicalId,
         // name of the attribute
         String,
     ),
 
     MissingAttribute(
-        // id of the unfulfilled parameter
+        // id of the unfulfilled attribute
         CanonicalId,
+        // name of the attribute
+        String,
+        // the type of the attribute
+        types::Shape,
     ),
 
     AttributeRejected(
-        // id of the parameter
-        CanonicalId,
-        // id of the argument
-        CanonicalId,
+        (
+            // id of the parameter
+            CanonicalId,
+            // name of the attribute
+            String,
+            // the type of the parameter
+            types::Shape,
+        ),
+        (
+            // id of the argument
+            CanonicalId,
+            // the type of the argument
+            types::Shape,
+        ),
     ),
 
     /* mismatch */
     BinaryOperationNotSupported(
         // operation being performed
         ast::BinaryOperator,
-        // id of the left-hand side
-        CanonicalId,
-        // id of the right-hand side
-        CanonicalId,
+        (
+            // id of the left-hand side
+            CanonicalId,
+            // the type of the left-hand side
+            Option<types::Shape>,
+        ),
+        (
+            // id of the right-hand side
+            CanonicalId,
+            // the type of the right-hand side
+            Option<types::Shape>,
+        ),
     ),
 
     UnaryOperationNotSupported(
         // operation being performed
         ast::UnaryOperator,
-        // id of the right-hand side
-        CanonicalId,
+        (
+            // id of the right-hand side
+            CanonicalId,
+            // the type of the right-hand side
+            Option<types::Shape>,
+        ),
     ),
 
     UnexpectedKind(

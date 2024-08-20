@@ -1,9 +1,5 @@
-use crate::{
-    config::Config,
-    path::get_root_dir,
-    reporter::{eprint_configuration, Phase},
-};
-use command::format;
+use crate::{config::Config, log, path::get_root_dir};
+use command::{format, Phase};
 use std::path::Path;
 
 pub struct Args<'a> {
@@ -15,7 +11,7 @@ impl<'a> Args<'a> {
     fn report(&self) {
         let Self { root_dir, glob } = self;
 
-        eprint_configuration(vec![
+        log::configuration(vec![
             ("root_dir", Config::Path(root_dir)),
             ("glob", Config::String(glob)),
         ]);

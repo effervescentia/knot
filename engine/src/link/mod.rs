@@ -5,7 +5,7 @@ use kore::str;
 use lang::{ast, Namespace, NamespaceKind};
 use std::{
     ffi::OsStr,
-    fmt::{Debug, Display, Formatter},
+    fmt::{Debug, Display},
     path::{Path, PathBuf},
 };
 
@@ -15,6 +15,11 @@ use crate::Library;
 pub struct Link(Namespace);
 
 impl Link {
+    #[cfg(feature = "test")]
+    pub fn mock() -> Self {
+        Self(Namespace::mock())
+    }
+
     pub fn from_import<P>(file_path: P, import: &ast::Import) -> Self
     where
         P: AsRef<Path>,
@@ -69,7 +74,7 @@ where
 }
 
 impl Display for Link {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        self.to_path().fmt(f)
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        std::fmt::Display::fmt(&self.to_path().display(), f)
     }
 }

@@ -3,14 +3,13 @@ mod build;
 mod check;
 mod config;
 mod format;
+mod log;
 mod path;
-mod reporter;
 
 use args::{Args, Command};
 use clap::Parser;
+use command::Phase;
 use kore::color::Highlight;
-
-use crate::reporter::Phase;
 
 fn main() {
     let args = Args::parse();
@@ -53,8 +52,8 @@ fn main() {
         Ok(()) => {
             eprintln!("{}{} - passed \u{2705}", Phase::Result, command.focus());
         }
-        Err(errs) => {
-            reporter::eprint_report(&errs);
+        Err(report) => {
+            eprint!("{}{}", Phase::Report, report);
 
             eprintln!("{}{} - failed \u{274c}", Phase::Result, command.focus());
 

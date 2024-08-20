@@ -1,10 +1,17 @@
-use std::path::{Path, PathBuf, StripPrefixError};
+use std::{
+    env,
+    path::{Path, PathBuf, StripPrefixError},
+};
 
 use assert_cmd::Command;
 use assert_fs::fixture::{FileWriteStr, PathChild, PathCreateDir, TempDir};
 
 fn prefix_private(path: &Path) -> Result<PathBuf, StripPrefixError> {
-    Ok(Path::new("/private").join(path.strip_prefix("/")?))
+    if env::consts::ARCH == "aarch64" {
+        return Ok(Path::new("/private").join(path.strip_prefix("/")?));
+    }
+
+    Ok(path.to_path_buf())
 }
 
 #[test]
@@ -21,7 +28,7 @@ fn root_directory_not_found() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicates::str::contains(format!(
             "Root Directory Not Found (E#111)
 
-no folder was found at the path {}",
+  No folder was found at the path {}.",
             root_dir.display()
         )));
 
@@ -44,7 +51,7 @@ fn source_directory_not_found() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicates::str::contains(format!(
             "Source Directory Not Found (E#112)
 
-no folder was found at the path {}",
+  No folder was found at the path {}.",
             prefix_private(&source_dir)?.display()
         )));
 
@@ -68,7 +75,7 @@ fn source_directory_not_relative() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicates::str::contains(format!(
             "Source Directory Not Relative (E#113)
 
-the path to the source directory should be relative to the root_dir but found {}",
+  The path to the source directory should be relative to the root_dir but found {}.",
             source_dir.display()
         )));
 
@@ -93,7 +100,7 @@ fn entrypoint_not_found() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicates::str::contains(format!(
             "Entrypoint Not Found (E#114)
 
-no module was found at the path {}",
+  No module was found at the path {}.",
             prefix_private(&entry)?.display()
         )));
 
@@ -118,7 +125,7 @@ fn entrypoint_not_relative() -> Result<(), Box<dyn std::error::Error>> {
         .stderr(predicates::str::contains(format!(
             "Entrypoint Not Relative (E#115)
 
-the path to the entrypoint should be relative to the source_dir but found {}",
+  The path to the entrypoint should be relative to the source_dir but found {}.",
             entry.display()
         )));
 

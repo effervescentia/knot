@@ -1,0 +1,5 @@
+const FOO = true;
+type Bar = boolean;
+
+type Foo = FOO;
+const BAR = Bar;

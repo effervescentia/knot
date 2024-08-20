@@ -1,5 +1,4 @@
-use super::Errors;
-use crate::{Error, Result};
+use super::{ExecutionError, Failure, IntoErrors};
 use std::{
     cell::{Ref, RefCell, RefMut},
     rc::Rc,
@@ -7,14 +6,14 @@ use std::{
 
 struct ReporterState {
     fail_fast: bool,
-    errors: Vec<Error>,
+    errors: Vec<ExecutionError>,
 }
 
 impl ReporterState {
-    pub const fn new(fail_fast: bool) -> Self {
+    pub fn new(fail_fast: bool) -> Self {
         Self {
             fail_fast,
-            errors: vec![],
+            errors: Default::default(),
         }
     }
 }
@@ -38,10 +37,6 @@ impl Reporter {
         (*self.state).borrow_mut()
     }
 
-    fn errors(&self) -> Vec<Error> {
-        self.state_mut().errors.clone()
-    }
-
     fn should_fail_early(&self) -> bool {
         self.state().fail_fast && self.should_fail()
     }
@@ -50,35 +45,51 @@ impl Reporter {
         !self.state().errors.is_empty()
     }
 
-    pub fn report<T>(&mut self, x: T)
+    /// add errors to state
+    fn extend<T>(&mut self, x: T)
     where
-        T: Errors,
+        T: IntoErrors,
     {
-        self.state_mut().errors.extend(x.errors());
+        self.state_mut().errors.extend(x.into_errors());
     }
 
-    pub fn raise<I>(&mut self, x: I) -> Result<()>
-    where
-        I: Errors,
-    {
-        self.report(x);
-        self.catch_early()
+    fn to_failure(&self) -> Failure {
+        let state = (*self.state).borrow();
+
+        Failure::Execution(state.errors.clone())
     }
 
-    pub fn catch_early(&self) -> Result<()> {
+    /// report an error
+    /// returns an `Err` if configured to fail fast otherwise `Ok`
+    pub fn raise<T>(&mut self, x: T) -> crate::Internal<()>
+    where
+        T: IntoErrors,
+    {
+        self.extend(x);
+
         if self.should_fail_early() {
-            Err(self.errors())
+            Err(Box::new(self.to_failure()))
         } else {
             Ok(())
         }
     }
 
-    pub fn catch(&self) -> Result<()> {
+    /// returns an `Err` if any errors have been reported otherwise `Ok`
+    pub fn flush(&self) -> crate::Internal<()> {
         if self.should_fail() {
-            Err(self.errors())
+            Err(Box::new(self.to_failure()))
         } else {
             Ok(())
         }
+    }
+
+    /// report an error and return the report
+    pub fn fail<T>(&mut self, x: T) -> Failure
+    where
+        T: IntoErrors,
+    {
+        self.extend(x);
+        self.to_failure()
     }
 }
 

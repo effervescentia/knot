@@ -17,11 +17,11 @@ fn cyclic() {
     );
 
     assert_eq!(
-        result,
-        Err(vec![engine::Error::ImportCycle(vec![
+        result.unwrap_err().exec_errors().unwrap(),
+        &vec![engine::ExecutionError::ImportCycle(vec![
             Link::from("b"),
             Link::from("a"),
             Link::from("c"),
-        ])])
+        ])]
     );
 }

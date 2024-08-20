@@ -1,39 +1,49 @@
-use crate::{link::ImportGraph, state, Error, Result};
+use crate::{link::ImportGraph, state, Context, ExecutionError};
 use kore::invariant;
 
-pub struct Validator<'a>(pub &'a state::Parsed);
+type Result = Option<Vec<ExecutionError>>;
 
-impl<'a> Validator<'a> {
-    pub fn assert_no_import_cycles(&self, graph: &ImportGraph) -> Result<()> {
+pub struct Validator<'a, R>(pub &'a mut Context<R>);
+
+impl<'a, R> Validator<'a, R> {
+    pub fn validate(self, state: &state::Parsed, graph: &ImportGraph) -> crate::Internal<()> {
+        let errors = vec![Self::assert_no_import_cycles(state, graph)]
+            .into_iter()
+            .flat_map(std::option::Option::unwrap_or_default)
+            .collect::<Vec<_>>();
+
+        self.0.raise(errors)
+    }
+
+    fn assert_no_import_cycles(state: &state::Parsed, graph: &ImportGraph) -> Result {
         if !graph.is_cyclic() {
-            return Ok(());
+            return None;
         }
 
         let errors = graph
             .cycles()
             .into_iter()
             .map(|x| {
-                Error::ImportCycle(
+                ExecutionError::ImportCycle(
                     x.to_vec()
                         .iter()
                         .map(|x| {
-                            self.0
-                                .lookup
-                                .get_by_right(x)
+                            state
+                                .get_link_by_id(x)
                                 .unwrap_or_else(|| {
                                     invariant!("lookup did not contain module with id {x}")
                                 })
                                 .clone()
                         })
-                        .collect::<Vec<_>>(),
+                        .collect(),
                 )
             })
             .collect::<Vec<_>>();
 
         if errors.is_empty() {
-            Ok(())
+            None
         } else {
-            Err(errors)
+            Some(errors)
         }
     }
 }

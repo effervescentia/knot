@@ -28,7 +28,7 @@ mod tests {
         assert_eq_sorted!(
             parse(
                 "type foo = nil;
-view Foo ({ bar: nil, fizz?: boolean });"
+view Foo { bar: nil, fizz?: boolean };"
             )
             .unwrap()
             .0,
@@ -58,33 +58,33 @@ view Foo ({ bar: nil, fizz?: boolean });"
                                     ast::ObjectTypeExpressionEntry::Required(
                                         ast::raw::Binding::new(
                                             ast::Binding(str!("bar")),
-                                            Range::new((2, 13), (2, 15))
+                                            Range::new((2, 12), (2, 14))
                                         ),
                                         ast::raw::TypeExpression::raw(
                                             ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                                            Range::new((2, 18), (2, 20))
+                                            Range::new((2, 17), (2, 19))
                                         )
                                     ),
                                     ast::ObjectTypeExpressionEntry::Optional(
                                         ast::raw::Binding::new(
                                             ast::Binding(str!("fizz")),
-                                            Range::new((2, 23), (2, 26))
+                                            Range::new((2, 22), (2, 25))
                                         ),
                                         ast::raw::TypeExpression::raw(
                                             ast::TypeExpression::Primitive(
                                                 ast::TypePrimitive::Boolean
                                             ),
-                                            Range::new((2, 30), (2, 36))
+                                            Range::new((2, 29), (2, 35))
                                         )
                                     )
                                 ]),
-                                Range::new((2, 11), (2, 38))
+                                Range::new((2, 10), (2, 37))
                             )
                         ),
-                        Range::new((2, 1), (2, 39))
+                        Range::new((2, 1), (2, 37))
                     )
                 ]),
-                Range::new((1, 1), (2, 40))
+                Range::new((1, 1), (2, 38))
             )
         );
     }

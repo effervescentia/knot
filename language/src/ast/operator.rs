@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum UnaryOperator {
     /* logical */
     Not,
@@ -11,7 +11,7 @@ pub enum UnaryOperator {
 }
 
 impl Display for UnaryOperator {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Self::Not => write!(f, "!"),
 
@@ -21,7 +21,7 @@ impl Display for UnaryOperator {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BinaryOperator {
     /* logical */
     And,
@@ -46,7 +46,7 @@ pub enum BinaryOperator {
 }
 
 impl Display for BinaryOperator {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Self::And => write!(f, "&&"),
             Self::Or => write!(f, "||"),

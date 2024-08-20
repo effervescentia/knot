@@ -22,7 +22,11 @@ pub fn infer(state: &State, op: ast::BinaryOperator, lhs: CanonicalId, rhs: Cano
         (Some(Err(_)), _) => Action::Raise(Error::NotInferrable(vec![lhs])),
         (_, Some(Err(_))) => Action::Raise(Error::NotInferrable(vec![rhs])),
 
-        (Some(_), Some(_)) => Action::Raise(Error::BinaryOperationNotSupported(op, lhs, rhs)),
+        (Some(_), Some(_)) => Action::Raise(Error::BinaryOperationNotSupported(
+            op,
+            (lhs, None),
+            (rhs, None),
+        )),
     }
 }
 
@@ -133,8 +137,8 @@ mod tests {
             super::infer(&state, OP, CanonicalId::mock(1), CanonicalId::mock(1)),
             Action::Raise(Error::BinaryOperationNotSupported(
                 OP,
-                CanonicalId::mock(1),
-                CanonicalId::mock(1)
+                (CanonicalId::mock(1), None),
+                (CanonicalId::mock(1), None)
             ))
         );
     }

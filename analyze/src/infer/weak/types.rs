@@ -106,7 +106,7 @@ mod tests {
     fn parameter_inference() {
         assert_eq!(
             ast::Parameter::new(str!("foo"), None, None).to_weak(),
-            (Kind::Value, Type::Infer(Inference::Parameter))
+            (Kind::Value, Type::Infer(Inference::Parameter(str!("foo"))))
         );
     }
 

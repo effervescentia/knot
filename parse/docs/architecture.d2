@@ -1,0 +1,9 @@
+parser: Parser<Result>
+stream: Stream
+result: Option<Result, Stream'>
+parse: Parse
+parse.shape: oval
+
+parser -> parse
+stream -> parse
+parse -> result

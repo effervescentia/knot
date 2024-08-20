@@ -21,7 +21,11 @@ fn infer_module(
 
         Some((.., id)) => Action::Raise(Error::UnexpectedKind(*id, *allowed_kind)),
 
-        None => Action::Raise(Error::DeclarationNotFound(*module, property.to_owned())),
+        None => Action::Raise(Error::DeclarationNotFound(
+            *module,
+            declarations.iter().map(|x| x.0.clone()).collect(),
+            property.to_owned(),
+        )),
     }
 }
 
@@ -38,7 +42,18 @@ fn infer_object(
             ObjectTypeEntry::Optional(..) => unimplemented!("need to wrap this in an option"),
         },
 
-        None => Action::Raise(Error::PropertyNotFound(*object, property.to_owned())),
+        None => Action::Raise(Error::PropertyNotFound(
+            *object,
+            entries
+                .iter()
+                .map(|x| match x {
+                    ObjectTypeEntry::Required(name, ..) | ObjectTypeEntry::Optional(name, ..) => {
+                        name.clone()
+                    }
+                })
+                .collect(),
+            property.to_owned(),
+        )),
     }
 }
 
@@ -52,7 +67,11 @@ fn infer_enumerated(
             Enumerated::Variant(parameters.clone(), *enumerated),
         ))),
 
-        None => Action::Raise(Error::VariantNotFound(*enumerated, property.to_owned())),
+        None => Action::Raise(Error::VariantNotFound(
+            *enumerated,
+            variants.iter().map(|x| x.0.clone()).collect(),
+            property.to_owned(),
+        )),
     }
 }
 
@@ -140,7 +159,7 @@ mod tests {
                 (
                     Kind::Value,
                     Ok(Type::Value(types::Type::Enumerated(
-                        Enumerated::Declaration(vec![]),
+                        Enumerated::Declaration(vec![(str!("bar"), vec![CanonicalId::mock(2)])]),
                     ))),
                 ),
             )],
@@ -148,7 +167,11 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Raise(Error::VariantNotFound(CanonicalId::mock(1), str!("foo")))
+            Action::Raise(Error::VariantNotFound(
+                CanonicalId::mock(1),
+                vec![str!("bar")],
+                str!("foo")
+            ))
         );
     }
 
@@ -189,13 +212,22 @@ mod tests {
             &ctx,
             vec![(
                 NodeId(1),
-                (Kind::Value, Ok(Type::Value(types::Type::Object(vec![])))),
+                (
+                    Kind::Value,
+                    Ok(Type::Value(types::Type::Object(vec![
+                        ObjectTypeEntry::Required(str!("bar"), CanonicalId::mock(2)),
+                    ]))),
+                ),
             )],
         );
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Raise(Error::PropertyNotFound(CanonicalId::mock(1), str!("foo")))
+            Action::Raise(Error::PropertyNotFound(
+                CanonicalId::mock(1),
+                vec![str!("bar")],
+                str!("foo")
+            ))
         );
     }
 
@@ -256,7 +288,14 @@ mod tests {
             &ctx,
             vec![(
                 NodeId(1),
-                (Kind::Value, Ok(Type::Value(types::Type::Module(vec![])))),
+                (
+                    Kind::Value,
+                    Ok(Type::Value(types::Type::Module(vec![(
+                        str!("bar"),
+                        Kind::Value,
+                        CanonicalId::mock(2),
+                    )]))),
+                ),
             )],
         );
 
@@ -264,6 +303,7 @@ mod tests {
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
             Action::Raise(Error::DeclarationNotFound(
                 CanonicalId::mock(1),
+                vec![str!("bar")],
                 str!("foo")
             ))
         );

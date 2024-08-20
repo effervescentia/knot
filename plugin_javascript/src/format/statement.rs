@@ -26,10 +26,7 @@ impl Display for Statement {
                     "import {{ {imports} }} from \"{namespace}\";",
                     imports = SeparateEach(
                         ", ",
-                        &imports
-                            .iter()
-                            .map(|(name, alias)| Import(name, alias))
-                            .collect()
+                        imports.iter().map(|(name, alias)| Import(name, alias))
                     )
                 )
             }

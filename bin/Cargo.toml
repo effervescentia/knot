@@ -9,6 +9,7 @@ edition = "2021"
 clap = { version = "4.4.18", features = ["derive"] }
 exitcode = "1.1.2"
 kore = { package = "knot_core", path = "../kore" }
+lang = { package = "knot_language", path = "../language" }
 engine = { package = "knot_engine", path = "../engine" }
 command = { package = "knot_command", path = "../command" }
 js = { package = "knot_plugin_javascript", path = "../plugin_javascript" }

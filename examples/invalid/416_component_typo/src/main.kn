@@ -1,0 +1,3 @@
+view Foo -> nil;
+
+const FOO = <Foo></Bar>;

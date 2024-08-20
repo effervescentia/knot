@@ -153,6 +153,8 @@
     "clippy::verbose_file_reads",
   ],
   "cSpell.words": [
-    "kore"
+    "kore",
+    "renderable",
+    "stdext"
   ],
 }

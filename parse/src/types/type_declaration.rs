@@ -29,14 +29,10 @@ where
     m::terminated((
         m::keyword("view"),
         m::binding(),
-        m::between(
-            m::symbol('('),
-            m::symbol(')'),
-            super::type_expression::type_expression(),
-        ),
+        super::type_expression::type_expression(),
     ))
-    .map(|((_, start), binding, (attributes, end))| {
-        let range = &start + &end;
+    .map(|((_, start), binding, attributes)| {
+        let range = &start + attributes.0.range();
 
         ast::raw::TypeDeclaration::raw(ast::TypeDeclaration::view(binding, attributes), range)
     })
@@ -80,7 +76,7 @@ mod tests {
     #[test]
     fn view() {
         assert_eq!(
-            parse("view Foo ({ bar: nil, fizz?: boolean })").unwrap().0,
+            parse("view Foo { bar: nil, fizz?: boolean }").unwrap().0,
             ast::raw::TypeDeclaration::raw(
                 ast::TypeDeclaration::view(
                     ast::raw::Binding::new(ast::Binding(str!("Foo")), Range::new((1, 6), (1, 8))),
@@ -89,28 +85,28 @@ mod tests {
                             ast::ObjectTypeExpressionEntry::Required(
                                 ast::raw::Binding::new(
                                     ast::Binding(str!("bar")),
-                                    Range::new((1, 13), (1, 15))
+                                    Range::new((1, 12), (1, 14))
                                 ),
                                 ast::raw::TypeExpression::raw(
                                     ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                                    Range::new((1, 18), (1, 20))
+                                    Range::new((1, 17), (1, 19))
                                 )
                             ),
                             ast::ObjectTypeExpressionEntry::Optional(
                                 ast::raw::Binding::new(
                                     ast::Binding(str!("fizz")),
-                                    Range::new((1, 23), (1, 26))
+                                    Range::new((1, 22), (1, 25))
                                 ),
                                 ast::raw::TypeExpression::raw(
                                     ast::TypeExpression::Primitive(ast::TypePrimitive::Boolean),
-                                    Range::new((1, 30), (1, 36))
+                                    Range::new((1, 29), (1, 35))
                                 )
                             )
                         ]),
-                        Range::new((1, 11), (1, 38))
+                        Range::new((1, 10), (1, 37))
                     )
                 ),
-                Range::new((1, 1), (1, 39))
+                Range::new((1, 1), (1, 37))
             )
         );
     }

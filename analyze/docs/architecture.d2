@@ -1,0 +1,42 @@
+semantic_analysis: Semantic Analysis
+semantic_analysis.shape: oval
+
+input: Input {
+  raw: Raw AST
+  context: Context
+}
+
+output: Output {
+  typed: Typed AST
+  types: Types
+}
+
+infer: Type Inference {
+  infer_weak: Weak Inference
+  infer_weak.shape: oval
+  infer_strong: Strong Inference
+  infer_strong.shape: oval
+  weak_output: Weak Output
+  strong_output: Strong Output
+
+  into_typed: Resolve Types
+  into_typed.shape: oval
+  canonicalize: Canonicalize
+  canonicalize.shape: oval
+
+  infer_weak -> weak_output
+  weak_output -> infer_strong
+  infer_strong -> infer_strong: incremental
+  infer_strong -> strong_output
+  strong_output -> into_typed
+  strong_output -> canonicalize
+}
+
+input.raw -> infer.infer_weak
+input.raw -> infer.into_typed
+input.context -> infer.infer_strong
+input.context -> infer.into_typed
+input.context -> infer.canonicalize
+infer.into_typed -> output.typed
+infer.canonicalize -> output.types
+output.typed -> semantic_analysis

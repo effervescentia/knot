@@ -1,9 +1,13 @@
 mod shape;
 
-pub use shape::ToShape;
-use std::fmt::Debug;
+use crate::{
+    ast::TypePrimitive,
+    format::{Lambda, Object},
+};
+pub use shape::{ToShape, Type as Shape};
+use std::fmt::{Debug, Display, Pointer};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
     Type,
     Value,
@@ -11,12 +15,30 @@ pub enum Kind {
 }
 
 impl Kind {
+    pub const fn invert(&self) -> Self {
+        match self {
+            Self::Type => Self::Value,
+            Self::Value => Self::Type,
+            Self::Mixed => Self::Mixed,
+        }
+    }
+
     pub fn can_accept(&self, other: &Self) -> bool {
         self == other || matches!((self, other), (Self::Mixed, _) | (_, Self::Mixed))
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+impl Display for Kind {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::Type => write!(f, "type"),
+            Self::Value => write!(f, "value"),
+            Self::Mixed => write!(f, "mixed"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Enumerated<T> {
     Declaration(Vec<(String, Vec<T>)>),
     Variant(Vec<T>, T),
@@ -75,7 +97,7 @@ impl<T> Enumerated<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ObjectTypeEntry<T> {
     Required(String, T),
     Optional(String, T),
@@ -121,7 +143,20 @@ impl<T> ObjectTypeEntry<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+impl<T> Display for ObjectTypeEntry<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::Required(binding, x) => write!(f, "{binding}: {x}"),
+
+            Self::Optional(binding, x) => write!(f, "{binding}?: {x}"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type<T> {
     Nil,
     Boolean,
@@ -223,5 +258,40 @@ impl<T> Type<T> {
 
     pub fn to_shallow(&self) -> Type<()> {
         self.map(&|_| ())
+    }
+}
+
+impl<T> Display for Type<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::Nil => Display::fmt(&TypePrimitive::Nil, f),
+            Self::Boolean => Display::fmt(&TypePrimitive::Boolean, f),
+            Self::Integer => Display::fmt(&TypePrimitive::Integer, f),
+            Self::Float => Display::fmt(&TypePrimitive::Float, f),
+            Self::String => Display::fmt(&TypePrimitive::String, f),
+            Self::Style => Display::fmt(&TypePrimitive::Style, f),
+            Self::Element => Display::fmt(&TypePrimitive::Element, f),
+
+            Self::Enumerated(enumerated) => enumerated.fmt(f),
+
+            Self::Function(parameters, result) => Lambda(parameters, result).fmt(f),
+
+            Self::Object(entries) => Object(entries).fmt(f),
+
+            Self::Module(entities) => write!(
+                f,
+                "module {}",
+                Object(
+                    entities
+                        .iter()
+                        .map(|(name, _, type_)| format!("{name}: {type_}"))
+                )
+            ),
+
+            Self::View(attributes) => write!(f, "view ({})", Object(attributes)),
+        }
     }
 }

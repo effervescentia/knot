@@ -31,48 +31,48 @@ type GlobalAttributes = {
   translate?: boolean,
 };
 
-view address (GlobalAttributes);
-view article (GlobalAttributes);
-view aside (GlobalAttributes);
-view footer (GlobalAttributes);
-view header (GlobalAttributes);
-view h1 (GlobalAttributes);
-view h2 (GlobalAttributes);
-view h3 (GlobalAttributes);
-view h4 (GlobalAttributes);
-view h5 (GlobalAttributes);
-view h6 (GlobalAttributes);
-view main (GlobalAttributes);
-view nav (GlobalAttributes);
-view section (GlobalAttributes);
+view address GlobalAttributes;
+view article GlobalAttributes;
+view aside GlobalAttributes;
+view footer GlobalAttributes;
+view header GlobalAttributes;
+view h1 GlobalAttributes;
+view h2 GlobalAttributes;
+view h3 GlobalAttributes;
+view h4 GlobalAttributes;
+view h5 GlobalAttributes;
+view h6 GlobalAttributes;
+view main GlobalAttributes;
+view nav GlobalAttributes;
+view section GlobalAttributes;
 
-view blockquote ({
+view blockquote {
   ...GlobalAttributes,
   cite?: string,
-});
-view dd (GlobalAttributes);
-view div (GlobalAttributes);
-view dl (GlobalAttributes);
-view dt (GlobalAttributes);
-view figcaption (GlobalAttributes);
-view figure (GlobalAttributes);
-view hr (GlobalAttributes);
-view li ({
+};
+view dd GlobalAttributes;
+view div GlobalAttributes;
+view dl GlobalAttributes;
+view dt GlobalAttributes;
+view figcaption GlobalAttributes;
+view figure GlobalAttributes;
+view hr GlobalAttributes;
+view li {
   ...GlobalAttributes,
   value?: integer
-});
-view menu (GlobalAttributes);
-view ol ({
+};
+view menu GlobalAttributes;
+view ol {
   ...GlobalAttributes,
   reversed?: boolean,
   start?: integer,
   type?: string,
-});
-view p (GlobalAttributes);
-view pre (GlobalAttributes);
-view ul (GlobalAttributes);
+};
+view p GlobalAttributes;
+view pre GlobalAttributes;
+view ul GlobalAttributes;
 
-view a ({
+view a {
   ...GlobalAttributes,
   download?: boolean,
   href?: string,
@@ -82,49 +82,49 @@ view a ({
   rel?: string,
   target?: string,
   type?: string,
-});
-view abbr (GlobalAttributes);
-view b (GlobalAttributes);
-view bdi (GlobalAttributes);
-view bdo ({
+};
+view abbr GlobalAttributes;
+view b GlobalAttributes;
+view bdi GlobalAttributes;
+view bdo {
   ...GlobalAttributes,
   dir?: string,
-});
-view br (GlobalAttributes);
-view cite (GlobalAttributes);
-view code (GlobalAttributes);
-view data ({
+};
+view br GlobalAttributes;
+view cite GlobalAttributes;
+view code GlobalAttributes;
+view data {
   ...GlobalAttributes,
   value?: string,
-});
-view dfn (GlobalAttributes);
-view em (GlobalAttributes);
-view i (GlobalAttributes);
-view kbd (GlobalAttributes);
-view mark (GlobalAttributes);
-view q ({
+};
+view dfn GlobalAttributes;
+view em GlobalAttributes;
+view i GlobalAttributes;
+view kbd GlobalAttributes;
+view mark GlobalAttributes;
+view q {
   ...GlobalAttributes,
   cite?: string,
-});
-view rp (GlobalAttributes);
-view rt (GlobalAttributes);
-view ruby (GlobalAttributes);
-view s (GlobalAttributes);
-view samp (GlobalAttributes);
-view small (GlobalAttributes);
-view span (GlobalAttributes);
-view strong (GlobalAttributes);
-view sub (GlobalAttributes);
-view sup (GlobalAttributes);
-view time ({
+};
+view rp GlobalAttributes;
+view rt GlobalAttributes;
+view ruby GlobalAttributes;
+view s GlobalAttributes;
+view samp GlobalAttributes;
+view small GlobalAttributes;
+view span GlobalAttributes;
+view strong GlobalAttributes;
+view sub GlobalAttributes;
+view sup GlobalAttributes;
+view time {
   ...GlobalAttributes,
   datetime?: string,
-});
-view u (GlobalAttributes);
-view var (GlobalAttributes);
-view wbr (GlobalAttributes);
+};
+view u GlobalAttributes;
+view var GlobalAttributes;
+view wbr GlobalAttributes;
 
-view area ({
+view area {
   ...GlobalAttributes,
   alt?: string,
   coords?: string,
@@ -135,8 +135,8 @@ view area ({
   rel?: string,
   shape?: string,
   target?: string,
-});
-view audio ({
+};
+view audio {
   ...GlobalAttributes,
   autoplay?: boolean,
   controls?: boolean,
@@ -147,8 +147,8 @@ view audio ({
   muted?: boolean,
   preload?: string,
   src?: string,
-});
-view img ({
+};
+view img {
   ...GlobalAttributes,
   alt?: string,
   crossorigin?: string,
@@ -164,20 +164,20 @@ view img ({
   srcset?: string,
   width?: integer,
   usemap?: string,
-});
-view map ({
+};
+view map {
   ...GlobalAttributes,
   name?: string,
-});
-view track ({
+};
+view track {
   ...GlobalAttributes,
   default?: boolean,
   kind?: string,
   label?: string,
   src?: string,
   srclang?: string,
-});
-view video ({
+};
+view video {
   ...GlobalAttributes,
   autoplay?: boolean,
   controls?: boolean,
@@ -193,16 +193,16 @@ view video ({
   preload?: string,
   src?: string,
   width?: integer,
-});
+};
 
-view embed ({
+view embed {
   ...GlobalAttributes,
   height?: integer,
   src?: string,
   type?: string,
   width?: integer,
-});
-view iframe ({
+};
+view iframe {
   ...GlobalAttributes,
   allow?: string,
   allowfullscreen?: boolean,
@@ -214,8 +214,8 @@ view iframe ({
   src?: string,
   srcdoc?: string,
   width?: integer,
-});
-view object ({
+};
+view object {
   ...GlobalAttributes,
   data?: string,
   form?: string,
@@ -223,14 +223,14 @@ view object ({
   name?: string,
   type?: string,
   width?: integer,
-});
-view picture (GlobalAttributes);
-view portal ({
+};
+view picture GlobalAttributes;
+view portal {
   ...GlobalAttributes,
   referrerpolicy?: string,
   src?: string,
-});
-view source ({
+};
+view source {
   ...GlobalAttributes,
   type?: string,
   src?: string,
@@ -239,55 +239,55 @@ view source ({
   media?: string,
   height?: integer,
   width?: integer,
-});
+};
 
-view canvas ({
+view canvas {
   ...GlobalAttributes,
   height?: integer,
   width?: integer,
-});
+};
 
-view del ({
+view del {
   ...GlobalAttributes,
   cite?: string,
   datetime?: string,
-});
-view ins ({
+};
+view ins {
   ...GlobalAttributes,
   cite?: string,
   datetime?: string,
-});
+};
 
-view caption (GlobalAttributes);
-view col ({
+view caption GlobalAttributes;
+view col {
   ...GlobalAttributes,
   span?: integer,
-});
-view colgroup ({
+};
+view colgroup {
   ...GlobalAttributes,
   span?: integer,
-});
-view table (GlobalAttributes);
-view tbody (GlobalAttributes);
-view td ({
+};
+view table GlobalAttributes;
+view tbody GlobalAttributes;
+view td {
   ...GlobalAttributes,
   colspan?: integer,
   headers?: string,
   rowspan?: integer,
-});
-view tfoot (GlobalAttributes);
-view th ({
+};
+view tfoot GlobalAttributes;
+view th {
   ...GlobalAttributes,
   abbr?: string,
   colspan?: integer,
   headers?: string,
   rowspan?: integer,
   scope?: string,
-});
-view thead (GlobalAttributes);
-view tr (GlobalAttributes);
+};
+view thead GlobalAttributes;
+view tr GlobalAttributes;
 
-view button ({
+view button {
   ...GlobalAttributes,
   autofocus?: boolean,
   disabled?: boolean,
@@ -302,15 +302,15 @@ view button ({
   popovertargetaction?: string,
   type?: string,
   value?: string,
-});
-view datalist (GlobalAttributes);
-view fieldset ({
+};
+view datalist GlobalAttributes;
+view fieldset {
   ...GlobalAttributes,
   disabled?: boolean,
   form?: string,
   name?: string,
-});
-view form ({
+};
+view form {
   ...GlobalAttributes,
   autocapitalize?: string,
   autocomplete?: string,
@@ -322,8 +322,8 @@ view form ({
   method?: string,
   novalidate?: boolean,
   target?: string,
-});
-view input ({
+};
+view input {
   ...GlobalAttributes,
   accept?: string,
   alt?: string,
@@ -359,13 +359,13 @@ view input ({
   type?: string,
   value?: string,
   width?: integer,
-});
-view label ({
+};
+view label {
   ...GlobalAttributes,
   for?: string,
-});
-view legend (GlobalAttributes);
-view meter ({
+};
+view legend GlobalAttributes;
+view meter {
   ...GlobalAttributes,
   value?: float,
   min?: float,
@@ -374,31 +374,31 @@ view meter ({
   high?: float,
   optimum?: float,
   form?: string,
-});
-view optgroup ({
+};
+view optgroup {
   ...GlobalAttributes,
   disabled?: boolean,
   label?: string,
-});
-view option ({
+};
+view option {
   ...GlobalAttributes,
   disabled?: boolean,
   label?: string,
   selected?: boolean,
   value?: string,
-});
-view output ({
+};
+view output {
   ...GlobalAttributes,
   for?: string,
   form?: string,
   name?: string,
-});
-view progress ({
+};
+view progress {
   ...GlobalAttributes,
   max?: float,
   value?: float,
-});
-view select ({
+};
+view select {
   ...GlobalAttributes,
   autocomplete?: string,
   autofocus?: boolean,
@@ -408,8 +408,8 @@ view select ({
   name?: string,
   required?: boolean,
   size?: integer,
-});
-view textarea ({
+};
+view textarea {
   ...GlobalAttributes,
   autocapitalize?: string,
   autocomplete?: string,
@@ -427,15 +427,15 @@ view textarea ({
   rows?: integer,
   spellcheck?: string,
   wrap?: string,
-});
+};
 
-view details ({
+view details {
   ...GlobalAttributes,
   open?: boolean,
   name?: string,
-});
-view dialog ({
+};
+view dialog {
   ...GlobalAttributes,
   open?: boolean,
-});
-view summary (GlobalAttributes);
+};
+view summary GlobalAttributes;

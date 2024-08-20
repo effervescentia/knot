@@ -179,7 +179,7 @@ impl Expression {
         }
     }
 
-    pub fn from_attributes(xs: &Vec<ast::shape::Attribute>, opts: &Options) -> Self {
+    pub fn from_attributes(xs: &[ast::shape::Attribute], opts: &Options) -> Self {
         if xs.is_empty() {
             return Self::Null;
         }

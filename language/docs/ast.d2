@@ -1,0 +1,70 @@
+direction: up
+
+Binding
+Program
+Typings
+
+AST: {
+  Primitive
+  Expression
+  Statement
+
+  Attribute
+  Component
+
+  TypePrimitive
+  ObjectTypeExpressionEntry
+  TypeExpression
+
+  Visibility
+  Storage
+  Parameter
+  Declaration
+
+  ImportSource
+  Import
+  Module
+
+  TypeDeclaration
+  TypeModule
+
+  # relationships
+
+  Expression -> Primitive
+  Expression -> Expression
+  Expression -> Statement
+  Expression -> Component
+  Statement -> Expression
+
+  Attribute -> Expression
+  Component -> Attribute
+  Component -> Expression
+
+  TypeExpression -> TypePrimitive
+  TypeExpression -> TypeExpression
+  TypeExpression -> ObjectTypeExpressionEntry
+  ObjectTypeExpressionEntry -> TypeExpression
+
+  Storage -> Visibility
+  Parameter -> Expression
+  Parameter -> TypeExpression
+  Declaration -> Storage
+  Declaration -> Parameter
+  Declaration -> Expression
+  Declaration -> TypeExpression
+  Declaration -> Module
+
+  Import -> ImportSource
+  Module -> Import
+  Module -> Declaration
+
+  TypeDeclaration -> TypeExpression
+  TypeModule -> TypeDeclaration
+}
+
+AST.Storage -> Binding
+AST.ObjectTypeExpressionEntry -> Binding
+AST.TypeDeclaration -> Binding
+
+Program -> AST.Module
+Typings -> AST.TypeModule

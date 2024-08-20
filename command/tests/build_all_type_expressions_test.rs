@@ -2,13 +2,16 @@
 mod common;
 
 use common::assert_build_single;
+use std::fmt::Write;
 
 fn assert_build_type_expressions(name: &str, inputs: &[&str]) {
     let source = inputs
         .iter()
         .enumerate()
-        .map(|(index, input)| format!("type TYPE_{index} = {input};"))
-        .collect::<String>();
+        .fold(String::new(), |mut acc, (index, input)| {
+            write!(&mut acc, "type TYPE_{index} = {input};").ok();
+            acc
+        });
 
     let compiled = "import { $knot } from \"@knot/runtime\";\n";
 
