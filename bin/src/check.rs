@@ -10,6 +10,7 @@ pub struct Args<'a> {
     pub root_dir: &'a Path,
     pub source_dir: &'a Path,
     pub entry: &'a Path,
+    pub verbose: bool,
 }
 
 impl<'a> Args<'a> {
@@ -18,7 +19,12 @@ impl<'a> Args<'a> {
             root_dir,
             source_dir,
             entry,
+            verbose,
         } = self;
+
+        if !verbose {
+            return;
+        }
 
         log::configuration(vec![
             ("root_dir", Config::Path(root_dir)),
@@ -30,6 +36,7 @@ impl<'a> Args<'a> {
                 "entry",
                 Config::rel_path(entry, root_dir.join(source_dir).join(entry).as_path()),
             ),
+            ("verbose", Config::Boolean(*verbose)),
         ]);
     }
 }
@@ -48,5 +55,6 @@ pub fn command(args: Args) -> engine::Result<()> {
     check::command(&check::Options {
         entry: args.entry,
         source_dir: &source_dir,
+        verbose: args.verbose,
     })
 }

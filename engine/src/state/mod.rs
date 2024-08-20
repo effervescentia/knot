@@ -30,7 +30,10 @@ impl<T> Module<T> {
 }
 
 #[derive(Clone)]
-pub struct FromEntry(pub Link);
+pub struct FromEntry {
+    pub entry: Link,
+    pub verbose: bool,
+}
 
 impl IntoResult for FromEntry {
     type Value = Self;
@@ -43,7 +46,10 @@ impl IntoResult for FromEntry {
 impl Enrich for FromEntry {}
 
 #[derive(Clone)]
-pub struct FromPaths(pub Vec<Link>);
+pub struct FromPaths {
+    pub paths: Vec<Link>,
+    pub verbose: bool,
+}
 
 impl IntoResult for FromPaths {
     type Value = Self;
@@ -58,11 +64,12 @@ impl Enrich for FromPaths {}
 pub struct FromGlob<'a> {
     pub dir: &'a Path,
     pub glob: &'a str,
+    pub verbose: bool,
 }
 
 impl<'a> FromGlob<'a> {
     pub fn to_paths(&'a self) -> Result<FromPaths> {
-        let FromGlob { dir, glob } = self;
+        let FromGlob { dir, glob, verbose } = self;
 
         match glob::glob(&[dir.to_string_lossy().to_string().as_str(), glob].join("/")) {
             Ok(x) => {
@@ -85,7 +92,10 @@ impl<'a> FromGlob<'a> {
                 });
 
                 if errors.is_empty() {
-                    Ok(FromPaths(paths.iter().map(Link::from).collect()))
+                    Ok(FromPaths {
+                        paths: paths.iter().map(Link::from).collect(),
+                        verbose: *verbose,
+                    })
                 } else {
                     Err(errors)
                 }

@@ -1,7 +1,6 @@
+use crate::args::Target;
 use kore::{color::Highlight, pretty::Pretty};
 use std::{fmt::Display, path::Path};
-
-use crate::args::Target;
 
 pub enum Config<'a> {
     Path(&'a Path),
@@ -14,6 +13,8 @@ pub enum Config<'a> {
     Target(&'a Target),
 
     String(&'a str),
+
+    Boolean(bool),
 }
 
 impl<'a> Config<'a> {
@@ -37,6 +38,8 @@ impl<'a> Display for Config<'a> {
             Self::Target(x) => x.to_string().highlight().fmt(f),
 
             Self::String(x) => x.highlight().fmt(f),
+
+            Self::Boolean(x) => x.to_string().highlight().fmt(f),
         }
     }
 }

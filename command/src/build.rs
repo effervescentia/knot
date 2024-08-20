@@ -12,28 +12,29 @@ where
     pub out_dir: &'a Path,
     pub source_dir: &'a Path,
     pub entry: &'a Path,
+
+    /// enables a higher level of logging for additional information
+    pub verbose: bool,
 }
 
 pub fn command<G>(opts: &Options<G>) -> engine::Result<()>
 where
     G: Generator<Input = ast::shape::Program>,
 {
-    log::entrypoint(opts.entry);
+    log::entrypoint(opts.verbose, opts.entry);
 
-    let count = Engine::new(opts.source_dir)
+    let count = Engine::new(opts.source_dir, opts.verbose)
         .from_entry(opts.entry)
         .parse_and_discover()
-        .inspect(|state, _| log::parsed_from_entry(state.internal_modules().count()))
+        .inspect(|state, _| state.report_from_entry())
         .link()
-        .inspect(|_, _| log::linked())
+        .inspect(|state, _| state.report())
         .analyze()
-        .inspect(|_, _| log::analyzed())
+        .inspect(|state, _| state.report())
         .generate(&opts.generator)
         .overwrite(opts.out_dir)?;
 
-    eprintln!();
-
-    log::success("transpiled", count);
+    log::success(opts.verbose, "transpiled", count);
     eprintln!(
         "build artifacts written to {}:\n{}\n",
         "out_dir".focus(),

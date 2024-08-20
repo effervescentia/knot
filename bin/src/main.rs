@@ -21,7 +21,11 @@ fn main() {
         Command::Format {
             ref root_dir,
             ref glob,
-        } => format::command(format::Args { root_dir, glob }),
+        } => format::command(format::Args {
+            root_dir,
+            glob,
+            verbose: args.verbose,
+        }),
 
         Command::Check {
             ref root_dir,
@@ -31,6 +35,7 @@ fn main() {
             root_dir,
             source_dir,
             entry,
+            verbose: args.verbose,
         }),
 
         Command::Build {
@@ -45,6 +50,7 @@ fn main() {
             entry,
             root_dir,
             source_dir,
+            verbose: args.verbose,
         }),
     };
 

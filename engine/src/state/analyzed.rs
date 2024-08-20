@@ -9,7 +9,14 @@ pub struct Analyzed(pub Base<lang::ast::typed::Meta>, pub ImportGraph);
 
 impl Analyzed {
     pub fn new(state: Linked, modules: HashMap<Link, Module<lang::ast::typed::Meta>>) -> Self {
-        Self(state.0.with_modules(modules), state.1)
+        let verbose = state.is_verbose();
+        Self(state.0.with_modules(modules, verbose), state.1)
+    }
+
+    pub fn report(&self) {
+        if self.is_verbose() {
+            eprintln!("\u{2705} analysis complete");
+        }
     }
 }
 

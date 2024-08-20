@@ -9,6 +9,9 @@ pub struct Options<'a> {
     /// pattern describing the files that should be formatted.
     /// relative to the `root_dir`
     pub glob: &'a str,
+
+    /// enables a higher level of logging for additional information
+    pub verbose: bool,
 }
 
 pub fn command(opts: &Options) -> engine::Result<()> {
@@ -16,18 +19,16 @@ pub fn command(opts: &Options) -> engine::Result<()> {
         .root_dir
         .assert_dir_exists(ConfigurationError::RootDirectoryNotFound)?;
 
-    log::glob(opts.glob);
+    log::glob(opts.verbose, opts.glob);
 
-    let count = Engine::new(root_dir)
+    let count = Engine::new(root_dir, opts.verbose)
         .from_glob(opts.root_dir, opts.glob)
         .parse_all()
-        .inspect(|state, _| log::parsed_from_glob(state.internal_modules().count()))
+        .inspect(|state, _| state.report_from_glob())
         .format()
         .write(opts.root_dir)?;
 
-    eprintln!();
-
-    log::success("formatted", count);
+    log::success(opts.verbose, "formatted", count);
 
     Ok(())
 }

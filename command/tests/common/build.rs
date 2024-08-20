@@ -70,6 +70,7 @@ where
         entry: Path::new(entry),
         source_dir: source_dir.as_path(),
         out_dir: out_dir.as_path(),
+        verbose: false,
     });
 
     result.map(|_| collect_files(&out_dir))

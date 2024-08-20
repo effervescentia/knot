@@ -5,15 +5,25 @@ use std::path::Path;
 pub struct Args<'a> {
     pub glob: &'a str,
     pub root_dir: &'a Path,
+    pub verbose: bool,
 }
 
 impl<'a> Args<'a> {
     fn report(&self) {
-        let Self { root_dir, glob } = self;
+        let Self {
+            root_dir,
+            glob,
+            verbose,
+        } = self;
+
+        if !verbose {
+            return;
+        }
 
         log::configuration(vec![
             ("root_dir", Config::Path(root_dir)),
             ("glob", Config::String(glob)),
+            ("verbose", Config::Boolean(*verbose)),
         ]);
     }
 }
@@ -29,5 +39,6 @@ pub fn command(args: Args) -> engine::Result<()> {
     format::command(&format::Options {
         glob: args.glob,
         root_dir: &root_dir,
+        verbose: args.verbose,
     })
 }

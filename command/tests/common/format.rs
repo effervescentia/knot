@@ -14,6 +14,7 @@ pub fn format(test_name: &str, input: &str) -> engine::Result<String> {
     let result = format::command(&Options {
         root_dir: root_dir.as_path(),
         glob: "*.kn",
+        verbose: false,
     });
 
     result.map(|_| fs::read_to_string(entry).expect("failed to read output file from disk"))

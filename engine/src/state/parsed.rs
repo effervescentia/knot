@@ -1,6 +1,6 @@
 use super::{base::Base, Ast, Module};
 use crate::{link::ImportGraph, report, Context, ExecutionError, Link};
-use kore::Incrementor;
+use kore::{color::Highlight, Incrementor};
 use lang::NamespaceId;
 use std::{
     cell::RefCell,
@@ -8,10 +8,14 @@ use std::{
     rc::Rc,
 };
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Parsed(pub Base<()>, pub Rc<RefCell<Incrementor>>);
 
 impl Parsed {
+    pub fn new(verbose: bool) -> Self {
+        Self(Base::new(verbose), Default::default())
+    }
+
     pub fn incrementor(&self) -> Rc<RefCell<Incrementor>> {
         Rc::clone(&self.1)
     }
@@ -50,6 +54,24 @@ impl Parsed {
         };
 
         self.0.register_module(link, module);
+    }
+
+    pub fn report_from_entry(&self) {
+        if self.is_verbose() {
+            eprintln!(
+                "\u{1f440} parsed {} module(s) by traversing the import graph",
+                self.internal_modules().count().to_string().focus()
+            );
+        }
+    }
+
+    pub fn report_from_glob(&self) {
+        if self.is_verbose() {
+            eprintln!(
+                "\u{1f440} parsed {} matching module(s)",
+                self.internal_modules().count().to_string().focus()
+            );
+        }
     }
 }
 

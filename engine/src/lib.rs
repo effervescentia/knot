@@ -16,7 +16,6 @@ pub use report::{
 };
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 pub use resource::Library;
-use state::FromPaths;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     env::current_dir,
@@ -229,8 +228,8 @@ where
     }
 }
 
-impl<'a> Engine<(), FileSystem<'a>> {
-    pub fn new(root_dir: &'a Path) -> Self {
+impl<'a> Engine<bool, FileSystem<'a>> {
+    pub fn new(root_dir: &'a Path, verbose: bool) -> Self {
         let context = Context::std(Reporter::new(false), FileSystem(root_dir));
 
         let relative_root = if let Ok(working_dir) = current_dir() {
@@ -242,12 +241,12 @@ impl<'a> Engine<(), FileSystem<'a>> {
         Self {
             context,
             root_dir: relative_root.to_string_lossy().to_string(),
-            state: (),
+            state: verbose,
         }
     }
 }
 
-impl<R> Engine<(), R>
+impl<R> Engine<bool, R>
 where
     R: Resolver,
 {
@@ -258,7 +257,10 @@ where
             "entry must be relative to the source directory"
         );
 
-        self.map(|(), _| state::FromEntry(Link::from(&entry)))
+        self.map(|verbose, _| state::FromEntry {
+            entry: Link::from(&entry),
+            verbose,
+        })
     }
 
     /// load all modules that match a glob
@@ -267,7 +269,7 @@ where
         dir: &'a Path,
         glob: &'a str,
     ) -> Engine<Result<state::FromPaths>, R> {
-        self.map(|(), _| state::FromGlob { dir, glob }.to_paths())
+        self.map(|verbose, _| state::FromGlob { dir, glob, verbose }.to_paths())
     }
 }
 
@@ -279,8 +281,8 @@ where
     /// starting from the entry file recursively discover and parse modules
     pub fn parse_and_discover(self) -> Engine<Result<state::Parsed>, R> {
         self.then(|state, context| {
-            let mut queue = VecDeque::from_iter(vec![state.0]);
-            let mut parsed = state::Parsed::default();
+            let mut queue = VecDeque::from_iter(vec![state.entry]);
+            let mut parsed = state::Parsed::new(state.verbose);
 
             for (library, link, module) in
                 Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
@@ -312,8 +314,8 @@ where
 {
     /// parse all modules from the provided paths
     pub fn parse_all(self) -> Engine<Result<state::Parsed>, R> {
-        self.then(|FromPaths(links), context| {
-            let mut parsed = state::Parsed::default();
+        self.then(|state, context| {
+            let mut parsed = state::Parsed::new(state.verbose);
 
             for (library, link, module) in
                 Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
@@ -321,7 +323,7 @@ where
                 parsed.register_library(library, link, module);
             }
 
-            for link in links {
+            for link in state.paths {
                 context
                     .load_and_parse_program(&link)
                     .map(|(text, ast)| parsed.register_source(link, text, ast))?;

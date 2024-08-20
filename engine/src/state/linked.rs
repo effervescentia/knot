@@ -14,6 +14,12 @@ impl Linked {
     pub fn iter_graph(&self) -> impl Iterator<Item = NamespaceId> + '_ {
         self.1.iter()
     }
+
+    pub fn report(&self) {
+        if self.is_verbose() {
+            eprintln!("\u{1f517} linked all modules and libraries");
+        }
+    }
 }
 
 impl Deref for Linked {

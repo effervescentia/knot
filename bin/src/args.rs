@@ -8,6 +8,9 @@ use std::{fmt::Display, path::PathBuf};
 pub struct Args {
     #[command(subcommand)]
     pub command: Command,
+
+    #[arg(short, long)]
+    pub verbose: bool,
 }
 
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, ValueEnum)]

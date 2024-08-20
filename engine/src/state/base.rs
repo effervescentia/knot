@@ -11,16 +11,26 @@ use std::{collections::HashMap, marker::PhantomData};
 pub type ModuleIterator<'a, T> =
     Box<dyn std::iter::Iterator<Item = (&'a Link, &'a super::Module<T>)> + 'a>;
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Base<T> {
     modules: HashMap<Link, super::Module<T>>,
     lookup: BiMap<Link, NamespaceId>,
     ambient: analyze::AmbientMap,
+    verbose: bool,
 }
 
 impl<T> Base<T> {
     pub const fn ambient(&self) -> &analyze::AmbientMap {
         &self.ambient
+    }
+
+    pub fn new(verbose: bool) -> Self {
+        Self {
+            modules: Default::default(),
+            lookup: Default::default(),
+            ambient: Default::default(),
+            verbose,
+        }
     }
 
     pub fn has_by_link(&self, link: &Link) -> bool {
@@ -70,12 +80,21 @@ impl<T> Base<T> {
         self.modules.insert(link, module);
     }
 
-    pub fn with_modules<R>(self, modules: HashMap<Link, super::Module<R>>) -> Base<R> {
+    pub fn with_modules<R>(
+        self,
+        modules: HashMap<Link, super::Module<R>>,
+        verbose: bool,
+    ) -> Base<R> {
         Base {
             modules,
+            verbose,
             lookup: self.lookup,
             ambient: self.ambient,
         }
+    }
+
+    pub const fn is_verbose(&self) -> bool {
+        self.verbose
     }
 }
 
