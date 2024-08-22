@@ -1,16 +1,18 @@
+use std::{fmt::Display, str::FromStr};
+
 use crate::{
     javascript::{Expression, Statement},
     Options,
 };
-use kore::{invariant, str};
+use kore::str;
 use lang::ast;
 
 #[allow(clippy::multiple_inherent_impl)]
 impl Statement {
-    pub fn from_statement(
+    pub fn from_statement<Library>(
         value: &ast::shape::Statement,
         is_last: bool,
-        opts: &Options,
+        opts: &Options<Library>,
     ) -> Vec<Self> {
         match &value.0 {
             ast::Statement::Expression(x) => {
@@ -37,11 +39,14 @@ impl Statement {
         }
     }
 
-    pub fn from_declaration(
+    pub fn from_declaration<Library>(
         path_to_root: &str,
         value: &ast::shape::Declaration,
-        opts: &Options,
-    ) -> Vec<Self> {
+        opts: &Options<Library>,
+    ) -> Vec<Self>
+    where
+        Library: FromStr + Display,
+    {
         match &value.0 {
             ast::Declaration::TypeAlias { .. } => vec![],
 
@@ -235,40 +240,27 @@ impl Statement {
     }
 
     // TODO: make this return a single value instead of an array
-    pub fn from_import(
+    pub fn from_import<Library>(
         path_to_root: &str,
-        ast::shape::Import(ast::Import {
-            source,
-            path,
-            alias,
-        }): &ast::shape::Import,
-        opts: &Options,
-    ) -> Vec<Self> {
-        let module_name = path.last().unwrap_or_else(|| {
-            invariant!(
-                "failed to get the implicit module name from the last section of the path {path:?}"
-            )
-        });
-        let path = path.join("/");
-        let import_path = match source {
-            ast::ImportSource::Local => format!("./{path}.js"),
-            ast::ImportSource::Root => format!("{path_to_root}/{path}.js"),
-            ast::ImportSource::Named(name) => format!("{name}/{path}"),
-            ast::ImportSource::Scoped { scope, name } => format!("@{scope}/{name}/{path}"),
-        };
+        ast::shape::Import(import): &ast::shape::Import,
+        opts: &Options<Library>,
+    ) -> Vec<Self>
+    where
+        Library: FromStr + Display,
+    {
+        let (namespace, alias) = opts.resolver.resolve(path_to_root, import);
 
-        vec![Self::module_import(
-            &import_path,
-            alias.as_ref().unwrap_or(module_name),
-            opts,
-        )]
+        vec![Self::module_import(&namespace, &alias, opts)]
     }
 
-    pub fn from_module(
+    pub fn from_module<Library>(
         path_to_root: &str,
         value: &ast::shape::Module,
-        opts: &Options,
-    ) -> Vec<Self> {
+        opts: &Options<Library>,
+    ) -> Vec<Self>
+    where
+        Library: FromStr + Display,
+    {
         let ast::Module {
             ref imports,
             ref declarations,
@@ -290,15 +282,10 @@ impl Statement {
 mod tests {
     use crate::{
         javascript::{Expression, Statement},
-        Mode, Module, Options,
+        test::MOCK_OPTIONS,
     };
     use kore::str;
     use lang::ast;
-
-    const OPTIONS: Options = Options {
-        mode: Mode::Prod,
-        module: Module::ESM,
-    };
 
     mod statement {
         use super::*;
@@ -312,7 +299,7 @@ mod tests {
                         ast::Expression::Primitive(ast::Primitive::Nil)
                     ))),
                     false,
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Expression(Expression::Null)]
             );
@@ -326,7 +313,7 @@ mod tests {
                         ast::Expression::Primitive(ast::Primitive::Nil)
                     ))),
                     true,
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Return(Some(Expression::Null))]
             );
@@ -341,7 +328,7 @@ mod tests {
                         ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     )),
                     false,
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Variable(str!("foo"), Expression::Null)]
             );
@@ -356,7 +343,7 @@ mod tests {
                         ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     )),
                     true,
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![
                     Statement::Variable(str!("foo"), Expression::Null),
@@ -382,7 +369,7 @@ mod tests {
                             ast::TypePrimitive::Nil
                         ))
                     }),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![]
             );
@@ -405,7 +392,7 @@ mod tests {
                             (str!("Fizz"), vec![])
                         ]
                     }),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Variable(
                     str!("foo"),
@@ -452,7 +439,7 @@ mod tests {
                         None,
                         ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Variable(str!("foo"), Expression::Null)]
             );
@@ -480,7 +467,7 @@ mod tests {
                             ast::Primitive::Nil
                         ))
                     }),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Expression(Expression::Function(
                     Some(str!("foo")),
@@ -530,7 +517,7 @@ mod tests {
                             ))
                         ]))
                     }),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Expression(Expression::Function(
                     Some(str!("foo")),
@@ -564,7 +551,7 @@ mod tests {
                             ast::Primitive::Nil
                         ))
                     }),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Expression(Expression::Function(
                     Some(str!("foo")),
@@ -630,7 +617,7 @@ mod tests {
                             ]
                         })
                     }),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 vec![Statement::Variable(
                     str!("foo"),

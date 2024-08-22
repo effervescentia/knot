@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 kore = { package = "knot_core", path = "../kore" }
 lang = { package = "knot_language", path = "../language" }
+parse = { package = "knot_parse", path = "../parse", optional = true }
 
 [dev-dependencies]
 knot_analyze = { path = ".", features = ["test"] }
@@ -18,4 +19,4 @@ parse = { package = "knot_parse", path = "../parse", default-features = false, f
 ] }
 
 [features]
-test = []
+test = ["dep:parse"]

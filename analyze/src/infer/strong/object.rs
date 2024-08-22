@@ -3,13 +3,17 @@ use super::{
     state::State,
 };
 use crate::error::Error;
+use kore::Serializable;
 use lang::{ast, types, Canonicalize, NodeId};
 use std::collections::HashMap;
 
-pub fn infer_type(
-    state: &State,
+pub fn infer_type<Library>(
+    state: &State<Library>,
     entries: &[ast::ObjectTypeExpressionEntry<String, NodeId>],
-) -> Action {
+) -> Action
+where
+    Library: Serializable,
+{
     let mut entry_map = HashMap::new();
 
     for entry in entries {
@@ -64,7 +68,7 @@ mod tests {
         },
         Context,
     };
-    use kore::str;
+    use kore::{str, Serializable};
     use lang::{
         ast,
         types::{self, Kind},
@@ -73,11 +77,14 @@ mod tests {
     use std::collections::BTreeMap;
 
     #[allow(clippy::type_complexity)]
-    fn mock_state<'a>(
-        ctx: &'a Context,
+    fn mock_state<'a, Library>(
+        ctx: &'a Context<Library>,
         fragments: &'a BTreeMap<NodeId, (ScopeId, Fragment)>,
         types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
-    ) -> State<'a> {
+    ) -> State<'a, Library>
+    where
+        Library: Serializable,
+    {
         State {
             fragments,
             types: BTreeMap::from_iter(types),

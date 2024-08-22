@@ -89,7 +89,7 @@ pub trait TypingsVisitor: CommonVisitor {
 
     fn type_declaration(
         self,
-        x: ast::TypeDeclaration<Self::Binding, Self::TypeExpression>,
+        x: ast::TypeDeclaration<Self::Binding, Self::TypeExpression, Self::TypeModule>,
         c: Self::Context,
     ) -> (Self::TypeDeclaration, Self);
 

@@ -1,6 +1,8 @@
 mod expression;
 mod statement;
 
+use std::{fmt::Display, str::FromStr};
+
 use crate::{
     javascript::{JavaScript, Statement},
     Options,
@@ -9,7 +11,14 @@ use kore::str;
 use lang::ast;
 
 impl JavaScript {
-    pub fn from_program(path_to_root: &str, program: &ast::shape::Program, opts: &Options) -> Self {
+    pub fn from_program<Library>(
+        path_to_root: &str,
+        program: &ast::shape::Program,
+        opts: &Options<Library>,
+    ) -> Self
+    where
+        Library: FromStr + Display,
+    {
         let module = &program.0;
 
         let statements = [
@@ -39,15 +48,12 @@ impl JavaScript {
 mod tests {
     use crate::{
         javascript::{Expression, JavaScript, Statement},
-        Mode, Module, Options,
+        resolve::ImportResolver,
+        test::MOCK_OPTIONS,
+        Module, Options,
     };
     use kore::str;
     use lang::ast;
-
-    const OPTIONS: Options = Options {
-        mode: Mode::Prod,
-        module: Module::ESM,
-    };
 
     #[test]
     fn export_public_values() {
@@ -75,7 +81,7 @@ mod tests {
                         )),
                     ]
                 ))),
-                &OPTIONS
+                &MOCK_OPTIONS
             ),
             JavaScript(vec![
                 Statement::Import(str!("@knot/runtime"), vec![(str!("$knot"), None)]),
@@ -99,7 +105,7 @@ mod tests {
                         ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     ))]
                 ))),
-                &OPTIONS
+                &MOCK_OPTIONS
             ),
             JavaScript(vec![
                 Statement::Import(str!("@knot/runtime"), vec![(str!("$knot"), None)]),
@@ -123,8 +129,8 @@ mod tests {
                     ))]
                 ))),
                 &Options {
-                    mode: Mode::Prod,
-                    module: Module::CJS
+                    resolver: ImportResolver::new(Module::CJS),
+                    ..MOCK_OPTIONS
                 }
             ),
             JavaScript(vec![

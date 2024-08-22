@@ -56,33 +56,28 @@ where
     m::terminated((
         m::keyword("use"),
         import_source(),
-        import_path(),
+        optional(import_path()),
         import_alias(),
     ))
-    .map(|((_, start), source, (path, path_range), alias)| {
-        if let Some((alias, alias_range)) = alias {
-            let range = &start + &alias_range;
+    .map(|((_, start), source, path, alias)| {
+        let (alias, path, end_range) = match (alias, path) {
+            (Some((alias, range)), path) => {
+                (Some(alias), path.map(|x| x.0).unwrap_or_default(), range)
+            }
+            (None, Some((path, range))) => (None, path, range),
+            (None, None) => (None, vec![], start),
+        };
 
-            ast::raw::Import::raw(
-                ast::Import {
-                    source,
-                    path,
-                    alias: Some(alias),
-                },
-                range,
-            )
-        } else {
-            let range = &start + &path_range;
+        let range = &start + &end_range;
 
-            ast::raw::Import::raw(
-                ast::Import {
-                    source,
-                    path,
-                    alias: None,
-                },
-                range,
-            )
-        }
+        ast::raw::Import::raw(
+            ast::Import {
+                source,
+                path,
+                alias,
+            },
+            range,
+        )
     })
 }
 

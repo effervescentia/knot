@@ -264,7 +264,7 @@ impl<T> TypingsVisitor for Visitor<T> {
 
     fn type_declaration(
         self,
-        _: lang::ast::TypeDeclaration<Self::Binding, Self::TypeExpression>,
+        _: lang::ast::TypeDeclaration<Self::Binding, Self::TypeExpression, Self::TypeModule>,
         c: Self::Context,
     ) -> (Self::TypeDeclaration, Self) {
         self.bind(c.0)

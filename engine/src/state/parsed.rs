@@ -1,7 +1,7 @@
 use super::{base::Base, Ast, Module};
 use crate::{link::ImportGraph, report, Context, ExecutionError, Link};
 use kore::{color::Highlight, Incrementor};
-use lang::NamespaceId;
+use lang::{Namespace, NamespaceId};
 use std::{
     cell::RefCell,
     ops::{Deref, DerefMut},
@@ -36,6 +36,8 @@ impl Parsed {
                 for x in &links {
                     if let Some(x) = self.get_id_by_link(x) {
                         acc.add_edge(&module.id, x).ok();
+                    } else if matches!(x.0, Namespace::Library(_)) {
+                        continue;
                     } else {
                         context.raise(ExecutionError::UnregisteredModule(x.clone()))?;
                     }

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use super::{
     arithmetic,
     data::{Action, Type},
@@ -8,10 +10,16 @@ use super::{
     NodeDescriptor,
 };
 use crate::{error::Error, infer::strong::import, Context};
-use kore::invariant;
+use kore::{invariant, Serializable};
 use lang::Canonicalize;
 
-pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
+pub fn infer_types<'a, Library>(
+    ctx: &Context<Library>,
+    prev: State<'a, Library>,
+) -> State<'a, Library>
+where
+    Library: Serializable + FromStr<Err = ()>,
+{
     let (remaining, mut next) = State::next(prev);
     let remaining_count = remaining.len();
 
@@ -140,7 +148,7 @@ mod tests {
     use lang::{
         ast,
         types::{self, Enumerated, Kind},
-        CanonicalId, Namespace, NamespaceId, NamespaceKind, NodeId,
+        CanonicalId, Namespace, NamespaceId, NodeId,
     };
     use std::{
         collections::{BTreeMap, HashMap},
@@ -152,10 +160,7 @@ mod tests {
         let fragments = BTreeMap::from_iter(fixture::import::fragments());
         let modules = ModuleMap {
             keys: HashMap::from_iter(vec![(
-                Namespace(
-                    NamespaceKind::Internal,
-                    vec![str!("foo"), str!("bar"), str!("fizz")],
-                ),
+                Namespace::Internal(vec![str!("foo"), str!("bar"), str!("fizz")]),
                 NamespaceId(1),
             )]),
             by_key: HashMap::from_iter(vec![(
@@ -576,7 +581,7 @@ mod tests {
         let mock = analyze_mock!(
             modules = &ModuleMap {
                 keys: HashMap::from_iter(vec![(
-                    Namespace(NamespaceKind::Internal, vec![str!("theme")]),
+                    Namespace::Internal(vec![str!("theme")]),
                     NamespaceId(1),
                 )]),
                 by_key: HashMap::from_iter(vec![(

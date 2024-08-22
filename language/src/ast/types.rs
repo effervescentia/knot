@@ -1,6 +1,8 @@
 use crate::walk::{CommonVisitor, TypingsVisitor, Walk, WalkEach};
 use std::fmt::Debug;
 
+use super::IsEmpty;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TypePrimitive {
     Nil,
@@ -117,7 +119,7 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum TypeDeclaration<Binding, TypeExpression> {
+pub enum TypeDeclaration<Binding, TypeExpression, TypeModule> {
     TypeAlias {
         binding: Binding,
         value: TypeExpression,
@@ -133,9 +135,14 @@ pub enum TypeDeclaration<Binding, TypeExpression> {
         parameters: Vec<TypeExpression>,
         result: TypeExpression,
     },
+
+    Module {
+        binding: Binding,
+        module: TypeModule,
+    },
 }
 
-impl<Binding, TypeExpression> TypeDeclaration<Binding, TypeExpression> {
+impl<Binding, TypeExpression, TypeModule> TypeDeclaration<Binding, TypeExpression, TypeModule> {
     pub const fn type_alias(binding: Binding, value: TypeExpression) -> Self {
         Self::TypeAlias { binding, value }
     }
@@ -159,21 +166,30 @@ impl<Binding, TypeExpression> TypeDeclaration<Binding, TypeExpression> {
         }
     }
 
+    pub const fn module(binding: Binding, module: TypeModule) -> Self {
+        Self::Module { binding, module }
+    }
+
     pub const fn binding(&self) -> &Binding {
         match self {
             Self::TypeAlias { binding, .. }
             | Self::View { binding, .. }
-            | Self::Function { binding, .. } => binding,
+            | Self::Function { binding, .. }
+            | Self::Module { binding, .. } => binding,
         }
     }
 }
 
-impl<Visitor, Context, Binding, TypeExpression> Walk<Visitor>
-    for (TypeDeclaration<Binding, TypeExpression>, Context)
+impl<Visitor, Context, Binding, TypeExpression, TypeModule> Walk<Visitor>
+    for (
+        TypeDeclaration<Binding, TypeExpression, TypeModule>,
+        Context,
+    )
 where
     Visitor: TypingsVisitor<Context = Context>,
     Binding: Walk<Visitor, Output = Visitor::Binding>,
     TypeExpression: Walk<Visitor, Output = Visitor::TypeExpression>,
+    TypeModule: Walk<Visitor, Output = Visitor::TypeModule>,
 {
     type Output = Visitor::TypeDeclaration;
 
@@ -218,6 +234,12 @@ where
                     ctx,
                 )
             }
+
+            TypeDeclaration::Module { binding, module } => {
+                let ((binding, module), v) = (binding, module).walk_each(v);
+
+                v.type_declaration(TypeDeclaration::Module { binding, module }, ctx)
+            }
         }
     }
 }
@@ -230,6 +252,12 @@ pub struct TypeModule<TypeDeclaration> {
 impl<TypeDeclaration> TypeModule<TypeDeclaration> {
     pub fn new(declarations: Vec<TypeDeclaration>) -> Self {
         Self { declarations }
+    }
+}
+
+impl<TypeDeclaration> IsEmpty for TypeModule<TypeDeclaration> {
+    fn is_empty(&self) -> bool {
+        self.declarations.is_empty()
     }
 }
 

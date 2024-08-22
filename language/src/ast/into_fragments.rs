@@ -187,7 +187,7 @@ impl<Context> TypingsVisitor for Visitor<Context> {
 
     fn type_declaration(
         self,
-        x: super::TypeDeclaration<String, Self::TypeExpression>,
+        x: super::TypeDeclaration<String, Self::TypeExpression, Self::TypeModule>,
         _: Self::Context,
     ) -> (Self::TypeDeclaration, Self) {
         self.capture(Fragment::TypeDeclaration(x))

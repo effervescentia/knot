@@ -12,7 +12,8 @@ pub use pretty_assertions::{assert_eq, assert_ne, assert_str_eq};
 #[cfg(feature = "test")]
 pub use pretty_assertions_sorted::assert_eq_sorted;
 use std::{
-    fmt::Display,
+    fmt::{Debug, Display},
+    hash::Hash,
     path::{Path, PathBuf},
 };
 
@@ -22,6 +23,8 @@ pub trait Generator: Copy {
 
     fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output);
 }
+
+pub trait Serializable: Clone + Copy + Debug + Eq + Hash + PartialEq {}
 
 /// represents a state that should not be possible based on the design of the system
 #[macro_export]

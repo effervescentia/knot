@@ -13,12 +13,18 @@ mod reference;
 mod state;
 mod view;
 
+use std::str::FromStr;
+
 use super::{weak, NodeDescriptor};
 use crate::{Context, Result};
 pub use data::Output;
+use kore::Serializable;
 pub use state::State;
 
-pub fn infer_types(ctx: &Context, weak: weak::Output) -> Result<Output> {
+pub fn infer_types<Library>(ctx: &Context<Library>, weak: weak::Output) -> Result<Output>
+where
+    Library: Serializable + FromStr<Err = ()>,
+{
     let mut state = State::from_weak(ctx, weak);
 
     while !state.is_done() {
@@ -39,7 +45,7 @@ mod tests {
     use lang::{
         ast,
         types::{Enumerated, Kind, Type},
-        CanonicalId, Namespace, NamespaceId, NamespaceKind, NodeId,
+        CanonicalId, Namespace, NamespaceId, NodeId,
     };
     use std::{
         cell::OnceCell,
@@ -64,10 +70,7 @@ mod tests {
         let mock = analyze_mock!(
             modules = &ModuleMap {
                 keys: HashMap::from_iter(vec![(
-                    Namespace(
-                        NamespaceKind::Internal,
-                        vec![str!("foo"), str!("bar"), str!("fizz")],
-                    ),
+                    Namespace::Internal(vec![str!("foo"), str!("bar"), str!("fizz")],),
                     NamespaceId(1),
                 )]),
                 by_key: HashMap::from_iter(vec![(
@@ -271,7 +274,7 @@ mod tests {
         let fragments = BTreeMap::from_iter(fixture::module::fragments());
         let modules = ModuleMap {
             keys: HashMap::from_iter(vec![(
-                Namespace(NamespaceKind::Internal, vec![str!("theme")]),
+                Namespace::Internal(vec![str!("theme")]),
                 NamespaceId(1),
             )]),
             by_key: HashMap::from_iter(vec![(

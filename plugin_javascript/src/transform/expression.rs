@@ -7,7 +7,10 @@ use lang::ast;
 
 #[allow(clippy::multiple_inherent_impl)]
 impl Expression {
-    pub fn from_expression(value: &ast::shape::Expression, opts: &Options) -> Self {
+    pub fn from_expression<Resolver>(
+        value: &ast::shape::Expression,
+        opts: &Options<Resolver>,
+    ) -> Self {
         match &value.0 {
             ast::Expression::Primitive(x) => match x {
                 ast::Primitive::Nil => Self::Null,
@@ -115,7 +118,10 @@ impl Expression {
         }
     }
 
-    pub fn from_component(value: &ast::shape::Component, opts: &Options) -> Self {
+    pub fn from_component<Resolver>(
+        value: &ast::shape::Component,
+        opts: &Options<Resolver>,
+    ) -> Self {
         fn element_name(name: String) -> Expression {
             let first_char = name
                 .chars()
@@ -179,7 +185,10 @@ impl Expression {
         }
     }
 
-    pub fn from_attributes(xs: &[ast::shape::Attribute], opts: &Options) -> Self {
+    pub fn from_attributes<Resolver>(
+        xs: &[ast::shape::Attribute],
+        opts: &Options<Resolver>,
+    ) -> Self {
         if xs.is_empty() {
             return Self::Null;
         }
@@ -205,17 +214,13 @@ impl Expression {
 mod tests {
     use crate::{
         javascript::{Expression, Statement},
-        Mode, Module, Options,
+        test::MOCK_OPTIONS,
     };
     use kore::str;
     use lang::ast;
 
-    const OPTIONS: Options = Options {
-        mode: Mode::Prod,
-        module: Module::ESM,
-    };
-
     mod expression {
+
         use super::*;
 
         #[test]
@@ -223,7 +228,7 @@ mod tests {
             assert_eq!(
                 Expression::from_expression(
                     &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Null
             );
@@ -236,7 +241,7 @@ mod tests {
                     &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Boolean(
                         true
                     ))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Boolean(true)
             );
@@ -245,7 +250,7 @@ mod tests {
                     &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Boolean(
                         false
                     ))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Boolean(false)
             );
@@ -258,7 +263,7 @@ mod tests {
                     &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Integer(
                         123
                     ))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Number(str!("123"))
             );
@@ -271,7 +276,7 @@ mod tests {
                     &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Float(
                         45.67, 2
                     ))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Number(str!("45.67"))
             );
@@ -284,7 +289,7 @@ mod tests {
                     &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::String(
                         str!("foo")
                     ))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::String(str!("foo"))
             );
@@ -295,7 +300,7 @@ mod tests {
             assert_eq!(
                 Expression::from_expression(
                     &ast::shape::Expression(ast::Expression::Identifier(str!("foo"))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Identifier(str!("foo"))
             );
@@ -308,7 +313,7 @@ mod tests {
                     &ast::shape::Expression(ast::Expression::Group(Box::new(
                         ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     ))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Group(Box::new(Expression::Null))
             );
@@ -319,7 +324,7 @@ mod tests {
             assert_eq!(
                 Expression::from_expression(
                     &ast::shape::Expression(ast::Expression::Closure(vec![])),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Null
             );
@@ -338,7 +343,7 @@ mod tests {
                             ast::Expression::Primitive(ast::Primitive::Boolean(true))
                         )))
                     ])),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Closure(vec![
                     Statement::Variable(str!("foo"), Expression::Null),
@@ -360,7 +365,7 @@ mod tests {
                             ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                         ))
                     ])),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Closure(vec![
                     Statement::Expression(Expression::Boolean(true)),
@@ -380,7 +385,7 @@ mod tests {
                             ast::Primitive::Nil,
                         ))),
                     )),
-                    &OPTIONS,
+                    &MOCK_OPTIONS,
                 )
             };
 
@@ -404,7 +409,7 @@ mod tests {
                             ast::Primitive::Nil
                         )))
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::Identifier(str!("Math.abs"))),
@@ -426,7 +431,7 @@ mod tests {
                             "rhs"
                         )))),
                     )),
-                    &OPTIONS,
+                    &MOCK_OPTIONS,
                 )
             };
             let js_operation = |op| {
@@ -494,7 +499,7 @@ mod tests {
                             ast::Primitive::Nil
                         )))
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::Identifier(str!("Math.pow"))),
@@ -513,7 +518,7 @@ mod tests {
                         ))),
                         str!("foo")
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::PropertyAccess(Box::new(Expression::Null), str!("foo")),
             );
@@ -531,7 +536,7 @@ mod tests {
                             ast::Primitive::Nil
                         ))]
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(Box::new(Expression::Null), vec![Expression::Null]),
             );
@@ -545,7 +550,7 @@ mod tests {
                         str!("foo"),
                         ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
                     )])),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
@@ -568,7 +573,7 @@ mod tests {
                     &ast::shape::Expression(ast::Expression::Component(Box::new(
                         ast::shape::Component(ast::Component::ClosedElement(str!("Foo"), vec![]))
                     ))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
@@ -593,7 +598,7 @@ mod tests {
             assert_eq!(
                 Expression::from_component(
                     &ast::shape::Component(ast::Component::Text(str!("foo"))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::String(str!("foo"))
             );
@@ -606,7 +611,7 @@ mod tests {
                     &ast::shape::Component(ast::Component::Expression(ast::shape::Expression(
                         ast::Expression::Primitive(ast::Primitive::Nil)
                     ))),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::Null
             );
@@ -620,7 +625,7 @@ mod tests {
                         ast::shape::Component(ast::Component::Text(str!("foo"))),
                         ast::shape::Component(ast::Component::Text(str!("bar"))),
                     ])),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
@@ -644,7 +649,7 @@ mod tests {
             assert_eq!(
                 Expression::from_component(
                     &ast::shape::Component(ast::Component::Fragment(vec![])),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
@@ -676,7 +681,7 @@ mod tests {
                             )),
                         ]
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
@@ -703,7 +708,7 @@ mod tests {
             assert_eq!(
                 Expression::from_component(
                     &ast::shape::Component(ast::Component::ClosedElement(str!("Foo"), vec![])),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
@@ -740,7 +745,7 @@ mod tests {
                         ],
                         str!("Foo"),
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
@@ -777,7 +782,7 @@ mod tests {
                         ],
                         str!("Foo"),
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(
@@ -816,7 +821,7 @@ mod tests {
                         vec![],
                         str!("Foo"),
                     )),
-                    &OPTIONS
+                    &MOCK_OPTIONS
                 ),
                 Expression::FunctionCall(
                     Box::new(Expression::FunctionCall(

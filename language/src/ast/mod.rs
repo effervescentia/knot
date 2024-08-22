@@ -18,3 +18,7 @@ pub use operator::{BinaryOperator, UnaryOperator};
 pub use types::{
     ObjectTypeExpressionEntry, TypeDeclaration, TypeExpression, TypeModule, TypePrimitive,
 };
+
+pub trait IsEmpty {
+    fn is_empty(&self) -> bool;
+}

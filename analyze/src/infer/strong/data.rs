@@ -1,7 +1,7 @@
 use crate::{error::Error, Context, TypeMap};
-use kore::invariant;
+use kore::{invariant, Serializable};
 use lang::{ast, types, CanonicalId, Canonicalize, NodeId};
-use std::{cell::OnceCell, collections::HashMap, rc::Rc};
+use std::{cell::OnceCell, collections::HashMap, fmt::Debug, rc::Rc};
 
 /// the inferred type for nodes in a strongly typed AST
 #[derive(Clone, Debug, PartialEq)]
@@ -29,7 +29,10 @@ impl Output {
         }
     }
 
-    pub fn canonicalize(&self, ctx: &Context) -> TypeMap {
+    pub fn canonicalize<Library>(&self, ctx: &Context<Library>) -> TypeMap
+    where
+        Library: Serializable,
+    {
         self.types
             .iter()
             .map(|(key, value)| {

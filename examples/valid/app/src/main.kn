@@ -1,3 +1,5 @@
-use std/jsx;
+use std;
 
-func main -> JSX.render(<Stylish />, id);
+view App -> nil;
+
+func main -> std.dom.mount(<App />, "id");

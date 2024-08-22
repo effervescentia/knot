@@ -71,12 +71,12 @@ impl Statement {
         Self::Variable(name.to_owned(), x)
     }
 
-    pub fn import(
+    pub fn import<Library>(
         namespace: &str,
         imports: Vec<(String, Option<String>)>,
-        opts: &Options,
+        opts: &Options<Library>,
     ) -> Vec<Self> {
-        match opts.module {
+        match opts.resolver.module() {
             Module::CJS => imports
                 .iter()
                 .map(|x| match x {
@@ -94,16 +94,16 @@ impl Statement {
         }
     }
 
-    pub fn module_import(namespace: &str, name: &str, opts: &Options) -> Self {
-        match opts.module {
+    pub fn module_import<Library>(namespace: &str, name: &str, opts: &Options<Library>) -> Self {
+        match opts.resolver.module() {
             Module::CJS => Self::Variable(name.to_owned(), Self::require(namespace)),
 
             Module::ESM => Self::ModuleImport(namespace.to_owned(), name.to_owned()),
         }
     }
 
-    pub fn export(name: &str, opts: &Options) -> Self {
-        match opts.module {
+    pub fn export<Library>(name: &str, opts: &Options<Library>) -> Self {
+        match opts.resolver.module() {
             Module::ESM => Self::Export(name.to_owned()),
 
             Module::CJS => Self::Assignment(

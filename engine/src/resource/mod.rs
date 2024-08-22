@@ -1,5 +1,6 @@
 use analyze::AmbientScope;
-use std::fmt::Display;
+use kore::Serializable;
+use std::{fmt::Display, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Library {
@@ -20,6 +21,20 @@ impl Library {
             Self::Html => Some(AmbientScope::Element),
 
             Self::Std => None,
+        }
+    }
+}
+
+impl Serializable for Library {}
+
+impl FromStr for Library {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "std" => Ok(Self::Std),
+
+            _ => Err(()),
         }
     }
 }

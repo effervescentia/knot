@@ -1,4 +1,7 @@
-use crate::{ast, NodeId, ScopeId};
+use crate::{
+    ast::{self, ImportSource},
+    NodeId, ScopeId,
+};
 use std::collections::BTreeMap;
 
 pub type FragmentMap<T> = BTreeMap<T, (ScopeId, Fragment)>;
@@ -17,7 +20,7 @@ pub enum Fragment {
     Module(ast::Module<NodeId, NodeId>),
 
     /* typings */
-    TypeDeclaration(ast::TypeDeclaration<String, NodeId>),
+    TypeDeclaration(ast::TypeDeclaration<String, NodeId, NodeId>),
     TypeModule(ast::TypeModule<NodeId>),
 }
 
@@ -31,6 +34,12 @@ impl Fragment {
             Self::Parameter(ast::Parameter { binding, .. }) => Some((binding.clone(), None)),
 
             Self::Declaration(x) => Some((x.binding().clone(), None)),
+
+            Self::Import(ast::Import {
+                source: ImportSource::Named(name),
+                path,
+                alias: None,
+            }) if path.is_empty() => Some((name.to_owned(), None)),
 
             Self::Import(ast::Import {
                 path, alias: None, ..

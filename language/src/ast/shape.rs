@@ -7,6 +7,8 @@ use std::{
     marker::PhantomData,
 };
 
+use super::IsEmpty;
+
 pub struct Expression(pub super::Expression<Expression, Statement, Component>);
 
 impl Display for Expression {
@@ -89,7 +91,7 @@ impl Display for Program {
     }
 }
 
-pub struct TypeDeclaration(pub super::TypeDeclaration<String, TypeExpression>);
+pub struct TypeDeclaration(pub super::TypeDeclaration<String, TypeExpression, TypeModule>);
 
 impl Display for TypeDeclaration {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
@@ -98,6 +100,12 @@ impl Display for TypeDeclaration {
 }
 
 pub struct TypeModule(pub super::TypeModule<TypeDeclaration>);
+
+impl IsEmpty for TypeModule {
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
 
 impl Display for TypeModule {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
@@ -222,7 +230,7 @@ impl<Context> TypingsVisitor for Visitor<Context> {
 
     fn type_declaration(
         self,
-        x: super::TypeDeclaration<Self::Binding, Self::TypeExpression>,
+        x: super::TypeDeclaration<Self::Binding, Self::TypeExpression, Self::TypeModule>,
         _: Self::Context,
     ) -> (Self::TypeDeclaration, Self) {
         (TypeDeclaration(x), self)

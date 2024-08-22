@@ -4,14 +4,18 @@ use super::{
     state::State,
 };
 use crate::{error::Error, infer::NodeDescriptor, AmbientScope};
+use kore::Serializable;
 use lang::Canonicalize;
 
-pub fn infer(
-    state: &State,
+pub fn infer<Library>(
+    state: &State<Library>,
     scope: &Option<AmbientScope>,
     name: &str,
     node: &NodeDescriptor,
-) -> Action {
+) -> Action
+where
+    Library: Serializable,
+{
     if let Some(from_id) = state.bindings.resolve(node, name) {
         return inherit::inherit(state, state.canonicalize(from_id), &node.kind);
     }
@@ -37,7 +41,7 @@ mod tests {
         },
         Context,
     };
-    use kore::{assert_eq, str};
+    use kore::{assert_eq, str, Serializable};
     use lang::{
         types::{self, Kind},
         CanonicalId, NodeId, ScopeId,
@@ -45,11 +49,14 @@ mod tests {
     use std::collections::{BTreeMap, BTreeSet, HashMap};
 
     #[allow(clippy::type_complexity)]
-    fn mock_state<'a>(
-        ctx: &'a Context,
+    fn mock_state<'a, Library>(
+        ctx: &'a Context<Library>,
         bindings: Vec<((ScopeId, String), BTreeSet<NodeId>)>,
         types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
-    ) -> State<'a> {
+    ) -> State<'a, Library>
+    where
+        Library: Serializable,
+    {
         State {
             bindings: BindingMap(HashMap::from_iter(bindings)),
             types: BTreeMap::from_iter(types),

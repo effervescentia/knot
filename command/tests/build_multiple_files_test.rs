@@ -1,7 +1,8 @@
 mod common;
 
+use engine::Library;
 use js::{JavaScriptGenerator, Module};
-use kore::str;
+use kore::{assert_eq_sorted, str};
 use std::collections::HashMap;
 
 #[test]
@@ -37,10 +38,10 @@ export { ROOT };
             ("a.kn", INPUT_A),
             ("deep/b.kn", INPUT_B),
         ],
-        JavaScriptGenerator::new(Module::ESM),
+        JavaScriptGenerator::<Library>::new(Module::ESM),
     );
 
-    assert_eq!(
+    assert_eq_sorted!(
         result.unwrap(),
         HashMap::from_iter(vec![
             (str!("a.js"), OUTPUT_A.to_owned()),
@@ -83,10 +84,10 @@ export { ROOT };
             ("deep/b.kn", INPUT_B),
             ("deep/deeper/a.kn", INPUT_A),
         ],
-        JavaScriptGenerator::new(Module::ESM),
+        JavaScriptGenerator::<Library>::new(Module::ESM),
     );
 
-    assert_eq!(
+    assert_eq_sorted!(
         result.unwrap(),
         HashMap::from_iter(vec![
             (str!("main.js"), OUTPUT_ROOT.to_owned()),

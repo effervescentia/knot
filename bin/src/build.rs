@@ -5,6 +5,7 @@ use crate::{
     path::{get_out_dir, get_root_dir, get_source_dir, validate_entrypoint},
 };
 use command::{build, Phase};
+use engine::Library;
 use kore::Generator;
 use lang::ast;
 use std::path::Path;
@@ -55,7 +56,7 @@ impl<'a> Args<'a> {
 
 fn get_generator(target: Target) -> impl Generator<Input = ast::shape::Program> {
     match target {
-        Target::JavaScript => js::JavaScriptGenerator::new(js::Module::ESM),
+        Target::JavaScript => js::JavaScriptGenerator::<Library>::new(js::Module::ESM),
     }
 }
 

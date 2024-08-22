@@ -1,5 +1,6 @@
 mod common;
 
+use engine::Library;
 use js::{JavaScriptGenerator, Module};
 use kore::{assert_eq, str};
 use std::collections::HashMap;
@@ -66,7 +67,7 @@ export { my_module };
     let result = common::build(
         &name,
         &[("main.kn", INPUT)],
-        JavaScriptGenerator::new(Module::ESM),
+        JavaScriptGenerator::<Library>::new(Module::ESM),
     );
 
     assert_eq!(
@@ -115,7 +116,7 @@ exports.my_module = my_module;
     let result = common::build(
         &name,
         &[("main.kn", INPUT)],
-        JavaScriptGenerator::new(Module::CJS),
+        JavaScriptGenerator::<Library>::new(Module::CJS),
     );
 
     assert_eq!(

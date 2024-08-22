@@ -293,7 +293,10 @@ where
             while let Some(link) = queue.pop_front() {
                 context.load_and_parse_program(&link).map(|(text, ast)| {
                     for link in ast.to_links(&link) {
-                        if !parsed.has_by_link(&link) && !queue.contains(&link) {
+                        if !parsed.has_by_link(&link)
+                            && !queue.contains(&link)
+                            && !link.is_library()
+                        {
                             queue.push_back(link);
                         }
                     }
@@ -365,7 +368,7 @@ where
     }
 
     fn bind_errors(
-        context: &analyze::Context,
+        context: &analyze::Context<Library>,
         errors: Vec<(NodeId, analyze::Error)>,
     ) -> Vec<ExecutionError> {
         errors
@@ -395,6 +398,7 @@ where
                     .analyze(&analyze_context)
                     .map_err(|errs| context.fail(Self::bind_errors(&analyze_context, errs)))?;
 
+                modules.keys.insert(namespace, module.id);
                 modules
                     .by_key
                     .insert(module.id, (*typed.id(), typed.exports(), types));

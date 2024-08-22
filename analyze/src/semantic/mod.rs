@@ -175,7 +175,7 @@ impl TypingsVisitor for Visitor {
 
     fn type_declaration(
         mut self,
-        x: ast::TypeDeclaration<Self::Binding, Self::TypeExpression>,
+        x: ast::TypeDeclaration<Self::Binding, Self::TypeExpression, Self::TypeModule>,
         ctx: Self::Context,
     ) -> (Self::TypeDeclaration, Self) {
         self.report(&x, &ctx, type_declaration::analyze);

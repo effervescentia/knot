@@ -65,12 +65,29 @@ where
     })
 }
 
-pub fn type_declaration<T>() -> impl Parser<T, Output = ast::raw::TypeDeclaration>
+fn module<T, P>(parser: P) -> impl Parser<T, Output = ast::raw::TypeDeclaration>
 where
     T: Stream<Token = char>,
     T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::TypeModule>,
 {
-    choice((type_alias(), view(), function()))
+    m::terminated((m::keyword("module"), m::binding(), m::closure(parser))).map(
+        |((_, start), binding, (module, end))| {
+            let range = &start + &end;
+
+            ast::raw::TypeDeclaration::raw(ast::TypeDeclaration::module(binding, module), range)
+        },
+    )
+}
+
+pub fn type_declaration<T, P, F>(parser: F) -> impl Parser<T, Output = ast::raw::TypeDeclaration>
+where
+    T: Stream<Token = char>,
+    T::Position: m::Position,
+    P: Parser<T, Output = ast::raw::TypeModule>,
+    F: Fn() -> P,
+{
+    choice((type_alias(), view(), function(), module(parser())))
 }
 
 #[cfg(test)]
@@ -80,7 +97,7 @@ mod tests {
     use lang::{ast, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::TypeDeclaration> {
-        super::type_declaration().easy_parse(Stream::new(s))
+        super::type_declaration(crate::types::type_module::type_module).easy_parse(Stream::new(s))
     }
 
     #[test]
@@ -179,6 +196,58 @@ mod tests {
                     )
                 ),
                 Range::new((1, 1), (1, 37))
+            )
+        );
+    }
+
+    #[test]
+    fn empty_module() {
+        assert_eq!(
+            parse("module foo {}").unwrap().0,
+            ast::raw::TypeDeclaration::raw(
+                ast::TypeDeclaration::module(
+                    ast::raw::Binding::new(ast::Binding(str!("foo")), Range::new((1, 8), (1, 10))),
+                    ast::raw::TypeModule::raw(
+                        ast::TypeModule::new(vec![]),
+                        Range::new((1, 13), (1, 13))
+                    ),
+                ),
+                Range::new((1, 1), (1, 13))
+            )
+        );
+    }
+
+    #[test]
+    fn module() {
+        assert_eq!(
+            parse(
+                "module foo {
+  type Bar = nil;
+}"
+            )
+            .unwrap()
+            .0,
+            ast::raw::TypeDeclaration::raw(
+                ast::TypeDeclaration::module(
+                    ast::raw::Binding::new(ast::Binding(str!("foo")), Range::new((1, 8), (1, 10))),
+                    ast::raw::TypeModule::raw(
+                        ast::TypeModule::new(vec![ast::raw::TypeDeclaration::raw(
+                            ast::TypeDeclaration::type_alias(
+                                ast::raw::Binding::new(
+                                    ast::Binding(str!("Bar")),
+                                    Range::new((2, 8), (2, 10))
+                                ),
+                                ast::raw::TypeExpression::raw(
+                                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                                    Range::new((2, 14), (2, 16))
+                                )
+                            ),
+                            Range::new((2, 3), (2, 16))
+                        )]),
+                        Range::new((2, 3), (3, 0))
+                    ),
+                ),
+                Range::new((1, 1), (3, 1))
             )
         );
     }

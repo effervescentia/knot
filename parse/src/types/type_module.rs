@@ -1,16 +1,28 @@
 use super::type_declaration;
 use crate::matcher as m;
-use combine::{many, Parser, Stream};
+use combine::{many, parser, Parser, Stream};
 use lang::ast;
 
-pub fn type_module<T>() -> impl Parser<T, Output = ast::raw::TypeModule>
+fn type_module_0<T>() -> impl Parser<T, Output = ast::raw::TypeModule>
 where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    m::span(many::<Vec<_>, _, _>(type_declaration::type_declaration())).map(
-        |(declarations, range)| ast::meta::TypeModule::raw(ast::TypeModule { declarations }, range),
-    )
+    m::span(many::<Vec<_>, _, _>(type_declaration::type_declaration(
+        type_module,
+    )))
+    .map(|(declarations, range)| {
+        ast::meta::TypeModule::raw(ast::TypeModule { declarations }, range)
+    })
+}
+
+parser! {
+    pub fn type_module[T]()(T) -> ast::raw::TypeModule
+    where
+        [T: Stream<Token = char>, T::Position: m::Position]
+    {
+        type_module_0()
+    }
 }
 
 #[cfg(test)]

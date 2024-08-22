@@ -14,7 +14,7 @@ pub mod walk;
 
 pub use fragment::{Fragment, FragmentMap};
 pub use identify::Identify;
-pub use namespace::{Namespace, NamespaceKind};
+pub use namespace::Namespace;
 pub use node::Node;
 pub use range::{Point, Range};
 use std::fmt::Display;

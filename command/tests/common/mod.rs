@@ -3,6 +3,7 @@ mod build;
 mod format;
 
 pub use build::build;
+use engine::Library;
 pub use format::format;
 use kore::{assert_eq_sorted, str};
 use std::{
@@ -50,7 +51,7 @@ pub fn assert_build_single(name: &str, input: &str, output: &str) {
     let result = build(
         &name,
         &[("main.kn", input)],
-        js::JavaScriptGenerator::new(js::Module::ESM),
+        js::JavaScriptGenerator::<Library>::new(js::Module::ESM),
     );
 
     assert_eq_sorted!(

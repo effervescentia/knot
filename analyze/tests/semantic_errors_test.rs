@@ -1,22 +1,6 @@
-use knot_analyze::{AmbientMap, Context, Error, ModuleMap, Result, TypeMap};
+use knot_analyze::{test::mocks::Mock, Error};
 use kore::{assert_eq, str};
 use lang::{ast, types, CanonicalId, NodeId};
-
-#[derive(Default)]
-struct Mock {
-    modules: ModuleMap,
-    ambient: AmbientMap,
-}
-
-impl Mock {
-    #[allow(clippy::unwrap_in_result)]
-    fn parse_and_analyze(self, source: &str) -> Result<(ast::typed::Program, TypeMap)> {
-        let ctx = Context::mock(&self.modules, &self.ambient);
-        let (raw, _) = parse::program::parse(source).ok().unwrap();
-
-        knot_analyze::analyze(&ctx, raw)
-    }
-}
 
 #[test]
 fn value_not_found() {

@@ -405,7 +405,8 @@ where
 
 /* type declaration */
 
-type TypeDeclarationValue<Meta> = super::TypeDeclaration<Binding, TypeExpression<Meta>>;
+type TypeDeclarationValue<Meta> =
+    super::TypeDeclaration<Binding, TypeExpression<Meta>, TypeModule<Meta>>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TypeDeclaration<Meta>(pub Node<TypeDeclarationValue<Meta>, Meta>);

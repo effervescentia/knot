@@ -1,18 +1,26 @@
 mod format;
 mod javascript;
+mod resolve;
+#[cfg(test)]
+mod test;
 mod transform;
 
 pub use javascript::JavaScript;
 use kore::{str, Generator};
 use lang::ast;
-use std::path::{Path, PathBuf};
+use resolve::ImportResolver;
+use std::{
+    fmt::Display,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 // TODO: move these to a common library to be re-used across generators
 
 #[derive(PartialEq)]
 pub enum Mode {
-    Dev,
-    Prod,
+    Development,
+    Production,
 }
 
 #[derive(Clone, Copy)]
@@ -30,21 +38,24 @@ impl Default for Module {
     }
 }
 
-pub struct Options {
+pub struct Options<Library> {
     pub mode: Mode,
-    pub module: Module,
+    pub resolver: ImportResolver<Library>,
 }
 
 #[derive(Clone, Copy)]
-pub struct JavaScriptGenerator(Module);
+pub struct JavaScriptGenerator<Library>(ImportResolver<Library>);
 
-impl JavaScriptGenerator {
+impl<Library> JavaScriptGenerator<Library> {
     pub const fn new(module: Module) -> Self {
-        Self(module)
+        Self(ImportResolver::new(module))
     }
 }
 
-impl Generator for JavaScriptGenerator {
+impl<Library> Generator for JavaScriptGenerator<Library>
+where
+    Library: FromStr + Copy + Display,
+{
     type Input = ast::shape::Program;
     type Output = JavaScript;
 
@@ -63,8 +74,8 @@ impl Generator for JavaScriptGenerator {
                 &path_to_root,
                 &input,
                 &Options {
-                    mode: Mode::Prod,
-                    module: self.0,
+                    mode: Mode::Production,
+                    resolver: self.0,
                 },
             ),
         )

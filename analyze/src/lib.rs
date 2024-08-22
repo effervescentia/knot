@@ -5,12 +5,14 @@ mod fixture;
 mod infer;
 mod into_typed;
 mod semantic;
-#[cfg(test)]
-mod test;
+#[cfg(feature = "test")]
+pub mod test;
 
 pub use context::{AmbientMap, Context, ModuleMap, TypeMap};
 pub use error::Error;
+use kore::Serializable;
 use lang::{ast, walk, NodeId};
+use std::{fmt::Debug, hash::Hash, str::FromStr};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum AmbientScope {
@@ -20,10 +22,12 @@ pub enum AmbientScope {
 /// analysis result with possible resolution errors
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, Error)>>;
 
-pub fn analyze<Raw, Typed>(ctx: &Context, raw: Raw) -> Result<(Typed, TypeMap)>
+pub fn analyze<Raw, Typed, Library>(ctx: &Context<Library>, raw: Raw) -> Result<(Typed, TypeMap)>
 where
-    Raw: ast::into_fragments::IntoFragments<NodeId> + into_typed::IntoTyped<Typed> + Clone,
+    Raw: ast::into_fragments::IntoFragments<NodeId> + into_typed::IntoTyped<Typed, Library> + Clone,
     Typed: walk::Walk<semantic::Visitor> + Clone,
+
+    Library: Serializable + FromStr<Err = ()>,
 {
     let fragments = raw.clone().into_fragments();
 
@@ -45,7 +49,7 @@ mod tests {
     use lang::{
         ast,
         types::{Kind, Type},
-        CanonicalId, Namespace, NamespaceId, NamespaceKind, Node, NodeId,
+        CanonicalId, Namespace, NamespaceId, Node, NodeId,
     };
     use std::{collections::HashMap, rc::Rc};
 
@@ -250,7 +254,7 @@ mod tests {
         let mock = analyze_mock!(
             modules = &ModuleMap {
                 keys: HashMap::from_iter(vec![(
-                    Namespace(NamespaceKind::Internal, vec![str!("theme")]),
+                    Namespace::Internal(vec![str!("theme")]),
                     NamespaceId(1),
                 )]),
                 by_key: HashMap::from_iter(vec![(

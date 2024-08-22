@@ -64,7 +64,7 @@ impl ToWeak for ast::TypeExpression<String, NodeId> {
     }
 }
 
-impl ToWeak for ast::TypeDeclaration<String, NodeId> {
+impl ToWeak for ast::TypeDeclaration<String, NodeId, NodeId> {
     fn to_weak(&self) -> Weak {
         match self {
             Self::TypeAlias { value, .. } => (Kind::Type, Type::Inherit(*value)),
@@ -79,6 +79,8 @@ impl ToWeak for ast::TypeDeclaration<String, NodeId> {
                 Kind::Value,
                 Type::Value(types::Type::Function(parameters.clone(), *result)),
             ),
+
+            Self::Module { module, .. } => (Kind::Value, Type::Inherit(*module)),
         }
     }
 }

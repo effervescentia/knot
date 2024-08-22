@@ -2,10 +2,13 @@ use super::{
     data::{Action, Type},
     state::State,
 };
-use kore::invariant;
+use kore::{invariant, Serializable};
 use lang::{types, Canonicalize, Fragment, NodeId};
 
-pub fn infer(state: &State, declarations: &[NodeId]) -> Action {
+pub fn infer<Library>(state: &State<Library>, declarations: &[NodeId]) -> Action
+where
+    Library: Serializable,
+{
     let typed_declarations = declarations
         .iter()
         .map(|x| match state.fragments.get(x)? {
@@ -41,7 +44,7 @@ mod tests {
         },
         Context,
     };
-    use kore::{assert_eq, str};
+    use kore::{assert_eq, str, Serializable};
     use lang::{
         ast,
         types::{self, Kind},
@@ -50,11 +53,14 @@ mod tests {
     use std::collections::BTreeMap;
 
     #[allow(clippy::type_complexity)]
-    fn mock_state<'a>(
-        ctx: &'a Context,
+    fn mock_state<'a, Library>(
+        ctx: &'a Context<Library>,
         fragments: &'a BTreeMap<NodeId, (ScopeId, Fragment)>,
         types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
-    ) -> State<'a> {
+    ) -> State<'a, Library>
+    where
+        Library: Serializable,
+    {
         State {
             fragments,
             types: BTreeMap::from_iter(types),

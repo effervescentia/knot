@@ -1,41 +1,47 @@
 use crate::ast;
-use kore::str;
-use std::path::{Path, PathBuf};
+use kore::{invariant, str};
+use std::{
+    fmt::Debug,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum NamespaceKind {
-    Library,
-    Internal,
-    External(String),
+pub enum Namespace<Library> {
+    Library(Library),
+    Internal(Vec<String>),
+    External(String, Vec<String>),
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Namespace(pub NamespaceKind, pub Vec<String>);
-
-impl Namespace {
-    #[cfg(feature = "test")]
-    pub const MOCK: &'static Self = &Self(NamespaceKind::Internal, vec![]);
-
+impl<Library> Namespace<Library> {
     #[cfg(feature = "test")]
     pub fn mock() -> Self {
-        Self(NamespaceKind::Internal, vec![str!("mock")])
+        Self::Internal(vec![str!("mock")])
     }
+}
 
+impl<Library> Namespace<Library>
+where
+    Library: FromStr<Err = ()>,
+{
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self
     where
         P: AsRef<Path>,
     {
         match source {
             ast::ImportSource::Named(name) => {
-                Self(NamespaceKind::External(name.clone()), path.to_vec())
+                if let Ok(library) = Library::from_str(name) {
+                    Self::Library(library)
+                } else {
+                    Self::External(name.clone(), path.to_vec())
+                }
             }
 
-            ast::ImportSource::Scoped { scope, name } => Self(
-                NamespaceKind::External(format!("@{scope}/{name}")),
-                path.to_vec(),
-            ),
+            ast::ImportSource::Scoped { scope, name } => {
+                Self::External(format!("@{scope}/{name}"), path.to_vec())
+            }
 
-            ast::ImportSource::Root => Self(NamespaceKind::Internal, path.to_vec()),
+            ast::ImportSource::Root => Self::Internal(path.to_vec()),
 
             ast::ImportSource::Local => {
                 let file_path = file_path.as_ref();
@@ -47,7 +53,7 @@ impl Namespace {
                     .map(|x| x.to_string_lossy().to_string())
                     .collect::<Vec<_>>();
 
-                Self(NamespaceKind::Internal, [parts, path.to_vec()].concat())
+                Self::Internal([parts, path.to_vec()].concat())
             }
         }
     }
@@ -58,18 +64,27 @@ impl Namespace {
     {
         Self::from_path(file_path, source, path)
     }
+}
 
+impl<Library> Namespace<Library>
+where
+    Library: Debug,
+{
     pub fn to_path(&self, extension: &str) -> PathBuf {
-        let Self(kind, module_path) = self;
+        match &self {
+            Self::Library(_) => invariant!("library cannot be converted to a path"),
 
-        match kind {
-            // TODO: this should never be implemented, maybe change to an invariant
-            NamespaceKind::Library => unimplemented!("{self:?}"),
-            NamespaceKind::External(_namespace) => unimplemented!("{self:?}"),
+            Self::External(..) => unimplemented!("{self:?}"),
 
-            NamespaceKind::Internal => (),
+            Self::Internal(path) => PathBuf::from_iter(path).with_extension(extension),
         }
-
-        PathBuf::from_iter(module_path).with_extension(extension)
     }
+}
+
+impl<Library> Namespace<Library>
+where
+    Library: 'static,
+{
+    #[cfg(feature = "test")]
+    pub const MOCK: &'static Self = &Self::Internal(vec![]);
 }

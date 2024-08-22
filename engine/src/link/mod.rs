@@ -2,8 +2,7 @@ mod import_graph;
 
 use crate::Library;
 pub use import_graph::ImportGraph;
-use kore::str;
-use lang::{ast, Namespace, NamespaceKind};
+use lang::{ast, Namespace};
 use std::{
     ffi::OsStr,
     fmt::{Debug, Display},
@@ -11,7 +10,7 @@ use std::{
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Link(Namespace);
+pub struct Link(pub Namespace<Library>);
 
 impl Link {
     #[cfg(feature = "test")]
@@ -26,30 +25,27 @@ impl Link {
         Self(Namespace::from_import(file_path, import))
     }
 
-    pub fn from_library(library: &Library) -> Self {
-        Self(Namespace(
-            NamespaceKind::Library,
-            vec![str!("$knot"), str!("lib"), library.to_string()],
-        ))
+    pub const fn from_library(library: &Library) -> Self {
+        Self(Namespace::Library(*library))
     }
 
     pub const fn is_library(&self) -> bool {
-        matches!(self, Self(Namespace(NamespaceKind::Library, ..)))
+        matches!(self, Self(Namespace::Library(..)))
     }
 
     pub const fn is_internal(&self) -> bool {
-        matches!(self, Self(Namespace(NamespaceKind::Internal, ..)))
+        matches!(self, Self(Namespace::Internal(..)))
     }
 
     pub const fn is_external(&self) -> bool {
-        matches!(self, Self(Namespace(NamespaceKind::External(_), ..)))
+        matches!(self, Self(Namespace::External(..)))
     }
 
     pub fn to_path(&self) -> PathBuf {
         self.0.to_path("kn")
     }
 
-    pub fn to_namespace(self) -> Namespace {
+    pub fn to_namespace(self) -> Namespace<Library> {
         self.0
     }
 }
@@ -63,8 +59,7 @@ where
 
         assert!(!path.is_absolute(), "must be a relative value");
 
-        Self(Namespace(
-            NamespaceKind::Internal,
+        Self(Namespace::Internal(
             path.iter()
                 .map(|x| x.to_string_lossy().to_string())
                 .collect(),
