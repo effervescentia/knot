@@ -1,0 +1,8 @@
+{
+  "name": "@knot/runtime",
+  "type": "module",
+  "main": "./src/main.js",
+  "volta": {
+    "extends": "../../package.json"
+  }
+}

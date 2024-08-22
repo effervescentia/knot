@@ -22,7 +22,7 @@ impl<Library> Namespace<Library> {
 
 impl<Library> Namespace<Library>
 where
-    Library: FromStr<Err = ()>,
+    Library: FromStr,
 {
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self
     where

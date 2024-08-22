@@ -27,7 +27,7 @@ where
     Raw: ast::into_fragments::IntoFragments<NodeId> + into_typed::IntoTyped<Typed, Library> + Clone,
     Typed: walk::Walk<semantic::Visitor> + Clone,
 
-    Library: Serializable + FromStr<Err = ()>,
+    Library: Serializable + FromStr,
 {
     let fragments = raw.clone().into_fragments();
 

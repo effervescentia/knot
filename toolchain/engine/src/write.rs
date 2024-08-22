@@ -6,9 +6,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub struct Writer<T>(pub Result<Vec<(PathBuf, T)>>)
+pub struct Writer<T>
 where
-    T: Display;
+    T: Display,
+{
+    pub files: Result<Vec<(PathBuf, T)>>,
+    pub verbose: bool,
+}
 
 impl<T> Writer<T>
 where
@@ -30,7 +34,7 @@ where
     }
 
     pub fn write(self, dir: &Path) -> Result<usize> {
-        self.0.and_then(|files| {
+        self.files.and_then(|files| {
             let mut count = 0;
 
             for (path, generated) in files {
@@ -53,6 +57,10 @@ where
 
                 write!(writer, "{generated}").ok();
                 writer.flush().ok();
+
+                if self.verbose {
+                    eprintln!("\u{1f4be} emitted {}", path.display());
+                }
 
                 count += 1;
             }

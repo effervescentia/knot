@@ -13,17 +13,16 @@ mod reference;
 mod state;
 mod view;
 
-use std::str::FromStr;
-
 use super::{weak, NodeDescriptor};
 use crate::{Context, Result};
 pub use data::Output;
 use kore::Serializable;
 pub use state::State;
+use std::str::FromStr;
 
 pub fn infer_types<Library>(ctx: &Context<Library>, weak: weak::Output) -> Result<Output>
 where
-    Library: Serializable + FromStr<Err = ()>,
+    Library: Serializable + FromStr,
 {
     let mut state = State::from_weak(ctx, weak);
 

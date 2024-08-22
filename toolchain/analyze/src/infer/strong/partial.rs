@@ -18,7 +18,7 @@ pub fn infer_types<'a, Library>(
     prev: State<'a, Library>,
 ) -> State<'a, Library>
 where
-    Library: Serializable + FromStr<Err = ()>,
+    Library: Serializable + FromStr,
 {
     let (remaining, mut next) = State::next(prev);
     let remaining_count = remaining.len();

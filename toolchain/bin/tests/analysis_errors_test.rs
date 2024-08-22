@@ -8,7 +8,7 @@ use assert_fs::{
 use std::path::{Path, PathBuf};
 
 fn main_file(folder: &str) -> PathBuf {
-    Path::new("../examples/invalid")
+    Path::new("../../examples/invalid")
         .join(folder)
         .join("src/main.kn")
 }

@@ -1,0 +1,15 @@
+{
+  "name": "@knot/react-plugin",
+  "type": "module",
+  "main": "./src/main.js",
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "peerDependencies": {
+    "@knot/runtime": "workspace:*"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  }
+}

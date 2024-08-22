@@ -3,12 +3,12 @@
 resolver = "2"
 
 members = [
-  "analyze",
-  "bin",
-  "command",
-  "engine",
-  "kore",
-  "language",
-  "parse",
-  "plugin_javascript",
+  "toolchain/analyze",
+  "toolchain/bin",
+  "toolchain/command",
+  "toolchain/engine",
+  "toolchain/kore",
+  "toolchain/language",
+  "toolchain/parse",
+  "toolchain/plugin_javascript",
 ]

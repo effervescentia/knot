@@ -1,0 +1,12 @@
+{
+  "name": "knot",
+  "packageManager": "yarn@4.4.0",
+  "workspaces": [
+    "javascript/*",
+    "examples/valid/app"
+  ],
+  "volta": {
+    "node": "20.17.0",
+    "yarn": "4.4.0"
+  }
+}

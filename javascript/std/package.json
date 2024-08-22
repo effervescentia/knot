@@ -1,0 +1,13 @@
+{
+  "name": "@knot/std",
+  "type": "module",
+  "exports": {
+    "./browser": "./src/browser.js"
+  },
+  "peerDependencies": {
+    "@knot/runtime": "workspace:*"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  }
+}

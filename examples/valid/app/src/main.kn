@@ -1,5 +1,5 @@
 use std;
 
-view App -> nil;
+view App -> "Hello, World!";
 
-func main -> std.dom.mount(<App />, "id");
+func main -> std.dom.mount(<App />, "app");

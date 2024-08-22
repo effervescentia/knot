@@ -155,14 +155,6 @@ where
 
         self
     }
-
-    fn to_writer<F, T2>(&self, f: F) -> Writer<T2>
-    where
-        T2: Display,
-        F: Fn(&T) -> Vec<(PathBuf, T2)>,
-    {
-        Writer(self.state.as_ref().map(f).map_err(std::clone::Clone::clone))
-    }
 }
 
 impl<T, R> Engine<T, R>
@@ -225,6 +217,21 @@ where
                 })
                 .collect()
         })
+    }
+
+    fn to_writer<F, T2>(&self, f: F) -> Writer<T2>
+    where
+        T2: Display,
+        F: Fn(&S) -> Vec<(PathBuf, T2)>,
+    {
+        Writer {
+            files: self.state.as_ref().map(f).map_err(Clone::clone),
+            verbose: self
+                .state
+                .as_ref()
+                .map(|x| x.is_verbose())
+                .unwrap_or_default(),
+        }
     }
 }
 

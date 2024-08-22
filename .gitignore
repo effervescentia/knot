@@ -4,3 +4,14 @@
 # coverage
 tarpaulin-report.html
 *.profraw
+
+# yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# node
+node_modules

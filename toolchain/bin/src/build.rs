@@ -8,7 +8,7 @@ use command::{build, Phase};
 use engine::Library;
 use kore::Generator;
 use lang::ast;
-use std::path::Path;
+use std::{fmt::Display, path::Path, str::FromStr};
 
 pub struct Args<'a> {
     pub target: Target,
@@ -55,8 +55,29 @@ impl<'a> Args<'a> {
 }
 
 fn get_generator(target: Target) -> impl Generator<Input = ast::shape::Program> {
+    #[derive(Clone, Copy)]
+    struct PlatformLibrary(Library);
+
+    impl FromStr for PlatformLibrary {
+        type Err = ();
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            Library::from_str(s).map(Self)
+        }
+    }
+
+    impl Display for PlatformLibrary {
+        fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            match self.0 {
+                Library::Std => write!(f, "{}/browser", self.0),
+
+                _ => self.0.fmt(f),
+            }
+        }
+    }
+
     match target {
-        Target::JavaScript => js::JavaScriptGenerator::<Library>::new(js::Module::ESM),
+        Target::JavaScript => js::JavaScriptGenerator::<PlatformLibrary>::new(js::Module::ESM),
     }
 }
 

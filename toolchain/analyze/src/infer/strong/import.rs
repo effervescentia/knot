@@ -1,13 +1,12 @@
-use std::str::FromStr;
-
 use super::data::{Action, Type};
 use crate::Context;
 use kore::{invariant, Serializable};
 use lang::{ast, Namespace};
+use std::str::FromStr;
 
 pub fn infer<Library>(ctx: &Context<Library>, source: &ast::ImportSource, path: &[String]) -> Action
 where
-    Library: Serializable + FromStr<Err = ()>,
+    Library: Serializable + FromStr,
 {
     let current_path = ctx.namespace.to_path("kn");
     let namespace = Namespace::from_path(current_path, source, path);
