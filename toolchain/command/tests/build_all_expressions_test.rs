@@ -236,7 +236,7 @@ const VALUE = <Static />;
 function Static() {
   return \"Welcome!\";
 }
-var VALUE = $knot.plugin.get(\"ksx\", \"createElement\", \"1.0\")(Static);
+var VALUE = $knot.plugin.get(\"view\", \"createElement\", \"1.0\")(Static);
 export { Static };
 export { VALUE };
 ";

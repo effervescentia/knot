@@ -1,5 +1,7 @@
 use std;
 
-view App -> "Hello, World!";
+const rootStyles = style {};
+
+view App -> <div>Hello, World!</div>;
 
 func main -> std.dom.mount(<App />, "app");

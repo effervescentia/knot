@@ -46,7 +46,7 @@ function my_func(first, second) {
 }
 function MyView($props) {
   var name = $props.name;
-  return $knot.plugin.get(\"ksx\", \"createFragment\", \"1.0\")();
+  return $knot.plugin.get(\"view\", \"createFragment\", \"1.0\")();
 }
 var my_module = (function() {
   var MY_STYLE = $knot.plugin.get(\"style\", \"create\", \"1.0\")({
@@ -95,7 +95,7 @@ function my_func(first, second) {
 }
 function MyView($props) {
   var name = $props.name;
-  return $knot.plugin.get(\"ksx\", \"createFragment\", \"1.0\")();
+  return $knot.plugin.get(\"view\", \"createFragment\", \"1.0\")();
 }
 var my_module = (function() {
   var MY_STYLE = $knot.plugin.get(\"style\", \"create\", \"1.0\")({

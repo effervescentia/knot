@@ -8,7 +8,7 @@ fn assert_build_component(name: &str, input: &str, output: &str) {
     let compiled = format!(
         "import {{ $knot }} from \"@knot/runtime\";
 function View() {{
-  return $knot.plugin.get(\"ksx\", \"createFragment\", \"1.0\")({output});
+  return $knot.plugin.get(\"view\", \"createFragment\", \"1.0\")({output});
 }}
 export {{ View }};
 ",
@@ -32,7 +32,7 @@ fn fragment() {
     assert_build_component(
         stdext::function_name!(),
         "<></>",
-        "$knot.plugin.get(\"ksx\", \"createFragment\", \"1.0\")()",
+        "$knot.plugin.get(\"view\", \"createFragment\", \"1.0\")()",
     );
 }
 
@@ -41,7 +41,7 @@ fn closed_element() {
     assert_build_component(
         stdext::function_name!(),
         "<div id=\"root\" />",
-        "$knot.plugin.get(\"ksx\", \"createElement\", \"1.0\")(\"div\", {
+        "$knot.plugin.get(\"view\", \"createElement\", \"1.0\")(\"div\", {
     id: \"root\",
   })",
     );
@@ -52,7 +52,7 @@ fn open_element() {
     assert_build_component(
         stdext::function_name!(),
         "<div id=\"root\">hello</div>",
-        "$knot.plugin.get(\"ksx\", \"createElement\", \"1.0\")(\"div\", {
+        "$knot.plugin.get(\"view\", \"createElement\", \"1.0\")(\"div\", {
     id: \"root\",
   }, \"hello\")",
     );

@@ -1,4 +1,4 @@
 import { $knot } from "@knot/runtime";
 import * as plugin from './plugin.js';
 
-$knot.plugin.register('view', plugin);
+$knot.plugin.register('style', plugin);

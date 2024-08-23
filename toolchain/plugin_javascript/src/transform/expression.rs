@@ -141,7 +141,7 @@ impl Expression {
             ast::Component::Expression(x) => Self::from_expression(x, opts),
 
             ast::Component::Fragment(xs) => Self::FunctionCall(
-                Box::new(Self::plugin("ksx", "createFragment")),
+                Box::new(Self::plugin("view", "createFragment")),
                 xs.iter().map(|x| Self::from_component(x, opts)).collect(),
             ),
 
@@ -149,7 +149,7 @@ impl Expression {
                 let name_arg = element_name(tag.clone());
 
                 Self::FunctionCall(
-                    Box::new(Self::plugin("ksx", "createElement")),
+                    Box::new(Self::plugin("view", "createElement")),
                     if attributes.is_empty() {
                         vec![name_arg]
                     } else {
@@ -167,7 +167,7 @@ impl Expression {
                 let name_arg = element_name(start_tag.clone());
 
                 Self::FunctionCall(
-                    Box::new(Self::plugin("ksx", "createElement")),
+                    Box::new(Self::plugin("view", "createElement")),
                     if attributes.is_empty() && children.is_empty() {
                         vec![name_arg]
                     } else {
@@ -567,7 +567,7 @@ mod tests {
         }
 
         #[test]
-        fn ksx() {
+        fn view() {
             assert_eq!(
                 Expression::from_expression(
                     &ast::shape::Expression(ast::Expression::Component(Box::new(
@@ -579,7 +579,7 @@ mod tests {
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(str!("ksx")),
+                            Expression::String(str!("view")),
                             Expression::String(str!("createElement")),
                             Expression::String(str!("1.0")),
                         ]
@@ -590,7 +590,7 @@ mod tests {
         }
     }
 
-    mod ksx {
+    mod view {
         use super::*;
 
         #[test]
@@ -631,7 +631,7 @@ mod tests {
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(str!("ksx")),
+                            Expression::String(str!("view")),
                             Expression::String(str!("createFragment")),
                             Expression::String(str!("1.0")),
                         ]
@@ -655,7 +655,7 @@ mod tests {
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(str!("ksx")),
+                            Expression::String(str!("view")),
                             Expression::String(str!("createFragment")),
                             Expression::String(str!("1.0")),
                         ]
@@ -687,7 +687,7 @@ mod tests {
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(str!("ksx")),
+                            Expression::String(str!("view")),
                             Expression::String(str!("createElement")),
                             Expression::String(str!("1.0")),
                         ]
@@ -714,7 +714,7 @@ mod tests {
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(str!("ksx")),
+                            Expression::String(str!("view")),
                             Expression::String(str!("createElement")),
                             Expression::String(str!("1.0")),
                         ]
@@ -751,7 +751,7 @@ mod tests {
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(str!("ksx")),
+                            Expression::String(str!("view")),
                             Expression::String(str!("createElement")),
                             Expression::String(str!("1.0")),
                         ]
@@ -788,7 +788,7 @@ mod tests {
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(str!("ksx")),
+                            Expression::String(str!("view")),
                             Expression::String(str!("createElement")),
                             Expression::String(str!("1.0")),
                         ]
@@ -827,7 +827,7 @@ mod tests {
                     Box::new(Expression::FunctionCall(
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
-                            Expression::String(str!("ksx")),
+                            Expression::String(str!("view")),
                             Expression::String(str!("createElement")),
                             Expression::String(str!("1.0")),
                         ]

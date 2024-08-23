@@ -1,10 +1,9 @@
 {
-  "name": "@knot/react-plugin",
+  "name": "@knot/emotion-plugin",
   "type": "module",
   "main": "./src/main.js",
   "dependencies": {
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "@emotion/css": "11.13.0"
   },
   "peerDependencies": {
     "@knot/runtime": "workspace:*"
