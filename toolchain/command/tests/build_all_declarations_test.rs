@@ -27,9 +27,10 @@ export { MY_CONSTANT };
 #[test]
 fn enumerated() {
     const INPUT: &str = "
-enum MyEnum =
+enum MyEnum {
   | Empty
-  | Render(boolean, style);
+  | Render(boolean, style)
+}
 ";
 
     const OUTPUT: &str = "import { $knot } from \"@knot/runtime\";

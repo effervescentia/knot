@@ -252,9 +252,10 @@ pub mod constant {
 pub mod enumerated {
     use super::*;
 
-    pub const SOURCE: &str = "enum MyEnum =
+    pub const SOURCE: &str = "enum MyEnum {
   | Empty
-  | Render(boolean, style);";
+  | Render(boolean, style)
+}";
 
     pub fn raw_at(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
@@ -280,7 +281,7 @@ pub mod enumerated {
                     ),
                 ],
             ),
-            Range::new((1, 1), (3, 26)).offset(offset),
+            Range::new((1, 1), (4, 1)).offset(offset),
         )
     }
 

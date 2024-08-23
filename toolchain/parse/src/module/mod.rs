@@ -137,13 +137,13 @@ mod tests {
                     vec![
                         fixture::type_alias::raw_at((2, 0)),
                         fixture::enumerated::raw_at((4, 0)),
-                        fixture::constant::raw_at((8, 0)),
-                        fixture::function::raw_at((10, 0)),
-                        fixture::view::raw_at((12, 0)),
-                        fixture::module::raw_at((21, 0))
+                        fixture::constant::raw_at((9, 0)),
+                        fixture::function::raw_at((11, 0)),
+                        fixture::view::raw_at((13, 0)),
+                        fixture::module::raw_at((22, 0))
                     ]
                 ),
-                Range::new((1, 1), (29, 1))
+                Range::new((1, 1), (30, 1))
             )
         );
     }

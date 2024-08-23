@@ -31,7 +31,7 @@ fn type_not_found() {
 #[test]
 fn variant_not_found() {
     let source = "
-enum foo = Integer(integer) | Empty;
+enum foo { Integer(integer) | Empty }
 
 const bar = foo.Other;";
 

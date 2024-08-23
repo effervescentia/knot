@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn enumerated() {
         assert_eq!(
-            parse("enum foo = | Fizz(nil);").unwrap().0,
+            parse("enum foo { Fizz(nil) }").unwrap().0,
             ast::raw::Declaration::raw(
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(
@@ -92,7 +92,7 @@ mod tests {
                         str!("Fizz"),
                         vec![ast::raw::TypeExpression::raw(
                             ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                            Range::new((1, 19), (1, 21))
+                            Range::new((1, 17), (1, 19))
                         )]
                     )]
                 ),
@@ -104,7 +104,7 @@ mod tests {
     #[test]
     fn enumerated_empty_parameters() {
         assert_eq!(
-            parse("enum foo = | Fizz();").unwrap().0,
+            parse("enum foo { Fizz() }").unwrap().0,
             ast::raw::Declaration::raw(
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(
@@ -121,7 +121,7 @@ mod tests {
     #[test]
     fn enumerated_no_parameters() {
         assert_eq!(
-            parse("enum foo = | Fizz;").unwrap().0,
+            parse("enum foo { Fizz }").unwrap().0,
             ast::raw::Declaration::raw(
                 ast::Declaration::enumerated(
                     ast::Storage::public(ast::raw::Binding::new(

@@ -1,7 +1,6 @@
 use super::storage;
 use crate::{matcher as m, types::type_expression};
 use combine::{attempt, choice, optional, sep_end_by1, Parser, Stream};
-use kore::invariant;
 use lang::{ast, Range};
 
 fn variant<T>() -> impl Parser<T, Output = (String, Vec<ast::raw::TypeExpression>, Range)>
@@ -26,17 +25,13 @@ where
 {
     m::terminated((
         storage::storage("enum"),
-        m::symbol('='),
-        optional(m::symbol('|')).with(sep_end_by1::<Vec<_>, _, _, _>(variant(), m::symbol('|'))),
+        m::closure(
+            optional(m::symbol('|'))
+                .with(sep_end_by1::<Vec<_>, _, _, _>(variant(), m::symbol('|'))),
+        ),
     ))
-    .map(|((storage, start), _, variants)| {
-        let end = &variants
-            .last()
-            .unwrap_or_else(|| {
-                invariant!("enum should only parse successfully with at least one variant")
-            })
-            .2;
-        let range = &start + end;
+    .map(|((storage, start), (variants, end))| {
+        let range = &start + &end;
 
         ast::raw::Declaration::raw(
             ast::Declaration::enumerated(

@@ -7,9 +7,10 @@ use std::collections::HashMap;
 
 const INPUT: &str = "type MyType = boolean;
 
-enum MyEnum =
+enum MyEnum {
   | First(boolean, integer)
-  | Second;
+  | Second
+}
 
 const MY_CONST = 100 + 20;
 

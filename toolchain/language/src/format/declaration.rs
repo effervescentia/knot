@@ -25,7 +25,7 @@ where
             Self::Enumerated { storage, variants } => {
                 write!(
                     f,
-                    "{storage} ={variants};",
+                    "{storage} {{{variants}}}",
                     storage = Storage("enum", storage),
                     variants = Variants(variants)
                 )
@@ -120,13 +120,19 @@ where
     T: Display,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        if self.0.is_empty() {
+            return Ok(());
+        }
+
         self.0.iter().try_fold((), |_, (name, parameters)| {
             write!(
                 indented(f),
                 "\n| {name}{parameters}",
                 parameters = Parameters(parameters)
             )
-        })
+        })?;
+
+        writeln!(indented(f))
     }
 }
 
@@ -163,9 +169,10 @@ mod tests {
                 ]
             ))
             .to_string(),
-            "enum foo =
+            "enum foo {
   | fizz
-  | buzz(nil);"
+  | buzz(nil)
+}"
         );
     }
 

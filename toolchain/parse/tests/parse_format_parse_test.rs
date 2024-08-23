@@ -22,9 +22,10 @@ fn empty_module() {
 #[test]
 fn multiple_declarations() {
     let source = "type MyTypeAlias = nil;
-enum MyEnum =
+enum MyEnum {
   | First
-  | Second(boolean, style);
+  | Second(boolean, style)
+}
 const MY_CONST: string = \"hello, world!\";
 func my_func(first, second: integer, third = true): boolean -> first > second || third;
 view MyView(only: element = <div />) -> {
