@@ -80,13 +80,11 @@ where
                 parameters,
                 result,
             } => {
-                write!(f, "func {binding}")?;
-
-                if !parameters.is_empty() {
-                    write!(f, " {parameters}", parameters = Parameters(parameters))?;
-                }
-
-                write!(f, " -> {result};")
+                write!(
+                    f,
+                    "func {binding}{parameters} -> {result};",
+                    parameters = Parameters(parameters)
+                )
             }
 
             Self::Module { binding, module } => {
@@ -366,7 +364,7 @@ mod tests {
                     ))
                 ))
                 .to_string(),
-                "func foo (integer, boolean) -> string;"
+                "func foo(integer, boolean) -> string;"
             );
         }
 
