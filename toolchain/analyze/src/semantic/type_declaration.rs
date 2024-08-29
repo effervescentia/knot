@@ -17,6 +17,8 @@ pub const fn analyze(
     match x {
         ast::TypeDeclaration::TypeAlias { .. } => None,
 
+        ast::TypeDeclaration::Enumerated { .. } => None,
+
         ast::TypeDeclaration::View { .. } => None,
 
         ast::TypeDeclaration::Function { .. } => None,

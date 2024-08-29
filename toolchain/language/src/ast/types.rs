@@ -125,6 +125,11 @@ pub enum TypeDeclaration<Binding, TypeExpression, TypeModule> {
         value: TypeExpression,
     },
 
+    Enumerated {
+        binding: Binding,
+        variants: Vec<(String, Vec<TypeExpression>)>,
+    },
+
     View {
         binding: Binding,
         attributes: TypeExpression,
@@ -145,6 +150,13 @@ pub enum TypeDeclaration<Binding, TypeExpression, TypeModule> {
 impl<Binding, TypeExpression, TypeModule> TypeDeclaration<Binding, TypeExpression, TypeModule> {
     pub const fn type_alias(binding: Binding, value: TypeExpression) -> Self {
         Self::TypeAlias { binding, value }
+    }
+
+    pub const fn enumerated(
+        binding: Binding,
+        variants: Vec<(String, Vec<TypeExpression>)>,
+    ) -> Self {
+        Self::Enumerated { binding, variants }
     }
 
     pub const fn view(binding: Binding, attributes: TypeExpression) -> Self {
@@ -173,6 +185,7 @@ impl<Binding, TypeExpression, TypeModule> TypeDeclaration<Binding, TypeExpressio
     pub const fn binding(&self) -> &Binding {
         match self {
             Self::TypeAlias { binding, .. }
+            | Self::Enumerated { binding, .. }
             | Self::View { binding, .. }
             | Self::Function { binding, .. }
             | Self::Module { binding, .. } => binding,
@@ -201,6 +214,12 @@ where
                 let ((binding, value), v) = (binding, value).walk_each(v);
 
                 v.type_declaration(TypeDeclaration::TypeAlias { binding, value }, ctx)
+            }
+
+            TypeDeclaration::Enumerated { binding, variants } => {
+                let ((binding, variants), v) = (binding, variants).walk_each(v);
+
+                v.type_declaration(TypeDeclaration::Enumerated { binding, variants }, ctx)
             }
 
             TypeDeclaration::View {

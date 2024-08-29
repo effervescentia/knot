@@ -1,5 +1,5 @@
 use combine::{
-    attempt, many, optional, parser, parser::char as p, position, sep_end_by,
+    attempt, many, optional, parser, parser::char as p, position, sep_end_by, sep_end_by1,
     stream::position::SourcePosition, value, Parser, Stream,
 };
 use kore::invariant;
@@ -194,6 +194,17 @@ where
     RP: Parser<T, Output = RR>,
 {
     (attempt(lhs.skip(glyph("->"))), rhs)
+}
+
+pub fn surround_by<T, R, TP, SP, F>(target: TP, separator: F) -> impl Parser<T, Output = Vec<R>>
+where
+    T: Stream<Token = char>,
+    T::Position: Position,
+    TP: Parser<T, Output = R>,
+    SP: Parser<T>,
+    F: Fn() -> SP,
+{
+    optional(separator()).with(sep_end_by1(target, separator()))
 }
 
 #[cfg(test)]

@@ -21,6 +21,26 @@ where
     })
 }
 
+fn enumerated<T>() -> impl Parser<T, Output = ast::raw::TypeDeclaration>
+where
+    T: Stream<Token = char>,
+    T::Position: m::Position,
+{
+    m::terminated((
+        m::keyword("enum"),
+        m::binding(),
+        m::closure(m::surround_by(
+            crate::declaration::enumerated::variant(),
+            || m::symbol('|'),
+        )),
+    ))
+    .map(|((_, start), binding, (variants, end))| {
+        let range = &start + &end;
+
+        ast::raw::TypeDeclaration::raw(ast::TypeDeclaration::enumerated(binding, variants), range)
+    })
+}
+
 fn view<T>() -> impl Parser<T, Output = ast::raw::TypeDeclaration>
 where
     T: Stream<Token = char>,
@@ -87,7 +107,13 @@ where
     P: Parser<T, Output = ast::raw::TypeModule>,
     F: Fn() -> P,
 {
-    choice((type_alias(), view(), function(), module(parser())))
+    choice((
+        type_alias(),
+        enumerated(),
+        view(),
+        function(),
+        module(parser()),
+    ))
 }
 
 #[cfg(test)]
@@ -101,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn nil() {
+    fn type_alias() {
         assert_eq!(
             parse("type foo = nil").unwrap().0,
             ast::raw::TypeDeclaration::raw(
@@ -113,6 +139,29 @@ mod tests {
                     )
                 ),
                 Range::new((1, 1), (1, 14))
+            )
+        );
+    }
+
+    #[test]
+    fn enumerated() {
+        assert_eq!(
+            parse("enum foo { Fizz | Buzz(integer) }").unwrap().0,
+            ast::raw::TypeDeclaration::raw(
+                ast::TypeDeclaration::enumerated(
+                    ast::raw::Binding::new(ast::Binding(str!("foo")), Range::new((1, 6), (1, 8))),
+                    vec![
+                        (str!("Fizz"), vec![]),
+                        (
+                            str!("Buzz"),
+                            vec![ast::raw::TypeExpression::raw(
+                                ast::TypeExpression::Primitive(ast::TypePrimitive::Integer),
+                                Range::new((1, 24), (1, 30))
+                            )]
+                        )
+                    ]
+                ),
+                Range::new((1, 1), (1, 33))
             )
         );
     }

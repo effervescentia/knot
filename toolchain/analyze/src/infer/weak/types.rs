@@ -69,6 +69,13 @@ impl ToWeak for ast::TypeDeclaration<String, NodeId, NodeId> {
         match self {
             Self::TypeAlias { value, .. } => (Kind::Type, Type::Inherit(*value)),
 
+            Self::Enumerated { variants, .. } => (
+                Kind::Type,
+                Type::Value(types::Type::Enumerated(types::Enumerated::Declaration(
+                    variants.clone(),
+                ))),
+            ),
+
             Self::View { attributes, .. } => {
                 (Kind::Value, Type::Infer(Inference::ViewType(*attributes)))
             }

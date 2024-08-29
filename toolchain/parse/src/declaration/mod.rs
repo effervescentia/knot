@@ -1,5 +1,5 @@
 mod constant;
-mod enumerated;
+pub mod enumerated;
 mod function;
 mod module;
 pub mod parameter;

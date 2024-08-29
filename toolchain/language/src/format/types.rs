@@ -70,6 +70,21 @@ where
         match self {
             Self::TypeAlias { binding, value } => write!(f, "type {binding} = {value};"),
 
+            Self::Enumerated { binding, variants } => {
+                write!(
+                    f,
+                    "enum {binding} {variants}",
+                    variants =
+                        Object(variants.iter().map(
+                            |(name, parameters)| if parameters.is_empty() {
+                                name.to_owned()
+                            } else {
+                                format!("{name}{parameters}", parameters = Parameters(parameters))
+                            }
+                        ))
+                )
+            }
+
             Self::View {
                 binding,
                 attributes,
