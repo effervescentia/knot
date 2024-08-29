@@ -331,7 +331,7 @@ const bar = <foo a=123 b=nil />;";
 #[test]
 fn single_missing_attribute() {
     let source = "
-view foo(a: integer) -> nil;
+view foo { a: integer } -> nil;
 
 const bar = <foo />;";
 
@@ -351,7 +351,7 @@ const bar = <foo />;";
 #[test]
 fn multiple_missing_attributes() {
     let source = "
-view foo(a: integer, b: float) -> nil;
+view foo { a: integer, b: float } -> nil;
 
 const bar = <foo />;";
 
@@ -381,7 +381,7 @@ const bar = <foo />;";
 #[test]
 fn single_rejected_attribute() {
     let source = "
-view foo(a: integer) -> nil;
+view foo { a: integer } -> nil;
 
 const bar = <foo a=true />;";
 
@@ -404,7 +404,7 @@ const bar = <foo a=true />;";
 #[test]
 fn multiple_rejected_attributes() {
     let source = "
-view foo(a: integer, b: float) -> nil;
+view foo { a: integer, b: float } -> nil;
 
 const bar = <foo a=true b=nil />;";
 

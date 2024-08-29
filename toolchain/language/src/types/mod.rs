@@ -291,7 +291,7 @@ where
                 )
             ),
 
-            Self::View(attributes) => write!(f, "view ({})", Object(attributes)),
+            Self::View(attributes) => write!(f, "view {{ {} }}", Object(attributes)),
         }
     }
 }

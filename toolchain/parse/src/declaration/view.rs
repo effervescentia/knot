@@ -1,16 +1,13 @@
 use super::{parameter, storage};
 use crate::{expression, matcher as m};
-use combine::{optional, Parser, Stream};
+use combine::{optional, sep_end_by, Parser, Stream};
 use lang::ast;
 
 // view foo -> nil;
 // view foo -> {};
 // view foo -> { nil; };
-// view foo: nil -> nil;
-// view foo() -> nil;
-// view foo(): nil -> nil;
-// view foo(props) -> nil;
-// view foo({a, b: nil, c = 123}) -> nil;
+// view foo {} -> nil;
+// view foo { a, b: nil, c = 123 } -> nil;
 
 pub fn view<T>() -> impl Parser<T, Output = ast::raw::Declaration>
 where
@@ -20,7 +17,10 @@ where
     m::terminated((
         storage::storage("view"),
         m::lambda(
-            optional(m::tuple(parameter::parameter())),
+            optional(m::closure(sep_end_by(
+                parameter::parameter(),
+                m::symbol(','),
+            ))),
             expression::expression(),
         ),
     ))

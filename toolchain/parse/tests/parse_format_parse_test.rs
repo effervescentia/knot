@@ -28,7 +28,7 @@ enum MyEnum {
 }
 const MY_CONST: string = \"hello, world!\";
 func my_func(first, second: integer, third = true): boolean -> first > second || third;
-view MyView(only: element = <div />) -> {
+view MyView { only: element = <div /> } -> {
   let value = 123 + 45.67;
   <>
     <h1>Welcome!</h1>
@@ -69,7 +69,7 @@ fn typings() {
     let source = "type Props = {
   foo: integer,
 };
-view Bar (Props);
+view Bar Props;
 ";
 
     let ast = parse_typings(source).unwrap().0;

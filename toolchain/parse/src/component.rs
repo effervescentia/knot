@@ -98,7 +98,6 @@ where
 {
     attempt(m::between(
         m::symbol('<'),
-        // avoid m::symbol to preserve trailing spaces
         m::span(m::sequence("/>")),
         (
             m::standard_identifier().map(|(x, _)| x),

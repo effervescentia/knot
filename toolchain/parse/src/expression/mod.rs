@@ -25,7 +25,7 @@ where
     T::Position: m::Position,
     P: Parser<T, Output = ast::raw::Expression>,
 {
-    m::between(m::symbol('('), m::symbol(')'), parser)
+    m::group(parser)
         .map(|(x, range)| ast::raw::Expression::raw(ast::Expression::Group(Box::new(x)), range))
 }
 

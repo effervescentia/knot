@@ -253,7 +253,7 @@ mod tests {
     #[test]
     fn view_empty_arguments() {
         assert_eq!(
-            parse("view foo() -> nil;").unwrap().0,
+            parse("view foo {} -> nil;").unwrap().0,
             ast::raw::Declaration::raw(
                 ast::Declaration::view(
                     ast::Storage::public(ast::raw::Binding::new(
@@ -263,10 +263,10 @@ mod tests {
                     vec![],
                     ast::raw::Expression::raw(
                         ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 15), (1, 17))
+                        Range::new((1, 16), (1, 18))
                     )
                 ),
-                Range::new((1, 1), (1, 17))
+                Range::new((1, 1), (1, 18))
             )
         );
     }

@@ -668,7 +668,7 @@ pub mod function {
 pub mod view {
     use super::*;
 
-    pub const SOURCE: &str = "view MyView(inner: element = <div />) -> {
+    pub const SOURCE: &str = "view MyView { inner: element = <div /> } -> {
   let value = 123 + 45.67;
 
   <>
@@ -688,21 +688,21 @@ pub mod view {
                     ast::Parameter::new(
                         ast::meta::Binding::new(
                             ast::Binding(str!("inner")),
-                            Range::new((1, 13), (1, 17)).offset(offset),
+                            Range::new((1, 15), (1, 19)).offset(offset),
                         ),
                         Some(ast::meta::TypeExpression::raw(
                             ast::TypeExpression::Primitive(ast::TypePrimitive::Element),
-                            Range::new((1, 20), (1, 26)).offset(offset),
+                            Range::new((1, 22), (1, 28)).offset(offset),
                         )),
                         Some(ast::meta::Expression::raw(
                             ast::Expression::Component(Box::new(ast::meta::Component::raw(
                                 ast::Component::ClosedElement(str!("div"), vec![]),
-                                Range::new((1, 30), (1, 36)).offset(offset),
+                                Range::new((1, 32), (1, 38)).offset(offset),
                             ))),
-                            Range::new((1, 30), (1, 36)).offset(offset),
+                            Range::new((1, 32), (1, 38)).offset(offset),
                         )),
                     ),
-                    Range::new((1, 13), (1, 36)).offset(offset),
+                    Range::new((1, 15), (1, 38)).offset(offset),
                 )],
                 ast::meta::Expression::raw(
                     ast::Expression::Closure(vec![
@@ -792,7 +792,7 @@ pub mod view {
                             Range::new((4, 3), (7, 5)).offset(offset),
                         ),
                     ]),
-                    Range::new((1, 42), (8, 1)).offset(offset),
+                    Range::new((1, 45), (8, 1)).offset(offset),
                 ),
             ),
             Range::new((1, 1), (8, 1)).offset(offset),

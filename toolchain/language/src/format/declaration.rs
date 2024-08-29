@@ -1,6 +1,6 @@
 use super::{Parameters, Typedef};
 use crate::ast;
-use kore::format::{indented, Block, Indented};
+use kore::format::{indented, Block, Indented, SeparateEach};
 use std::fmt::{Display, Formatter, Write};
 
 impl<Binding, Expression, TypeExpression, Parameter, Module> Display
@@ -66,9 +66,9 @@ where
             } => {
                 write!(
                     f,
-                    "{storage}{parameters} -> {body};",
+                    "{storage}{attributes} -> {body};",
                     storage = Storage("view", storage),
-                    parameters = Parameters(parameters)
+                    attributes = Attributes(parameters)
                 )
             }
 
@@ -133,6 +133,23 @@ where
         })?;
 
         writeln!(indented(f))
+    }
+}
+
+struct Attributes<'a, T>(&'a Vec<T>)
+where
+    T: Display;
+
+impl<'a, T> Display for Attributes<'a, T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        if self.0.is_empty() {
+            Ok(())
+        } else {
+            write!(f, " {{ {} }}", SeparateEach(", ", self.0))
+        }
     }
 }
 
@@ -278,7 +295,7 @@ mod tests {
                 ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
             ))
             .to_string(),
-            "view foo(bar) -> nil;"
+            "view foo { bar } -> nil;"
         );
     }
 

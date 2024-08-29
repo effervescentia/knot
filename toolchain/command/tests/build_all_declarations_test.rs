@@ -66,7 +66,7 @@ export { my_function };
 #[test]
 fn view() {
     const INPUT: &str = "
-view Greet(name: string) -> <>Welcome {name}!</>;
+view Greet { name: string } -> <>Welcome {name}!</>;
 
 const GREETING = <Greet name=\"Alex\" />;
 ";

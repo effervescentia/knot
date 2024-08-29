@@ -19,7 +19,7 @@ func my_func(first: boolean, second = 10) -> {
   result;
 };
 
-view MyView(name: string) -> <></>;
+view MyView { name: string } -> <></>;
 
 module my_module {
   const MY_STYLE = style {

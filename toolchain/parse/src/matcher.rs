@@ -66,7 +66,7 @@ where
     P2: Parser<T, Output = (R2, Range)>,
     P3: Parser<T, Output = R3>,
 {
-    (open, parser, close).map(|((_, start), x, (_, end))| (x, &start + &end))
+    (open, parser.skip(p::spaces()), close).map(|((_, start), x, (_, end))| (x, &start + &end))
 }
 
 pub fn folding<T, R1, R2, P1, P2, F>(lhs: P1, rhs: P2, fold: F) -> impl Parser<T, Output = R1>
@@ -159,13 +159,22 @@ where
     standard_identifier().map(|(name, range)| ast::raw::Binding::new(ast::Binding(name), range))
 }
 
+pub fn group<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
+where
+    T: Stream<Token = char>,
+    T::Position: Position,
+    P: Parser<T, Output = R>,
+{
+    between(symbol('('), symbol(')'), parser)
+}
+
 pub fn tuple<T, R, P>(parser: P) -> impl Parser<T, Output = (Vec<R>, Range)>
 where
     T: Stream<Token = char>,
     T::Position: Position,
     P: Parser<T, Output = R>,
 {
-    between(symbol('('), symbol(')'), sep_end_by(parser, symbol(',')))
+    group(sep_end_by(parser, symbol(',')))
 }
 
 pub fn closure<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
@@ -199,7 +208,7 @@ mod tests {
         stream::position::{SourcePosition, Stream},
         EasyParser, Parser,
     };
-    use kore::str;
+    use kore::{assert_eq, str};
     use lang::Range;
 
     #[test]
@@ -239,6 +248,20 @@ mod tests {
         assert_eq!(
             parse(input.as_str()).unwrap().0,
             (MockResult, Range::new((1, 1), (1, 10)))
+        );
+    }
+
+    #[test]
+    fn between_with_interior_spaces() {
+        let parse = |s| {
+            matcher::between(matcher::symbol('>'), matcher::symbol('<'), mock())
+                .easy_parse(Stream::new(s))
+        };
+
+        let input = format!(">  {}  <", MOCK_TOKEN);
+        assert_eq!(
+            parse(input.as_str()).unwrap().0,
+            (MockResult, Range::new((1, 1), (1, 14)))
         );
     }
 
