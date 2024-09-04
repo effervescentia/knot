@@ -1,23 +1,20 @@
 mod expression;
 mod statement;
 
-use std::{fmt::Display, str::FromStr};
-
 use crate::{
-    javascript::{JavaScript, Statement},
-    Options,
+    ast::{JavaScript, Statement},
+    knot, Options,
 };
-use kore::str;
-use lang::ast;
+use kore::{internal, str};
 
 impl JavaScript {
     pub fn from_program<Library>(
         path_to_root: &str,
-        program: &ast::shape::Program,
+        program: &knot::shape::Program,
         opts: &Options<Library>,
     ) -> Self
     where
-        Library: FromStr + Display,
+        Library: internal::PlatformLibrary,
     {
         let module = &program.0;
 
@@ -30,7 +27,7 @@ impl JavaScript {
                 .iter()
                 .filter_map(|x| match (&x.0, x.0.is_public()) {
                     // type aliases are dropped in JavaScript
-                    (ast::Declaration::TypeAlias { .. }, _) => None,
+                    (knot::Declaration::TypeAlias { .. }, _) => None,
 
                     (_, true) => Some(Statement::export(x.0.binding(), opts)),
 
@@ -47,8 +44,8 @@ impl JavaScript {
 #[cfg(test)]
 mod tests {
     use crate::{
-        javascript::{Expression, JavaScript, Statement},
-        resolve::ImportResolver,
+        ast::{Expression, JavaScript, Statement},
+        resolve::Resolver,
         test::MOCK_OPTIONS,
         Module, Options,
     };
@@ -129,7 +126,7 @@ mod tests {
                     ))]
                 ))),
                 &Options {
-                    resolver: ImportResolver::new(Module::CJS),
+                    resolver: Resolver::new(Module::CJS),
                     ..MOCK_OPTIONS
                 }
             ),

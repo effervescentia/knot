@@ -1,4 +1,5 @@
 use crate::{
+    args::Target,
     config::Config,
     log,
     path::{get_root_dir, get_source_dir, validate_entrypoint},
@@ -7,6 +8,7 @@ use command::{check, Phase};
 use std::path::Path;
 
 pub struct Args<'a> {
+    pub target: Target,
     pub root_dir: &'a Path,
     pub source_dir: &'a Path,
     pub entry: &'a Path,
@@ -16,6 +18,7 @@ pub struct Args<'a> {
 impl<'a> Args<'a> {
     fn report(&self) {
         let Self {
+            target,
             root_dir,
             source_dir,
             entry,
@@ -36,6 +39,7 @@ impl<'a> Args<'a> {
                 "entry",
                 Config::rel_path(entry, root_dir.join(source_dir).join(entry).as_path()),
             ),
+            ("target", Config::Target(target)),
             ("verbose", Config::Boolean(*verbose)),
         ]);
     }
@@ -45,6 +49,7 @@ impl<'a> Args<'a> {
 pub fn command(args: Args) -> engine::Result<()> {
     args.report();
 
+    let platform = args.target.to_platform();
     let root_dir = get_root_dir(args.root_dir)?;
     let source_dir = get_source_dir(&root_dir, args.source_dir)?;
 
@@ -53,6 +58,7 @@ pub fn command(args: Args) -> engine::Result<()> {
     eprint!("{}", Phase::Execution);
 
     check::command(&check::Options {
+        platform,
         entry: args.entry,
         source_dir: &source_dir,
         verbose: args.verbose,

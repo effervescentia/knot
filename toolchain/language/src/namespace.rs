@@ -1,5 +1,5 @@
 use crate::ast;
-use kore::{invariant, str};
+use kore::{internal, invariant, str};
 use std::{
     fmt::Debug,
     path::{Path, PathBuf},
@@ -7,30 +7,28 @@ use std::{
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub enum Namespace<Library> {
-    Library(Library),
+pub enum Namespace {
+    Library(internal::Library),
     Internal(Vec<String>),
     External(String, Vec<String>),
 }
 
-impl<Library> Namespace<Library> {
+impl Namespace {
+    #[cfg(feature = "test")]
+    pub const MOCK: &'static Self = &Self::Internal(vec![]);
+
     #[cfg(feature = "test")]
     pub fn mock() -> Self {
         Self::Internal(vec![str!("mock")])
     }
-}
 
-impl<Library> Namespace<Library>
-where
-    Library: FromStr,
-{
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self
     where
         P: AsRef<Path>,
     {
         match source {
             ast::ImportSource::Named(name) => {
-                if let Ok(library) = Library::from_str(name) {
+                if let Ok(library) = internal::Library::from_str(name) {
                     Self::Library(library)
                 } else {
                     Self::External(name.clone(), path.to_vec())
@@ -64,12 +62,7 @@ where
     {
         Self::from_path(file_path, source, path)
     }
-}
 
-impl<Library> Namespace<Library>
-where
-    Library: Debug,
-{
     pub fn to_path(&self, extension: &str) -> PathBuf {
         match &self {
             Self::Library(_) => invariant!("library cannot be converted to a path"),
@@ -79,12 +72,4 @@ where
             Self::Internal(path) => PathBuf::from_iter(path).with_extension(extension),
         }
     }
-}
-
-impl<Library> Namespace<Library>
-where
-    Library: 'static,
-{
-    #[cfg(feature = "test")]
-    pub const MOCK: &'static Self = &Self::Internal(vec![]);
 }

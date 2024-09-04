@@ -3,6 +3,7 @@ pub mod color;
 #[cfg(feature = "format")]
 pub mod format;
 mod incrementor;
+pub mod internal;
 pub mod pretty;
 mod string;
 
@@ -11,18 +12,7 @@ pub use incrementor::Incrementor;
 pub use pretty_assertions::{assert_eq, assert_ne, assert_str_eq};
 #[cfg(feature = "test")]
 pub use pretty_assertions_sorted::assert_eq_sorted;
-use std::{
-    fmt::{Debug, Display},
-    hash::Hash,
-    path::{Path, PathBuf},
-};
-
-pub trait Generator: Copy {
-    type Input;
-    type Output: Display;
-
-    fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output);
-}
+use std::{fmt::Debug, hash::Hash};
 
 pub trait Serializable: Clone + Copy + Debug + Eq + Hash + PartialEq {}
 

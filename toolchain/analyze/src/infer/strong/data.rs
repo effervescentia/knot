@@ -1,5 +1,5 @@
 use crate::{error::Error, Context, TypeMap};
-use kore::{invariant, Serializable};
+use kore::invariant;
 use lang::{ast, types, CanonicalId, Canonicalize, NodeId};
 use std::{cell::OnceCell, collections::HashMap, fmt::Debug, rc::Rc};
 
@@ -29,10 +29,7 @@ impl Output {
         }
     }
 
-    pub fn canonicalize<Library>(&self, ctx: &Context<Library>) -> TypeMap
-    where
-        Library: Serializable,
-    {
+    pub fn canonicalize(&self, ctx: &Context) -> TypeMap {
         self.types
             .iter()
             .map(|(key, value)| {

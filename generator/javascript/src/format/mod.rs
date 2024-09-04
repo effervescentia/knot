@@ -1,7 +1,7 @@
 mod expression;
 mod statement;
 
-use crate::javascript::JavaScript;
+use crate::ast::JavaScript;
 use kore::format::SuffixEach;
 use std::fmt::Display;
 

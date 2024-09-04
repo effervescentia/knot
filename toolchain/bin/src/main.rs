@@ -28,10 +28,12 @@ fn main() {
         }),
 
         Command::Check {
+            target,
             ref root_dir,
             ref source_dir,
             ref entry,
         } => check::command(check::Args {
+            target,
             root_dir,
             source_dir,
             entry,

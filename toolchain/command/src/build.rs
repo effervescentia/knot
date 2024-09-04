@@ -1,14 +1,10 @@
 use crate::log;
 use engine::Engine;
-use kore::{color::Highlight, pretty::Pretty, Generator};
-use lang::ast;
+use kore::{color::Highlight, internal, pretty::Pretty};
 use std::path::Path;
 
-pub struct Options<'a, G>
-where
-    G: Generator,
-{
-    pub generator: G,
+pub struct Options<'a, Platform> {
+    pub platform: Platform,
     pub out_dir: &'a Path,
     pub source_dir: &'a Path,
     pub entry: &'a Path,
@@ -17,21 +13,22 @@ where
     pub verbose: bool,
 }
 
-pub fn command<G>(opts: &Options<G>) -> engine::Result<()>
+pub fn command<Platform>(opts: &Options<Platform>) -> engine::Result<()>
 where
-    G: Generator<Input = ast::shape::Program>,
+    Platform: internal::Platform<Program = lang::ast::shape::Program>,
 {
     log::entrypoint(opts.verbose, opts.entry);
 
     let count = Engine::new(opts.source_dir, opts.verbose)
         .from_entry(opts.entry)
-        .parse_and_discover()
+        .include_libraries(&Platform::libraries())
+        .parse()
         .inspect(|state, _| state.report_from_entry())
         .link()
         .inspect(|state, _| state.report())
         .analyze()
         .inspect(|state, _| state.report())
-        .generate(&opts.generator)
+        .generate(Platform::generator())
         .overwrite(opts.out_dir)?;
 
     log::success(opts.verbose, "transpiled", count);

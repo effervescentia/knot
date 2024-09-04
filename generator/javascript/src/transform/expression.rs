@@ -1,37 +1,36 @@
 use crate::{
-    javascript::{Expression, Statement},
-    Options,
+    ast::{Expression, Statement},
+    knot, Options,
 };
 use kore::invariant;
-use lang::ast;
 
 #[allow(clippy::multiple_inherent_impl)]
 impl Expression {
     pub fn from_expression<Resolver>(
-        value: &ast::shape::Expression,
+        value: &knot::shape::Expression,
         opts: &Options<Resolver>,
     ) -> Self {
         match &value.0 {
-            ast::Expression::Primitive(x) => match x {
-                ast::Primitive::Nil => Self::Null,
+            knot::Expression::Primitive(x) => match x {
+                knot::Primitive::Nil => Self::Null,
 
-                ast::Primitive::Boolean(x) => Self::Boolean(*x),
+                knot::Primitive::Boolean(x) => Self::Boolean(*x),
 
-                ast::Primitive::Integer(x) => Self::Number(format!("{x}")),
+                knot::Primitive::Integer(x) => Self::Number(format!("{x}")),
 
-                ast::Primitive::Float(x, precision) => {
+                knot::Primitive::Float(x, precision) => {
                     Self::Number(format!("{x:.0$}", *precision as usize))
                 }
 
-                ast::Primitive::String(x) => Self::String(x.clone()),
+                knot::Primitive::String(x) => Self::String(x.clone()),
             },
 
-            ast::Expression::Identifier(x) => Self::Identifier(x.clone()),
+            knot::Expression::Identifier(x) => Self::Identifier(x.clone()),
 
-            ast::Expression::Group(x) => Self::Group(Box::new(Self::from_expression(x, opts))),
+            knot::Expression::Group(x) => Self::Group(Box::new(Self::from_expression(x, opts))),
 
-            ast::Expression::Closure(xs) if xs.is_empty() => Self::Null,
-            ast::Expression::Closure(xs) => {
+            knot::Expression::Closure(xs) if xs.is_empty() => Self::Null,
+            knot::Expression::Closure(xs) => {
                 let statements = xs
                     .iter()
                     .enumerate()
@@ -43,21 +42,21 @@ impl Expression {
                 Self::Closure(statements)
             }
 
-            ast::Expression::UnaryOperation(op, x) => match op {
-                ast::UnaryOperator::Not => {
+            knot::Expression::UnaryOperation(op, x) => match op {
+                knot::UnaryOperator::Not => {
                     Self::UnaryOperation("!", Box::new(Self::from_expression(x, opts)))
                 }
 
-                ast::UnaryOperator::Negate => {
+                knot::UnaryOperator::Negate => {
                     Self::UnaryOperation("-", Box::new(Self::from_expression(x, opts)))
                 }
 
-                ast::UnaryOperator::Absolute => {
+                knot::UnaryOperator::Absolute => {
                     Self::call_global("Math.abs", vec![Self::from_expression(x, opts)])
                 }
             },
 
-            ast::Expression::BinaryOperation(op, lhs, rhs) => {
+            knot::Expression::BinaryOperation(op, lhs, rhs) => {
                 let binary_op = |op| {
                     Self::BinaryOperation(
                         op,
@@ -67,23 +66,23 @@ impl Expression {
                 };
 
                 match op {
-                    ast::BinaryOperator::And => binary_op("&&"),
-                    ast::BinaryOperator::Or => binary_op("||"),
+                    knot::BinaryOperator::And => binary_op("&&"),
+                    knot::BinaryOperator::Or => binary_op("||"),
 
-                    ast::BinaryOperator::Equal => binary_op("==="),
-                    ast::BinaryOperator::NotEqual => binary_op("!=="),
+                    knot::BinaryOperator::Equal => binary_op("==="),
+                    knot::BinaryOperator::NotEqual => binary_op("!=="),
 
-                    ast::BinaryOperator::LessThan => binary_op("<"),
-                    ast::BinaryOperator::LessThanOrEqual => binary_op("<="),
-                    ast::BinaryOperator::GreaterThan => binary_op(">"),
-                    ast::BinaryOperator::GreaterThanOrEqual => binary_op(">="),
+                    knot::BinaryOperator::LessThan => binary_op("<"),
+                    knot::BinaryOperator::LessThanOrEqual => binary_op("<="),
+                    knot::BinaryOperator::GreaterThan => binary_op(">"),
+                    knot::BinaryOperator::GreaterThanOrEqual => binary_op(">="),
 
-                    ast::BinaryOperator::Add => binary_op("+"),
-                    ast::BinaryOperator::Subtract => binary_op("-"),
-                    ast::BinaryOperator::Multiply => binary_op("*"),
-                    ast::BinaryOperator::Divide => binary_op("/"),
+                    knot::BinaryOperator::Add => binary_op("+"),
+                    knot::BinaryOperator::Subtract => binary_op("-"),
+                    knot::BinaryOperator::Multiply => binary_op("*"),
+                    knot::BinaryOperator::Divide => binary_op("/"),
 
-                    ast::BinaryOperator::Exponent => Self::call_global(
+                    knot::BinaryOperator::Exponent => Self::call_global(
                         "Math.pow",
                         vec![
                             Self::from_expression(lhs, opts),
@@ -93,11 +92,11 @@ impl Expression {
                 }
             }
 
-            ast::Expression::PropertyAccess(lhs, rhs) => {
+            knot::Expression::PropertyAccess(lhs, rhs) => {
                 Self::PropertyAccess(Box::new(Self::from_expression(lhs, opts)), rhs.clone())
             }
 
-            ast::Expression::FunctionCall(x, arguments) => Self::FunctionCall(
+            knot::Expression::FunctionCall(x, arguments) => Self::FunctionCall(
                 Box::new(Self::from_expression(x, opts)),
                 arguments
                     .iter()
@@ -105,7 +104,7 @@ impl Expression {
                     .collect(),
             ),
 
-            ast::Expression::Style(xs) => Self::FunctionCall(
+            knot::Expression::Style(xs) => Self::FunctionCall(
                 Box::new(Self::plugin("style", "create")),
                 vec![Self::Object(
                     xs.iter()
@@ -114,12 +113,12 @@ impl Expression {
                 )],
             ),
 
-            ast::Expression::Component(x) => Self::from_component(x, opts),
+            knot::Expression::Component(x) => Self::from_component(x, opts),
         }
     }
 
     pub fn from_component<Resolver>(
-        value: &ast::shape::Component,
+        value: &knot::shape::Component,
         opts: &Options<Resolver>,
     ) -> Self {
         fn element_name(name: String) -> Expression {
@@ -136,16 +135,16 @@ impl Expression {
         }
 
         match &value.0 {
-            ast::Component::Text(x) => Self::String(x.clone()),
+            knot::Component::Text(x) => Self::String(x.clone()),
 
-            ast::Component::Expression(x) => Self::from_expression(x, opts),
+            knot::Component::Expression(x) => Self::from_expression(x, opts),
 
-            ast::Component::Fragment(xs) => Self::FunctionCall(
+            knot::Component::Fragment(xs) => Self::FunctionCall(
                 Box::new(Self::plugin("view", "createFragment")),
                 xs.iter().map(|x| Self::from_component(x, opts)).collect(),
             ),
 
-            ast::Component::ClosedElement(tag, attributes) => {
+            knot::Component::ClosedElement(tag, attributes) => {
                 let name_arg = element_name(tag.clone());
 
                 Self::FunctionCall(
@@ -158,7 +157,7 @@ impl Expression {
                 )
             }
 
-            ast::Component::OpenElement {
+            knot::Component::OpenElement {
                 start_tag,
                 attributes,
                 children,
@@ -186,7 +185,7 @@ impl Expression {
     }
 
     pub fn from_attributes<Resolver>(
-        xs: &[ast::shape::Attribute],
+        xs: &[knot::shape::Attribute],
         opts: &Options<Resolver>,
     ) -> Self {
         if xs.is_empty() {
@@ -199,9 +198,9 @@ impl Expression {
                     (
                         x.0.name().to_owned(),
                         match &x.0 {
-                            ast::Attribute::Explicit(_, x) => Self::from_expression(x, opts),
+                            knot::Attribute::Explicit(_, x) => Self::from_expression(x, opts),
 
-                            ast::Attribute::Punned(name) => Self::Identifier(name.clone()),
+                            knot::Attribute::Punned(name) => Self::Identifier(name.clone()),
                         },
                     )
                 })
@@ -213,7 +212,7 @@ impl Expression {
 #[cfg(test)]
 mod tests {
     use crate::{
-        javascript::{Expression, Statement},
+        ast::{Expression, Statement},
         test::MOCK_OPTIONS,
     };
     use kore::str;

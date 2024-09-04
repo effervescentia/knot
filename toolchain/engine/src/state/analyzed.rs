@@ -1,4 +1,4 @@
-use super::{base::Base, Linked, Module};
+use super::{base::Base, IsVerbose, Linked, Module};
 use crate::{link::ImportGraph, report, Link};
 use std::{
     collections::HashMap,

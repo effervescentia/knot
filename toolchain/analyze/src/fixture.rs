@@ -1,8 +1,8 @@
 use crate::{
     infer::weak::{self, Inference},
-    AmbientScope, TypeMap as StrongTypes,
+    TypeMap as StrongTypes,
 };
-use kore::str;
+use kore::{internal::AmbientScope, str};
 use lang::{
     ast,
     types::{Enumerated, Kind, Type},

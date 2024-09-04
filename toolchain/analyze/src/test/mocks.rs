@@ -1,6 +1,6 @@
 use crate::{
     analyze,
-    context::{AmbientMap, LibraryMap, TypeMap},
+    context::{AmbientMap, TypeMap},
     Context, ModuleMap, Result,
 };
 use kore::Serializable;
@@ -23,12 +23,11 @@ impl FromStr for MockLibrary {
 #[derive(Debug, Default)]
 pub struct Mock {
     pub ambient: AmbientMap,
-    pub modules: ModuleMap<MockLibrary>,
-    pub libraries: LibraryMap<MockLibrary>,
+    pub modules: ModuleMap,
 }
 
 impl Mock {
-    pub const fn context(&self) -> Context<MockLibrary> {
+    pub const fn context(&self) -> Context {
         Context::mock(&self.modules, &self.ambient)
     }
 
@@ -43,23 +42,11 @@ impl Mock {
 }
 
 pub mod setters {
-    use kore::Serializable;
-
-    pub fn modules<Library>(x: &super::ModuleMap<Library>) -> super::ModuleMap<Library>
-    where
-        Library: Serializable,
-    {
+    pub fn modules(x: &super::ModuleMap) -> super::ModuleMap {
         x.clone()
     }
 
     pub fn ambient(x: &super::AmbientMap) -> super::AmbientMap {
-        x.clone()
-    }
-
-    pub fn libraries<Library>(x: &super::LibraryMap<Library>) -> super::LibraryMap<Library>
-    where
-        Library: Serializable,
-    {
         x.clone()
     }
 }

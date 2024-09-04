@@ -1,4 +1,4 @@
-use super::{base::Base, Ast, Module};
+use super::{base::Base, Ast, FromPaths, IsVerbose, Module};
 use crate::{link::ImportGraph, report, Context, ExecutionError, Link};
 use kore::{color::Highlight, Incrementor};
 use lang::{Namespace, NamespaceId};
@@ -88,6 +88,12 @@ impl Deref for Parsed {
 impl DerefMut for Parsed {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl From<FromPaths> for Parsed {
+    fn from(value: FromPaths) -> Self {
+        Self::new(value.verbose)
     }
 }
 

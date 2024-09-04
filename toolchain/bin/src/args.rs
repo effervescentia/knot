@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand, ValueEnum};
+use kore::internal;
 use std::{fmt::Display, path::PathBuf};
 
 #[derive(Debug, Parser)]
@@ -15,14 +16,22 @@ pub struct Args {
 
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, ValueEnum)]
 pub enum Target {
-    #[value(name = "javascript", alias("js"))]
-    JavaScript,
+    #[value(name = "web")]
+    Web,
+}
+
+impl Target {
+    pub fn to_platform(&self) -> Box<impl internal::Platform<Program = lang::ast::shape::Program>> {
+        match self {
+            Self::Web => Box::new(web::Web),
+        }
+    }
 }
 
 impl Display for Target {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str(match self {
-            Self::JavaScript => "javascript",
+            Self::Web => "web",
         })
     }
 }
@@ -40,6 +49,9 @@ pub enum Command {
 
     Check {
         /* options */
+        #[arg(short, long)]
+        target: Target,
+
         #[arg(short, long, default_value = ".")]
         root_dir: PathBuf,
 
@@ -51,9 +63,10 @@ pub enum Command {
     },
 
     Build {
+        /* options */
+        #[arg(short, long)]
         target: Target,
 
-        /* options */
         #[arg(short, long, default_value = "build")]
         out_dir: PathBuf,
 

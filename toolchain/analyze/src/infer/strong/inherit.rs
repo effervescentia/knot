@@ -3,13 +3,9 @@ use super::{
     state::State,
 };
 use crate::error::Error;
-use kore::Serializable;
 use lang::{types::Kind, CanonicalId};
 
-pub fn inherit<Library>(state: &State<Library>, from_id: CanonicalId, from_kind: &Kind) -> Action
-where
-    Library: Serializable,
-{
+pub fn inherit(state: &State, from_id: CanonicalId, from_kind: &Kind) -> Action {
     if !state.is_local(&from_id) {
         return Action::Infer(Type::Inherit(from_id));
     }
@@ -25,10 +21,7 @@ where
     }
 }
 
-pub fn inherit_any<Library>(state: &State<Library>, from_id: CanonicalId) -> Action
-where
-    Library: Serializable,
-{
+pub fn inherit_any(state: &State, from_id: CanonicalId) -> Action {
     inherit(state, from_id, &Kind::Mixed)
 }
 

@@ -13,6 +13,17 @@ fn main_file(folder: &str) -> PathBuf {
         .join("src/main.kn")
 }
 
+fn command<P>(root_dir: P) -> Result<Command, Box<dyn std::error::Error>>
+where
+    P: AsRef<Path>,
+{
+    let mut cmd = Command::cargo_bin("knot")?;
+    cmd.current_dir(&root_dir);
+    cmd.arg("check");
+    cmd.arg("--target").arg("web");
+    Ok(cmd)
+}
+
 #[test]
 fn not_found() -> Result<(), Box<dyn std::error::Error>> {
     let root_dir = TempDir::new()?;
@@ -20,9 +31,7 @@ fn not_found() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("401_not_found"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Not Found (E#401)
@@ -42,9 +51,7 @@ fn variant_not_found() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("402_variant_not_found"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Variant Not Found (E#402)
@@ -64,9 +71,7 @@ fn declaration_not_found() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("403_declaration_not_found"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Declaration Not Found (E#403)
@@ -86,9 +91,7 @@ fn not_indexable() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("404_not_indexable"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Not Indexable (E#404)
@@ -109,9 +112,7 @@ fn property_not_found() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("405_property_not_found"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Property Not Found (E#405)
@@ -131,9 +132,7 @@ fn duplicate_property() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("406_duplicate_property"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Duplicate Property (E#406)
@@ -153,9 +152,7 @@ fn not_spreadable() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("407_not_spreadable"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Not Spreadable (E#407)
@@ -175,9 +172,7 @@ fn untyped_parameter() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("408_untyped_parameter"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Untyped Parameter (E#408)
@@ -197,9 +192,7 @@ fn default_value_rejected() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("409_default_value_rejected"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Default Value Rejected (E#409)
@@ -219,9 +212,7 @@ fn not_callable() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("410_not_callable"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Not Callable (E#410)
@@ -241,9 +232,7 @@ fn unexpected_argument() -> Result<(), Box<dyn std::error::Error>> {
         .child("src/main.kn")
         .write_file(&main_file("411_unexpected_argument"))?;
 
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(&root_dir);
-    cmd.arg("check");
+    let mut cmd = command(&root_dir)?;
 
     cmd.assert().failure().stderr(predicates::str::contains(
         "Unexpected Argument (E#411)

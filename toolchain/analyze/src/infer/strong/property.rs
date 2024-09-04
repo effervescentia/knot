@@ -4,22 +4,18 @@ use super::{
     state::State,
 };
 use crate::error::Error;
-use kore::Serializable;
 use lang::{
     types::{self, Enumerated, Kind, ObjectTypeEntry},
     CanonicalId,
 };
 
-fn infer_module<Library>(
-    state: &State<Library>,
+fn infer_module(
+    state: &State,
     declarations: &[(String, Kind, CanonicalId)],
     property: &str,
     allowed_kind: &Kind,
     module: &CanonicalId,
-) -> Action
-where
-    Library: Serializable,
-{
+) -> Action {
     match declarations.iter().find(|(name, ..)| name == property) {
         Some((_, kind, id)) if allowed_kind.can_accept(kind) => inherit::inherit_any(state, *id),
 
@@ -33,15 +29,12 @@ where
     }
 }
 
-fn infer_object<Library>(
-    state: &State<Library>,
+fn infer_object(
+    state: &State,
     entries: &[ObjectTypeEntry<CanonicalId>],
     property: &str,
     object: &CanonicalId,
-) -> Action
-where
-    Library: Serializable,
-{
+) -> Action {
     match entries.iter().find(|entry| entry.name() == property) {
         Some(entry) => match entry {
             ObjectTypeEntry::Required(_, x) => inherit::inherit_any(state, *x),
@@ -82,15 +75,7 @@ fn infer_enumerated(
     }
 }
 
-pub fn infer<Library>(
-    state: &State<Library>,
-    lhs: CanonicalId,
-    property: &str,
-    allowed_kind: &Kind,
-) -> Action
-where
-    Library: Serializable,
-{
+pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kind) -> Action {
     match state.resolve_any(&lhs) {
         Some(Ok(x)) => match x {
             types::Type::Module(declarations) => {

@@ -16,14 +16,9 @@ mod view;
 use super::{weak, NodeDescriptor};
 use crate::{Context, Result};
 pub use data::Output;
-use kore::Serializable;
 pub use state::State;
-use std::str::FromStr;
 
-pub fn infer_types<Library>(ctx: &Context<Library>, weak: weak::Output) -> Result<Output>
-where
-    Library: Serializable + FromStr,
-{
+pub fn infer_types(ctx: &Context, weak: weak::Output) -> Result<Output> {
     let mut state = State::from_weak(ctx, weak);
 
     while !state.is_done() {
@@ -38,9 +33,9 @@ mod tests {
     use crate::{
         analyze_mock, fixture,
         infer::{weak, BindingMap},
-        AmbientScope, ModuleMap,
+        ModuleMap,
     };
-    use kore::{assert_eq_sorted, str};
+    use kore::{assert_eq_sorted, internal::AmbientScope, str};
     use lang::{
         ast,
         types::{Enumerated, Kind, Type},

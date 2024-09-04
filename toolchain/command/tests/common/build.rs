@@ -1,6 +1,6 @@
 use super::scratch_path;
 use knot_command::build;
-use kore::Generator;
+use kore::internal;
 use lang::ast;
 use std::{collections::HashMap, fs, path::Path};
 
@@ -47,13 +47,13 @@ fn collect_files(out_dir: &Path) -> HashMap<String, String> {
     .collect()
 }
 
-pub fn build<G>(
+pub fn build<Platform>(
     test_name: &str,
     files: &[(&str, &str)],
-    generator: G,
+    platform: Platform,
 ) -> engine::Result<HashMap<String, String>>
 where
-    G: Generator<Input = ast::shape::Program>,
+    Platform: internal::Platform<Program = ast::shape::Program>,
 {
     let source_dir = scratch_path().join(format!("{test_name}_source"));
     let out_dir = scratch_path().join(format!("{test_name}_output"));
@@ -66,7 +66,7 @@ where
     let (entry, _) = files.first().expect("files list was empty");
 
     let result = build::command(&build::Options {
-        generator,
+        platform,
         entry: Path::new(entry),
         source_dir: source_dir.as_path(),
         out_dir: out_dir.as_path(),

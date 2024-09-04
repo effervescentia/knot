@@ -2,7 +2,7 @@ use super::{
     data::{Inference, Type, Weak},
     to_weak::ToWeak,
 };
-use crate::AmbientScope;
+use kore::internal;
 use lang::{
     ast,
     types::{self, Kind},
@@ -122,7 +122,7 @@ impl ToWeak for ast::Component<NodeId, NodeId, NodeId> {
                 Kind::Value,
                 Type::Infer(Inference::Reference(
                     tag.clone(),
-                    Some(AmbientScope::Element),
+                    Some(internal::AmbientScope::Element),
                 )),
             ),
         }
@@ -132,8 +132,7 @@ impl ToWeak for ast::Component<NodeId, NodeId, NodeId> {
 #[cfg(test)]
 mod tests {
     use super::{Inference, ToWeak, Type};
-    use crate::AmbientScope;
-    use kore::str;
+    use kore::{internal::AmbientScope, str};
     use lang::{
         ast,
         types::{self, Kind},

@@ -1,13 +1,12 @@
 mod link;
 mod report;
 mod resolve;
-mod resource;
 mod state;
 mod validate;
 mod write;
 
 use analyze::ModuleMap;
-use kore::{invariant, Generator, Incrementor};
+use kore::{internal, invariant, Incrementor};
 use lang::{ast, Canonicalize, NamespaceId, NodeId};
 pub use link::Link;
 use report::Enrich;
@@ -15,9 +14,9 @@ pub use report::{
     CodeFrame, ConfigurationError, EnvironmentError, ExecutionError, Report, Reporter,
 };
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
-pub use resource::Library;
+use state::{IsVerbose, ToLibraries, Traverse, Visitor, WithLibraries};
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, HashSet},
     env::current_dir,
     fmt::Display,
     ops::Deref,
@@ -48,16 +47,12 @@ impl<T> IntoResult for Result<T> {
 pub struct Context<Resolver> {
     reporter: Reporter,
     resolver: Resolver,
-    libraries: HashSet<Library>,
+    // libraries: HashSet<Library>,
 }
 
 impl<R> Context<R> {
-    pub fn std(reporter: Reporter, resolver: R) -> Self {
-        Self {
-            reporter,
-            resolver,
-            libraries: HashSet::from_iter(vec![Library::Std, Library::Html]),
-        }
+    pub const fn std(reporter: Reporter, resolver: R) -> Self {
+        Self { reporter, resolver }
     }
 
     pub fn raise<T>(&mut self, x: T) -> Internal<()>
@@ -117,24 +112,23 @@ where
         }
     }
 
-    fn parse_library(library: &Library) -> (String, state::Ast<()>) {
-        let input = library.resolve();
-        let (ast, _) = parse::typings::parse(input)
+    fn parse_library(library: &internal::Library, text: &str) -> (String, state::Ast<()>) {
+        let (ast, _) = parse::typings::parse(text)
             .unwrap_or_else(|_| invariant!("failed to parse library {library:?}"));
 
-        (input.to_owned(), state::Ast::Typings(ast))
+        (text.to_owned(), state::Ast::Typings(ast))
     }
 
     fn parse_libraries<'a>(
         incrementor: &'a mut Incrementor,
-        libraries: &'a HashSet<Library>,
-    ) -> impl Iterator<Item = (Library, Link, state::Module<()>)> + 'a {
-        libraries.iter().map(|library| {
-            let (input, ast) = Self::parse_library(library);
+        libraries: Vec<(internal::Library, &'a str)>,
+    ) -> impl Iterator<Item = (internal::Library, Link, state::Module<()>)> + 'a {
+        libraries.into_iter().map(|(library, text)| {
+            let (input, ast) = Self::parse_library(&library, text);
 
             (
-                *library,
-                Link::from_library(library),
+                library,
+                Link::from_library(&library),
                 state::Module::new(NamespaceId(incrementor.increment()), input, ast),
             )
         })
@@ -282,29 +276,49 @@ where
 
 impl<T, R> Engine<T, R>
 where
-    T: IntoResult<Value = state::FromEntry>,
+    T: IntoResult,
+    T::Value: Clone + Enrich,
+    R: Resolver,
+{
+    pub fn include_libraries<Library>(
+        self,
+        libraries: &HashSet<Library>,
+    ) -> Engine<Result<state::WithLibraries<T::Value, Library>>, R>
+    where
+        Library: internal::PlatformLibrary,
+    {
+        self.then(|state, _| {
+            Ok(WithLibraries {
+                state,
+                libraries: libraries.clone(),
+            })
+        })
+    }
+}
+
+impl<T, R> Engine<T, R>
+where
+    T: IntoResult,
+    T::Value: Clone + Enrich + Traverse + ToLibraries + IsVerbose,
     R: Resolver,
 {
     /// starting from the entry file recursively discover and parse modules
-    pub fn parse_and_discover(self) -> Engine<Result<state::Parsed>, R> {
+    pub fn parse(self) -> Engine<Result<state::Parsed>, R> {
         self.then(|state, context| {
-            let mut queue = VecDeque::from_iter(vec![state.entry]);
-            let mut parsed = state::Parsed::new(state.verbose);
+            let mut visitor = state.traverse();
+            let mut parsed = state::Parsed::new(state.is_verbose());
 
             for (library, link, module) in
-                Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
+                Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), state.to_libraries())
             {
                 parsed.register_library(library, link, module);
             }
 
-            while let Some(link) = queue.pop_front() {
+            while let Some(link) = visitor.next() {
                 context.load_and_parse_program(&link).map(|(text, ast)| {
                     for link in ast.to_links(&link) {
-                        if !parsed.has_by_link(&link)
-                            && !queue.contains(&link)
-                            && !link.is_library()
-                        {
-                            queue.push_back(link);
+                        if !parsed.has_by_link(&link) && !link.is_library() {
+                            visitor.queue(link);
                         }
                     }
 
@@ -317,32 +331,69 @@ where
     }
 }
 
-impl<T, R> Engine<T, R>
-where
-    T: IntoResult<Value = state::FromPaths>,
-    R: Resolver,
-{
-    /// parse all modules from the provided paths
-    pub fn parse_all(self) -> Engine<Result<state::Parsed>, R> {
-        self.then(|state, context| {
-            let mut parsed = state::Parsed::new(state.verbose);
+// impl<T, R> Engine<T, R>
+// where
+//     T: IntoResult<Value = state::FromEntry>,
+//     R: Resolver,
+// {
+//     /// starting from the entry file recursively discover and parse modules
+//     pub fn parse_and_discover(self) -> Engine<Result<state::Parsed>, R> {
+//         self.then(|state, context| {
+//             let mut queue = VecDeque::from_iter(vec![state.entry]);
+//             let mut parsed = state::Parsed::new(state.verbose);
 
-            for (library, link, module) in
-                Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
-            {
-                parsed.register_library(library, link, module);
-            }
+//             for (library, link, module) in
+//                 Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
+//             {
+//                 parsed.register_library(library, link, module);
+//             }
 
-            for link in state.paths {
-                context
-                    .load_and_parse_program(&link)
-                    .map(|(text, ast)| parsed.register_source(link, text, ast))?;
-            }
+//             while let Some(link) = queue.pop_front() {
+//                 context.load_and_parse_program(&link).map(|(text, ast)| {
+//                     for link in ast.to_links(&link) {
+//                         if !parsed.has_by_link(&link)
+//                             && !queue.contains(&link)
+//                             && !link.is_library()
+//                         {
+//                             queue.push_back(link);
+//                         }
+//                     }
 
-            Ok(parsed)
-        })
-    }
-}
+//                     parsed.register_source(link, text, ast);
+//                 })?;
+//             }
+
+//             Ok(parsed)
+//         })
+//     }
+// }
+
+// impl<T, R> Engine<T, R>
+// where
+//     T: IntoResult<Value = state::FromPaths>,
+//     R: Resolver,
+// {
+//     /// parse all modules from the provided paths
+//     pub fn parse_all(self) -> Engine<Result<state::Parsed>, R> {
+//         self.then(|state, context| {
+//             let mut parsed = state::Parsed::new(state.verbose);
+
+//             for (library, link, module) in
+//                 Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
+//             {
+//                 parsed.register_library(library, link, module);
+//             }
+
+//             for link in state.paths {
+//                 context
+//                     .load_and_parse_program(&link)
+//                     .map(|(text, ast)| parsed.register_source(link, text, ast))?;
+//             }
+
+//             Ok(parsed)
+//         })
+//     }
+// }
 
 impl<T, R> Engine<T, R>
 where
@@ -375,7 +426,7 @@ where
     }
 
     fn bind_errors(
-        context: &analyze::Context<Library>,
+        context: &analyze::Context,
         errors: Vec<(NodeId, analyze::Error)>,
     ) -> Vec<ExecutionError> {
         errors
@@ -451,9 +502,9 @@ where
     R: Resolver,
 {
     /// generate output files using the provided generator
-    pub fn generate<T>(&self, generator: &T) -> Writer<T::Output>
+    pub fn generate<T>(&self, generator: T) -> Writer<T::Output>
     where
-        T: Generator<Input = ast::shape::Program>,
+        T: internal::Generator<Input = ast::shape::Program>,
     {
         self.to_writer(|state| {
             state

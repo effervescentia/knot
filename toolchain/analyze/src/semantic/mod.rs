@@ -10,18 +10,18 @@ mod type_declaration;
 mod type_expression;
 mod type_module;
 
-use crate::{error::Error, Result};
+use crate::{error::Error, AmbientMap, Result};
 use lang::{
     ast,
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     Identify, Node, NodeId, Range,
 };
 
-pub fn analyze<Typed>(typed: Typed) -> Result<Typed>
+pub fn analyze<Typed>(typed: Typed, ambient: AmbientMap) -> Result<Typed>
 where
     Typed: Clone + Walk<Visitor>,
 {
-    let visitor = Visitor::default();
+    let visitor = Visitor::new(ambient);
 
     let (_, visitor) = typed.clone().walk(visitor);
 
@@ -32,12 +32,19 @@ where
     }
 }
 
-#[derive(Default)]
 pub struct Visitor {
     errors: Vec<(NodeId, Error)>,
+    pub ambient: AmbientMap,
 }
 
 impl Visitor {
+    fn new(ambient: AmbientMap) -> Self {
+        Self {
+            errors: Default::default(),
+            ambient,
+        }
+    }
+
     fn node<T, M, R, F>(self, x: T, (r, m): (Range, M), f: F) -> (R, Self)
     where
         F: Fn(Node<T, M>) -> R,

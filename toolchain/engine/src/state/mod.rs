@@ -3,6 +3,7 @@ mod ast;
 mod base;
 mod linked;
 mod parsed;
+mod traverse;
 
 use crate::{
     report::{Enrich, Report},
@@ -11,10 +12,63 @@ use crate::{
 pub use analyzed::Analyzed;
 pub use ast::Ast;
 pub use base::Base;
+use kore::internal::{self, PlatformLibrary};
 use lang::NamespaceId;
 pub use linked::Linked;
 pub use parsed::Parsed;
-use std::{fmt::Debug, path::Path};
+use std::{collections::HashSet, fmt::Debug, path::Path};
+use traverse::{DynamicVisitor, StaticVisitor};
+pub use traverse::{Traverse, Visitor};
+
+pub trait IsVerbose {
+    fn is_verbose(&self) -> bool;
+}
+
+pub trait ToLibraries {
+    fn to_libraries(&self) -> Vec<(internal::Library, &str)> {
+        vec![]
+    }
+}
+
+#[derive(Clone)]
+pub struct WithLibraries<State, Library> {
+    pub state: State,
+    pub libraries: HashSet<Library>,
+}
+
+impl<State, Library> ToLibraries for WithLibraries<State, Library>
+where
+    Library: Clone + PlatformLibrary,
+{
+    fn to_libraries(&self) -> Vec<(internal::Library, &str)> {
+        self.libraries
+            .iter()
+            .map(|x| ((*x).into(), x.text()))
+            .collect()
+    }
+}
+
+impl<State, Library> Traverse for WithLibraries<State, Library>
+where
+    State: Traverse,
+{
+    type Visitor = State::Visitor;
+
+    fn traverse(&self) -> Self::Visitor {
+        self.state.traverse()
+    }
+}
+
+impl<State, Library> IsVerbose for WithLibraries<State, Library>
+where
+    State: IsVerbose,
+{
+    fn is_verbose(&self) -> bool {
+        self.state.is_verbose()
+    }
+}
+
+impl<State, Library> Enrich for WithLibraries<State, Library> where State: Enrich {}
 
 #[derive(Clone, Debug)]
 pub struct Module<T> {
@@ -35,6 +89,10 @@ pub struct FromEntry {
     pub verbose: bool,
 }
 
+impl Enrich for FromEntry {}
+
+impl ToLibraries for FromEntry {}
+
 impl IntoResult for FromEntry {
     type Value = Self;
 
@@ -43,13 +101,29 @@ impl IntoResult for FromEntry {
     }
 }
 
-impl Enrich for FromEntry {}
+impl Traverse for FromEntry {
+    type Visitor = DynamicVisitor;
+
+    fn traverse(&self) -> Self::Visitor {
+        DynamicVisitor::new(self.entry.clone())
+    }
+}
+
+impl IsVerbose for FromEntry {
+    fn is_verbose(&self) -> bool {
+        self.verbose
+    }
+}
 
 #[derive(Clone)]
 pub struct FromPaths {
     pub paths: Vec<Link>,
     pub verbose: bool,
 }
+
+impl Enrich for FromPaths {}
+
+impl ToLibraries for FromPaths {}
 
 impl IntoResult for FromPaths {
     type Value = Self;
@@ -59,7 +133,19 @@ impl IntoResult for FromPaths {
     }
 }
 
-impl Enrich for FromPaths {}
+impl Traverse for FromPaths {
+    type Visitor = StaticVisitor;
+
+    fn traverse(&self) -> Self::Visitor {
+        StaticVisitor::new(self.paths.clone())
+    }
+}
+
+impl IsVerbose for FromPaths {
+    fn is_verbose(&self) -> bool {
+        self.verbose
+    }
+}
 
 pub struct FromGlob<'a> {
     pub dir: &'a Path,

@@ -1,41 +1,24 @@
 use crate::{ast, infer, Context};
-use kore::{invariant, Incrementor, Serializable};
+use kore::{invariant, Incrementor};
 use lang::{
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     CanonicalId, NamespaceId, Node, NodeId, Range,
 };
 use std::{cell::OnceCell, marker::PhantomData};
 
-pub trait IntoTyped<Typed, Library>: Sized
-where
-    Library: Serializable,
-{
-    fn into_typed(self, ctx: &Context<Library>, strong: &infer::strong::Output) -> Typed;
+pub trait IntoTyped<Typed>: Sized {
+    fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> Typed;
 }
 
-impl<Meta, Library> IntoTyped<ast::typed::Program, Library> for ast::meta::Program<Meta>
-where
-    Library: Serializable,
-{
-    fn into_typed(
-        self,
-        ctx: &Context<Library>,
-        strong: &infer::strong::Output,
-    ) -> ast::typed::Program {
+impl<Meta> IntoTyped<ast::typed::Program> for ast::meta::Program<Meta> {
+    fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> ast::typed::Program {
         let visitor = Visitor::new(ctx.id, strong);
         ast::meta::Program(self.0.walk(visitor).0)
     }
 }
 
-impl<Meta, Library> IntoTyped<ast::typed::Typings, Library> for ast::meta::Typings<Meta>
-where
-    Library: Serializable,
-{
-    fn into_typed(
-        self,
-        ctx: &Context<Library>,
-        strong: &infer::strong::Output,
-    ) -> ast::typed::Typings {
+impl<Meta> IntoTyped<ast::typed::Typings> for ast::meta::Typings<Meta> {
+    fn into_typed(self, ctx: &Context, strong: &infer::strong::Output) -> ast::typed::Typings {
         let visitor = Visitor::new(ctx.id, strong);
         ast::meta::Typings(self.0.walk(visitor).0)
     }

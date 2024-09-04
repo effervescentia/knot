@@ -1,7 +1,6 @@
 mod common;
 
-use engine::{Library, Link};
-use js::{JavaScriptGenerator, Module};
+use engine::Link;
 
 #[test]
 fn cyclic() {
@@ -13,7 +12,7 @@ fn cyclic() {
     let result = common::build(
         &name,
         &[("a.kn", INPUT_A), ("b.kn", INPUT_B), ("c.kn", INPUT_C)],
-        JavaScriptGenerator::<Library>::new(Module::ESM),
+        web::Web,
     );
 
     assert_eq!(

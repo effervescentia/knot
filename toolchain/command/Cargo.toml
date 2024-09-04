@@ -15,5 +15,5 @@ ctor = "0.2.5"
 glob = "0.3.1"
 stdext = "0.3.3"
 kore = { package = "knot_core", path = "../kore", features = ["test"] }
-js = { package = "knot_plugin_javascript", path = "../plugin_javascript" }
 engine = { package = "knot_engine", path = "../engine", features = ["test"] }
+web = { package = "knot_platform_web", path = "../../platform/web" }

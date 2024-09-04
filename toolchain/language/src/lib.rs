@@ -1,5 +1,4 @@
 pub mod ast;
-#[cfg(feature = "format")]
 pub mod format;
 mod fragment;
 mod identify;

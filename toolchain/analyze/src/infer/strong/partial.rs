@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::{
     arithmetic,
     data::{Action, Type},
@@ -10,16 +8,10 @@ use super::{
     NodeDescriptor,
 };
 use crate::{error::Error, infer::strong::import, Context};
-use kore::{invariant, Serializable};
+use kore::invariant;
 use lang::Canonicalize;
 
-pub fn infer_types<'a, Library>(
-    ctx: &Context<Library>,
-    prev: State<'a, Library>,
-) -> State<'a, Library>
-where
-    Library: Serializable + FromStr,
-{
+pub fn infer_types<'a>(ctx: &Context, prev: State<'a>) -> State<'a> {
     let (remaining, mut next) = State::next(prev);
     let remaining_count = remaining.len();
 
@@ -142,9 +134,9 @@ mod tests {
             strong::{data::Type, state::State},
             weak, BindingMap,
         },
-        AmbientScope, ModuleMap,
+        ModuleMap,
     };
-    use kore::{assert_eq_sorted, str};
+    use kore::{assert_eq_sorted, internal::AmbientScope, str};
     use lang::{
         ast,
         types::{self, Enumerated, Kind},

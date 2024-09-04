@@ -3,19 +3,16 @@ use super::{
     inherit,
     state::State,
 };
-use crate::{error::Error, infer::NodeDescriptor, AmbientScope};
-use kore::Serializable;
+use crate::{error::Error, infer::NodeDescriptor};
+use kore::internal;
 use lang::Canonicalize;
 
-pub fn infer<Library>(
-    state: &State<Library>,
-    scope: &Option<AmbientScope>,
+pub fn infer(
+    state: &State,
+    scope: &Option<internal::AmbientScope>,
     name: &str,
     node: &NodeDescriptor,
-) -> Action
-where
-    Library: Serializable,
-{
+) -> Action {
     if let Some(from_id) = state.bindings.resolve(node, name) {
         return inherit::inherit(state, state.canonicalize(from_id), &node.kind);
     }
@@ -41,7 +38,7 @@ mod tests {
         },
         Context,
     };
-    use kore::{assert_eq, str, Serializable};
+    use kore::{assert_eq, str};
     use lang::{
         types::{self, Kind},
         CanonicalId, NodeId, ScopeId,
@@ -49,14 +46,11 @@ mod tests {
     use std::collections::{BTreeMap, BTreeSet, HashMap};
 
     #[allow(clippy::type_complexity)]
-    fn mock_state<'a, Library>(
-        ctx: &'a Context<Library>,
+    fn mock_state<'a>(
+        ctx: &'a Context,
         bindings: Vec<((ScopeId, String), BTreeSet<NodeId>)>,
         types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
-    ) -> State<'a, Library>
-    where
-        Library: Serializable,
-    {
+    ) -> State<'a> {
         State {
             bindings: BindingMap(HashMap::from_iter(bindings)),
             types: BTreeMap::from_iter(types),

@@ -1,16 +1,11 @@
-use crate::Module;
-use kore::{invariant, str};
-use lang::ast;
-use std::{
-    fmt::{Display, Write},
-    marker::PhantomData,
-    str::FromStr,
-};
+use crate::{knot, Module};
+use kore::{internal, invariant, str};
+use std::{fmt::Write, marker::PhantomData, str::FromStr};
 
 #[derive(Clone, Copy)]
-pub struct ImportResolver<Library>(pub Module, PhantomData<Library>);
+pub struct Resolver<Library>(pub Module, PhantomData<Library>);
 
-impl<Library> ImportResolver<Library> {
+impl<Library> Resolver<Library> {
     pub const fn new(module: Module) -> Self {
         Self(module, PhantomData)
     }
@@ -20,21 +15,21 @@ impl<Library> ImportResolver<Library> {
     }
 
     #[allow(clippy::unused_self)]
-    pub fn resolve(&self, root: &str, import: &ast::Import) -> (String, String)
+    pub fn resolve(&self, root: &str, import: &knot::Import) -> (String, String)
     where
-        Library: FromStr + Display,
+        Library: internal::PlatformLibrary,
     {
         let alias = match import {
-            ast::Import {
+            knot::Import {
                 alias: Some(alias), ..
             } => alias,
 
-            ast::Import {
+            knot::Import {
                 alias: None, path, ..
             } if !path.is_empty() => path.last().unwrap(),
 
-            ast::Import {
-                source: ast::ImportSource::Named(name),
+            knot::Import {
+                source: knot::ImportSource::Named(name),
                 ..
             } => name,
 
@@ -42,19 +37,22 @@ impl<Library> ImportResolver<Library> {
         };
 
         let mut namespace = match &import.source {
-            ast::ImportSource::Local => str!("."),
+            knot::ImportSource::Local => str!("."),
 
-            ast::ImportSource::Root => root.to_owned(),
+            knot::ImportSource::Root => root.to_owned(),
 
-            ast::ImportSource::Named(name) => {
-                if let Ok(library) = Library::from_str(name) {
-                    format!("@knot/{library}")
+            knot::ImportSource::Named(name) => {
+                if let Ok(module) = internal::Library::from_str(name)
+                    .map(Library::from)
+                    .and_then(|x| x.module().ok_or(()))
+                {
+                    format!("@knot/{module}")
                 } else {
                     name.to_owned()
                 }
             }
 
-            ast::ImportSource::Scoped { scope, name } => {
+            knot::ImportSource::Scoped { scope, name } => {
                 format!("@{scope}/{name}")
             }
         };
@@ -64,7 +62,7 @@ impl<Library> ImportResolver<Library> {
 
             if matches!(
                 import.source,
-                ast::ImportSource::Local | ast::ImportSource::Root
+                knot::ImportSource::Local | knot::ImportSource::Root
             ) {
                 write!(&mut namespace, ".js").ok();
             }

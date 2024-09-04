@@ -1,17 +1,13 @@
 use super::{data::Type, state::State};
 use crate::{error::Error, Context};
-use kore::Serializable;
 use lang::{types::Kind, Fragment, NodeId, ScopeId};
 use std::collections::BTreeMap;
 
 pub const FRAGMENTS: &BTreeMap<NodeId, (ScopeId, Fragment)> = &BTreeMap::new();
 
-impl<'a, Library> State<'a, Library>
-where
-    Library: Serializable,
-{
+impl<'a> State<'a> {
     #[allow(clippy::type_complexity)]
-    pub fn mock(context: &'a Context<Library>) -> Self {
+    pub fn mock(context: &'a Context) -> Self {
         State {
             context,
             fragments: FRAGMENTS,
@@ -24,7 +20,7 @@ where
 
     #[allow(clippy::type_complexity)]
     pub fn from_types(
-        context: &'a Context<Library>,
+        context: &'a Context,
         types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
     ) -> Self {
         State {

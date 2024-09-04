@@ -3,6 +3,9 @@
 resolver = "2"
 
 members = [
+  # "libraries",
+
+  # toolchain
   "toolchain/analyze",
   "toolchain/bin",
   "toolchain/command",
@@ -10,5 +13,11 @@ members = [
   "toolchain/kore",
   "toolchain/language",
   "toolchain/parse",
-  "toolchain/plugin_javascript",
+  # "toolchain/plugin_javascript",
+
+  # generators
+  "generator/javascript",
+
+  # platforms
+  "platform/web",
 ]

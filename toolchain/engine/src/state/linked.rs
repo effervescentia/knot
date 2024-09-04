@@ -1,4 +1,4 @@
-use super::{base::Base, Parsed};
+use super::{base::Base, IsVerbose, Parsed};
 use crate::{link::ImportGraph, report};
 use lang::NamespaceId;
 use std::ops::{Deref, DerefMut};

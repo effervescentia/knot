@@ -1,14 +1,12 @@
-use crate::{
-    infer::{BindingMap, NodeDescriptor},
-    AmbientScope,
-};
+use crate::infer::{BindingMap, NodeDescriptor};
+use kore::internal;
 use lang::{ast, types, CanonicalId, FragmentMap, NamespaceId, NodeId};
 use std::collections::HashMap;
 
 /// all inference cases encoded as variants
 #[derive(Clone, Debug, PartialEq)]
 pub enum Inference {
-    Reference(String, Option<AmbientScope>),
+    Reference(String, Option<internal::AmbientScope>),
     Property(NodeId, String),
     Arithmetic(ast::BinaryOperator, NodeId, NodeId),
     Product(NodeId),

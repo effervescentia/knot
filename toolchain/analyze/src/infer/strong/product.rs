@@ -4,16 +4,12 @@ use super::{
     state::State,
 };
 use crate::error::Error;
-use kore::Serializable;
 use lang::{
     types::{self, Enumerated},
     CanonicalId,
 };
 
-pub fn infer<Library>(state: &State<Library>, x: CanonicalId) -> Action
-where
-    Library: Serializable,
-{
+pub fn infer(state: &State, x: CanonicalId) -> Action {
     match state.resolve_any(&x) {
         Some(Ok(types::Type::Function(_, result))) => inherit::inherit_any(state, result),
 

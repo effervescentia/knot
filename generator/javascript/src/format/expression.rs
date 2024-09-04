@@ -1,4 +1,4 @@
-use crate::javascript::Expression;
+use crate::ast::Expression;
 use kore::format::{Block, Indented, SeparateEach, SuffixEach};
 use std::fmt::{Display, Formatter};
 
@@ -97,7 +97,7 @@ impl<'a> Display for Property<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::javascript::{Expression, Statement};
+    use crate::ast::{Expression, Statement};
     use kore::str;
 
     #[test]

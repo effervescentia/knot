@@ -10,24 +10,15 @@ pub mod test;
 
 pub use context::{AmbientMap, Context, ModuleMap, TypeMap};
 pub use error::Error;
-use kore::Serializable;
 use lang::{ast, walk, NodeId};
-use std::{fmt::Debug, hash::Hash, str::FromStr};
-
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum AmbientScope {
-    Element,
-}
 
 /// analysis result with possible resolution errors
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, Error)>>;
 
-pub fn analyze<Raw, Typed, Library>(ctx: &Context<Library>, raw: Raw) -> Result<(Typed, TypeMap)>
+pub fn analyze<Raw, Typed>(ctx: &Context, raw: Raw) -> Result<(Typed, TypeMap)>
 where
-    Raw: ast::into_fragments::IntoFragments<NodeId> + into_typed::IntoTyped<Typed, Library> + Clone,
+    Raw: ast::into_fragments::IntoFragments<NodeId> + into_typed::IntoTyped<Typed> + Clone,
     Typed: walk::Walk<semantic::Visitor> + Clone,
-
-    Library: Serializable + FromStr,
 {
     let fragments = raw.clone().into_fragments();
 
@@ -37,15 +28,15 @@ where
     let mut typed = raw.into_typed(ctx, &strong);
     let types = strong.canonicalize(ctx);
 
-    typed = semantic::analyze(typed)?;
+    typed = semantic::analyze(typed, ctx.ambient.clone())?;
 
     Ok((typed, types))
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{analyze_mock, fixture, AmbientScope, ModuleMap};
-    use kore::{assert_eq_sorted, str};
+    use crate::{analyze_mock, fixture, ModuleMap};
+    use kore::{assert_eq_sorted, internal::AmbientScope, str};
     use lang::{
         ast,
         types::{Kind, Type},

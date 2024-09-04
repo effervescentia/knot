@@ -3,13 +3,10 @@ use super::{
     state::State,
 };
 use crate::Error;
-use kore::{invariant, Serializable};
+use kore::invariant;
 use lang::{ast, types, CanonicalId, Canonicalize, Fragment, NodeId};
 
-pub fn infer<Library>(state: &State<Library>, parameters: &[NodeId]) -> Action
-where
-    Library: Serializable,
-{
+pub fn infer(state: &State, parameters: &[NodeId]) -> Action {
     let parameters = parameters
         .iter()
         .map(|id| {
@@ -42,10 +39,7 @@ where
     Action::Infer(Type::Value(types::Type::View(parameters)))
 }
 
-pub fn infer_type<Library>(state: &State<Library>, attributes: CanonicalId) -> Action
-where
-    Library: Serializable,
-{
+pub fn infer_type(state: &State, attributes: CanonicalId) -> Action {
     match state.resolve_type(&attributes) {
         Some(Ok(types::Type::Object(properties))) => {
             Action::Infer(Type::Value(types::Type::View(properties)))
@@ -70,7 +64,7 @@ mod tests {
         },
         Context,
     };
-    use kore::{str, Serializable};
+    use kore::str;
     use lang::{
         ast,
         types::{self, Kind},
@@ -79,14 +73,11 @@ mod tests {
     use std::collections::BTreeMap;
 
     #[allow(clippy::type_complexity)]
-    fn mock_state<'a, Library>(
-        ctx: &'a Context<Library>,
+    fn mock_state<'a>(
+        ctx: &'a Context,
         fragments: &'a BTreeMap<NodeId, (ScopeId, Fragment)>,
         types: Vec<(NodeId, (Kind, Result<Type, Error>))>,
-    ) -> State<'a, Library>
-    where
-        Library: Serializable,
-    {
+    ) -> State<'a> {
         State {
             fragments,
             types: BTreeMap::from_iter(types),

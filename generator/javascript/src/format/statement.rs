@@ -1,4 +1,4 @@
-use crate::javascript::{Expression, Statement};
+use crate::ast::{Expression, Statement};
 use kore::format::SeparateEach;
 use std::fmt::{Display, Formatter};
 
@@ -52,7 +52,7 @@ impl<'a> Display for Import<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::javascript::{Expression, Statement};
+    use crate::ast::{Expression, Statement};
     use kore::str;
 
     #[test]

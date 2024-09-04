@@ -1,6 +1,6 @@
 use super::Visitor;
 use crate::error::Error;
-use kore::invariant;
+use kore::{internal, invariant};
 use lang::{
     ast::{BinaryOperator, Expression, UnaryOperator},
     types::{Enumerated, ToShape, Type},
@@ -15,7 +15,7 @@ pub fn analyze(
         <Visitor as ProgramVisitor>::Component,
     >,
     _: &<Visitor as CommonVisitor>::Context,
-    _: &Visitor,
+    visitor: &Visitor,
 ) -> Option<Vec<Error>> {
     match x {
         Expression::Primitive(_) => None,
@@ -121,7 +121,15 @@ pub fn analyze(
             _ => invariant!("this should have been raised as NotCallable during inference"),
         },
 
-        Expression::Style(_) => None,
+        Expression::Style(rules) => {
+            let mut errors = vec![];
+
+            for (key, value) in rules {
+                let style_scope = visitor.ambient.get(&internal::AmbientScope::Style)?;
+            }
+
+            (!errors.is_empty()).then_some(errors)
+        }
 
         Expression::Component(_) => None,
     }

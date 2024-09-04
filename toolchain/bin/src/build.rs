@@ -5,10 +5,9 @@ use crate::{
     path::{get_out_dir, get_root_dir, get_source_dir, validate_entrypoint},
 };
 use command::{build, Phase};
-use engine::Library;
-use kore::Generator;
+use kore::internal;
 use lang::ast;
-use std::{fmt::Display, path::Path, str::FromStr};
+use std::path::Path;
 
 pub struct Args<'a> {
     pub target: Target,
@@ -54,30 +53,9 @@ impl<'a> Args<'a> {
     }
 }
 
-fn get_generator(target: Target) -> impl Generator<Input = ast::shape::Program> {
-    #[derive(Clone, Copy)]
-    struct PlatformLibrary(Library);
-
-    impl FromStr for PlatformLibrary {
-        type Err = ();
-
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            Library::from_str(s).map(Self)
-        }
-    }
-
-    impl Display for PlatformLibrary {
-        fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-            match self.0 {
-                Library::Std => write!(f, "{}/browser", self.0),
-
-                _ => self.0.fmt(f),
-            }
-        }
-    }
-
+fn get_platform(target: Target) -> impl internal::Platform<Program = ast::shape::Program> {
     match target {
-        Target::JavaScript => js::JavaScriptGenerator::<PlatformLibrary>::new(js::Module::ESM),
+        Target::Web => web::Web,
     }
 }
 
@@ -85,7 +63,7 @@ fn get_generator(target: Target) -> impl Generator<Input = ast::shape::Program> 
 pub fn command(args: Args) -> engine::Result<()> {
     args.report();
 
-    let generator = get_generator(args.target);
+    let platform = get_platform(args.target);
     let root_dir = get_root_dir(args.root_dir)?;
     let source_dir = get_source_dir(&root_dir, args.source_dir)?;
     let out_dir = get_out_dir(&root_dir, args.out_dir);
@@ -95,7 +73,7 @@ pub fn command(args: Args) -> engine::Result<()> {
     eprint!("{}", Phase::Execution);
 
     build::command(&build::Options {
-        generator,
+        platform,
         entry: args.entry,
         source_dir: &source_dir,
         out_dir: &out_dir,

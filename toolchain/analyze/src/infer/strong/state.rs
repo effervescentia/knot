@@ -2,9 +2,9 @@ use super::data::{Output, Strong, Type};
 use crate::{
     error::Error,
     infer::{weak, BindingMap, NodeDescriptor},
-    AmbientScope, Context, Result,
+    Context, Result,
 };
-use kore::{invariant, Serializable};
+use kore::{internal, invariant};
 use lang::{
     ast,
     types::{self, Kind},
@@ -19,11 +19,8 @@ type Warning<'a> = (&'a NodeDescriptor, String);
 
 /// partial state for a single round of strong type inference
 #[derive(Debug, PartialEq)]
-pub struct State<'a, Library>
-where
-    Library: Serializable,
-{
-    pub context: &'a Context<'a, Library>,
+pub struct State<'a> {
+    pub context: &'a Context<'a>,
 
     pub fragments: &'a FragmentMap<NodeId>,
 
@@ -36,12 +33,9 @@ where
     pub warnings: Vec<Warning<'a>>,
 }
 
-impl<'a, Library> State<'a, Library>
-where
-    Library: Serializable,
-{
+impl<'a> State<'a> {
     /// create a new `State` from the output of the weak inference phase and the analysis `Context`
-    pub fn from_weak(context: &'a Context<Library>, mut weak: weak::Output<'a>) -> Self {
+    pub fn from_weak(context: &'a Context, mut weak: weak::Output<'a>) -> Self {
         let nodes = weak.build_descriptors(context.id);
 
         Self {
@@ -123,7 +117,7 @@ where
 
     pub fn resolve_ambient(
         &self,
-        ambient: &AmbientScope,
+        ambient: &internal::AmbientScope,
         name: &str,
     ) -> Option<&Rc<ast::typed::Meta>> {
         let ambient_namespace = self.context.ambient.get(ambient)?;
@@ -204,10 +198,7 @@ where
     }
 }
 
-impl<'a, Library> Canonicalize for State<'a, Library>
-where
-    Library: Serializable,
-{
+impl<'a> Canonicalize for State<'a> {
     fn canonicalize(&self, id: NodeId) -> CanonicalId {
         CanonicalId(self.context.id, id)
     }

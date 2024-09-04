@@ -1,7 +1,7 @@
 mod import_graph;
 
-use crate::Library;
 pub use import_graph::ImportGraph;
+use kore::internal::Library;
 use lang::{ast, Namespace};
 use std::{
     ffi::OsStr,
@@ -10,7 +10,7 @@ use std::{
 };
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Link(pub Namespace<Library>);
+pub struct Link(pub Namespace);
 
 impl Link {
     #[cfg(feature = "test")]
@@ -45,7 +45,7 @@ impl Link {
         self.0.to_path("kn")
     }
 
-    pub fn to_namespace(self) -> Namespace<Library> {
+    pub fn to_namespace(self) -> Namespace {
         self.0
     }
 }

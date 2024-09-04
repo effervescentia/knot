@@ -23,7 +23,7 @@ pub fn command(opts: &Options) -> engine::Result<()> {
 
     let count = Engine::new(root_dir, opts.verbose)
         .from_glob(opts.root_dir, opts.glob)
-        .parse_all()
+        .parse()
         .inspect(|state, _| state.report_from_glob())
         .format()
         .write(opts.root_dir)?;

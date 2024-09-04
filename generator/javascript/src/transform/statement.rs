@@ -1,21 +1,18 @@
-use std::{fmt::Display, str::FromStr};
-
 use crate::{
-    javascript::{Expression, Statement},
-    Options,
+    ast::{Expression, Statement},
+    knot, Options,
 };
-use kore::str;
-use lang::ast;
+use kore::{internal, str};
 
 #[allow(clippy::multiple_inherent_impl)]
 impl Statement {
     pub fn from_statement<Library>(
-        value: &ast::shape::Statement,
+        value: &knot::shape::Statement,
         is_last: bool,
         opts: &Options<Library>,
     ) -> Vec<Self> {
         match &value.0 {
-            ast::Statement::Expression(x) => {
+            knot::Statement::Expression(x) => {
                 if is_last {
                     vec![Self::Return(Some(Expression::from_expression(x, opts)))]
                 } else {
@@ -23,7 +20,7 @@ impl Statement {
                 }
             }
 
-            ast::Statement::Variable(name, x) => {
+            knot::Statement::Variable(name, x) => {
                 if is_last {
                     vec![
                         Self::Variable(name.clone(), Expression::from_expression(x, opts)),
@@ -41,17 +38,17 @@ impl Statement {
 
     pub fn from_declaration<Library>(
         path_to_root: &str,
-        value: &ast::shape::Declaration,
+        value: &knot::shape::Declaration,
         opts: &Options<Library>,
     ) -> Vec<Self>
     where
-        Library: FromStr + Display,
+        Library: internal::PlatformLibrary,
     {
         match &value.0 {
-            ast::Declaration::TypeAlias { .. } => vec![],
+            knot::Declaration::TypeAlias { .. } => vec![],
 
-            ast::Declaration::Enumerated {
-                storage: ast::Storage { binding, .. },
+            knot::Declaration::Enumerated {
+                storage: knot::Storage { binding, .. },
                 variants,
             } => vec![Self::Variable(
                 binding.clone(),
@@ -90,8 +87,8 @@ impl Statement {
                 ),
             )],
 
-            ast::Declaration::Constant {
-                storage: ast::Storage { binding, .. },
+            knot::Declaration::Constant {
+                storage: knot::Storage { binding, .. },
                 value,
                 ..
             } => vec![Self::Variable(
@@ -99,8 +96,8 @@ impl Statement {
                 Expression::from_expression(value, opts),
             )],
 
-            ast::Declaration::Function {
-                storage: ast::Storage { binding, .. },
+            knot::Declaration::Function {
+                storage: knot::Storage { binding, .. },
                 parameters,
                 body,
                 ..
@@ -147,8 +144,8 @@ impl Statement {
                 ))]
             }
 
-            ast::Declaration::View {
-                storage: ast::Storage { binding, .. },
+            knot::Declaration::View {
+                storage: knot::Storage { binding, .. },
                 parameters,
                 body,
                 ..
@@ -208,8 +205,8 @@ impl Statement {
                 ))]
             }
 
-            ast::Declaration::Module {
-                storage: ast::Storage { binding, .. },
+            knot::Declaration::Module {
+                storage: knot::Storage { binding, .. },
                 value,
             } => {
                 let statements = [
@@ -242,11 +239,11 @@ impl Statement {
     // TODO: make this return a single value instead of an array
     pub fn from_import<Library>(
         path_to_root: &str,
-        ast::shape::Import(import): &ast::shape::Import,
+        knot::shape::Import(import): &knot::shape::Import,
         opts: &Options<Library>,
     ) -> Vec<Self>
     where
-        Library: FromStr + Display,
+        Library: internal::PlatformLibrary,
     {
         let (namespace, alias) = opts.resolver.resolve(path_to_root, import);
 
@@ -255,13 +252,13 @@ impl Statement {
 
     pub fn from_module<Library>(
         path_to_root: &str,
-        value: &ast::shape::Module,
+        value: &knot::shape::Module,
         opts: &Options<Library>,
     ) -> Vec<Self>
     where
-        Library: FromStr + Display,
+        Library: internal::PlatformLibrary,
     {
-        let ast::Module {
+        let knot::Module {
             ref imports,
             ref declarations,
         } = value.0;
@@ -281,7 +278,7 @@ impl Statement {
 #[cfg(test)]
 mod tests {
     use crate::{
-        javascript::{Expression, Statement},
+        ast::{Expression, Statement},
         test::MOCK_OPTIONS,
     };
     use kore::str;

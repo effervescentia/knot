@@ -1,4 +1,4 @@
-use crate::{Library, Link};
+use crate::Link;
 use lang::{CanonicalId, Identify};
 use std::{
     collections::HashMap,
@@ -33,7 +33,7 @@ where
 {
     pub fn analyze(
         &self,
-        context: &analyze::Context<Library>,
+        context: &analyze::Context,
     ) -> analyze::Result<(Ast<lang::ast::typed::Meta>, analyze::TypeMap)> {
         match self {
             Self::Program(program) => analyze::analyze(context, program.clone())

@@ -3,18 +3,9 @@ use super::{
     state::State,
 };
 use crate::error::Error;
-use kore::Serializable;
 use lang::{ast, types, CanonicalId};
 
-pub fn infer<Library>(
-    state: &State<Library>,
-    op: ast::BinaryOperator,
-    lhs: CanonicalId,
-    rhs: CanonicalId,
-) -> Action
-where
-    Library: Serializable,
-{
+pub fn infer(state: &State, op: ast::BinaryOperator, lhs: CanonicalId, rhs: CanonicalId) -> Action {
     match (state.resolve_value(&lhs), state.resolve_value(&rhs)) {
         (Some(Ok(types::Type::Integer)), Some(Ok(types::Type::Integer))) => {
             Action::Infer(Type::Value(types::Type::Integer))

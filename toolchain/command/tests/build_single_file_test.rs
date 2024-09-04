@@ -1,7 +1,5 @@
 mod common;
 
-use engine::Library;
-use js::{JavaScriptGenerator, Module};
 use kore::{assert_eq, str};
 use std::collections::HashMap;
 
@@ -65,60 +63,7 @@ export { my_module };
 ";
 
     let name = common::test_name(file!(), "esm");
-    let result = common::build(
-        &name,
-        &[("main.kn", INPUT)],
-        JavaScriptGenerator::<Library>::new(Module::ESM),
-    );
-
-    assert_eq!(
-        result.unwrap(),
-        HashMap::from_iter(vec![(str!("main.js"), OUTPUT.to_owned())])
-    );
-}
-
-#[test]
-fn to_javascript_cjs() {
-    const OUTPUT: &str = "var $knot = require(\"@knot/runtime\").$knot;
-var MyEnum = {
-  First: function First($param_0, $param_1) {
-    return [MyEnum.First, $param_0, $param_1];
-  },
-  Second: function Second() {
-    return [MyEnum.Second];
-  },
-};
-var MY_CONST = 100 + 20;
-function my_func(first, second) {
-  second = $knot.plugin.get(\"core\", \"defaultParameter\", \"1.0\")(second, 10);
-  var result = first || second < 5;
-  return result;
-}
-function MyView($props) {
-  var name = $props.name;
-  return $knot.plugin.get(\"view\", \"createFragment\", \"1.0\")();
-}
-var my_module = (function() {
-  var MY_STYLE = $knot.plugin.get(\"style\", \"create\", \"1.0\")({
-    color: \"red\",
-  });
-  return {
-    MY_STYLE: MY_STYLE,
-  };
-})();
-exports.MyEnum = MyEnum;
-exports.MY_CONST = MY_CONST;
-exports.my_func = my_func;
-exports.MyView = MyView;
-exports.my_module = my_module;
-";
-
-    let name = common::test_name(file!(), "cjs");
-    let result = common::build(
-        &name,
-        &[("main.kn", INPUT)],
-        JavaScriptGenerator::<Library>::new(Module::CJS),
-    );
+    let result = common::build(&name, &[("main.kn", INPUT)], web::Web);
 
     assert_eq!(
         result.unwrap(),

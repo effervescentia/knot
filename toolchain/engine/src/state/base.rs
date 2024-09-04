@@ -1,7 +1,7 @@
-use super::{Ast, Module};
-use crate::{report, Library, Link};
+use super::{Ast, IsVerbose, Module};
+use crate::{report, Link};
 use bimap::BiMap;
-use kore::Incrementor;
+use kore::{internal, Incrementor};
 use lang::{
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     CanonicalId, NamespaceId, NodeId, Range,
@@ -67,7 +67,7 @@ impl<T> Base<T> {
         )
     }
 
-    pub fn register_library(&mut self, library: Library, link: Link, module: Module<T>) {
+    pub fn register_library(&mut self, library: internal::Library, link: Link, module: Module<T>) {
         if let Some(scope) = library.to_ambient_scope() {
             self.ambient.insert(scope, module.id);
         }
@@ -91,10 +91,6 @@ impl<T> Base<T> {
             lookup: self.lookup,
             ambient: self.ambient,
         }
-    }
-
-    pub const fn is_verbose(&self) -> bool {
-        self.verbose
     }
 }
 
@@ -134,6 +130,12 @@ where
                 },
             },
         }
+    }
+}
+
+impl<T> IsVerbose for Base<T> {
+    fn is_verbose(&self) -> bool {
+        self.verbose
     }
 }
 
