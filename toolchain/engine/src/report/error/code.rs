@@ -59,6 +59,8 @@ impl ErrorCode {
     pub const BINARY_OPERATION_NOT_SUPPORTED: Self = Self(421);
     pub const UNARY_OPERATION_NOT_SUPPORTED: Self = Self(422);
     pub const UNEXPECTED_KIND: Self = Self(423);
+    pub const STYLE_RULE_NOT_FOUND: Self = Self(424);
+    pub const STYLE_RULE_REJECTED: Self = Self(425);
 
     // 5xx - generation errors
 }

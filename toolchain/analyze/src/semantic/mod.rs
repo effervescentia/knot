@@ -10,18 +10,18 @@ mod type_declaration;
 mod type_expression;
 mod type_module;
 
-use crate::{error::Error, AmbientMap, Result};
+use crate::{error::Error, Context, Result, TypeMap};
 use lang::{
     ast,
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     Identify, Node, NodeId, Range,
 };
 
-pub fn analyze<Typed>(typed: Typed, ambient: AmbientMap) -> Result<Typed>
+pub fn analyze<'a, Typed>(ctx: &'a Context<'a>, typed: Typed, types: TypeMap) -> Result<Typed>
 where
-    Typed: Clone + Walk<Visitor>,
+    Typed: Clone + Walk<Visitor<'a>>,
 {
-    let visitor = Visitor::new(ambient);
+    let visitor = Visitor::new(ctx, types);
 
     let (_, visitor) = typed.clone().walk(visitor);
 
@@ -32,16 +32,18 @@ where
     }
 }
 
-pub struct Visitor {
+pub struct Visitor<'a> {
     errors: Vec<(NodeId, Error)>,
-    pub ambient: AmbientMap,
+    pub context: &'a Context<'a>,
+    pub types: TypeMap,
 }
 
-impl Visitor {
-    fn new(ambient: AmbientMap) -> Self {
+impl<'a> Visitor<'a> {
+    fn new(context: &'a Context<'a>, types: TypeMap) -> Self {
         Self {
             errors: Default::default(),
-            ambient,
+            context,
+            types,
         }
     }
 
@@ -63,7 +65,7 @@ impl Visitor {
     }
 }
 
-impl CommonVisitor for Visitor {
+impl<'a> CommonVisitor for Visitor<'a> {
     type Context = (Range, ast::typed::Meta);
     type Binding = ast::typed::Binding;
     type TypeExpression = ast::typed::TypeExpression;
@@ -83,7 +85,7 @@ impl CommonVisitor for Visitor {
     }
 }
 
-impl ProgramVisitor for Visitor {
+impl<'a> ProgramVisitor for Visitor<'a> {
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;
     type Attribute = ast::typed::Attribute;
@@ -176,7 +178,7 @@ impl ProgramVisitor for Visitor {
     }
 }
 
-impl TypingsVisitor for Visitor {
+impl<'a> TypingsVisitor for Visitor<'a> {
     type TypeDeclaration = ast::typed::TypeDeclaration;
     type TypeModule = ast::typed::TypeModule;
 

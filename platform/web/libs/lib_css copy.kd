@@ -1,9 +1,0 @@
-enum Length {}
-
-enum Color {}
-
-func width(Length) -> nil;
-func height(Length) -> nil;
-
-func color(Color) -> nil;
-func backgroundColor(Color) -> nil;

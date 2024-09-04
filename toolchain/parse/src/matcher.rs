@@ -1,5 +1,5 @@
 use combine::{
-    attempt, many, optional, parser, parser::char as p, position, sep_end_by, sep_end_by1,
+    attempt, many, optional, parser, parser::char as p, position, sep_end_by,
     stream::position::SourcePosition, value, Parser, Stream,
 };
 use kore::invariant;
@@ -204,7 +204,7 @@ where
     SP: Parser<T>,
     F: Fn() -> SP,
 {
-    optional(separator()).with(sep_end_by1(target, separator()))
+    optional(separator()).with(sep_end_by(target, separator()))
 }
 
 #[cfg(test)]

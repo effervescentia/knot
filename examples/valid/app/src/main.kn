@@ -1,6 +1,8 @@
 use std;
 
-const rootStyles = style {};
+const rootStyles = style {
+  color: 123
+};
 
 view App -> <div>Hello, World!</div>;
 

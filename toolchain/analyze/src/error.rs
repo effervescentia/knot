@@ -176,6 +176,21 @@ pub enum Error {
         ),
     ),
 
+    /* style-related */
+    StyleRuleNotFound(
+        // name of the rule
+        String,
+    ),
+
+    StyleRuleRejected(
+        // name of the attribute
+        String,
+        // the expected type of the attribute
+        types::Shape,
+        // the actual type of the attribute
+        types::Shape,
+    ),
+
     /* mismatch */
     BinaryOperationNotSupported(
         // operation being performed

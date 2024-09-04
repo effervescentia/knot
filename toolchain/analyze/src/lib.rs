@@ -15,10 +15,10 @@ use lang::{ast, walk, NodeId};
 /// analysis result with possible resolution errors
 pub type Result<Value> = std::result::Result<Value, Vec<(NodeId, Error)>>;
 
-pub fn analyze<Raw, Typed>(ctx: &Context, raw: Raw) -> Result<(Typed, TypeMap)>
+pub fn analyze<'a, Raw, Typed>(ctx: &'a Context<'a>, raw: Raw) -> Result<(Typed, TypeMap)>
 where
     Raw: ast::into_fragments::IntoFragments<NodeId> + into_typed::IntoTyped<Typed> + Clone,
-    Typed: walk::Walk<semantic::Visitor> + Clone,
+    Typed: walk::Walk<semantic::Visitor<'a>> + Clone,
 {
     let fragments = raw.clone().into_fragments();
 
@@ -28,7 +28,7 @@ where
     let mut typed = raw.into_typed(ctx, &strong);
     let types = strong.canonicalize(ctx);
 
-    typed = semantic::analyze(typed, ctx.ambient.clone())?;
+    typed = semantic::analyze(ctx, typed, types.clone())?;
 
     Ok((typed, types))
 }

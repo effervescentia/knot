@@ -97,6 +97,12 @@ impl<T> Enumerated<T> {
     }
 }
 
+impl<T> Display for Enumerated<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str("enum")
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ObjectTypeEntry<T> {
     Required(String, T),

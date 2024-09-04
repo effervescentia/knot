@@ -1,5 +1,5 @@
 use crate::ast;
-use kore::{internal, invariant, str};
+use kore::{internal, invariant};
 use std::{
     fmt::Debug,
     path::{Path, PathBuf},
@@ -19,7 +19,7 @@ impl Namespace {
 
     #[cfg(feature = "test")]
     pub fn mock() -> Self {
-        Self::Internal(vec![str!("mock")])
+        Self::Internal(vec![String::from("mock")])
     }
 
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self

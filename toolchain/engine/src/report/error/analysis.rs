@@ -36,6 +36,8 @@ impl ToCode for analyze::Error {
             Self::BinaryOperationNotSupported(..) => ErrorCode::BINARY_OPERATION_NOT_SUPPORTED,
             Self::UnaryOperationNotSupported(..) => ErrorCode::UNARY_OPERATION_NOT_SUPPORTED,
             Self::UnexpectedKind(..) => ErrorCode::UNEXPECTED_KIND,
+            Self::StyleRuleNotFound(..) => ErrorCode::STYLE_RULE_NOT_FOUND,
+            Self::StyleRuleRejected(..) => ErrorCode::STYLE_RULE_REJECTED,
         }
     }
 }
@@ -466,6 +468,36 @@ This includes {} and primitive types: {}.",
                     "Replace the attribute {} with a value of type {}.",
                     attribute_name.highlight(),
                     attribute_type.to_string().highlight()
+                )),
+
+            Self::StyleRuleNotFound(name) => error
+                .title("Style Rule Not Found")
+                .description(format!(
+                    "There is no style rule named {} in the current platform.",
+                    name.error(),
+                ))
+                .suggestion(
+                    "Check the documentation for your selected platform to find an appropriate styling rule.",
+                ),
+
+            Self::StyleRuleRejected(name, expected_type, actual_type) => error
+                .title("Attribute Rejected")
+                .description(format!(
+                    "The type of the style rule {} does not match the expected type.
+                
+  {} {}
+  {} {}",
+                    name.error(),
+                    "expected:".subtle(),
+                    expected_type.to_string().success(),
+                    "actual:".subtle(),
+                    actual_type.to_string().error(),
+                ))
+                .suggestion(format!(
+                    "Replace the attribute {} with a value of type {}.
+Alternatively you can use a raw string value for styling rules though it will bypass type safety.",
+                    name.highlight(),
+                    expected_type.to_string().highlight()
                 )),
 
             Self::BinaryOperationNotSupported(op, (lhs_id, lhs_type), (rhs_id, rhs_type)) => {

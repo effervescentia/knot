@@ -1,9 +1,11 @@
+use std::collections::HashMap;
+
 use super::Visitor;
 use crate::error::Error;
 use kore::{internal, invariant};
 use lang::{
     ast::{BinaryOperator, Expression, UnaryOperator},
-    types::{Enumerated, ToShape, Type},
+    types::{self, Enumerated, ToShape, Type},
     walk::{CommonVisitor, ProgramVisitor},
     Identify, TypeOf,
 };
@@ -124,8 +126,50 @@ pub fn analyze(
         Expression::Style(rules) => {
             let mut errors = vec![];
 
+            let style_namespace_id = visitor
+                .context
+                .ambient
+                .get(&internal::AmbientScope::Style)?;
+            let style_module = visitor.context.modules.by_key.get(style_namespace_id)?;
+            let style_rules =
+                style_module
+                    .2
+                    .get(&style_module.0)
+                    .and_then(|x| match &x.to_shape().0 {
+                        types::Type::Module(xs) => Some(
+                            xs.iter()
+                                .filter(|(_, kind, _)| (kind == &types::Kind::Value))
+                                .filter_map(|(name, _, type_)| match &type_.as_ref().0 {
+                                    types::Type::Function(parameters, _)
+                                        if parameters.len() == 1 =>
+                                    {
+                                        Some((
+                                            name.to_owned(),
+                                            parameters.first()?.as_ref().clone(),
+                                        ))
+                                    }
+                                    _ => None,
+                                })
+                                .collect::<HashMap<_, _>>(),
+                        ),
+
+                        _ => None,
+                    })?;
+
             for (key, value) in rules {
-                let style_scope = visitor.ambient.get(&internal::AmbientScope::Style)?;
+                if let Some(expected_type) = style_rules.get(key) {
+                    let actual_type = value.type_of().to_shape();
+
+                    if &actual_type != expected_type && actual_type.0 != types::Type::String {
+                        errors.push(Error::StyleRuleRejected(
+                            key.clone(),
+                            expected_type.clone(),
+                            actual_type,
+                        ));
+                    }
+                } else {
+                    errors.push(Error::StyleRuleNotFound(key.clone()));
+                }
             }
 
             (!errors.is_empty()).then_some(errors)
