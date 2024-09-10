@@ -71,6 +71,7 @@ impl<'a, Meta> CommonVisitor for Visitor<'a, Meta> {
     type Context = (Range, Meta);
     type Binding = ast::typed::Binding;
     type TypeExpression = ast::typed::TypeExpression;
+    type Import = ast::typed::Import;
 
     fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self) {
         (ast::typed::Binding(Node::raw(x, r)), self)
@@ -83,6 +84,10 @@ impl<'a, Meta> CommonVisitor for Visitor<'a, Meta> {
     ) -> (Self::TypeExpression, Self) {
         self.typed(x, r, ast::meta::TypeExpression)
     }
+
+    fn import(self, x: ast::Import, (r, _): Self::Context) -> (Self::Import, Self) {
+        self.typed(x, r, ast::meta::Import)
+    }
 }
 
 impl<'a, Meta> ProgramVisitor for Visitor<'a, Meta> {
@@ -92,7 +97,6 @@ impl<'a, Meta> ProgramVisitor for Visitor<'a, Meta> {
     type Component = ast::typed::Component;
     type Parameter = ast::typed::Parameter;
     type Declaration = ast::typed::Declaration;
-    type Import = ast::typed::Import;
     type Module = ast::typed::Module;
 
     fn expression(
@@ -149,10 +153,6 @@ impl<'a, Meta> ProgramVisitor for Visitor<'a, Meta> {
         self.typed(x, r, ast::meta::Declaration)
     }
 
-    fn import(self, x: ast::Import, (r, _): Self::Context) -> (Self::Import, Self) {
-        self.typed(x, r, ast::meta::Import)
-    }
-
     fn module(
         self,
         x: ast::Module<Self::Import, Self::Declaration>,
@@ -176,7 +176,7 @@ impl<'a, Meta> TypingsVisitor for Visitor<'a, Meta> {
 
     fn type_module(
         self,
-        x: ast::TypeModule<Self::TypeDeclaration>,
+        x: ast::TypeModule<Self::Import, Self::TypeDeclaration>,
         (r, _): Self::Context,
     ) -> (Self::TypeModule, Self) {
         self.typed(x, r, ast::meta::TypeModule)

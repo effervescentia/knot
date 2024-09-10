@@ -21,7 +21,7 @@ pub enum Fragment {
 
     /* typings */
     TypeDeclaration(ast::TypeDeclaration<String, NodeId, NodeId>),
-    TypeModule(ast::TypeModule<NodeId>),
+    TypeModule(ast::TypeModule<NodeId, NodeId>),
 }
 
 impl Fragment {

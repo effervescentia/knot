@@ -4,6 +4,7 @@ pub trait CommonVisitor: Sized {
     type Context;
     type Binding;
     type TypeExpression;
+    type Import;
 
     fn scoped<T, F>(self, f: F) -> (T, Self)
     where
@@ -19,6 +20,8 @@ pub trait CommonVisitor: Sized {
         x: ast::TypeExpression<Self::Binding, Self::TypeExpression>,
         c: Self::Context,
     ) -> (Self::TypeExpression, Self);
+
+    fn import(self, x: ast::Import, c: Self::Context) -> (Self::Import, Self);
 }
 
 pub trait ProgramVisitor: CommonVisitor {
@@ -28,7 +31,6 @@ pub trait ProgramVisitor: CommonVisitor {
     type Component;
     type Parameter;
     type Declaration;
-    type Import;
     type Module;
 
     fn expression(
@@ -74,8 +76,6 @@ pub trait ProgramVisitor: CommonVisitor {
         c: Self::Context,
     ) -> (Self::Declaration, Self);
 
-    fn import(self, x: ast::Import, c: Self::Context) -> (Self::Import, Self);
-
     fn module(
         self,
         x: ast::Module<Self::Import, Self::Declaration>,
@@ -95,7 +95,7 @@ pub trait TypingsVisitor: CommonVisitor {
 
     fn type_module(
         self,
-        x: ast::TypeModule<Self::TypeDeclaration>,
+        x: ast::TypeModule<Self::Import, Self::TypeDeclaration>,
         c: Self::Context,
     ) -> (Self::TypeModule, Self);
 }

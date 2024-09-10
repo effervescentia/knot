@@ -16,7 +16,7 @@ pub use report::{
 pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
 use state::{IsVerbose, ToLibraries, Traverse, Visitor, WithLibraries};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     env::current_dir,
     fmt::Display,
     ops::Deref,
@@ -47,7 +47,6 @@ impl<T> IntoResult for Result<T> {
 pub struct Context<Resolver> {
     reporter: Reporter,
     resolver: Resolver,
-    // libraries: HashSet<Library>,
 }
 
 impl<R> Context<R> {
@@ -282,7 +281,7 @@ where
 {
     pub fn include_libraries<Library>(
         self,
-        libraries: &HashSet<Library>,
+        libraries: &[Library],
     ) -> Engine<Result<state::WithLibraries<T::Value, Library>>, R>
     where
         Library: internal::PlatformLibrary,
@@ -290,7 +289,7 @@ where
         self.then(|state, _| {
             Ok(WithLibraries {
                 state,
-                libraries: libraries.clone(),
+                libraries: libraries.to_vec(),
             })
         })
     }
@@ -330,70 +329,6 @@ where
         })
     }
 }
-
-// impl<T, R> Engine<T, R>
-// where
-//     T: IntoResult<Value = state::FromEntry>,
-//     R: Resolver,
-// {
-//     /// starting from the entry file recursively discover and parse modules
-//     pub fn parse_and_discover(self) -> Engine<Result<state::Parsed>, R> {
-//         self.then(|state, context| {
-//             let mut queue = VecDeque::from_iter(vec![state.entry]);
-//             let mut parsed = state::Parsed::new(state.verbose);
-
-//             for (library, link, module) in
-//                 Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
-//             {
-//                 parsed.register_library(library, link, module);
-//             }
-
-//             while let Some(link) = queue.pop_front() {
-//                 context.load_and_parse_program(&link).map(|(text, ast)| {
-//                     for link in ast.to_links(&link) {
-//                         if !parsed.has_by_link(&link)
-//                             && !queue.contains(&link)
-//                             && !link.is_library()
-//                         {
-//                             queue.push_back(link);
-//                         }
-//                     }
-
-//                     parsed.register_source(link, text, ast);
-//                 })?;
-//             }
-
-//             Ok(parsed)
-//         })
-//     }
-// }
-
-// impl<T, R> Engine<T, R>
-// where
-//     T: IntoResult<Value = state::FromPaths>,
-//     R: Resolver,
-// {
-//     /// parse all modules from the provided paths
-//     pub fn parse_all(self) -> Engine<Result<state::Parsed>, R> {
-//         self.then(|state, context| {
-//             let mut parsed = state::Parsed::new(state.verbose);
-
-//             for (library, link, module) in
-//                 Self::parse_libraries(&mut parsed.incrementor().borrow_mut(), &context.libraries)
-//             {
-//                 parsed.register_library(library, link, module);
-//             }
-
-//             for link in state.paths {
-//                 context
-//                     .load_and_parse_program(&link)
-//                     .map(|(text, ast)| parsed.register_source(link, text, ast))?;
-//             }
-
-//             Ok(parsed)
-//         })
-//     }
-// }
 
 impl<T, R> Engine<T, R>
 where
@@ -440,8 +375,7 @@ where
             let mut analyzed = HashMap::default();
             let mut modules = ModuleMap::default();
 
-            // TODO: abstract this so the same logic can be re-used between both libraries and source modules
-            for (link, module) in state.modules().filter(|(link, _)| link.is_library()) {
+            for (link, module) in state.libraries() {
                 let namespace = link.clone().to_namespace();
                 let analyze_context = analyze::Context {
                     id: module.id,

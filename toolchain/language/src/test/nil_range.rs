@@ -78,6 +78,7 @@ impl<Context> CommonVisitor for Visitor<Context> {
     type Context = Context;
     type Binding = ast::raw::Binding;
     type TypeExpression = ast::raw::TypeExpression;
+    type Import = ast::raw::Import;
 
     fn binding(self, x: ast::Binding, _: Range) -> (Self::Binding, Self) {
         (ast::meta::Binding(Node::raw(x, Range::nil())), self)
@@ -90,6 +91,10 @@ impl<Context> CommonVisitor for Visitor<Context> {
     ) -> (Self::TypeExpression, Self) {
         (ast::meta::TypeExpression(Node::raw(x, Range::nil())), self)
     }
+
+    fn import(self, x: ast::Import, _: Self::Context) -> (Self::Import, Self) {
+        (ast::meta::Import(Node::raw(x, Range::nil())), self)
+    }
 }
 
 impl<Context> ProgramVisitor for Visitor<Context> {
@@ -99,7 +104,6 @@ impl<Context> ProgramVisitor for Visitor<Context> {
     type Component = ast::raw::Component;
     type Parameter = ast::raw::Parameter;
     type Declaration = ast::raw::Declaration;
-    type Import = ast::raw::Import;
     type Module = ast::raw::Module;
 
     fn expression(
@@ -154,10 +158,6 @@ impl<Context> ProgramVisitor for Visitor<Context> {
         _: Self::Context,
     ) -> (Self::Declaration, Self) {
         (ast::meta::Declaration(Node::raw(x, Range::nil())), self)
-    }
-
-    fn import(self, x: ast::Import, _: Self::Context) -> (Self::Import, Self) {
-        (ast::meta::Import(Node::raw(x, Range::nil())), self)
     }
 
     fn module(

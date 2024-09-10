@@ -79,6 +79,7 @@ impl<Context> CommonVisitor for Visitor<Context> {
     type Context = Context;
     type Binding = String;
     type TypeExpression = NodeId;
+    type Import = NodeId;
 
     fn scoped<T, F>(mut self, f: F) -> (T, Self)
     where
@@ -102,6 +103,10 @@ impl<Context> CommonVisitor for Visitor<Context> {
     ) -> (Self::TypeExpression, Self) {
         self.capture(Fragment::TypeExpression(x))
     }
+
+    fn import(self, x: super::Import, _: Self::Context) -> (Self::Import, Self) {
+        self.capture(Fragment::Import(x))
+    }
 }
 
 impl<Context> ProgramVisitor for Visitor<Context> {
@@ -111,7 +116,6 @@ impl<Context> ProgramVisitor for Visitor<Context> {
     type Component = NodeId;
     type Parameter = NodeId;
     type Declaration = NodeId;
-    type Import = NodeId;
     type Module = NodeId;
 
     fn expression(
@@ -168,10 +172,6 @@ impl<Context> ProgramVisitor for Visitor<Context> {
         self.capture(Fragment::Declaration(x))
     }
 
-    fn import(self, x: super::Import, _: Self::Context) -> (Self::Import, Self) {
-        self.capture(Fragment::Import(x))
-    }
-
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
@@ -195,7 +195,7 @@ impl<Context> TypingsVisitor for Visitor<Context> {
 
     fn type_module(
         self,
-        x: super::TypeModule<Self::TypeDeclaration>,
+        x: super::TypeModule<Self::Import, Self::TypeDeclaration>,
         _: Self::Context,
     ) -> (Self::TypeModule, Self) {
         self.capture(Fragment::TypeModule(x))

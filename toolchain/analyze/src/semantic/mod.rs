@@ -69,6 +69,7 @@ impl<'a> CommonVisitor for Visitor<'a> {
     type Context = (Range, ast::typed::Meta);
     type Binding = ast::typed::Binding;
     type TypeExpression = ast::typed::TypeExpression;
+    type Import = ast::typed::Import;
 
     fn binding(self, x: ast::Binding, r: Range) -> (Self::Binding, Self) {
         (ast::typed::Binding(Node::raw(x, r)), self)
@@ -83,6 +84,12 @@ impl<'a> CommonVisitor for Visitor<'a> {
 
         self.node(x, ctx, ast::meta::TypeExpression)
     }
+
+    fn import(mut self, x: ast::Import, ctx: Self::Context) -> (Self::Import, Self) {
+        self.report(&x, &ctx, import::analyze);
+
+        self.node(x, ctx, ast::meta::Import)
+    }
 }
 
 impl<'a> ProgramVisitor for Visitor<'a> {
@@ -92,7 +99,6 @@ impl<'a> ProgramVisitor for Visitor<'a> {
     type Component = ast::typed::Component;
     type Parameter = ast::typed::Parameter;
     type Declaration = ast::typed::Declaration;
-    type Import = ast::typed::Import;
     type Module = ast::typed::Module;
 
     fn expression(
@@ -161,12 +167,6 @@ impl<'a> ProgramVisitor for Visitor<'a> {
         self.node(x, ctx, ast::meta::Declaration)
     }
 
-    fn import(mut self, x: ast::Import, ctx: Self::Context) -> (Self::Import, Self) {
-        self.report(&x, &ctx, import::analyze);
-
-        self.node(x, ctx, ast::meta::Import)
-    }
-
     fn module(
         mut self,
         x: ast::Module<Self::Import, Self::Declaration>,
@@ -194,7 +194,7 @@ impl<'a> TypingsVisitor for Visitor<'a> {
 
     fn type_module(
         mut self,
-        x: ast::TypeModule<Self::TypeDeclaration>,
+        x: ast::TypeModule<Self::Import, Self::TypeDeclaration>,
         ctx: Self::Context,
     ) -> (Self::TypeModule, Self) {
         self.report(&x, &ctx, type_module::analyze);

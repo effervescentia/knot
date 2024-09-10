@@ -46,7 +46,7 @@ impl ToWeak for ast::Module<NodeId, NodeId> {
         )
     }
 }
-impl ToWeak for ast::TypeModule<NodeId> {
+impl ToWeak for ast::TypeModule<NodeId, NodeId> {
     fn to_weak(&self) -> Weak {
         (
             Kind::Mixed,

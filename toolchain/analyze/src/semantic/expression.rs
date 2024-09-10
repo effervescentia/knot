@@ -77,7 +77,7 @@ pub fn analyze(
 
         Expression::FunctionCall(x, arguments) => match x.type_of() {
             Type::Function(parameters, _)
-            | Type::Enumerated(Enumerated::Variant(parameters, _)) => {
+            | Type::Enumerated(_, Enumerated::Variant(_, parameters, _)) => {
                 let mut errors = vec![];
                 let lhs = parameters.iter().map(Some).chain(std::iter::repeat(None));
                 let rhs = arguments.iter().map(Some).chain(std::iter::repeat(None));

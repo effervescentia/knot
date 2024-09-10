@@ -38,7 +38,7 @@ mod tests {
     use kore::{assert_eq_sorted, internal::AmbientScope, str};
     use lang::{
         ast,
-        types::{Enumerated, Kind, Type},
+        types::{Kind, Type},
         CanonicalId, Namespace, NamespaceId, NodeId,
     };
     use std::{
@@ -183,20 +183,7 @@ mod tests {
                 types: HashMap::from_iter(vec![
                     (NodeId(0), OnceCell::from(type_(0, 0, Type::Boolean))),
                     (NodeId(1), OnceCell::from(type_(0, 1, Type::Style))),
-                    (
-                        NodeId(2),
-                        OnceCell::from(type_(
-                            0,
-                            2,
-                            Type::Enumerated(Enumerated::Declaration(vec![
-                                (str!("Empty"), vec![]),
-                                (
-                                    str!("Render"),
-                                    vec![type_(0, 0, Type::Boolean), type_(0, 1, Type::Style)]
-                                ),
-                            ]))
-                        ))
-                    ),
+                    (NodeId(2), OnceCell::from(type_(0, 2, Type::String))),
                 ]),
             })
         );

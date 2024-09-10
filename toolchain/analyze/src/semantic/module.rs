@@ -6,7 +6,7 @@ use lang::{
 };
 
 pub const fn analyze(
-    _: &ast::Module<<Visitor as ProgramVisitor>::Import, <Visitor as ProgramVisitor>::Declaration>,
+    _: &ast::Module<<Visitor as CommonVisitor>::Import, <Visitor as ProgramVisitor>::Declaration>,
     _: &<Visitor as CommonVisitor>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {

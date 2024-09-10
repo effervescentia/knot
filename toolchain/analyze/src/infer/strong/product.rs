@@ -13,9 +13,13 @@ pub fn infer(state: &State, x: CanonicalId) -> Action {
     match state.resolve_any(&x) {
         Some(Ok(types::Type::Function(_, result))) => inherit::inherit_any(state, result),
 
-        Some(Ok(types::Type::Enumerated(Enumerated::Variant(_, instance)))) => Action::Infer(
-            Type::Value(types::Type::Enumerated(Enumerated::Instance(instance))),
-        ),
+        Some(Ok(types::Type::Enumerated(
+            enum_name,
+            Enumerated::Variant(variant_name, _, instance),
+        ))) => Action::Infer(Type::Value(types::Type::Enumerated(
+            enum_name,
+            Enumerated::Instance(variant_name, instance),
+        ))),
 
         Some(Ok(_)) => Action::Raise(Error::NotCallable(x)),
 
@@ -35,7 +39,7 @@ mod tests {
             state::State,
         },
     };
-    use kore::assert_eq;
+    use kore::{assert_eq, str};
     use lang::{
         types::{self, Enumerated, Kind},
         CanonicalId, NodeId,
@@ -82,10 +86,10 @@ mod tests {
                     NodeId(1),
                     (
                         Kind::Value,
-                        Ok(Type::Value(types::Type::Enumerated(Enumerated::Variant(
-                            vec![],
-                            CanonicalId::mock(2),
-                        )))),
+                        Ok(Type::Value(types::Type::Enumerated(
+                            str!("Foo"),
+                            Enumerated::Variant(str!("Bar"), vec![], CanonicalId::mock(2)),
+                        ))),
                     ),
                 ),
                 (
@@ -93,6 +97,7 @@ mod tests {
                     (
                         Kind::Value,
                         Ok(Type::Value(types::Type::Enumerated(
+                            str!("Foo"),
                             Enumerated::Declaration(vec![]),
                         ))),
                     ),
@@ -102,9 +107,10 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1)),
-            Action::Infer(Type::Value(types::Type::Enumerated(Enumerated::Instance(
-                CanonicalId::mock(2)
-            ))))
+            Action::Infer(Type::Value(types::Type::Enumerated(
+                str!("Foo"),
+                Enumerated::Instance(str!("Bar"), CanonicalId::mock(2))
+            )))
         );
     }
 

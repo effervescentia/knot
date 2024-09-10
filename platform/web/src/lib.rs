@@ -1,5 +1,4 @@
 use kore::internal;
-use std::collections::HashSet;
 
 pub struct Web;
 
@@ -8,8 +7,8 @@ impl internal::Platform for Web {
     type Generator = js::Generator<Library>;
     type Program = lang::ast::shape::Program;
 
-    fn libraries() -> HashSet<Self::Library> {
-        HashSet::from_iter(vec![Library::Std, Library::Html, Library::Css])
+    fn libraries() -> Vec<Self::Library> {
+        vec![Library::Std, Library::Html, Library::Css]
     }
 
     fn generator() -> Self::Generator {

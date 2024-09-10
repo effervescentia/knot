@@ -1,7 +1,7 @@
 use std;
 
 const rootStyles = style {
-  color: 123
+  color: "red"
 };
 
 view App -> <div>Hello, World!</div>;

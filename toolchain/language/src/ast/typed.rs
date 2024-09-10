@@ -44,7 +44,8 @@ pub type Typings = super::meta::Typings<Meta>;
 
 impl Typings {
     pub fn exports(&self) -> HashMap<String, CanonicalId> {
-        let Self(super::meta::TypeModule(Node(super::TypeModule { declarations }, ..), ..)) = self;
+        let Self(super::meta::TypeModule(Node(super::TypeModule { declarations, .. }, ..), ..)) =
+            self;
 
         declarations
             .iter()

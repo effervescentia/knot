@@ -6,7 +6,10 @@ use lang::{
 };
 
 pub const fn analyze(
-    _: &ast::TypeModule<<Visitor as TypingsVisitor>::TypeDeclaration>,
+    _: &ast::TypeModule<
+        <Visitor as CommonVisitor>::Import,
+        <Visitor as TypingsVisitor>::TypeDeclaration,
+    >,
     _: &<Visitor as CommonVisitor>::Context,
     _: &Visitor,
 ) -> Option<Vec<Error>> {

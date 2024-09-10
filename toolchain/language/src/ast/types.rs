@@ -1,7 +1,6 @@
+use super::IsEmpty;
 use crate::walk::{CommonVisitor, TypingsVisitor, Walk, WalkEach};
 use std::fmt::Debug;
-
-use super::IsEmpty;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TypePrimitive {
@@ -264,33 +263,51 @@ where
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct TypeModule<TypeDeclaration> {
+pub struct TypeModule<Import, TypeDeclaration> {
+    pub imports: Vec<Import>,
     pub declarations: Vec<TypeDeclaration>,
 }
 
-impl<TypeDeclaration> TypeModule<TypeDeclaration> {
-    pub fn new(declarations: Vec<TypeDeclaration>) -> Self {
-        Self { declarations }
+impl<Import, TypeDeclaration> TypeModule<Import, TypeDeclaration> {
+    pub fn new(imports: Vec<Import>, declarations: Vec<TypeDeclaration>) -> Self {
+        Self {
+            imports,
+            declarations,
+        }
     }
 }
 
-impl<TypeDeclaration> IsEmpty for TypeModule<TypeDeclaration> {
+impl<Import, TypeDeclaration> IsEmpty for TypeModule<Import, TypeDeclaration> {
     fn is_empty(&self) -> bool {
         self.declarations.is_empty()
     }
 }
 
-impl<Visitor, Context, TypeDeclaration> Walk<Visitor> for (TypeModule<TypeDeclaration>, Context)
+impl<Visitor, Context, Import, TypeDeclaration> Walk<Visitor>
+    for (TypeModule<Import, TypeDeclaration>, Context)
 where
     Visitor: TypingsVisitor<Context = Context>,
+    Import: Walk<Visitor, Output = Visitor::Import>,
     TypeDeclaration: Walk<Visitor, Output = Visitor::TypeDeclaration>,
 {
     type Output = Visitor::TypeModule;
 
     fn walk(self, v: Visitor) -> (Self::Output, Visitor) {
-        let (TypeModule { declarations }, ctx) = self;
-        let (declarations, v) = declarations.walk(v);
+        let (
+            TypeModule {
+                imports,
+                declarations,
+            },
+            ctx,
+        ) = self;
+        let ((imports, declarations), v) = (imports, declarations).walk_each(v);
 
-        v.type_module(TypeModule { declarations }, ctx)
+        v.type_module(
+            TypeModule {
+                imports,
+                declarations,
+            },
+            ctx,
+        )
     }
 }

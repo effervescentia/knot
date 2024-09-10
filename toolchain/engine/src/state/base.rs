@@ -15,6 +15,7 @@ pub type ModuleIterator<'a, T> =
 pub struct Base<T> {
     modules: HashMap<Link, super::Module<T>>,
     lookup: BiMap<Link, NamespaceId>,
+    library_order: Vec<Link>,
     ambient: analyze::AmbientMap,
     verbose: bool,
 }
@@ -28,6 +29,7 @@ impl<T> Base<T> {
         Self {
             modules: Default::default(),
             lookup: Default::default(),
+            library_order: Default::default(),
             ambient: Default::default(),
             verbose,
         }
@@ -59,6 +61,13 @@ impl<T> Base<T> {
         Box::new(self.modules.iter())
     }
 
+    pub fn libraries(&self) -> Vec<(&Link, &super::Module<T>)> {
+        self.library_order
+            .iter()
+            .filter_map(|link| Some((link, self.modules.get(link)?)))
+            .collect()
+    }
+
     pub fn internal_modules(&self) -> ModuleIterator<T> {
         Box::new(
             self.modules
@@ -72,7 +81,8 @@ impl<T> Base<T> {
             self.ambient.insert(scope, module.id);
         }
 
-        self.modules.insert(link, module);
+        self.modules.insert(link.clone(), module);
+        self.library_order.push(link);
     }
 
     pub fn register_module(&mut self, link: Link, module: Module<T>) {
@@ -88,6 +98,7 @@ impl<T> Base<T> {
         Base {
             modules,
             verbose,
+            library_order: self.library_order,
             lookup: self.lookup,
             ambient: self.ambient,
         }
@@ -169,6 +180,7 @@ impl<T> CommonVisitor for Visitor<T> {
     type Context = (Range, T);
     type Binding = ();
     type TypeExpression = ();
+    type Import = ();
 
     fn binding(self, _: lang::ast::Binding, _: Range) -> (Self::Binding, Self) {
         ((), self)
@@ -181,6 +193,10 @@ impl<T> CommonVisitor for Visitor<T> {
     ) -> (Self::TypeExpression, Self) {
         self.bind(c.0)
     }
+
+    fn import(self, _: lang::ast::Import, c: Self::Context) -> (Self::Import, Self) {
+        self.bind(c.0)
+    }
 }
 
 impl<T> ProgramVisitor for Visitor<T> {
@@ -190,7 +206,6 @@ impl<T> ProgramVisitor for Visitor<T> {
     type Component = ();
     type Parameter = ();
     type Declaration = ();
-    type Import = ();
     type Module = ();
 
     fn expression(
@@ -247,10 +262,6 @@ impl<T> ProgramVisitor for Visitor<T> {
         self.bind(c.0)
     }
 
-    fn import(self, _: lang::ast::Import, c: Self::Context) -> (Self::Import, Self) {
-        self.bind(c.0)
-    }
-
     fn module(
         self,
         _: lang::ast::Module<Self::Import, Self::Declaration>,
@@ -274,7 +285,7 @@ impl<T> TypingsVisitor for Visitor<T> {
 
     fn type_module(
         self,
-        _: lang::ast::TypeModule<Self::TypeDeclaration>,
+        _: lang::ast::TypeModule<Self::Import, Self::TypeDeclaration>,
         c: Self::Context,
     ) -> (Self::TypeModule, Self) {
         self.bind(c.0)

@@ -306,6 +306,7 @@ mod tests {
                         (
                             Kind::Mixed,
                             Ok(Type::Value(types::Type::Enumerated(
+                                str!("MyEnum"),
                                 Enumerated::Declaration(vec![
                                     (str!("Empty"), vec![]),
                                     (

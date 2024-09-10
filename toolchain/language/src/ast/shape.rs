@@ -99,7 +99,7 @@ impl Display for TypeDeclaration {
     }
 }
 
-pub struct TypeModule(pub super::TypeModule<TypeDeclaration>);
+pub struct TypeModule(pub super::TypeModule<Import, TypeDeclaration>);
 
 impl IsEmpty for TypeModule {
     fn is_empty(&self) -> bool {
@@ -133,6 +133,7 @@ impl<Context> CommonVisitor for Visitor<Context> {
     type Context = Context;
     type Binding = String;
     type TypeExpression = TypeExpression;
+    type Import = Import;
 
     fn binding(self, x: super::Binding, _: Range) -> (Self::Binding, Self) {
         (x.0, self)
@@ -145,6 +146,10 @@ impl<Context> CommonVisitor for Visitor<Context> {
     ) -> (Self::TypeExpression, Self) {
         (TypeExpression(x), self)
     }
+
+    fn import(self, x: super::Import, _: Self::Context) -> (Self::Import, Self) {
+        (Import(x), self)
+    }
 }
 
 impl<Context> ProgramVisitor for Visitor<Context> {
@@ -154,7 +159,6 @@ impl<Context> ProgramVisitor for Visitor<Context> {
     type Component = Component;
     type Parameter = Parameter;
     type Declaration = Declaration;
-    type Import = Import;
     type Module = Module;
 
     fn expression(
@@ -211,10 +215,6 @@ impl<Context> ProgramVisitor for Visitor<Context> {
         (Declaration(x), self)
     }
 
-    fn import(self, x: super::Import, _: Self::Context) -> (Self::Import, Self) {
-        (Import(x), self)
-    }
-
     fn module(
         self,
         x: super::Module<Self::Import, Self::Declaration>,
@@ -238,7 +238,7 @@ impl<Context> TypingsVisitor for Visitor<Context> {
 
     fn type_module(
         self,
-        x: super::TypeModule<Self::TypeDeclaration>,
+        x: super::TypeModule<Self::Import, Self::TypeDeclaration>,
         _: Self::Context,
     ) -> (Self::TypeModule, Self) {
         (TypeModule(x), self)

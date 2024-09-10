@@ -58,13 +58,15 @@ fn infer_object(
 }
 
 fn infer_enumerated(
+    enum_name: String,
     variants: &[(String, Vec<CanonicalId>)],
     property: &str,
     enumerated: &CanonicalId,
 ) -> Action {
     match variants.iter().find(|(name, _)| name == property) {
         Some((_, parameters)) => Action::Infer(Type::Value(types::Type::Enumerated(
-            Enumerated::Variant(parameters.clone(), *enumerated),
+            enum_name,
+            Enumerated::Variant(property.to_owned(), parameters.clone(), *enumerated),
         ))),
 
         None => Action::Raise(Error::VariantNotFound(
@@ -90,8 +92,8 @@ pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kin
                 infer_object(state, &entries, property, &lhs)
             }
 
-            types::Type::Enumerated(Enumerated::Declaration(variants)) => {
-                infer_enumerated(&variants, property, &lhs)
+            types::Type::Enumerated(name, Enumerated::Declaration(variants)) => {
+                infer_enumerated(name, &variants, property, &lhs)
             }
 
             _ => Action::Raise(Error::NotIndexable(lhs, property.to_owned())),
@@ -130,6 +132,7 @@ mod tests {
                 (
                     Kind::Value,
                     Ok(Type::Value(types::Type::Enumerated(
+                        str!("bar"),
                         Enumerated::Declaration(vec![(
                             str!("foo"),
                             vec![CanonicalId::mock(2), CanonicalId::mock(3)],
@@ -141,10 +144,14 @@ mod tests {
 
         assert_eq!(
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
-            Action::Infer(Type::Value(types::Type::Enumerated(Enumerated::Variant(
-                vec![CanonicalId::mock(2), CanonicalId::mock(3)],
-                CanonicalId::mock(1)
-            ))))
+            Action::Infer(Type::Value(types::Type::Enumerated(
+                str!("bar"),
+                Enumerated::Variant(
+                    str!("foo"),
+                    vec![CanonicalId::mock(2), CanonicalId::mock(3)],
+                    CanonicalId::mock(1)
+                )
+            )))
         );
     }
 
@@ -159,6 +166,7 @@ mod tests {
                 (
                     Kind::Value,
                     Ok(Type::Value(types::Type::Enumerated(
+                        str!("fizz"),
                         Enumerated::Declaration(vec![(str!("bar"), vec![CanonicalId::mock(2)])]),
                     ))),
                 ),

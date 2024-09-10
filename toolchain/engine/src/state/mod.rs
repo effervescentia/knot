@@ -16,7 +16,7 @@ use kore::internal::{self, PlatformLibrary};
 use lang::NamespaceId;
 pub use linked::Linked;
 pub use parsed::Parsed;
-use std::{collections::HashSet, fmt::Debug, path::Path};
+use std::{fmt::Debug, path::Path};
 use traverse::{DynamicVisitor, StaticVisitor};
 pub use traverse::{Traverse, Visitor};
 
@@ -33,7 +33,7 @@ pub trait ToLibraries {
 #[derive(Clone)]
 pub struct WithLibraries<State, Library> {
     pub state: State,
-    pub libraries: HashSet<Library>,
+    pub libraries: Vec<Library>,
 }
 
 impl<State, Library> ToLibraries for WithLibraries<State, Library>

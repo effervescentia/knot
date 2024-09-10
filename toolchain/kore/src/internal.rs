@@ -1,5 +1,4 @@
 use std::{
-    collections::HashSet,
     fmt::Display,
     path::{Path, PathBuf},
     str::FromStr,
@@ -29,7 +28,7 @@ pub trait Platform {
     type Generator: Generator<Input = Self::Program>;
     type Program;
 
-    fn libraries() -> HashSet<Self::Library>;
+    fn libraries() -> Vec<Self::Library>;
 
     fn generator() -> Self::Generator;
 }

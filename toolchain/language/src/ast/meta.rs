@@ -317,7 +317,7 @@ impl Import<()> {
 
 impl<Visitor, Meta> Walk<Visitor> for Import<Meta>
 where
-    Visitor: ProgramVisitor<Context = (Range, Meta)>,
+    Visitor: CommonVisitor<Context = (Range, Meta)>,
 {
     type Output = Visitor::Import;
 
@@ -441,7 +441,7 @@ where
 
 /* type module */
 
-type TypeModuleValue<Meta> = super::TypeModule<TypeDeclaration<Meta>>;
+type TypeModuleValue<Meta> = super::TypeModule<Import<Meta>, TypeDeclaration<Meta>>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TypeModule<Meta>(pub Node<TypeModuleValue<Meta>, Meta>);
@@ -480,7 +480,9 @@ where
 pub struct Typings<Meta>(pub TypeModule<Meta>);
 
 impl<Meta> Typings<Meta> {
-    pub const fn node(&self) -> &Node<super::TypeModule<TypeDeclaration<Meta>>, Meta> {
+    pub const fn node(
+        &self,
+    ) -> &Node<super::TypeModule<Import<Meta>, TypeDeclaration<Meta>>, Meta> {
         let Self(module) = self;
         &module.0
     }

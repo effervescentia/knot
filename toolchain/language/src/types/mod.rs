@@ -5,7 +5,7 @@ use crate::{
     format::{Lambda, Object},
 };
 pub use shape::{ToShape, Type as Shape};
-use std::fmt::{Debug, Display, Pointer};
+use std::fmt::{Debug, Display};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Kind {
@@ -41,8 +41,8 @@ impl Display for Kind {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Enumerated<T> {
     Declaration(Vec<(String, Vec<T>)>),
-    Variant(Vec<T>, T),
-    Instance(T),
+    Variant(String, Vec<T>, T),
+    Instance(String, T),
 }
 
 impl<T> Enumerated<T> {
@@ -58,11 +58,13 @@ impl<T> Enumerated<T> {
                     .collect(),
             ),
 
-            Self::Variant(parameters, instance) => {
-                Enumerated::Variant(parameters.iter().map(f).collect(), f(instance))
-            }
+            Self::Variant(name, parameters, instance) => Enumerated::Variant(
+                name.clone(),
+                parameters.iter().map(f).collect(),
+                f(instance),
+            ),
 
-            Self::Instance(x) => Enumerated::Instance(f(x)),
+            Self::Instance(name, x) => Enumerated::Instance(name.clone(), f(x)),
         }
     }
 
@@ -83,12 +85,13 @@ impl<T> Enumerated<T> {
                     .collect::<Option<Vec<_>>>()?,
             )),
 
-            Self::Variant(parameters, instance) => Some(Enumerated::Variant(
+            Self::Variant(name, parameters, instance) => Some(Enumerated::Variant(
+                name.clone(),
                 parameters.iter().map(f).collect::<Option<Vec<_>>>()?,
                 f(instance)?,
             )),
 
-            Self::Instance(x) => Some(Enumerated::Instance(f(x)?)),
+            Self::Instance(name, x) => Some(Enumerated::Instance(name.clone(), f(x)?)),
         }
     }
 
@@ -99,7 +102,11 @@ impl<T> Enumerated<T> {
 
 impl<T> Display for Enumerated<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.write_str("enum")
+        match self {
+            Self::Variant(name, ..) | Self::Instance(name, ..) => write!(f, ".{name}"),
+
+            Self::Declaration(..) => Ok(()),
+        }
     }
 }
 
@@ -172,7 +179,7 @@ pub enum Type<T> {
     Style,
     Element,
 
-    Enumerated(Enumerated<T>),
+    Enumerated(String, Enumerated<T>),
     Function(Vec<T>, T),
     Object(Vec<ObjectTypeEntry<T>>),
     View(Vec<ObjectTypeEntry<T>>),
@@ -193,7 +200,7 @@ impl<T> Type<T> {
             Self::Style => Type::Style,
             Self::Element => Type::Element,
 
-            Self::Enumerated(x) => Type::Enumerated(x.map(f)),
+            Self::Enumerated(name, x) => Type::Enumerated(name.clone(), x.map(f)),
 
             Self::Function(parameters, result) => {
                 Type::Function(parameters.iter().map(f).collect(), f(result))
@@ -232,7 +239,7 @@ impl<T> Type<T> {
             Self::Style => Some(Type::Style),
             Self::Element => Some(Type::Element),
 
-            Self::Enumerated(x) => Some(Type::Enumerated(x.opt_map(f)?)),
+            Self::Enumerated(name, x) => Some(Type::Enumerated(name.clone(), x.opt_map(f)?)),
 
             Self::Function(parameters, result) => Some(Type::Function(
                 parameters.iter().map(f).collect::<Option<Vec<_>>>()?,
@@ -281,7 +288,7 @@ where
             Self::Style => Display::fmt(&TypePrimitive::Style, f),
             Self::Element => Display::fmt(&TypePrimitive::Element, f),
 
-            Self::Enumerated(enumerated) => enumerated.fmt(f),
+            Self::Enumerated(name, enumerated) => write!(f, "enum {name}{enumerated}"),
 
             Self::Function(parameters, result) => Lambda(parameters, result).fmt(f),
 

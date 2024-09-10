@@ -1,3 +1,9 @@
 module dom {
   func mount(element, string) -> () -> nil;
 }
+
+module css {
+  enum Length {}
+
+  enum Color {}
+}

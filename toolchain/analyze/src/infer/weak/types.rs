@@ -69,11 +69,14 @@ impl ToWeak for ast::TypeDeclaration<String, NodeId, NodeId> {
         match self {
             Self::TypeAlias { value, .. } => (Kind::Type, Type::Inherit(*value)),
 
-            Self::Enumerated { variants, .. } => (
+            Self::Enumerated {
+                binding, variants, ..
+            } => (
                 Kind::Type,
-                Type::Value(types::Type::Enumerated(types::Enumerated::Declaration(
-                    variants.clone(),
-                ))),
+                Type::Value(types::Type::Enumerated(
+                    binding.to_owned(),
+                    types::Enumerated::Declaration(variants.clone()),
+                )),
             ),
 
             Self::View { attributes, .. } => {
@@ -281,10 +284,13 @@ mod tests {
             .to_weak(),
             (
                 Kind::Mixed,
-                Type::Value(types::Type::Enumerated(Enumerated::Declaration(vec![
-                    (str!("Bar"), vec![]),
-                    (str!("Fizz"), vec![NodeId(1), NodeId(2)])
-                ])))
+                Type::Value(types::Type::Enumerated(
+                    str!("Foo"),
+                    Enumerated::Declaration(vec![
+                        (str!("Bar"), vec![]),
+                        (str!("Fizz"), vec![NodeId(1), NodeId(2)])
+                    ])
+                ))
             )
         );
     }

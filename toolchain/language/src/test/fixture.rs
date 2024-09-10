@@ -341,8 +341,9 @@ pub mod enumerated {
     }
 
     pub fn type_of() -> ast::typed::Type {
-        ast::typed::Type(types::Type::Enumerated(types::Enumerated::Declaration(
-            vec![
+        ast::typed::Type(types::Type::Enumerated(
+            str!("MyEnum"),
+            types::Enumerated::Declaration(vec![
                 (str!("Empty"), vec![]),
                 (
                     str!("Render"),
@@ -351,8 +352,8 @@ pub mod enumerated {
                         Rc::new((CanonicalId::mock(1), ast::typed::Type(types::Type::Style))),
                     ],
                 ),
-            ],
-        )))
+            ]),
+        ))
     }
 
     pub fn typed() -> ast::typed::Declaration {

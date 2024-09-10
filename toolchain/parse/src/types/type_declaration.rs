@@ -257,7 +257,7 @@ mod tests {
                 ast::TypeDeclaration::module(
                     ast::raw::Binding::new(ast::Binding(str!("foo")), Range::new((1, 8), (1, 10))),
                     ast::raw::TypeModule::raw(
-                        ast::TypeModule::new(vec![]),
+                        ast::TypeModule::new(vec![], vec![]),
                         Range::new((1, 13), (1, 13))
                     ),
                 ),
@@ -280,19 +280,22 @@ mod tests {
                 ast::TypeDeclaration::module(
                     ast::raw::Binding::new(ast::Binding(str!("foo")), Range::new((1, 8), (1, 10))),
                     ast::raw::TypeModule::raw(
-                        ast::TypeModule::new(vec![ast::raw::TypeDeclaration::raw(
-                            ast::TypeDeclaration::type_alias(
-                                ast::raw::Binding::new(
-                                    ast::Binding(str!("Bar")),
-                                    Range::new((2, 8), (2, 10))
+                        ast::TypeModule::new(
+                            vec![],
+                            vec![ast::raw::TypeDeclaration::raw(
+                                ast::TypeDeclaration::type_alias(
+                                    ast::raw::Binding::new(
+                                        ast::Binding(str!("Bar")),
+                                        Range::new((2, 8), (2, 10))
+                                    ),
+                                    ast::raw::TypeExpression::raw(
+                                        ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                                        Range::new((2, 14), (2, 16))
+                                    )
                                 ),
-                                ast::raw::TypeExpression::raw(
-                                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                                    Range::new((2, 14), (2, 16))
-                                )
-                            ),
-                            Range::new((2, 3), (2, 16))
-                        )]),
+                                Range::new((2, 3), (2, 16))
+                            )]
+                        ),
                         Range::new((2, 3), (3, 0))
                     ),
                 ),

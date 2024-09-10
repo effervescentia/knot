@@ -22,6 +22,10 @@ impl Namespace {
         Self::Internal(vec![String::from("mock")])
     }
 
+    pub const fn is_library(&self) -> bool {
+        matches!(self, Self::Library(_))
+    }
+
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self
     where
         P: AsRef<Path>,

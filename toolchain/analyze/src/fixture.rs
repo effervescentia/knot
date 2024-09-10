@@ -123,10 +123,13 @@ pub mod enumerated {
                 NodeId(2),
                 (
                     Kind::Mixed,
-                    weak::Type::Value(Type::Enumerated(Enumerated::Declaration(vec![
-                        (str!("Empty"), vec![]),
-                        (str!("Render"), vec![NodeId(0), NodeId(1)]),
-                    ]))),
+                    weak::Type::Value(Type::Enumerated(
+                        str!("MyEnum"),
+                        Enumerated::Declaration(vec![
+                            (str!("Empty"), vec![]),
+                            (str!("Render"), vec![NodeId(0), NodeId(1)]),
+                        ]),
+                    )),
                 ),
             ),
         ])

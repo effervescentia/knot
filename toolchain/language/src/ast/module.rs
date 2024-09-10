@@ -1,4 +1,4 @@
-use crate::walk::{ProgramVisitor, Walk, WalkEach};
+use crate::walk::{CommonVisitor, ProgramVisitor, Walk, WalkEach};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -28,7 +28,7 @@ impl Import {
 
 impl<Visitor, Context> Walk<Visitor> for (Import, Context)
 where
-    Visitor: ProgramVisitor<Context = Context>,
+    Visitor: CommonVisitor<Context = Context>,
 {
     type Output = Visitor::Import;
 

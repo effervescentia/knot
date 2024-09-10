@@ -1,5 +1,5 @@
 use super::type_declaration;
-use crate::matcher as m;
+use crate::{matcher as m, module::import};
 use combine::{many, parser, Parser, Stream};
 use lang::ast;
 
@@ -8,11 +8,18 @@ where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
-    m::span(many::<Vec<_>, _, _>(type_declaration::type_declaration(
-        type_module,
-    )))
-    .map(|(declarations, range)| {
-        ast::meta::TypeModule::raw(ast::TypeModule { declarations }, range)
+    m::span((
+        many::<Vec<_>, _, _>(import::import()),
+        many::<Vec<_>, _, _>(type_declaration::type_declaration(type_module)),
+    ))
+    .map(|((imports, declarations), range)| {
+        ast::meta::TypeModule::raw(
+            ast::TypeModule {
+                imports,
+                declarations,
+            },
+            range,
+        )
     })
 }
 
@@ -45,57 +52,62 @@ view Foo { bar: nil, fizz?: boolean };"
             .unwrap()
             .0,
             ast::raw::TypeModule::raw(
-                ast::TypeModule::new(vec![
-                    ast::raw::TypeDeclaration::raw(
-                        ast::TypeDeclaration::type_alias(
-                            ast::raw::Binding::new(
-                                ast::Binding(str!("foo")),
-                                Range::new((1, 6), (1, 8))
+                ast::TypeModule::new(
+                    vec![],
+                    vec![
+                        ast::raw::TypeDeclaration::raw(
+                            ast::TypeDeclaration::type_alias(
+                                ast::raw::Binding::new(
+                                    ast::Binding(str!("foo")),
+                                    Range::new((1, 6), (1, 8))
+                                ),
+                                ast::raw::TypeExpression::raw(
+                                    ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
+                                    Range::new((1, 12), (1, 14))
+                                )
                             ),
-                            ast::raw::TypeExpression::raw(
-                                ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                                Range::new((1, 12), (1, 14))
-                            )
+                            Range::new((1, 1), (1, 14))
                         ),
-                        Range::new((1, 1), (1, 14))
-                    ),
-                    ast::raw::TypeDeclaration::raw(
-                        ast::TypeDeclaration::view(
-                            ast::raw::Binding::new(
-                                ast::Binding(str!("Foo")),
-                                Range::new((2, 6), (2, 8))
-                            ),
-                            ast::raw::TypeExpression::raw(
-                                ast::TypeExpression::Object(vec![
-                                    ast::ObjectTypeExpressionEntry::Required(
-                                        ast::raw::Binding::new(
-                                            ast::Binding(str!("bar")),
-                                            Range::new((2, 12), (2, 14))
-                                        ),
-                                        ast::raw::TypeExpression::raw(
-                                            ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                                            Range::new((2, 17), (2, 19))
-                                        )
-                                    ),
-                                    ast::ObjectTypeExpressionEntry::Optional(
-                                        ast::raw::Binding::new(
-                                            ast::Binding(str!("fizz")),
-                                            Range::new((2, 22), (2, 25))
-                                        ),
-                                        ast::raw::TypeExpression::raw(
-                                            ast::TypeExpression::Primitive(
-                                                ast::TypePrimitive::Boolean
+                        ast::raw::TypeDeclaration::raw(
+                            ast::TypeDeclaration::view(
+                                ast::raw::Binding::new(
+                                    ast::Binding(str!("Foo")),
+                                    Range::new((2, 6), (2, 8))
+                                ),
+                                ast::raw::TypeExpression::raw(
+                                    ast::TypeExpression::Object(vec![
+                                        ast::ObjectTypeExpressionEntry::Required(
+                                            ast::raw::Binding::new(
+                                                ast::Binding(str!("bar")),
+                                                Range::new((2, 12), (2, 14))
                                             ),
-                                            Range::new((2, 29), (2, 35))
+                                            ast::raw::TypeExpression::raw(
+                                                ast::TypeExpression::Primitive(
+                                                    ast::TypePrimitive::Nil
+                                                ),
+                                                Range::new((2, 17), (2, 19))
+                                            )
+                                        ),
+                                        ast::ObjectTypeExpressionEntry::Optional(
+                                            ast::raw::Binding::new(
+                                                ast::Binding(str!("fizz")),
+                                                Range::new((2, 22), (2, 25))
+                                            ),
+                                            ast::raw::TypeExpression::raw(
+                                                ast::TypeExpression::Primitive(
+                                                    ast::TypePrimitive::Boolean
+                                                ),
+                                                Range::new((2, 29), (2, 35))
+                                            )
                                         )
-                                    )
-                                ]),
-                                Range::new((2, 10), (2, 37))
-                            )
-                        ),
-                        Range::new((2, 1), (2, 37))
-                    )
-                ]),
+                                    ]),
+                                    Range::new((2, 10), (2, 37))
+                                )
+                            ),
+                            Range::new((2, 1), (2, 37))
+                        )
+                    ]
+                ),
                 Range::new((1, 1), (2, 38))
             )
         );

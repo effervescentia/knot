@@ -481,23 +481,26 @@ This includes {} and primitive types: {}.",
                 ),
 
             Self::StyleRuleRejected(name, expected_type, actual_type) => error
-                .title("Attribute Rejected")
+                .title("Style Rule Rejected")
                 .description(format!(
-                    "The type of the style rule {} does not match the expected type.
+                    "The value of style rule {} does not match the expected type.
                 
-  {} {}
+  {} {} {} {}
   {} {}",
                     name.error(),
                     "expected:".subtle(),
                     expected_type.to_string().success(),
+                    "or".subtle(),
+                    "string".success(),
                     "actual:".subtle(),
                     actual_type.to_string().error(),
                 ))
                 .suggestion(format!(
-                    "Replace the attribute {} with a value of type {}.
-Alternatively you can use a raw string value for styling rules though it will bypass type safety.",
+                    "Replace the value of {} with one of type {}.
+Alternatively you can use a raw {} value for styling rules though it will bypass type safety.",
                     name.highlight(),
-                    expected_type.to_string().highlight()
+                    expected_type.to_string().highlight(),
+                    "string".highlight(),
                 )),
 
             Self::BinaryOperationNotSupported(op, (lhs_id, lhs_type), (rhs_id, rhs_type)) => {

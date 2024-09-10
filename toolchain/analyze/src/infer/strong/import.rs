@@ -1,16 +1,29 @@
 use super::data::{Action, Type};
 use crate::Context;
-use kore::invariant;
+use kore::{internal, invariant};
 use lang::{ast, Namespace};
+use std::str::FromStr;
 
 pub fn infer(ctx: &Context, source: &ast::ImportSource, path: &[String]) -> Action {
-    let current_path = ctx.namespace.to_path("kn");
-    let namespace = Namespace::from_path(current_path, source, path);
+    let namespace = match source {
+        ast::ImportSource::Named(name) => internal::Library::from_str(name).ok(),
+        _ => None,
+    }
+    .map(Namespace::Library)
+    .unwrap_or_else(|| {
+        let current_path = ctx.namespace.to_path("kn");
+        Namespace::from_path(current_path, source, path)
+    });
+
     let module = ctx.modules.get_module_type(&namespace).unwrap_or_else(|| {
-        invariant!(
-            "module could not be found with path {}",
-            namespace.to_path("kn").display()
-        )
+        if let Namespace::Library(library) = &namespace {
+            invariant!("module could not be found for library {library:?}")
+        } else {
+            invariant!(
+                "module could not be found with path {}",
+                namespace.to_path("kn").display()
+            )
+        }
     });
 
     Action::Infer(Type::Inherit(module.0))
