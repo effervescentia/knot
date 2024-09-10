@@ -1,5 +1,8 @@
-use assert_cmd::Command;
-use assert_fs::fixture::{FileWriteStr, PathChild, PathCreateDir, TempDir};
+mod common;
+
+use assert_fs::prelude::*;
+use assert_fs::TempDir;
+use common::build_cmd;
 use std::{
     env,
     path::{Path, PathBuf, StripPrefixError},
@@ -13,23 +16,12 @@ fn prefix_private(path: &Path) -> Result<PathBuf, StripPrefixError> {
     Ok(path.to_path_buf())
 }
 
-fn command<P>(root_dir: P) -> Result<Command, Box<dyn std::error::Error>>
-where
-    P: AsRef<Path>,
-{
-    let mut cmd = Command::cargo_bin("knot")?;
-    cmd.current_dir(root_dir);
-    cmd.arg("build");
-    cmd.arg("--target").arg("web");
-    Ok(cmd)
-}
-
 #[test]
 fn root_directory_not_found() -> Result<(), Box<dyn std::error::Error>> {
     let temp_dir = TempDir::new()?;
     let root_dir = temp_dir.path().join("does_not_exist");
 
-    let mut cmd = command(env::current_dir()?)?;
+    let mut cmd = build_cmd(env::current_dir()?)?;
     cmd.arg("--root-dir").arg(&root_dir);
 
     cmd.assert()
@@ -51,7 +43,7 @@ fn source_directory_not_found() -> Result<(), Box<dyn std::error::Error>> {
     let root_dir = TempDir::new()?;
     let source_dir = root_dir.child("src");
 
-    let mut cmd = command(&root_dir)?;
+    let mut cmd = build_cmd(&root_dir)?;
 
     cmd.assert()
         .failure()
@@ -72,7 +64,7 @@ fn source_directory_not_relative() -> Result<(), Box<dyn std::error::Error>> {
     let root_dir = TempDir::new()?;
     let source_dir = root_dir.child("src");
 
-    let mut cmd = command(&root_dir)?;
+    let mut cmd = build_cmd(&root_dir)?;
     cmd.arg("--source-dir").arg(source_dir.path());
 
     cmd.assert()
@@ -96,7 +88,7 @@ fn entrypoint_not_found() -> Result<(), Box<dyn std::error::Error>> {
     let entry = source_dir.child("main.kn");
     source_dir.create_dir_all()?;
 
-    let mut cmd = command(&root_dir)?;
+    let mut cmd = build_cmd(&root_dir)?;
 
     cmd.assert()
         .failure()
@@ -118,7 +110,7 @@ fn entrypoint_not_relative() -> Result<(), Box<dyn std::error::Error>> {
     let entry = root_dir.child("src/main.kn");
     entry.write_str("const FOO = 123")?;
 
-    let mut cmd = command(&root_dir)?;
+    let mut cmd = build_cmd(&root_dir)?;
     cmd.arg("--entry").arg(entry.path());
 
     cmd.assert()

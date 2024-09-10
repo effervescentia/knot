@@ -1,4 +1,1 @@
-type Foo = {
-  bar: string,
-};
-type Fizz = Foo.fizz;
+func foo(args: { bar: integer }) -> args.fizz

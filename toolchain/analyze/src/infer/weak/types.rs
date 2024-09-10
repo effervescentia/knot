@@ -72,7 +72,7 @@ impl ToWeak for ast::TypeDeclaration<String, NodeId, NodeId> {
             Self::Enumerated {
                 binding, variants, ..
             } => (
-                Kind::Type,
+                Kind::Mixed,
                 Type::Value(types::Type::Enumerated(
                     binding.to_owned(),
                     types::Enumerated::Declaration(variants.clone()),
@@ -90,7 +90,7 @@ impl ToWeak for ast::TypeDeclaration<String, NodeId, NodeId> {
                 Type::Value(types::Type::Function(parameters.clone(), *result)),
             ),
 
-            Self::Module { module, .. } => (Kind::Value, Type::Inherit(*module)),
+            Self::Module { module, .. } => (Kind::Mixed, Type::Inherit(*module)),
         }
     }
 }

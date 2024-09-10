@@ -251,25 +251,36 @@ where
     R: Resolver,
 {
     /// load a module tree from a single entry point
-    pub fn from_entry(self, entry: &Path) -> Engine<state::FromEntry, R> {
+    pub fn from_entry<P>(self, entry: P) -> Engine<state::FromEntry, R>
+    where
+        P: AsRef<Path>,
+    {
+        let path = entry.as_ref();
+
         assert!(
-            !entry.is_absolute(),
+            !path.is_absolute(),
             "entry must be relative to the source directory"
         );
 
         self.map(|verbose, _| state::FromEntry {
-            entry: Link::from(&entry),
+            entry: Link::from(path),
             verbose,
         })
     }
 
     /// load all modules that match a glob
-    pub fn from_glob<'a>(
-        self,
-        dir: &'a Path,
-        glob: &'a str,
-    ) -> Engine<Result<state::FromPaths>, R> {
-        self.map(|verbose, _| state::FromGlob { dir, glob, verbose }.to_paths())
+    pub fn from_glob<P>(self, dir: P, glob: &str) -> Engine<Result<state::FromPaths>, R>
+    where
+        P: AsRef<Path>,
+    {
+        self.map(|verbose, _| {
+            state::FromGlob {
+                dir: dir.as_ref(),
+                glob,
+                verbose,
+            }
+            .to_paths()
+        })
     }
 }
 

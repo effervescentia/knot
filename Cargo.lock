@@ -452,6 +452,7 @@ dependencies = [
 name = "knot_engine"
 version = "0.1.0"
 dependencies = [
+ "assert_fs",
  "bimap",
  "glob",
  "knot_analyze",

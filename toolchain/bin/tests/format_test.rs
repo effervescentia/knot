@@ -1,10 +1,8 @@
 mod common;
 
 use assert_cmd::Command;
-use assert_fs::{
-    assert::PathAssert,
-    fixture::{FileWriteStr, PathChild, TempDir},
-};
+use assert_fs::prelude::*;
+use assert_fs::TempDir;
 
 const INPUT: &str = "  const   \nFOO  = \n 123  \n;  ";
 const OUTPUT: &str = "const FOO = 123;\n";

@@ -1,6 +1,29 @@
+#![allow(dead_code)]
+use assert_cmd::Command;
 use std::{collections::HashSet, path::Path};
 
-#[allow(dead_code)]
+pub fn check_cmd<P>(root_dir: P) -> Result<Command, Box<dyn std::error::Error>>
+where
+    P: AsRef<Path>,
+{
+    let mut cmd = Command::cargo_bin("knot")?;
+    cmd.current_dir(root_dir);
+    cmd.arg("check");
+    cmd.arg("--target").arg("web");
+    Ok(cmd)
+}
+
+pub fn build_cmd<P>(root_dir: P) -> Result<Command, Box<dyn std::error::Error>>
+where
+    P: AsRef<Path>,
+{
+    let mut cmd = Command::cargo_bin("knot")?;
+    cmd.current_dir(root_dir);
+    cmd.arg("build");
+    cmd.arg("--target").arg("web");
+    Ok(cmd)
+}
+
 pub trait AssertDirContents {
     fn assert_dir_contents(&self, expected_contents: &[&str]);
 }

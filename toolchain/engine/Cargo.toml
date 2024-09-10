@@ -16,7 +16,9 @@ analyze = { package = "knot_analyze", path = "../analyze" }
 
 [dev-dependencies]
 knot_engine = { path = ".", features = ["test"] }
+# TODO: replace with assert_fs
 tempfile = "3.8.0"
+assert_fs = "1.1.1"
 kore = { package = "knot_core", path = "../kore", features = ["test"] }
 
 [features]

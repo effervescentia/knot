@@ -1,9 +1,7 @@
-enum Length {}
+use std;
 
-enum Color {}
+func width(std.css.Length) -> nil;
+func height(std.css.Length) -> nil;
 
-func width(Length) -> nil;
-func height(Length) -> nil;
-
-func color(Color) -> nil;
-func backgroundColor(Color) -> nil;
+func color(std.css.Color) -> nil;
+func backgroundColor(std.css.Color) -> nil;

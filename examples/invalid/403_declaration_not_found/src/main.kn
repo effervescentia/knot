@@ -1,3 +1,4 @@
-module foo {}
-
+module foo {
+  const buzz = 123;
+}
 const BAR = foo.bar;

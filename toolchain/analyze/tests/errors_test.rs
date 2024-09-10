@@ -3,20 +3,20 @@ use kore::{assert_eq, str};
 use lang::{ast, types, CanonicalId, NodeId};
 
 #[test]
-fn value_not_found() {
-    let source = "const foo = bar;";
+fn e401_value_not_found() {
+    let source = include_str!("../../../examples/invalid/401_not_found/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
-            (NodeId(0), Error::NotFound(str!("bar"))),
+            (NodeId(0), Error::NotFound(str!("BAR"))),
             (NodeId(1), Error::NotInferrable(vec![CanonicalId::mock(0)]))
         ])
     );
 }
 
 #[test]
-fn type_not_found() {
+fn e401_type_not_found() {
     let source = "type foo = bar;";
 
     assert_eq!(
@@ -29,43 +29,35 @@ fn type_not_found() {
 }
 
 #[test]
-fn variant_not_found() {
-    let source = "
-enum foo { Integer(integer) | Empty }
-
-const bar = foo.Other;";
+fn e402_variant_not_found() {
+    let source = include_str!("../../../examples/invalid/402_variant_not_found/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
             (
-                NodeId(3),
+                NodeId(2),
                 Error::VariantNotFound(
-                    CanonicalId::mock(2),
-                    vec![str!("Integer"), str!("Empty")],
-                    str!("Other")
+                    CanonicalId::mock(1),
+                    vec![str!("Fizz"), str!("Buzz")],
+                    str!("Bar")
                 )
             ),
-            (NodeId(4), Error::NotInferrable(vec![CanonicalId::mock(3)]))
+            (NodeId(3), Error::NotInferrable(vec![CanonicalId::mock(2)]))
         ])
     );
 }
 
 #[test]
-fn declaration_not_found() {
-    let source = "
-module foo {
-  const buzz = 123;
-}
-
-const bar = foo.fizz;";
+fn e403_declaration_not_found() {
+    let source = include_str!("../../../examples/invalid/403_declaration_not_found/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
             (
                 NodeId(5),
-                Error::DeclarationNotFound(CanonicalId::mock(4), vec![str!("buzz")], str!("fizz"))
+                Error::DeclarationNotFound(CanonicalId::mock(4), vec![str!("buzz")], str!("bar"))
             ),
             (NodeId(6), Error::NotInferrable(vec![CanonicalId::mock(5)]))
         ])
@@ -73,15 +65,15 @@ const bar = foo.fizz;";
 }
 
 #[test]
-fn not_indexable() {
-    let source = "const foo = 123.bar;";
+fn e404_not_indexable() {
+    let source = include_str!("../../../examples/invalid/404_not_indexable/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
             (
                 NodeId(1),
-                Error::NotIndexable(CanonicalId::mock(0), str!("bar"))
+                Error::NotIndexable(CanonicalId::mock(0), str!("foo"))
             ),
             (NodeId(2), Error::NotInferrable(vec![CanonicalId::mock(1)]))
         ])
@@ -89,8 +81,8 @@ fn not_indexable() {
 }
 
 #[test]
-fn property_not_found() {
-    let source = "func foo(args: { bar: integer }) -> args.fizz";
+fn e405_property_not_found() {
+    let source = include_str!("../../../examples/invalid/405_property_not_found/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -102,12 +94,8 @@ fn property_not_found() {
 }
 
 #[test]
-fn duplicate_property() {
-    let source = "
-type foo = {
-  bar: integer,
-  bar: boolean
-};";
+fn e406_duplicate_property() {
+    let source = include_str!("../../../examples/invalid/406_duplicate_property/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -116,8 +104,8 @@ type foo = {
 }
 
 #[test]
-fn not_spreadable() {
-    let source = "type foo = { ...integer };";
+fn e407_not_spreadable() {
+    let source = include_str!("../../../examples/invalid/407_not_spreadable/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -129,21 +117,8 @@ fn not_spreadable() {
 }
 
 #[test]
-fn not_callable() {
-    let source = "const foo = 123();";
-
-    assert_eq!(
-        Mock::default().parse_and_analyze(source),
-        Err(vec![
-            (NodeId(1), Error::NotCallable(CanonicalId::mock(0))),
-            (NodeId(2), Error::NotInferrable(vec![CanonicalId::mock(1)]))
-        ])
-    );
-}
-
-#[test]
-fn untyped_parameter() {
-    let source = "func foo(bar) -> nil;";
+fn e408_untyped_parameter() {
+    let source = include_str!("../../../examples/invalid/408_untyped_parameter/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -152,8 +127,8 @@ fn untyped_parameter() {
 }
 
 #[test]
-fn default_value_rejected() {
-    let source = "func foo(bar: integer = true) -> nil;";
+fn e409_default_value_rejected() {
+    let source = include_str!("../../../examples/invalid/409_default_value_rejected/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -168,11 +143,21 @@ fn default_value_rejected() {
 }
 
 #[test]
-fn single_unexpected_argument() {
-    let source = "
-func foo -> nil;
+fn e410_not_callable() {
+    let source = include_str!("../../../examples/invalid/410_not_callable/src/main.kn");
 
-const bar = foo(123);";
+    assert_eq!(
+        Mock::default().parse_and_analyze(source),
+        Err(vec![
+            (NodeId(1), Error::NotCallable(CanonicalId::mock(0))),
+            (NodeId(2), Error::NotInferrable(vec![CanonicalId::mock(1)]))
+        ])
+    );
+}
+
+#[test]
+fn e411_single_unexpected_argument() {
+    let source = include_str!("../../../examples/invalid/411_unexpected_argument/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -184,11 +169,11 @@ const bar = foo(123);";
 }
 
 #[test]
-fn multiple_unexpected_arguments() {
+fn e411_multiple_unexpected_arguments() {
     let source = "
 func foo -> nil;
 
-const bar = foo(123, true);";
+const FOO = foo(123, true);";
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -206,11 +191,8 @@ const bar = foo(123, true);";
 }
 
 #[test]
-fn single_missing_argument() {
-    let source = "
-func foo(a: integer) -> nil;
-
-const bar = foo();";
+fn e412_single_missing_argument() {
+    let source = include_str!("../../../examples/invalid/412_missing_argument/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -222,11 +204,11 @@ const bar = foo();";
 }
 
 #[test]
-fn multiple_missing_arguments() {
+fn e412_multiple_missing_arguments() {
     let source = "
-func foo(a: integer, b: float) -> nil;
+func foo(bar: integer, fizz: float) -> nil;
 
-const bar = foo();";
+const FOO = foo();";
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -244,11 +226,8 @@ const bar = foo();";
 }
 
 #[test]
-fn single_rejected_argument() {
-    let source = "
-func foo(a: integer) -> nil;
-
-const bar = foo(true);";
+fn e413_single_rejected_argument() {
+    let source = include_str!("../../../examples/invalid/413_argument_rejected/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -263,11 +242,11 @@ const bar = foo(true);";
 }
 
 #[test]
-fn multiple_rejected_arguments() {
+fn e413_multiple_rejected_arguments() {
     let source = "
-func foo(a: integer, b: float) -> nil;
+func foo(bar: integer, fizz: float) -> nil;
 
-const bar = foo(true, nil);";
+const FOO = foo(true, nil);";
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -291,49 +270,82 @@ const bar = foo(true, nil);";
 }
 
 #[test]
-fn single_unexpected_attribute() {
-    let source = "
-view foo -> nil;
-
-const bar = <foo a=123 />;";
+fn e414_not_renderable() {
+    let source = include_str!("../../../examples/invalid/414_not_renderable/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![(
-            NodeId(4),
-            Error::UnexpectedAttribute(CanonicalId::mock(3), str!("a"))
+            NodeId(1),
+            Error::NotRenderable(CanonicalId::mock(0))
+        ),])
+    );
+}
+
+#[test]
+fn e415_invalid_component() {
+    let source = include_str!("../../../examples/invalid/415_invalid_component/src/main.kn");
+
+    assert_eq!(
+        Mock::default().parse_and_analyze(source),
+        Err(vec![(
+            NodeId(2),
+            Error::InvalidComponent(str!("Foo"), types::Shape(types::Type::Integer))
         )])
     );
 }
 
 #[test]
-fn multiple_unexpected_attributes() {
-    let source = "
-view foo -> nil;
+fn e416_component_typo() {
+    let source = include_str!("../../../examples/invalid/416_component_typo/src/main.kn");
 
-const bar = <foo a=123 b=nil />;";
+    assert_eq!(
+        Mock::default().parse_and_analyze(source),
+        Err(vec![(
+            NodeId(2),
+            Error::ComponentTypo(str!("Foo"), str!("Bar"))
+        )])
+    );
+}
+
+#[test]
+fn e418_single_unexpected_attribute() {
+    let source = include_str!("../../../examples/invalid/418_unexpected_attribute/src/main.kn");
+
+    assert_eq!(
+        Mock::default().parse_and_analyze(source),
+        Err(vec![(
+            NodeId(4),
+            Error::UnexpectedAttribute(CanonicalId::mock(3), str!("bar"))
+        )])
+    );
+}
+
+#[test]
+fn e418_multiple_unexpected_attributes() {
+    let source = "
+view Foo -> nil;
+
+const FOO = <Foo bar=123 fizz=nil />;";
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
         Err(vec![
             (
                 NodeId(6),
-                Error::UnexpectedAttribute(CanonicalId::mock(3), str!("a"))
+                Error::UnexpectedAttribute(CanonicalId::mock(3), str!("bar"))
             ),
             (
                 NodeId(6),
-                Error::UnexpectedAttribute(CanonicalId::mock(5), str!("b"))
+                Error::UnexpectedAttribute(CanonicalId::mock(5), str!("fizz"))
             )
         ])
     );
 }
 
 #[test]
-fn single_missing_attribute() {
-    let source = "
-view foo { a: integer } -> nil;
-
-const bar = <foo />;";
+fn e419_single_missing_attribute() {
+    let source = include_str!("../../../examples/invalid/419_missing_attribute/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -341,7 +353,7 @@ const bar = <foo />;";
             NodeId(4),
             Error::MissingAttribute(
                 CanonicalId::mock(0),
-                str!("a"),
+                str!("bar"),
                 types::Shape(types::Type::Integer)
             )
         )])
@@ -349,11 +361,11 @@ const bar = <foo />;";
 }
 
 #[test]
-fn multiple_missing_attributes() {
+fn e419_multiple_missing_attributes() {
     let source = "
-view foo { a: integer, b: float } -> nil;
+view foo { bar: integer, fizz: float } -> nil;
 
-const bar = <foo />;";
+const FOO = <foo />;";
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -362,7 +374,7 @@ const bar = <foo />;";
                 NodeId(6),
                 Error::MissingAttribute(
                     CanonicalId::mock(0),
-                    str!("a"),
+                    str!("bar"),
                     types::Shape(types::Type::Integer)
                 )
             ),
@@ -370,7 +382,7 @@ const bar = <foo />;";
                 NodeId(6),
                 Error::MissingAttribute(
                     CanonicalId::mock(2),
-                    str!("b"),
+                    str!("fizz"),
                     types::Shape(types::Type::Float)
                 )
             )
@@ -379,11 +391,8 @@ const bar = <foo />;";
 }
 
 #[test]
-fn single_rejected_attribute() {
-    let source = "
-view foo { a: integer } -> nil;
-
-const bar = <foo a=true />;";
+fn e420_single_rejected_attribute() {
+    let source = include_str!("../../../examples/invalid/420_attribute_rejected/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -392,7 +401,7 @@ const bar = <foo a=true />;";
             Error::AttributeRejected(
                 (
                     CanonicalId::mock(0),
-                    str!("a"),
+                    str!("bar"),
                     types::Shape(types::Type::Integer)
                 ),
                 (CanonicalId::mock(5), types::Shape(types::Type::Boolean))
@@ -402,11 +411,11 @@ const bar = <foo a=true />;";
 }
 
 #[test]
-fn multiple_rejected_attributes() {
+fn e420_multiple_rejected_attributes() {
     let source = "
-view foo { a: integer, b: float } -> nil;
+view Foo { bar: integer, fizz: float } -> nil;
 
-const bar = <foo a=true b=nil />;";
+const FOO = <Foo bar=true fizz=nil />;";
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -416,7 +425,7 @@ const bar = <foo a=true b=nil />;";
                 Error::AttributeRejected(
                     (
                         CanonicalId::mock(0),
-                        str!("a"),
+                        str!("bar"),
                         types::Shape(types::Type::Integer)
                     ),
                     (CanonicalId::mock(7), types::Shape(types::Type::Boolean))
@@ -427,7 +436,7 @@ const bar = <foo a=true b=nil />;";
                 Error::AttributeRejected(
                     (
                         CanonicalId::mock(2),
-                        str!("b"),
+                        str!("fizz"),
                         types::Shape(types::Type::Float)
                     ),
                     (CanonicalId::mock(9), types::Shape(types::Type::Nil))
@@ -438,56 +447,9 @@ const bar = <foo a=true b=nil />;";
 }
 
 #[test]
-fn not_renderable() {
-    let source = "
-const foo = style {};
-
-const bar = <>{foo}</>;";
-
-    assert_eq!(
-        Mock::default().parse_and_analyze(source),
-        Err(vec![(
-            NodeId(3),
-            Error::NotRenderable(CanonicalId::mock(2))
-        ),])
-    );
-}
-
-#[test]
-fn invalid_component() {
-    let source = "
-const foo = 123;
-
-const bar = <foo />;";
-
-    assert_eq!(
-        Mock::default().parse_and_analyze(source),
-        Err(vec![(
-            NodeId(2),
-            Error::InvalidComponent(str!("foo"), types::Shape(types::Type::Integer))
-        )])
-    );
-}
-
-#[test]
-fn component_typo() {
-    let source = "
-view foo -> nil;
-
-const bar = <foo></food>;";
-
-    assert_eq!(
-        Mock::default().parse_and_analyze(source),
-        Err(vec![(
-            NodeId(2),
-            Error::ComponentTypo(str!("foo"), str!("food"))
-        )])
-    );
-}
-
-#[test]
-fn binary_operation_not_supported() {
-    let source = "const foo = true + false;";
+fn e421_binary_operation_not_supported() {
+    let source =
+        include_str!("../../../examples/invalid/421_binary_operation_not_supported/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -506,8 +468,9 @@ fn binary_operation_not_supported() {
 }
 
 #[test]
-fn unary_operation_not_supported() {
-    let source = "const foo = !123;";
+fn e422_unary_operation_not_supported() {
+    let source =
+        include_str!("../../../examples/invalid/422_unary_operation_not_supported/src/main.kn");
 
     assert_eq!(
         Mock::default().parse_and_analyze(source),
@@ -517,7 +480,7 @@ fn unary_operation_not_supported() {
                 ast::UnaryOperator::Not,
                 (
                     CanonicalId::mock(0),
-                    Some(types::Shape(types::Type::Integer))
+                    Some(types::Shape(types::Type::String))
                 )
             )
         ),])
