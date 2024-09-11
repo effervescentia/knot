@@ -35,9 +35,7 @@ enum MyEnum {
 
     const OUTPUT: &str = "import { $knot } from \"@knot/runtime\";
 var MyEnum = {
-  Empty: function Empty() {
-    return [MyEnum.Empty];
-  },
+  Empty: [function Empty() {}],
   Render: function Render($param_0, $param_1) {
     return [MyEnum.Render, $param_0, $param_1];
   },
@@ -54,7 +52,7 @@ fn function() {
 
     const OUTPUT: &str = "import { $knot } from \"@knot/runtime\";
 function my_function(first, second, third) {
-  third = $knot.plugin.get(\"core\", \"defaultParameter\", \"1.0\")(third, true);
+  third = $knot.util.defaultParameter(third, true);
   return first > second || third;
 }
 export { my_function };

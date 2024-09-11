@@ -216,7 +216,7 @@ fn style() {
         &[
             (
                 "style {}",
-                "$knot.plugin.get(\"style\", \"create\", \"1.0\")({})",
+                "$knot.plugin.get(\"style\", \"createStyle\", \"1.0\")({})",
             ),
             // TODO: add tests for styles with css properties
         ],

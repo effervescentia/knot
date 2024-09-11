@@ -25,7 +25,7 @@ type GlobalAttributes = {
   role?: string,
   slot?: string,
   spellcheck?: boolean,
-  style?: string,
+  style?: style,
   tabindex?: integer,
   title?: string,
   translate?: boolean,

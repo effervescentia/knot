@@ -41,8 +41,10 @@ impl Display for Kind {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Enumerated<T> {
     Declaration(Vec<(String, Vec<T>)>),
-    Variant(String, Vec<T>, T),
-    Instance(String, T),
+
+    Constructor(Vec<T>, T),
+
+    Instance(T),
 }
 
 impl<T> Enumerated<T> {
@@ -58,13 +60,11 @@ impl<T> Enumerated<T> {
                     .collect(),
             ),
 
-            Self::Variant(name, parameters, instance) => Enumerated::Variant(
-                name.clone(),
-                parameters.iter().map(f).collect(),
-                f(instance),
-            ),
+            Self::Constructor(parameters, instance) => {
+                Enumerated::Constructor(parameters.iter().map(f).collect(), f(instance))
+            }
 
-            Self::Instance(name, x) => Enumerated::Instance(name.clone(), f(x)),
+            Self::Instance(x) => Enumerated::Instance(f(x)),
         }
     }
 
@@ -85,28 +85,17 @@ impl<T> Enumerated<T> {
                     .collect::<Option<Vec<_>>>()?,
             )),
 
-            Self::Variant(name, parameters, instance) => Some(Enumerated::Variant(
-                name.clone(),
+            Self::Constructor(parameters, instance) => Some(Enumerated::Constructor(
                 parameters.iter().map(f).collect::<Option<Vec<_>>>()?,
                 f(instance)?,
             )),
 
-            Self::Instance(name, x) => Some(Enumerated::Instance(name.clone(), f(x)?)),
+            Self::Instance(x) => Some(Enumerated::Instance(f(x)?)),
         }
     }
 
     pub fn to_shape(&self) -> Enumerated<()> {
         self.map(&|_| ())
-    }
-}
-
-impl<T> Display for Enumerated<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::Variant(name, ..) | Self::Instance(name, ..) => write!(f, ".{name}"),
-
-            Self::Declaration(..) => Ok(()),
-        }
     }
 }
 
@@ -288,7 +277,7 @@ where
             Self::Style => Display::fmt(&TypePrimitive::Style, f),
             Self::Element => Display::fmt(&TypePrimitive::Element, f),
 
-            Self::Enumerated(name, enumerated) => write!(f, "enum {name}{enumerated}"),
+            Self::Enumerated(name, _) => write!(f, "enum {name}"),
 
             Self::Function(parameters, result) => Lambda(parameters, result).fmt(f),
 

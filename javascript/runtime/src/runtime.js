@@ -15,4 +15,8 @@ export class Runtime {
         .forEach(([version, value]) => this.plugins.set(Runtime.pluginKey(namespace, property, version), value))
       ),
   };
+
+  util = {
+    defaultParameter: (value, fallback) => value === undefined ? fallback : value,
+  };
 }

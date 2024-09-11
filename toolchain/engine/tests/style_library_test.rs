@@ -8,25 +8,23 @@ use kore::internal::Library;
 use kore::internal::PlatformLibrary;
 
 #[test]
-fn import_between_libraries() -> Result<(), Box<dyn std::error::Error>> {
+fn use_platform_enum_in_style_expression() -> Result<(), Box<dyn std::error::Error>> {
     #[derive(Clone, Copy)]
     pub enum MockLibrary {
-        Parent,
-        Child,
+        Std,
+        Style,
+        Noop,
     }
 
     impl PlatformLibrary for MockLibrary {
         fn text(&self) -> &str {
             match self {
-                Self::Parent => {
-                    "module foo {
-  enum Foo {}
-}"
-                }
-                Self::Child => {
+                Self::Std => "enum Color { red }",
+                Self::Style => {
                     "use std;
-  func bar(std.foo.Foo) -> nil;"
+  func color(std.Color) -> nil;"
                 }
+                Self::Noop => "",
             }
         }
 
@@ -37,31 +35,33 @@ fn import_between_libraries() -> Result<(), Box<dyn std::error::Error>> {
 
     impl From<Library> for MockLibrary {
         fn from(value: Library) -> Self {
-            // NOTE: this mapping is arbitrary
             match value {
-                Library::Std => Self::Parent,
-                Library::Ambient(_) => Self::Child,
+                Library::Std => Self::Std,
+                Library::Ambient(AmbientScope::Style) => Self::Style,
+                Library::Ambient(_) => Self::Noop,
             }
         }
     }
 
     impl From<MockLibrary> for Library {
         fn from(value: MockLibrary) -> Self {
-            // NOTE: this mapping is arbitrary
             match value {
-                MockLibrary::Parent => Self::Std,
-                MockLibrary::Child => Self::Ambient(AmbientScope::Style),
+                MockLibrary::Std => Self::Std,
+                MockLibrary::Style => Self::Ambient(AmbientScope::Style),
+                MockLibrary::Noop => Self::Ambient(AmbientScope::Element),
             }
         }
     }
 
     let root_dir = TempDir::new()?;
-    // empty because we just want to validate the libraries
-    root_dir.child("src/main.kn").write_str("")?;
+    root_dir.child("src/main.kn").write_str(
+        "use std;
+const STYLE = style { color: std.Color.red };",
+    )?;
 
     let engine = Engine::new(&root_dir, false)
         .from_entry("src/main.kn")
-        .include_libraries(&[MockLibrary::Parent, MockLibrary::Child])
+        .include_libraries(&[MockLibrary::Std, MockLibrary::Style])
         .parse()
         .link()
         .analyze()

@@ -5,6 +5,7 @@
     "start": "vite"
   },
   "dependencies": {
+    "@knot/emotion-plugin": "workspace:*",
     "@knot/react-plugin": "workspace:*",
     "@knot/runtime": "workspace:*",
     "@knot/std": "workspace:*"

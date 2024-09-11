@@ -33,13 +33,11 @@ var MyEnum = {
   First: function First($param_0, $param_1) {
     return [MyEnum.First, $param_0, $param_1];
   },
-  Second: function Second() {
-    return [MyEnum.Second];
-  },
+  Second: [function Second() {}],
 };
 var MY_CONST = 100 + 20;
 function my_func(first, second) {
-  second = $knot.plugin.get(\"core\", \"defaultParameter\", \"1.0\")(second, 10);
+  second = $knot.util.defaultParameter(second, 10);
   var result = first || second < 5;
   return result;
 }
@@ -48,7 +46,7 @@ function MyView($props) {
   return $knot.plugin.get(\"view\", \"createFragment\", \"1.0\")();
 }
 var my_module = (function() {
-  var MY_STYLE = $knot.plugin.get(\"style\", \"create\", \"1.0\")({
+  var MY_STYLE = $knot.plugin.get(\"style\", \"createStyle\", \"1.0\")({
     color: \"red\",
   });
   return {

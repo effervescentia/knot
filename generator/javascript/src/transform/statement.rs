@@ -56,6 +56,17 @@ impl Statement {
                     variants
                         .iter()
                         .map(|(variant_name, variant_parameters)| {
+                            if variant_parameters.is_empty() {
+                                return (
+                                    variant_name.clone(),
+                                    Expression::Array(vec![Expression::Function(
+                                        Some(variant_name.clone()),
+                                        vec![],
+                                        vec![],
+                                    )]),
+                                );
+                            }
+
                             let parameters = variant_parameters
                                 .iter()
                                 .enumerate()
@@ -110,16 +121,9 @@ impl Statement {
                                 Self::Assignment(
                                     Expression::Identifier(x.0.binding.clone()),
                                     Expression::FunctionCall(
-                                        Box::new(Expression::FunctionCall(
-                                            Box::new(Expression::Identifier(str!(
-                                                "$knot.plugin.get"
-                                            ))),
-                                            vec![
-                                                Expression::String(str!("core")),
-                                                Expression::String(str!("defaultParameter")),
-                                                Expression::String(str!("1.0")),
-                                            ],
-                                        )),
+                                        Box::new(Expression::Identifier(str!(
+                                            "$knot.util.defaultParameter"
+                                        ))),
                                         vec![
                                             Expression::Identifier(x.0.binding.clone()),
                                             Expression::from_expression(default, opts),
@@ -158,16 +162,9 @@ impl Statement {
                                 Self::Assignment(
                                     Expression::Identifier(parameter.0.binding.clone()),
                                     Expression::FunctionCall(
-                                        Box::new(Expression::FunctionCall(
-                                            Box::new(Expression::Identifier(str!(
-                                                "$knot.plugin.get"
-                                            ))),
-                                            vec![
-                                                Expression::String(str!("core")),
-                                                Expression::String(str!("defaultParameter")),
-                                                Expression::String(str!("1.0")),
-                                            ],
-                                        )),
+                                        Box::new(Expression::Identifier(str!(
+                                            "$knot.util.defaultParameter"
+                                        ))),
                                         vec![
                                             Expression::PropertyAccess(
                                                 Box::new(Expression::Identifier(str!("$props"))),
@@ -384,7 +381,7 @@ mod tests {
                                 str!("Bar"),
                                 vec![ast::shape::TypeExpression(ast::TypeExpression::Primitive(
                                     ast::TypePrimitive::Nil
-                                )),]
+                                ))]
                             ),
                             (str!("Fizz"), vec![])
                         ]
@@ -410,16 +407,11 @@ mod tests {
                         ),
                         (
                             str!("Fizz"),
-                            Expression::Function(
+                            Expression::Array(vec![Expression::Function(
                                 Some(str!("Fizz")),
                                 vec![],
-                                vec![Statement::Return(Some(Expression::Array(vec![
-                                    Expression::PropertyAccess(
-                                        Box::new(Expression::Identifier(str!("foo"))),
-                                        str!("Fizz")
-                                    ),
-                                ])))]
-                            )
+                                vec![]
+                            )])
                         )
                     ])
                 )]
@@ -473,14 +465,9 @@ mod tests {
                         Statement::Assignment(
                             Expression::Identifier(str!("fizz")),
                             Expression::FunctionCall(
-                                Box::new(Expression::FunctionCall(
-                                    Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                                    vec![
-                                        Expression::String(str!("core")),
-                                        Expression::String(str!("defaultParameter")),
-                                        Expression::String(str!("1.0"))
-                                    ]
-                                )),
+                                Box::new(Expression::Identifier(str!(
+                                    "$knot.util.defaultParameter"
+                                ))),
                                 vec![
                                     Expression::Identifier(str!("fizz")),
                                     Expression::Boolean(true)
@@ -564,14 +551,9 @@ mod tests {
                         Statement::Assignment(
                             Expression::Identifier(str!("fizz")),
                             Expression::FunctionCall(
-                                Box::new(Expression::FunctionCall(
-                                    Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                                    vec![
-                                        Expression::String(str!("core")),
-                                        Expression::String(str!("defaultParameter")),
-                                        Expression::String(str!("1.0"))
-                                    ]
-                                )),
+                                Box::new(Expression::Identifier(str!(
+                                    "$knot.util.defaultParameter"
+                                ))),
                                 vec![
                                     Expression::PropertyAccess(
                                         Box::new(Expression::Identifier(str!("$props"))),

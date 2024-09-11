@@ -105,7 +105,7 @@ impl Expression {
             ),
 
             knot::Expression::Style(xs) => Self::FunctionCall(
-                Box::new(Self::plugin("style", "create")),
+                Box::new(Self::plugin("style", "createStyle")),
                 vec![Self::Object(
                     xs.iter()
                         .map(|(key, value)| (key.clone(), Self::from_expression(value, opts)))
@@ -556,7 +556,7 @@ mod tests {
                         Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
                         vec![
                             Expression::String(str!("style")),
-                            Expression::String(str!("create")),
+                            Expression::String(str!("createStyle")),
                             Expression::String(str!("1.0")),
                         ]
                     )),

@@ -58,15 +58,23 @@ fn infer_object(
 }
 
 fn infer_enumerated(
-    enum_name: String,
+    enum_name: &str,
     variants: &[(String, Vec<CanonicalId>)],
     property: &str,
     enumerated: &CanonicalId,
 ) -> Action {
     match variants.iter().find(|(name, _)| name == property) {
+        // if it does not accept parameters then it cannot be treated as a function
+        Some((_, parameters)) if parameters.is_empty() => {
+            Action::Infer(Type::Value(types::Type::Enumerated(
+                enum_name.to_owned(),
+                types::Enumerated::Instance(*enumerated),
+            )))
+        }
+
         Some((_, parameters)) => Action::Infer(Type::Value(types::Type::Enumerated(
-            enum_name,
-            Enumerated::Variant(property.to_owned(), parameters.clone(), *enumerated),
+            enum_name.to_owned(),
+            types::Enumerated::Constructor(parameters.clone(), *enumerated),
         ))),
 
         None => Action::Raise(Error::VariantNotFound(
@@ -84,16 +92,16 @@ pub fn infer(state: &State, lhs: CanonicalId, property: &str, allowed_kind: &Kin
                 infer_module(state, &declarations, property, allowed_kind, &lhs)
             }
 
-            types::Type::Object(entries) => {
-                if !allowed_kind.can_accept(&Kind::Value) {
-                    return Action::Raise(Error::UnexpectedKind(lhs, *allowed_kind));
-                }
-
-                infer_object(state, &entries, property, &lhs)
+            types::Type::Object(_) | types::Type::Enumerated(..)
+                if !allowed_kind.can_accept(&Kind::Value) =>
+            {
+                Action::Raise(Error::UnexpectedKind(lhs, *allowed_kind))
             }
 
+            types::Type::Object(entries) => infer_object(state, &entries, property, &lhs),
+
             types::Type::Enumerated(name, Enumerated::Declaration(variants)) => {
-                infer_enumerated(name, &variants, property, &lhs)
+                infer_enumerated(&name, &variants, property, &lhs)
             }
 
             _ => Action::Raise(Error::NotIndexable(lhs, property.to_owned())),
@@ -122,7 +130,34 @@ mod tests {
     };
 
     #[test]
-    fn infer_enum_variant() {
+    fn infer_static_enum_variant() {
+        let mock = analyze_mock!();
+        let ctx = mock.context();
+        let state = State::from_types(
+            &ctx,
+            vec![(
+                NodeId(1),
+                (
+                    Kind::Value,
+                    Ok(Type::Value(types::Type::Enumerated(
+                        str!("bar"),
+                        Enumerated::Declaration(vec![(str!("foo"), vec![])]),
+                    ))),
+                ),
+            )],
+        );
+
+        assert_eq!(
+            super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
+            Action::Infer(Type::Value(types::Type::Enumerated(
+                str!("bar"),
+                types::Enumerated::Instance(CanonicalId::mock(1))
+            )))
+        );
+    }
+
+    #[test]
+    fn infer_dynamic_enum_variant() {
         let mock = analyze_mock!();
         let ctx = mock.context();
         let state = State::from_types(
@@ -146,8 +181,7 @@ mod tests {
             super::infer(&state, CanonicalId::mock(1), "foo", &Kind::Value),
             Action::Infer(Type::Value(types::Type::Enumerated(
                 str!("bar"),
-                Enumerated::Variant(
-                    str!("foo"),
+                Enumerated::Constructor(
                     vec![CanonicalId::mock(2), CanonicalId::mock(3)],
                     CanonicalId::mock(1)
                 )

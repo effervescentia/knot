@@ -4,10 +4,7 @@ use super::{
     state::State,
 };
 use crate::error::Error;
-use lang::{
-    types::{self, Enumerated},
-    CanonicalId,
-};
+use lang::{types, CanonicalId};
 
 pub fn infer(state: &State, x: CanonicalId) -> Action {
     match state.resolve_any(&x) {
@@ -15,10 +12,10 @@ pub fn infer(state: &State, x: CanonicalId) -> Action {
 
         Some(Ok(types::Type::Enumerated(
             enum_name,
-            Enumerated::Variant(variant_name, _, instance),
+            types::Enumerated::Constructor(.., instance),
         ))) => Action::Infer(Type::Value(types::Type::Enumerated(
             enum_name,
-            Enumerated::Instance(variant_name, instance),
+            types::Enumerated::Instance(instance),
         ))),
 
         Some(Ok(_)) => Action::Raise(Error::NotCallable(x)),
@@ -88,7 +85,7 @@ mod tests {
                         Kind::Value,
                         Ok(Type::Value(types::Type::Enumerated(
                             str!("Foo"),
-                            Enumerated::Variant(str!("Bar"), vec![], CanonicalId::mock(2)),
+                            Enumerated::Constructor(vec![], CanonicalId::mock(2)),
                         ))),
                     ),
                 ),
@@ -109,7 +106,7 @@ mod tests {
             super::infer(&state, CanonicalId::mock(1)),
             Action::Infer(Type::Value(types::Type::Enumerated(
                 str!("Foo"),
-                Enumerated::Instance(str!("Bar"), CanonicalId::mock(2))
+                Enumerated::Instance(CanonicalId::mock(2))
             )))
         );
     }

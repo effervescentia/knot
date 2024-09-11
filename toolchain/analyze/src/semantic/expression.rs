@@ -5,7 +5,7 @@ use crate::error::Error;
 use kore::{internal, invariant};
 use lang::{
     ast::{BinaryOperator, Expression, UnaryOperator},
-    types::{self, Enumerated, ToShape, Type},
+    types::{Enumerated, Kind, ToShape, Type},
     walk::{CommonVisitor, ProgramVisitor},
     Identify, TypeOf,
 };
@@ -77,7 +77,7 @@ pub fn analyze(
 
         Expression::FunctionCall(x, arguments) => match x.type_of() {
             Type::Function(parameters, _)
-            | Type::Enumerated(_, Enumerated::Variant(_, parameters, _)) => {
+            | Type::Enumerated(_, Enumerated::Constructor(parameters, _)) => {
                 let mut errors = vec![];
                 let lhs = parameters.iter().map(Some).chain(std::iter::repeat(None));
                 let rhs = arguments.iter().map(Some).chain(std::iter::repeat(None));
@@ -88,7 +88,7 @@ pub fn analyze(
                         // TODO: should this use a more nuanced approach for comparing types?
                         // how will this handle enumerators for example?
                         (Some(parameter), Some(argument)) => {
-                            let parameter_shape = parameter.to_shape();
+                            let parameter_shape = parameter.to_shape().widen();
                             let argument_shape = argument.type_of().to_shape();
 
                             if parameter_shape != argument_shape {
@@ -136,16 +136,14 @@ pub fn analyze(
                     .2
                     .get(&style_module.0)
                     .and_then(|x| match &x.to_shape().0 {
-                        types::Type::Module(xs) => Some(
+                        Type::Module(xs) => Some(
                             xs.iter()
-                                .filter(|(_, kind, _)| (kind == &types::Kind::Value))
+                                .filter(|(_, kind, _)| (kind == &Kind::Value))
                                 .filter_map(|(name, _, type_)| match &type_.as_ref().0 {
-                                    types::Type::Function(parameters, _)
-                                        if parameters.len() == 1 =>
-                                    {
+                                    Type::Function(parameters, _) if parameters.len() == 1 => {
                                         Some((
                                             name.to_owned(),
-                                            parameters.first()?.as_ref().clone(),
+                                            parameters.first()?.as_ref().clone().widen(),
                                         ))
                                     }
                                     _ => None,
@@ -160,7 +158,7 @@ pub fn analyze(
                 if let Some(expected_type) = style_rules.get(key) {
                     let actual_type = value.type_of().to_shape();
 
-                    if &actual_type != expected_type && actual_type.0 != types::Type::String {
+                    if &actual_type != expected_type && actual_type.0 != Type::String {
                         errors.push(Error::StyleRuleRejected(
                             key.clone(),
                             expected_type.clone(),

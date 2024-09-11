@@ -441,6 +441,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@knot-example/app@workspace:examples/valid/app"
   dependencies:
+    "@knot/emotion-plugin": "workspace:*"
     "@knot/react-plugin": "workspace:*"
     "@knot/runtime": "workspace:*"
     "@knot/std": "workspace:*"
@@ -448,11 +449,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@knot/emotion-plugin@workspace:javascript/emotion-plugin":
+"@knot/emotion-plugin@workspace:*, @knot/emotion-plugin@workspace:javascript/emotion-plugin":
   version: 0.0.0-use.local
   resolution: "@knot/emotion-plugin@workspace:javascript/emotion-plugin"
   dependencies:
     "@emotion/css": "npm:11.13.0"
+  peerDependencies:
+    "@knot/runtime": "workspace:*"
   languageName: unknown
   linkType: soft
 

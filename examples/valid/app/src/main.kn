@@ -1,9 +1,9 @@
 use std;
 
-const rootStyles = style {
-  color: "red"
+const rootStyle = style {
+  color: std.css.Color.red
 };
 
-view App -> <div>Hello, World!</div>;
+view App -> <div style=rootStyle>Hello, World!</div>;
 
 func main -> std.dom.mount(<App />, "app");
