@@ -118,6 +118,82 @@ module css {
     | hidden
   }
 
+  enum BackgroundAttachment {
+    | scroll
+    | fixed
+    | local
+  }
+
+  enum BackgroundClip {
+    | border_box
+    | padding_box
+    | content_box
+    | text
+  }
+
+  enum BackgroundOrigin {
+    | border_box
+    | padding_box
+    | content_box
+  }
+
+  enum BackgroundRepeat {
+    | repeat
+    | repeat_x
+    | repeat_y
+    | space
+    | round
+    | no_repeat
+  }
+
+  enum BackgroundSize {
+    | cover
+    | contain
+  }
+
+  enum BorderStyle {
+    | dashed
+    | dotted
+    | groove
+  }
+
+  enum BoxDecorationBreak {
+    | slice
+    | clone
+  }
+
+  enum BoxSizing {
+    | content_box
+    | border_box
+  }
+
+  enum Break {
+    | auto
+    | avoid
+    | always
+    | all
+    
+    | avoid_page
+    | page
+    | left
+    | right
+    | recto
+    | verso
+    
+    | avoid_column
+    | column
+    | avoid_region
+    | region
+  }
+
+  enum BreakInside {
+    | auto
+    | avoid
+    | avoid_page
+    | avoid_column
+    | avoid_region
+  }
+
   enum CaptionSide {
     | top
     | bottom
@@ -344,6 +420,29 @@ module css {
     | light_dark
   }
 
+  enum ColumnFill {
+    | auto
+    | balance
+  }
+
+  enum ColumnRuleStyle {
+    | none
+    | hidden
+    | dotted
+    | dashed
+    | solid
+    | double
+    | groove
+    | ridge
+    | inset
+    | outset
+  }
+
+  enum ColumnSpan {
+    | none
+    | all
+  }
+
   enum Contain {
     | none
     | strict
@@ -355,12 +454,24 @@ module css {
     | paint
   }
 
+  enum ContainerType {
+    | normal
+    | size
+    | inline_size
+  }
+
+  enum ContentVisibility {
+    | visible
+    | hidden
+    | auto
+  }
+
   enum Cursor {
     | auto
     | default
     | none
     
-    | contextMenu
+    | context_menu
     | help
     | pointer
     | progress
@@ -374,7 +485,7 @@ module css {
     | alias
     | copy
     | move
-    | noDrop
+    | no_drop
     | not_allowed
     | grab
     | grabbing
@@ -502,6 +613,133 @@ module css {
     | bottom
     | none
     | footnote         
+  }
+
+  enum FontKerning {
+    | auto
+    | normal
+    | none
+  }
+
+  enum FontOpticalSizing {
+    | none
+    | auto
+  }
+
+  enum FontPalette {
+    | normal
+    | light
+    | dark
+  }
+
+  enum FontStretch {
+    | normal
+    | ultra_condensed
+    | extra_condensed
+    | condensed
+    | semi_condensed
+    | semi_expanded
+    | expanded
+    | extra_expanded
+    | ultra_expanded
+  }
+
+  enum FontStyle {
+    | normal
+    | italic
+    | oblique
+  }
+
+  enum FontSynthesis {
+    | none
+    | weight
+    | style
+    | small_caps
+    | position
+  }
+
+  enum FontSynthesisStyle {
+    | auto
+    | none
+  }
+
+  enum FontVariantAlternates {
+    | normal
+    | historical_form
+    | stylistic(string)
+    | styleset(string)
+    | character_variant(string)
+    | swash(string)
+    | ornaments(string)
+    | annotation(string)
+  }
+
+  enum FontVariantCaps {
+    | normal
+    | small_caps
+    | all_small_caps
+    | petite_caps
+    | all_petite_caps
+    | unicase
+    | titling_caps
+  }
+
+  enum FontVariantEastAsian {
+    | normal
+    | ruby
+    | jis78
+    | jis83
+    | jis90
+    | jis04
+    | simplified
+    | traditional
+    | full_width
+    | proportional_width
+  }
+
+  enum FontVariantEmoji {
+    | normal
+    | text
+    | emoji
+    | unicode
+  }
+
+  enum FontVariantLigatures {
+    | normal
+    | none
+    | common_ligatures
+    | no_common_ligatures
+    | discretionary_ligatures
+    | no_discretionary_ligatures
+    | historical_ligatures
+    | no_historical_ligatures
+    | contextual
+    | no_contextual
+  }
+
+  enum FontVariantNumeric {
+    | normal
+    | ordinal
+    | slashed_zero
+    | lining_nums
+    | oldstyle_nums
+    | proportional_nums
+    | tabular_nums
+    | diagonal_fractions
+    | stacked_fractions
+  }
+
+  enum FontVariantPosition {
+    | normal
+    | sub
+    | super
+  }
+
+  enum FontWeight {
+    | normal
+    | bold
+    | lighter
+    | bolder
   }
 
   enum ForcedColorAdjust {

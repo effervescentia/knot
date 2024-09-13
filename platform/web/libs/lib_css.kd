@@ -12,11 +12,86 @@ func appearance(std.css.Appearance) -> nil;
 
 func backface_visibility(std.css.BackfaceVisibility) -> nil;
 
+func background_attachment(std.css.BackgroundAttachment) -> nil;
+func background_clip(std.css.BackgroundClip) -> nil;
 func background_color(std.css.Color) -> nil;
+func background_origin(std.css.BackgroundOrigin) -> nil;
+func background_position(std.css.Length) -> nil;
+func background_position_x(std.css.Length) -> nil;
+func background_position_y(std.css.Length) -> nil;
+func background_repeat(std.css.BackgroundRepeat) -> nil;
+func background_size(std.css.BackgroundSize) -> nil;
 
 func block_size(std.css.Length) -> nil;
 
+
+func border_color(std.css.Color) -> nil;
+func border_spacing(std.css.Length) -> nil;
+func border_style(std.css.BorderStyle) -> nil;
+func border_width(std.css.Length) -> nil;
+
+func border_end_end_radius(std.css.Length) -> nil;
+func border_end_start_radius(std.css.Length) -> nil;
+func border_start_start_radius(std.css.Length) -> nil;
+func border_start_end_radius(std.css.Length) -> nil;
+func border_bottom_left_radius(std.css.Length) -> nil;
+func border_bottom_right_radius(std.css.Length) -> nil;
+func border_top_left_radius(std.css.Length) -> nil;
+func border_top_right_radius(std.css.Length) -> nil;
+
+func border_block_color(std.css.Color) -> nil;
+func border_block_style(std.css.BorderStyle) -> nil;
+func border_block_width(std.css.Length) -> nil;
+
+func border_block_end_color(std.css.Color) -> nil;
+func border_block_end_style(std.css.BorderStyle) -> nil;
+func border_block_end_width(std.css.Length) -> nil;
+
+func border_block_start_color(std.css.Color) -> nil;
+func border_block_start_style(std.css.BorderStyle) -> nil;
+func border_block_start_width(std.css.Length) -> nil;
+
+func border_block_bottom_color(std.css.Color) -> nil;
+func border_block_bottom_style(std.css.BorderStyle) -> nil;
+func border_block_bottom_width(std.css.Length) -> nil;
+
+func border_inline_color(std.css.Color) -> nil;
+func border_inline_style(std.css.BorderStyle) -> nil;
+func border_inline_width(std.css.Length) -> nil;
+
+func border_inline_end_color(std.css.Color) -> nil;
+func border_inline_end_style(std.css.BorderStyle) -> nil;
+func border_inline_end_width(std.css.Length) -> nil;
+
+func border_inline_start_color(std.css.Color) -> nil;
+func border_inline_start_style(std.css.BorderStyle) -> nil;
+func border_inline_start_width(std.css.Length) -> nil;
+
+func border_bottom_color(std.css.Color) -> nil;
+func border_bottom_style(std.css.BorderStyle) -> nil;
+func border_bottom_width(std.css.Length) -> nil;
+
+func border_left_color(std.css.Color) -> nil;
+func border_left_style(std.css.BorderStyle) -> nil;
+func border_left_width(std.css.Length) -> nil;
+
+func border_right_color(std.css.Color) -> nil;
+func border_right_style(std.css.BorderStyle) -> nil;
+func border_right_width(std.css.Length) -> nil;
+
+func border_top_color(std.css.Color) -> nil;
+func border_top_style(std.css.BorderStyle) -> nil;
+func border_top_width(std.css.Length) -> nil;
+
+
 func bottom(std.css.Length) -> nil;
+
+func box_decoration_break(std.css.BoxDecorationBreak) -> nil;
+func box_sizing(std.css.BoxSizing) -> nil;
+
+func break_before(std.css.Break) -> nil;
+func break_after(std.css.Break) -> nil;
+func break_inside(std.css.BreakInside) -> nil;
 
 func caption_side(std.css.CaptionSide) -> nil;
 
@@ -31,7 +106,14 @@ func color_interpolation(std.css.ColorInterpolation) -> nil;
 func color_interpolation_filters(std.css.ColorInterpolation) -> nil;
 func color_scheme(std.css.ColorScheme) -> nil;
 
-func columns(std.css.Length) -> nil;
+func column_count(integer) -> nil;
+func column_fill(std.css.ColumnFill) -> nil;
+func column_gap(std.css.Length) -> nil;
+func column_rule_color(std.css.Color) -> nil;
+func column_rule_style(std.css.ColumnRuleStyle) -> nil;
+func column_rule_width(std.css.Length) -> nil;
+func column_span(std.css.ColumnSpan) -> nil;
+func column_width(std.css.Length) -> nil;
 
 func contain(std.css.Contain) -> nil;
 func contain_intrinsic_block_size(std.css.Length) -> nil;
@@ -40,7 +122,13 @@ func contain_intrinsic_inline_size(std.css.Length) -> nil;
 func contain_intrinsic_size(std.css.Length) -> nil;
 func contain_intrinsic_width(std.css.Length) -> nil;
 
+func container(string) -> nil;
+func container_name(string) -> nil;
+func container_type(std.css.ContainerType) -> nil;
+
 func content(string) -> nil;
+
+func content_visibility(std.css.ContentVisibility) -> nil;
 
 func cursor(std.css.Cursor) -> nil;
 
@@ -69,6 +157,26 @@ func flex_shrink(float) -> nil;
 func flex_wrap(std.css.FlexWrap) -> nil;
 
 func float(std.css.Float) -> nil;
+
+func font_kerning(std.css.FontKerning) -> nil;
+func font_optical_sizing(std.css.FontOpticalSizing) -> nil;
+func font_palette(std.css.FontPalette) -> nil;
+func font_size(std.css.Length) -> nil;
+func font_stretch(std.css.FontStretch) -> nil;
+func font_style(std.css.FontStyle) -> nil;
+func font_synthesis(std.css.FontSynthesis) -> nil;
+func font_synthesis_position(std.css.FontSynthesisStyle) -> nil;
+func font_synthesis_small_caps(std.css.FontSynthesisStyle) -> nil;
+func font_synthesis_style(std.css.FontSynthesisStyle) -> nil;
+func font_synthesis_weight(std.css.FontSynthesisStyle) -> nil;
+func font_variant_alternates(std.css.FontVariantAlternates) -> nil;
+func font_variant_caps(std.css.FontVariantCaps) -> nil;
+func font_variant_east_asian(std.css.FontVariantEastAsian) -> nil;
+func font_variant_emoji(std.css.FontVariantEmoji) -> nil;
+func font_variant_ligatures(std.css.FontVariantLigatures) -> nil;
+func font_variant_numeric(std.css.FontVariantNumeric) -> nil;
+func font_variant_position(std.css.FontVariantPosition) -> nil;
+func font_weight(std.css.FontWeight) -> nil;
 
 func forced_color_adjust(std.css.ForcedColorAdjust) -> nil;
 
