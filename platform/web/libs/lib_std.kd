@@ -3,9 +3,144 @@ module dom {
 }
 
 module css {
-  enum Length {}
+  enum Global {
+    | initial
+    | inherit
+    | unset
+    | revert
+    | revert_layer
+  }
+
+
+  enum Length {
+    | cap
+    | ch
+    | em
+    | ex
+    | ic
+    | lh
+    
+    | rcap
+    | rch
+    | rem
+    | rex
+    | ric
+    | rlh
+    
+    | vh
+    | vw
+    | vmax
+    | vmin
+    | vb
+    | vi
+    
+    | cqw
+    | cqh
+    | cqi
+    | cqb
+    | cqmin
+    | cqmax
+    
+    | px
+    | cm
+    | mm
+    | Q
+    | in
+    | pc
+    | pt
+  }
+
+  enum AlignContent {
+    | normal
+    
+    | center
+    | start
+    | end
+    | flex_start
+    | flex_end
+
+    | baseline
+    | first_baseline
+    | last_baseline
+
+    | space_between
+    | space_around
+    | space_evenly
+    | stretch
+  }
+
+  enum AlignItems {
+    | normal
+    | stretch
+    | anchor_center
+    
+    | center
+    | start
+    | end
+    | self_start
+    | self_end
+    | flex_start
+    | flex_end
+
+    | baseline
+    | first_baseline
+    | last_baseline
+  }
+
+  enum AlignSelf {
+    | auto
+    | normal
+    | stretch
+    | anchor_center
+    
+    | center
+    | start
+    | end
+    | self_start
+    | self_end
+    | flex_start
+    | flex_end
+
+    | baseline
+    | first_baseline
+    | last_baseline
+  }
+
+  enum Appearance {
+    | none
+    | auto
+    | menulist_button
+    | textfield
+  }
+
+  enum BackfaceVisibility {
+    | visible
+    | hidden
+  }
+
+  enum CaptionSide {
+    | top
+    | bottom
+  }
+
+  enum Clear {
+    | none
+    | left
+    | right
+    | both
+    | inline_start
+    | inline_end
+  }
+
+  enum ClipRule {
+    | nonzero
+    | evenodd
+  }
 
   enum Color {
+    | auto
+    | currentcolor
+
     | black
     | silver
     | gray
@@ -172,5 +307,394 @@ module css {
     | whitesmoke
     | yellow
     | yellowgreen
+
+    | AccentColor
+    | AccentColorText
+    | ActiveText
+    | ButtonBorder
+    | ButtonFace
+    | ButtonText
+    | Canvas
+    | CanvasText
+    | Field
+    | FieldText
+    | GrayText
+    | Highlight
+    | HighlightText
+    | LinkText
+    | Mark
+    | MarkText
+    | SelectedItem
+    | SelectedItemText
+    | VisitedText
+  }
+  
+  enum ColorInterpolation {
+    | auto
+    | sRGB
+    | linearRGB
+  }
+  
+  enum ColorScheme {
+    | normal
+    | light
+    | dark
+    | only_light
+    | only_dark
+    | light_dark
+  }
+
+  enum Contain {
+    | none
+    | strict
+    | content
+    | size
+    | inline_size
+    | layout
+    | style
+    | paint
+  }
+
+  enum Cursor {
+    | auto
+    | default
+    | none
+    
+    | contextMenu
+    | help
+    | pointer
+    | progress
+    | wait
+    
+    | cell
+    | crosshair
+    | text
+    | vertical_text
+    
+    | alias
+    | copy
+    | move
+    | noDrop
+    | not_allowed
+    | grab
+    | grabbing
+    
+    | all_scroll
+    | col_resize
+    | row_resize
+    | n_resize
+    | e_resize
+    | s_resize
+    | w_resize
+    | ne_resize
+    | nw_resize
+    | se_resize
+    | sw_resize
+    | ew_resize
+    | ns_resize
+    | nesw_resize
+    | nwse_resize
+
+    | zoom_in
+    | zoom_out
+  }
+
+  enum D {
+    | none
+    | path(string)
+  }
+
+  enum Direction {
+    | ltr
+    | rtl
+  }
+
+  enum Display {
+    | block
+    | inline
+
+    | flow
+    | flow_root
+    | table
+    | flex
+    | grid
+    | ruby
+
+    | list_item
+    
+    | table_row_group
+    | table_header_group
+    | table_footer_group
+    | table_row
+    | table_cell
+    | table_column_group
+    | table_column
+    | table_caption
+    | ruby_base
+    | ruby_base_container
+    | ruby_text
+    | ruby_text_container
+
+    | contents
+    | none
+
+    | inline_block
+    | inline_table
+    | inline_flex
+    | inline_grid
+  }
+
+  enum DominantBaseline {
+    | auto
+
+    | alphabetic
+    | central
+    | hanging
+    | ideographic
+    | mathematical
+    | middle
+    | text_bottom
+    | text_top
+  }
+
+  enum EmptyCells {
+    | show
+    | hide
+  }
+
+  enum FillRule {
+    | nonzero
+    | evenodd
+  }
+
+  enum Filter {
+    | blur(Length)
+    | brightness(float)
+    | contrast(float)
+    | grayscale(float)
+    | invert(float)
+    | opacity(float)
+    | saturate(float)
+    | sepia(float)
+  }
+
+  enum FlexDirection {
+    | row
+    | row_reverse
+    | column
+    | column_reverse
+  }
+
+  enum FlexWrap {
+    | nowrap
+    | wrap
+    | wrap_reverse
+  }
+
+  enum Float {
+    | block_start
+    | block_end
+    | inline_start
+    | inline_end
+    | left
+    | right
+    | top
+    | bottom
+    | none
+    | footnote         
+  }
+
+  enum ForcedColorAdjust {
+    | auto
+    | none
+  }
+
+  enum HangingPunctuation {
+    | none
+    | first
+    | last
+    | allow_end
+  }
+
+  enum Hyphens {
+    | none
+    | manual
+    | auto
+  }
+
+  enum Isolation {
+    | auto
+    | isolate
+  }
+
+  enum MixBlendMode {
+    | normal
+    | multiply
+    | screen
+    | overlay
+    | darken
+    | lighten
+    | color_dodge
+    | color_burn
+    | hard_light
+    | soft_light
+    | difference
+    | exclusion
+    | hue
+    | saturation
+    | color
+    | luminosity
+    | plus_darker
+    | plus_lighter
+  }
+
+  enum ObjectFit {
+    | contain
+    | cover
+    | fill
+    | none
+    | scale_down
+  }
+
+  enum ObjectPosition {
+    | top
+    | bottom
+    | left
+    | right
+    | center
+  }
+
+  enum PaintOrder {
+    | normal
+    | stroke
+    | markers
+  }
+
+  enum PointerEvents {
+    | auto
+    | none
+  }
+
+  enum PrintColorAdjust {
+    | economy
+    | exact
+  }
+
+  enum Resize {
+    | none
+    | both
+    | horizontal
+    | vertical
+    | block
+    | inline
+  }
+
+  enum Rotate {
+    | none
+    | deg(float)
+    | turn(float)
+    | rad(float)
+  }
+
+  enum RubyAlign {
+    | start
+    | center
+    | space_between
+    | space_around
+  }
+
+  enum RubyPosition {
+    | over
+    | under
+    | alternate
+    | alternate_over
+    | alternate_under
+    | inter_character
+  }
+
+  enum TableLayout {
+    | auto
+    | fixed
+  }
+
+  enum TouchAction {
+    | auto
+    | none
+    | panX
+    | pan_left
+    | pan_right
+    | pan_y
+    | pan_up
+    | pan_down
+    | pinch_zoom
+    | manipulation
+  }
+
+  enum UserSelect {
+    | none
+    | auto
+    | text
+    | all
+  }
+
+  enum VectorEffect {
+    | none
+    | non_scaling_stroke
+    | non_scaling_size
+    | non_rotation
+    | fixed_position
+  }
+
+  enum VerticalAlign {
+    | baseline
+    | sub
+    | super
+    | text_top
+    | text_bottom
+    | middle
+    | top
+    | bottom
+  }
+
+  enum Visibility {
+    | visible
+    | hidden
+    | collapse
+  }
+
+  enum WhiteSpace {
+    | normal
+    | nowrap
+    | pre
+    | pre_wrap
+    | pre_line
+    | break_spaces
+  }
+
+  enum WhiteSpaceCollapse {
+    | collapse
+    | preserve
+    | preserve_breaks
+    | preserve_spaces
+    | break_spaces
+  }
+  
+  enum WillChange {
+    | auto
+    | scroll_position
+    | contents
+  }
+  
+  enum WordBreak {
+    | normal
+    | break_all
+    | keep_all
+    | auto_phrase
+  }
+
+  enum WritingMode {
+    | horizontal_tb
+    | vertical_rl
+    | vertical_lr
   }
 }

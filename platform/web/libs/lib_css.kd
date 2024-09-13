@@ -1,7 +1,165 @@
 use std;
 
-func width(std.css.Length) -> nil;
-func height(std.css.Length) -> nil;
+func accent_color(std.css.Color) -> nil;
+
+func align_content(std.css.AlignContent) -> nil;
+func align_items(std.css.AlignItems) -> nil;
+func align_self(std.css.AlignSelf) -> nil;
+
+func all(std.css.Global) -> nil;
+
+func appearance(std.css.Appearance) -> nil;
+
+func backface_visibility(std.css.BackfaceVisibility) -> nil;
+
+func background_color(std.css.Color) -> nil;
+
+func block_size(std.css.Length) -> nil;
+
+func bottom(std.css.Length) -> nil;
+
+func caption_side(std.css.CaptionSide) -> nil;
+
+func caret_color(std.css.Color) -> nil;
+
+func clear(std.css.Clear) -> nil;
+
+func clip_rule(std.css.ClipRule) -> nil;
 
 func color(std.css.Color) -> nil;
-func backgroundColor(std.css.Color) -> nil;
+func color_interpolation(std.css.ColorInterpolation) -> nil;
+func color_interpolation_filters(std.css.ColorInterpolation) -> nil;
+func color_scheme(std.css.ColorScheme) -> nil;
+
+func columns(std.css.Length) -> nil;
+
+func contain(std.css.Contain) -> nil;
+func contain_intrinsic_block_size(std.css.Length) -> nil;
+func contain_intrinsic_height(std.css.Length) -> nil;
+func contain_intrinsic_inline_size(std.css.Length) -> nil;
+func contain_intrinsic_size(std.css.Length) -> nil;
+func contain_intrinsic_width(std.css.Length) -> nil;
+
+func content(string) -> nil;
+
+func cursor(std.css.Cursor) -> nil;
+
+func cx(std.css.Length) -> nil;
+func cy(std.css.Length) -> nil;
+
+func d(std.css.D) -> nil;
+
+func direction(std.css.Direction) -> nil;
+
+func display(std.css.Display) -> nil;
+
+func dominant_baseline(std.css.DominantBaseline) -> nil;
+
+func empty_cells(std.css.EmptyCells) -> nil;
+
+func fill(std.css.Color) -> nil;
+func fill_opacity(float) -> nil;
+func fill_rule(std.css.FillRule) -> nil;
+
+func filter(std.css.Filter) -> nil;
+
+func flex_direction(std.css.FlexDirection) -> nil;
+func flex_grow(float) -> nil;
+func flex_shrink(float) -> nil;
+func flex_wrap(std.css.FlexWrap) -> nil;
+
+func float(std.css.Float) -> nil;
+
+func forced_color_adjust(std.css.ForcedColorAdjust) -> nil;
+
+func gap(std.css.Length) -> nil;
+
+func hanging_punctuation(std.css.HangingPunctuation) -> nil;
+
+func height(std.css.Length) -> nil;
+
+func hyphens(std.css.Hyphens) -> nil;
+
+func inline_size(std.css.Length) -> nil;
+
+func isolation(std.css.Isolation) -> nil;
+
+func left(std.css.Length) -> nil;
+
+func letter_spacing(std.css.Length) -> nil;
+
+func mix_blend_mode(std.css.MixBlendMode) -> nil;
+
+func object_fit(std.css.ObjectFit) -> nil;
+
+func object_position(std.css.ObjectPosition) -> nil;
+
+func opacity(float) -> nil;
+
+func order(integer) -> nil;
+
+func orphans(integer) -> nil;
+
+func paint_order(std.css.PaintOrder) -> nil;
+
+func perspective(std.css.Length) -> nil;
+
+func pointer_events(std.css.PointerEvents) -> nil;
+
+func print_color_adjust(std.css.PrintColorAdjust) -> nil;
+
+func width(std.css.Length) -> nil;
+
+func r(std.css.Length) -> nil;
+
+func resize(std.css.Resize) -> nil;
+
+func right(std.css.Length) -> nil;
+
+func rotate(std.css.Rotate) -> nil;
+
+func row_gap(std.css.Length) -> nil;
+
+func ruby_align(std.css.RubyAlign) -> nil;
+func ruby_position(std.css.RubyPosition) -> nil;
+
+func rx(std.css.Length) -> nil;
+func ry(std.css.Length) -> nil;
+
+func stop_color(std.css.Color) -> nil;
+func stop_opacity(float) -> nil;
+
+func tab_size(std.css.Length) -> nil;
+
+func table_layout(std.css.TableLayout) -> nil;
+
+func top(std.css.Length) -> nil;
+
+func user_select(std.css.UserSelect) -> nil;
+
+func vector_effect(std.css.VectorEffect) -> nil;
+
+func vertical_align(std.css.VerticalAlign) -> nil;
+
+func visibility(std.css.Visibility) -> nil;
+
+func white_space(std.css.WhiteSpace) -> nil;
+func white_space_collapse(std.css.WhiteSpaceCollapse) -> nil;
+
+func widows(integer) -> nil;
+
+func width(std.css.Length) -> nil;
+
+func will_change(std.css.WillChange) -> nil;
+
+func word_break(std.css.WordBreak) -> nil;
+func word_spacing(std.css.Length) -> nil;
+
+func writing_mode(std.css.WritingMode) -> nil;
+
+func x(std.css.Length) -> nil;
+func y(std.css.Length) -> nil;
+
+func z_index(integer) -> nil;
+
+func zoom(float) -> nil;
