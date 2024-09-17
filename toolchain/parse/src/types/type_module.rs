@@ -1,6 +1,6 @@
 use super::type_declaration;
 use crate::{matcher as m, module::import};
-use combine::{many, parser, Parser, Stream};
+use combine::{many, parser, skip_many, Parser, Stream};
 use lang::ast;
 
 fn type_module_0<T>() -> impl Parser<T, Output = ast::raw::TypeModule>
@@ -8,9 +8,11 @@ where
     T: Stream<Token = char>,
     T::Position: m::Position,
 {
+    let comments = || skip_many(m::comment());
+
     m::span((
-        many::<Vec<_>, _, _>(import::import()),
-        many::<Vec<_>, _, _>(type_declaration::type_declaration(type_module)),
+        comments().with(many::<Vec<_>, _, _>(import::import().skip(comments()))),
+        many::<Vec<_>, _, _>(type_declaration::type_declaration(type_module).skip(comments())),
     ))
     .map(|((imports, declarations), range)| {
         ast::meta::TypeModule::raw(

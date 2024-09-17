@@ -1,6 +1,9 @@
 use combine::{
-    attempt, many, optional, parser, parser::char as p, position, sep_end_by,
-    stream::position::SourcePosition, value, Parser, Stream,
+    attempt, choice, many, optional, parser,
+    parser::{char as p, repeat::take_until},
+    position, sep_end_by,
+    stream::position::SourcePosition,
+    value, Parser, Stream,
 };
 use kore::invariant;
 use lang::{ast, Point, Range};
@@ -157,6 +160,14 @@ where
     T::Position: Position,
 {
     standard_identifier().map(|(name, range)| ast::raw::Binding::new(ast::Binding(name), range))
+}
+
+pub fn comment<T>() -> impl Parser<T, Output = (String, Range)>
+where
+    T: Stream<Token = char>,
+    T::Position: Position,
+{
+    lexeme(p::string("//").with(take_until(choice((p::crlf(), p::newline())))))
 }
 
 pub fn group<T, R, P>(parser: P) -> impl Parser<T, Output = (R, Range)>
@@ -405,6 +416,16 @@ mod tests {
         assert_eq!(
             parse("_foo").unwrap().0,
             (str!("_foo"), Range::new((1, 1), (1, 4)))
+        );
+    }
+
+    #[test]
+    fn comment() {
+        let parse = |s| matcher::comment().easy_parse(Stream::new(s));
+
+        assert_eq!(
+            parse("// foo\n").unwrap().0,
+            (str!(" foo"), Range::new((1, 1), (1, 6)))
         );
     }
 }

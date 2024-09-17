@@ -1,20 +1,71 @@
 use std;
 
+// TODO: these need strong types
+// -moz-*
+func _moz_image_region(string) -> nil;
+func _moz_orient(string) -> nil;
+
+// TODO: these need strong types
+// -webkit-*
+func _webkit_border_before(string) -> nil;
+func _webkit_box_reflect(string) -> nil;
+func _webkit_line_clamp(string) -> nil;
+func _webkit_mask_box_image(string) -> nil;
+func _webkit_mask_composite(string) -> nil;
+func _webkit_mask_position_x(string) -> nil;
+func _webkit_mask_position_y(string) -> nil;
+func _webkit_mask_repeat_x(string) -> nil;
+func _webkit_mask_repeat_y(string) -> nil;
+func _webkit_tap_highlight_color(std.css.Color) -> nil;
+func _webkit_text_fill_color(std.css.Color) -> nil;
+func _webkit_text_security(string) -> nil;
+func _webkit_text_stroke(string) -> nil;
+func _webkit_text_stroke_color(std.css.Color) -> nil;
+func _webkit_text_stroke_width(std.css.Length) -> nil;
+func _webkit_touch_callout(std.css.Length) -> nil;
+
 func accent_color(std.css.Color) -> nil;
 
+// align-*
 func align_content(std.css.AlignContent) -> nil;
 func align_items(std.css.AlignItems) -> nil;
 func align_self(std.css.AlignSelf) -> nil;
 
 func all(std.css.Global) -> nil;
 
+func anchor_name(string) -> nil;
+
+// TODO: these need strong types
+// animation-*
+func animation(string) -> nil;
+func animation_composition(string) -> nil;
+func animation_delay(string) -> nil;
+func animation_direction(string) -> nil;
+func animation_duration(string) -> nil;
+func animation_fill_mode(string) -> nil;
+func animation_iteration_count(string) -> nil;
+func animation_name(string) -> nil;
+func animation_play_state(string) -> nil;
+func animation_range_end(string) -> nil;
+func animation_range_start(string) -> nil;
+func animation_timeline(string) -> nil;
+func animation_timing_function(string) -> nil;
+
 func appearance(std.css.Appearance) -> nil;
+
+func aspect_ratio(string) -> nil;
+
+func backdrop_filter(string) -> nil;
 
 func backface_visibility(std.css.BackfaceVisibility) -> nil;
 
+// background-*
+func background(string) -> nil;
 func background_attachment(std.css.BackgroundAttachment) -> nil;
+func background_blend_mode(string) -> nil;
 func background_clip(std.css.BackgroundClip) -> nil;
 func background_color(std.css.Color) -> nil;
+func background_image(string) -> nil;
 func background_origin(std.css.BackgroundOrigin) -> nil;
 func background_position(std.css.Length) -> nil;
 func background_position_x(std.css.Length) -> nil;
@@ -24,7 +75,8 @@ func background_size(std.css.BackgroundSize) -> nil;
 
 func block_size(std.css.Length) -> nil;
 
-
+// TODO: add missing properties
+// border-*
 func border_color(std.css.Color) -> nil;
 func border_spacing(std.css.Length) -> nil;
 func border_style(std.css.BorderStyle) -> nil;
@@ -83,12 +135,14 @@ func border_top_color(std.css.Color) -> nil;
 func border_top_style(std.css.BorderStyle) -> nil;
 func border_top_width(std.css.Length) -> nil;
 
-
 func bottom(std.css.Length) -> nil;
 
+// box-*
 func box_decoration_break(std.css.BoxDecorationBreak) -> nil;
+func box_shadow(string) -> nil;
 func box_sizing(std.css.BoxSizing) -> nil;
 
+// break-*
 func break_before(std.css.Break) -> nil;
 func break_after(std.css.Break) -> nil;
 func break_inside(std.css.BreakInside) -> nil;
@@ -99,22 +153,30 @@ func caret_color(std.css.Color) -> nil;
 
 func clear(std.css.Clear) -> nil;
 
+// clip-*
+func clip_path(string) -> nil;
 func clip_rule(std.css.ClipRule) -> nil;
 
+// color-*
 func color(std.css.Color) -> nil;
 func color_interpolation(std.css.ColorInterpolation) -> nil;
 func color_interpolation_filters(std.css.ColorInterpolation) -> nil;
 func color_scheme(std.css.ColorScheme) -> nil;
 
+// column-*
 func column_count(integer) -> nil;
 func column_fill(std.css.ColumnFill) -> nil;
 func column_gap(std.css.Length) -> nil;
+func column_rule(string) -> nil;
 func column_rule_color(std.css.Color) -> nil;
 func column_rule_style(std.css.ColumnRuleStyle) -> nil;
 func column_rule_width(std.css.Length) -> nil;
 func column_span(std.css.ColumnSpan) -> nil;
 func column_width(std.css.Length) -> nil;
 
+func columns(string) -> nil;
+
+// contain-*
 func contain(std.css.Contain) -> nil;
 func contain_intrinsic_block_size(std.css.Length) -> nil;
 func contain_intrinsic_height(std.css.Length) -> nil;
@@ -122,13 +184,19 @@ func contain_intrinsic_inline_size(std.css.Length) -> nil;
 func contain_intrinsic_size(std.css.Length) -> nil;
 func contain_intrinsic_width(std.css.Length) -> nil;
 
+// container-*
 func container(string) -> nil;
 func container_name(string) -> nil;
 func container_type(std.css.ContainerType) -> nil;
 
+// content-*
 func content(string) -> nil;
-
 func content_visibility(std.css.ContentVisibility) -> nil;
+
+// counter-*
+func counter_increment(string) -> nil;
+func counter_reset(string) -> nil;
+func counter_set(string) -> nil;
 
 func cursor(std.css.Cursor) -> nil;
 
@@ -145,23 +213,37 @@ func dominant_baseline(std.css.DominantBaseline) -> nil;
 
 func empty_cells(std.css.EmptyCells) -> nil;
 
+func field_sizing(string) -> nil;
+
+// fill-*
 func fill(std.css.Color) -> nil;
 func fill_opacity(float) -> nil;
 func fill_rule(std.css.FillRule) -> nil;
 
 func filter(std.css.Filter) -> nil;
 
+// flex-*
+func flex(string) -> nil;
+func flex_basis(string) -> nil;
 func flex_direction(std.css.FlexDirection) -> nil;
+func flex_flow(string) -> nil;
 func flex_grow(float) -> nil;
 func flex_shrink(float) -> nil;
 func flex_wrap(std.css.FlexWrap) -> nil;
 
 func float(std.css.Float) -> nil;
 
+// font-*
+func font(string) -> nil;
+func font_family(string) -> nil;
+func font_feature_settings(string) -> nil;
 func font_kerning(std.css.FontKerning) -> nil;
+func font_language_override(string) -> nil;
 func font_optical_sizing(std.css.FontOpticalSizing) -> nil;
 func font_palette(std.css.FontPalette) -> nil;
 func font_size(std.css.Length) -> nil;
+func font_size_adjust(string) -> nil;
+func font_smooth(string) -> nil;
 func font_stretch(std.css.FontStretch) -> nil;
 func font_style(std.css.FontStyle) -> nil;
 func font_synthesis(std.css.FontSynthesis) -> nil;
@@ -169,6 +251,7 @@ func font_synthesis_position(std.css.FontSynthesisStyle) -> nil;
 func font_synthesis_small_caps(std.css.FontSynthesisStyle) -> nil;
 func font_synthesis_style(std.css.FontSynthesisStyle) -> nil;
 func font_synthesis_weight(std.css.FontSynthesisStyle) -> nil;
+func font_variant(string) -> nil;
 func font_variant_alternates(std.css.FontVariantAlternates) -> nil;
 func font_variant_caps(std.css.FontVariantCaps) -> nil;
 func font_variant_east_asian(std.css.FontVariantEastAsian) -> nil;
@@ -182,25 +265,155 @@ func forced_color_adjust(std.css.ForcedColorAdjust) -> nil;
 
 func gap(std.css.Length) -> nil;
 
+// TODO: these need strong types
+// grid-*
+func grid(string) -> nil;
+func grid_area(string) -> nil;
+func grid_auto_columns(string) -> nil;
+func grid_auto_flow(string) -> nil;
+func grid_auto_rows(string) -> nil;
+func grid_column(string) -> nil;
+func grid_column_end(string) -> nil;
+func grid_column_start(string) -> nil;
+func grid_row(string) -> nil;
+func grid_row_end(string) -> nil;
+func grid_row_start(string) -> nil;
+func grid_template(string) -> nil;
+func grid_template_areas(string) -> nil;
+func grid_template_columns(string) -> nil;
+func grid_template_rows(string) -> nil;
+
 func hanging_punctuation(std.css.HangingPunctuation) -> nil;
 
 func height(std.css.Length) -> nil;
 
+// hyphenate-*
+func hyphenate_character(string) -> nil;
+func hyphenate_limit_chars(string) -> nil;
+
 func hyphens(std.css.Hyphens) -> nil;
+
+// TODO: these need strong types
+// image-*
+func image_orientation(string) -> nil;
+func image_rendering(string) -> nil;
+func image_resolution(string) -> nil;
+
+func initial_letter(string) -> nil;
 
 func inline_size(std.css.Length) -> nil;
 
+// TODO: these need strong types
+// inset-*
+func inset(string) -> nil;
+func inset_block(string) -> nil;
+func inset_block_end(string) -> nil;
+func inset_block_start(string) -> nil;
+func inset_inline(string) -> nil;
+func inset_inline_end(string) -> nil;
+func inset_inline_start(string) -> nil;
+
 func isolation(std.css.Isolation) -> nil;
+
+// TODO: these need strong types
+// justify-*
+func justify_content(string) -> nil;
+func justify_items(string) -> nil;
+func justify_self(string) -> nil;
 
 func left(std.css.Length) -> nil;
 
 func letter_spacing(std.css.Length) -> nil;
 
+// TODO: these need strong types
+// line-*
+func line_break(string) -> nil;
+func line_height(string) -> nil;
+func line_height_step(string) -> nil;
+
+// TODO: these need strong types
+// list-*
+func list_style(string) -> nil;
+func list_style_image(string) -> nil;
+func list_style_position(string) -> nil;
+func list_style_type(string) -> nil;
+
+// TODO: these need strong types
+// margin-*
+func margin(string) -> nil;
+func margin_block(string) -> nil;
+func margin_block_end(string) -> nil;
+func margin_block_start(string) -> nil;
+func margin_bottom(string) -> nil;
+func margin_inline(string) -> nil;
+func margin_inline_end(string) -> nil;
+func margin_inline_start(string) -> nil;
+func margin_left(string) -> nil;
+func margin_right(string) -> nil;
+func margin_top(string) -> nil;
+func margin_trim(string) -> nil;
+
+// TODO: these need strong types
+// marker-*
+func marker(string) -> nil;
+func marker_end(string) -> nil;
+func marker_mid(string) -> nil;
+func marker_start(string) -> nil;
+
+// TODO: these need strong types
+// mask-*
+func mask(string) -> nil;
+func mask_border(string) -> nil;
+func mask_border_mode(string) -> nil;
+func mask_border_outset(string) -> nil;
+func mask_border_repeat(string) -> nil;
+func mask_border_slice(string) -> nil;
+func mask_border_source(string) -> nil;
+func mask_border_width(string) -> nil;
+func mask_clip(string) -> nil;
+func mask_composite(string) -> nil;
+func mask_image(string) -> nil;
+func mask_mode(string) -> nil;
+func mask_origin(string) -> nil;
+func mask_position(string) -> nil;
+func mask_repeat(string) -> nil;
+func mask_size(string) -> nil;
+func mask_type(string) -> nil;
+
+// TODO: these need strong types
+// math-*
+func math_depth(string) -> nil;
+func math_shift(string) -> nil;
+func math_style(string) -> nil;
+
+// TODO: these need strong types
+// max-*
+func max_block_size(string) -> nil;
+func max_height(string) -> nil;
+func max_inline_size(string) -> nil;
+func max_width(string) -> nil;
+
+// TODO: these need strong types
+// min-*
+func min_block_size(string) -> nil;
+func min_height(string) -> nil;
+func min_inline_size(string) -> nil;
+func min_width(string) -> nil;
+
 func mix_blend_mode(std.css.MixBlendMode) -> nil;
 
+// object-*
 func object_fit(std.css.ObjectFit) -> nil;
-
 func object_position(std.css.ObjectPosition) -> nil;
+
+// TODO: these need strong types
+// offset-*
+func offset(string) -> nil;
+func offset_anchor(string) -> nil;
+func offset_distance(string) -> nil;
+func offset_offset_path(string) -> nil;
+func offset_position(string) -> nil;
+func offset_rotate(string) -> nil;
 
 func opacity(float) -> nil;
 
@@ -208,15 +421,83 @@ func order(integer) -> nil;
 
 func orphans(integer) -> nil;
 
+// TODO: these need strong types
+// outline-*
+func outline(string) -> nil;
+func outline_color(string) -> nil;
+func outline_offset(string) -> nil;
+func outline_style(string) -> nil;
+func outline_width(string) -> nil;
+
+// TODO: these need strong types
+// overflow-*
+func overflow(string) -> nil;
+func overflow_anchor(string) -> nil;
+func overflow_block(string) -> nil;
+func overflow_clip_margin(string) -> nil;
+func overflow_inline(string) -> nil;
+func overflow_wrap(string) -> nil;
+func overflow_x(string) -> nil;
+func overflow_y(string) -> nil;
+
+func overlay(string) -> nil;
+
+// TODO: these need strong types
+// overscroll-*
+func overscroll_behavior(string) -> nil;
+func overscroll_behavior_block(string) -> nil;
+func overscroll_behavior_inline(string) -> nil;
+func overscroll_behavior_x(string) -> nil;
+func overscroll_behavior_y(string) -> nil;
+
+// TODO: these need strong types
+// padding-*
+func padding(string) -> nil;
+func padding_block(string) -> nil;
+func padding_block_end(string) -> nil;
+func padding_block_start(string) -> nil;
+func padding_bottom(string) -> nil;
+func padding_inline(string) -> nil;
+func padding_inline_end(string) -> nil;
+func padding_inline_start(string) -> nil;
+func padding_left(string) -> nil;
+func padding_right(string) -> nil;
+func padding_top(string) -> nil;
+
+// TODO: these need strong types
+// page-*
+func page(string) -> nil;
+func page_break_after(string) -> nil;
+func page_break_before(string) -> nil;
+func page_break_inside(string) -> nil;
+
 func paint_order(std.css.PaintOrder) -> nil;
 
+// perspective-*
 func perspective(std.css.Length) -> nil;
+func perspective_origin(std.css.Length) -> nil;
+
+// TODO: these need strong types
+// place-*
+func place_content(string) -> nil;
+func place_items(string) -> nil;
+func place_self(string) -> nil;
 
 func pointer_events(std.css.PointerEvents) -> nil;
 
+// TODO: these need strong types
+// position-*
+func position(string) -> nil;
+func position_anchor(string) -> nil;
+func position_area(string) -> nil;
+func position_try(string) -> nil;
+func position_try_fallbacks(string) -> nil;
+func position_try_order(string) -> nil;
+func position_visibility(string) -> nil;
+
 func print_color_adjust(std.css.PrintColorAdjust) -> nil;
 
-func width(std.css.Length) -> nil;
+func quotes(string) -> nil;
 
 func r(std.css.Length) -> nil;
 
@@ -228,12 +509,51 @@ func rotate(std.css.Rotate) -> nil;
 
 func row_gap(std.css.Length) -> nil;
 
+// ruby-*
 func ruby_align(std.css.RubyAlign) -> nil;
 func ruby_position(std.css.RubyPosition) -> nil;
 
 func rx(std.css.Length) -> nil;
 func ry(std.css.Length) -> nil;
 
+func scale(string) -> nil;
+
+// TODO: these need strong types
+// scroll-*
+func scroll_behavior(string) -> nil;
+func scroll_margin(string) -> nil;
+func scroll_padding(string) -> nil;
+func scroll_padding_block(string) -> nil;
+func scroll_padding_block_end(string) -> nil;
+func scroll_padding_block_start(string) -> nil;
+func scroll_padding_inline(string) -> nil;
+func scroll_padding_inline_end(string) -> nil;
+func scroll_padding_inline_start(string) -> nil;
+func scroll_padding_bottom(string) -> nil;
+func scroll_padding_left(string) -> nil;
+func scroll_padding_right(string) -> nil;
+func scroll_padding_top(string) -> nil;
+func scroll_snap_align(string) -> nil;
+func scroll_snap_stop(string) -> nil;
+func scroll_snap_type(string) -> nil;
+func scroll_timeline(string) -> nil;
+func scroll_timeline_axis(string) -> nil;
+func scroll_timeline_name(string) -> nil;
+
+// TODO: these need strong types
+// scrollbar-*
+func scrollbar_color(string) -> nil;
+func scrollbar_gutter(string) -> nil;
+func scrollbar_width(string) -> nil;
+
+// TODO: these need strong types
+// shape-*
+func shape_image_threshold(string) -> nil;
+func shape_margin(string) -> nil;
+func shape_outside(string) -> nil;
+func shape_rendering(string) -> nil;
+
+// stop-*
 func stop_color(std.css.Color) -> nil;
 func stop_opacity(float) -> nil;
 
@@ -241,16 +561,83 @@ func tab_size(std.css.Length) -> nil;
 
 func table_layout(std.css.TableLayout) -> nil;
 
+// TODO: these need strong types
+// text-*
+func text_align(string) -> nil;
+func text_align_last(string) -> nil;
+func text_anchor(string) -> nil;
+func text_combine_upright(string) -> nil;
+func text_decoration(string) -> nil;
+func text_decoration_color(string) -> nil;
+func text_decoration_line(string) -> nil;
+func text_decoration_skip(string) -> nil;
+func text_decoration_skip_ink(string) -> nil;
+func text_decoration_style(string) -> nil;
+func text_decoration_thickness(string) -> nil;
+func text_emphasis(string) -> nil;
+func text_emphasis_color(string) -> nil;
+func text_emphasis_position(string) -> nil;
+func text_emphasis_style(string) -> nil;
+func text_indent(string) -> nil;
+func text_justify(string) -> nil;
+func text_orientation(string) -> nil;
+func text_overflow(string) -> nil;
+func text_rendering(string) -> nil;
+func text_shadow(string) -> nil;
+func text_size_adjust(string) -> nil;
+func text_spacing_trim(string) -> nil;
+func text_transform(string) -> nil;
+func text_underline_offset(string) -> nil;
+func text_underline_position(string) -> nil;
+func text_wrap(string) -> nil;
+func text_wrap_mode(string) -> nil;
+func text_wrap_style(string) -> nil;
+
+func timeline_scope(string) -> nil;
+
 func top(std.css.Length) -> nil;
 
+func touch_action(string) -> nil;
+
+// TODO: these need strong types
+// transform-*
+func transform(string) -> nil;
+func transform_box(string) -> nil;
+func transform_origin(string) -> nil;
+func transform_style(string) -> nil;
+
+// TODO: these need strong types
+// transition-*
+func transition(string) -> nil;
+func transition_behavior(string) -> nil;
+func transition_delay(string) -> nil;
+func transition_duration(string) -> nil;
+func transition_property(string) -> nil;
+func transition_timing_function(string) -> nil;
+
+func translate(string) -> nil;
+
+func unicode_bidi(string) -> nil;
+
+// user-*
+func user_modify(string) -> nil;
 func user_select(std.css.UserSelect) -> nil;
 
 func vector_effect(std.css.VectorEffect) -> nil;
 
 func vertical_align(std.css.VerticalAlign) -> nil;
 
+// TODO: these need strong types
+// view-*
+func view_timeline(string) -> nil;
+func view_timeline_axis(string) -> nil;
+func view_timeline_inset(string) -> nil;
+func view_timeline_name(string) -> nil;
+func view_transition_name(string) -> nil;
+
 func visibility(std.css.Visibility) -> nil;
 
+// white-space-*
 func white_space(std.css.WhiteSpace) -> nil;
 func white_space_collapse(std.css.WhiteSpaceCollapse) -> nil;
 
@@ -260,6 +647,7 @@ func width(std.css.Length) -> nil;
 
 func will_change(std.css.WillChange) -> nil;
 
+// word-*
 func word_break(std.css.WordBreak) -> nil;
 func word_spacing(std.css.Length) -> nil;
 
