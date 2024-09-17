@@ -619,8 +619,6 @@ func translate(string) -> nil;
 
 func unicode_bidi(string) -> nil;
 
-// user-*
-func user_modify(string) -> nil;
 func user_select(std.css.UserSelect) -> nil;
 
 func vector_effect(std.css.VectorEffect) -> nil;
