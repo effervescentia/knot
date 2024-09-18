@@ -3,7 +3,8 @@
   "packageManager": "yarn@4.4.0",
   "workspaces": [
     "javascript/*",
-    "examples/valid/app"
+    "examples/valid/app",
+    "examples/valid/css"
   ],
   "volta": {
     "node": "20.17.0",

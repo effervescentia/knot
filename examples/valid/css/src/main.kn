@@ -1,0 +1,34 @@
+use std;
+
+const css = std.css;
+const px = css.Length.px;
+
+const cardStyle = style {
+  height: px(40.0),
+  width: px(40.0),
+  border: "1px solid black"
+};
+
+view Card { name: string } -> <div style=cardStyle>{name}</div>;
+
+view Group { name: string, children: element } -> <div>
+  <h2>{name}</h2>
+  {children}
+</div>;
+
+const appStyle = style {
+  color: css.Color.red
+};
+
+view App -> <div>
+  <Group
+    name="align-*"
+    children=<>
+      <Card name="A" />
+      <Card name="B" />
+      <Card name="C" />
+    </>
+  />
+</div>;
+
+func main -> std.dom.mount(<App />, "app");

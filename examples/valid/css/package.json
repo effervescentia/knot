@@ -1,0 +1,19 @@
+{
+  "name": "@knot-example/css",
+  "type": "module",
+  "scripts": {
+    "start": "vite"
+  },
+  "dependencies": {
+    "@knot/emotion-plugin": "workspace:*",
+    "@knot/react-plugin": "workspace:*",
+    "@knot/runtime": "workspace:*",
+    "@knot/std": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "5.4.2"
+  },
+  "volta": {
+    "extends": "../../../package.json"
+  }
+}

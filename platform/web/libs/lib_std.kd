@@ -11,43 +11,42 @@ module css {
     | revert_layer
   }
 
-
   enum Length {
-    | cap
-    | ch
-    | em
-    | ex
-    | ic
-    | lh
+    | cap(float)
+    | ch(float)
+    | em(float)
+    | ex(float)
+    | ic(float)
+    | lh(float)
     
-    | rcap
-    | rch
-    | rem
-    | rex
-    | ric
-    | rlh
+    | rcap(float)
+    | rch(float)
+    | rem(float)
+    | rex(float)
+    | ric(float)
+    | rlh(float)
     
-    | vh
-    | vw
-    | vmax
-    | vmin
-    | vb
-    | vi
+    | vh(float)
+    | vw(float)
+    | vmax(float)
+    | vmin(float)
+    | vb(float)
+    | vi(float)
     
-    | cqw
-    | cqh
-    | cqi
-    | cqb
-    | cqmin
-    | cqmax
+    | cqw(float)
+    | cqh(float)
+    | cqi(float)
+    | cqb(float)
+    | cqmin(float)
+    | cqmax(float)
     
-    | px
-    | cm
-    | mm
-    | Q
-    | in
-    | pc
-    | pt
+    | px(float)
+    | cm(float)
+    | mm(float)
+    | Q(float)
+    | in(float)
+    | pc(float)
+    | pt(float)
   }
 
   enum AlignContent {

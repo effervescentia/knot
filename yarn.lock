@@ -449,6 +449,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@knot-example/css@workspace:examples/valid/css":
+  version: 0.0.0-use.local
+  resolution: "@knot-example/css@workspace:examples/valid/css"
+  dependencies:
+    "@knot/emotion-plugin": "workspace:*"
+    "@knot/react-plugin": "workspace:*"
+    "@knot/runtime": "workspace:*"
+    "@knot/std": "workspace:*"
+    vite: "npm:5.4.2"
+  languageName: unknown
+  linkType: soft
+
 "@knot/emotion-plugin@workspace:*, @knot/emotion-plugin@workspace:javascript/emotion-plugin":
   version: 0.0.0-use.local
   resolution: "@knot/emotion-plugin@workspace:javascript/emotion-plugin"

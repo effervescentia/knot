@@ -1,7 +1,8 @@
 use std;
 
+const css = std.css;
 const rootStyle = style {
-  color: std.css.Color.red
+  color: css.Color.red
 };
 
 view App -> <div style=rootStyle>Hello, World!</div>;

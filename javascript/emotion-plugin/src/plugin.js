@@ -7,7 +7,7 @@ export const createStyle = {
 export const bindStyle = {
   "1.0": (styleObject) => {
     const cssObject = Object.fromEntries(Object.entries(styleObject).map(([key, value]) => {
-      const cssValue = "toCSS" in value ? value.toCSS() : value;
+      const cssValue = typeof value !== "string" && "toCSS" in value ? value.toCSS() : value;
 
       return [key, cssValue];
     }));

@@ -77,6 +77,8 @@ func block_size(std.css.Length) -> nil;
 
 // TODO: add missing properties
 // border-*
+func border(string) -> nil;
+
 func border_color(std.css.Color) -> nil;
 func border_spacing(std.css.Length) -> nil;
 func border_style(std.css.BorderStyle) -> nil;
@@ -556,6 +558,17 @@ func shape_rendering(string) -> nil;
 // stop-*
 func stop_color(std.css.Color) -> nil;
 func stop_opacity(float) -> nil;
+
+// TODO: these need strong types
+// stroke-*
+func stroke(string) -> nil;
+func stroke_dasharray(string) -> nil;
+func stroke_dashoffset(string) -> nil;
+func stroke_linecap(string) -> nil;
+func stroke_linejoin(string) -> nil;
+func stroke_miterlimit(string) -> nil;
+func stroke_opacity(string) -> nil;
+func stroke_width(string) -> nil;
 
 func tab_size(std.css.Length) -> nil;
 
