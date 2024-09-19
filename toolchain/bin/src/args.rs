@@ -78,6 +78,9 @@ pub enum Command {
 
         #[arg(short, long, default_value = "main.kn")]
         entry: PathBuf,
+
+        #[arg(short, long, default_value = "false")]
+        watch: bool,
     },
 }
 

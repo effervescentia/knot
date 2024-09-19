@@ -46,12 +46,14 @@ fn main() {
             ref root_dir,
             ref source_dir,
             ref entry,
+            watch,
         } => build::command(build::Args {
             target,
             out_dir,
             entry,
             root_dir,
             source_dir,
+            watch,
             verbose: args.verbose,
         }),
     };

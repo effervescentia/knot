@@ -5,6 +5,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+#[derive(Clone)]
 pub struct Analyzed(pub Base<lang::ast::typed::Meta>, pub ImportGraph);
 
 impl Analyzed {

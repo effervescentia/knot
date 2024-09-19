@@ -44,6 +44,7 @@ impl<T> IntoResult for Result<T> {
     }
 }
 
+#[derive(Clone)]
 pub struct Context<Resolver> {
     reporter: Reporter,
     resolver: Resolver,
@@ -88,6 +89,7 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct Engine<T, R> {
     root_dir: String,
     context: Context<R>,

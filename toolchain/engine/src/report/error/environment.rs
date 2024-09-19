@@ -6,6 +6,8 @@ use std::{io, path::PathBuf};
 pub enum EnvironmentError {
     InvalidWriteTarget(PathBuf, io::ErrorKind),
     CleanupFailed(PathBuf, io::ErrorKind),
+    MaxFilesWatched(PathBuf),
+    WatchFailed(PathBuf, String),
 }
 
 impl ToCode for EnvironmentError {
@@ -19,6 +21,8 @@ impl ToCode for EnvironmentError {
             }
             Self::InvalidWriteTarget(..) => ErrorCode::INVALID_WRITE_TARGET,
             Self::CleanupFailed(..) => ErrorCode::CLEANUP_FAILED,
+            Self::MaxFilesWatched(..) => ErrorCode::MAX_FILES_WATCHED,
+            Self::WatchFailed(..) => ErrorCode::WATCH_FAILED,
         }
     }
 }
@@ -42,6 +46,22 @@ impl<'a> Display<'a> for EnvironmentError {
                 "Cleanup Failed",
                 format!(
                     "Attempted to delete {} but failed with error {error}.",
+                    path.pretty()
+                ),
+            ),
+
+            Self::MaxFilesWatched(path) => bind(
+                "Max Files Watched",
+                format!(
+                    "Cannot watch {} because the file notifier limit has been reached.",
+                    path.pretty()
+                ),
+            ),
+
+            Self::WatchFailed(path, error) => bind(
+                "Watch Failed",
+                format!(
+                    "Attempted to watch {} but failed with error {error}.",
                     path.pretty()
                 ),
             ),

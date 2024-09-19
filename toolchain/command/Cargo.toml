@@ -9,6 +9,7 @@ edition = "2021"
 kore = { package = "knot_core", path = "../kore" }
 lang = { package = "knot_language", path = "../language" }
 engine = { package = "knot_engine", path = "../engine" }
+notify-debouncer-full = "0.3.1"
 
 [dev-dependencies]
 ctor = "0.2.5"

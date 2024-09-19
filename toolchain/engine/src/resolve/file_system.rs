@@ -5,6 +5,7 @@ use std::{
     time::SystemTime,
 };
 
+#[derive(Clone)]
 pub struct FileSystem<'a>(pub &'a Path);
 
 impl<'a> FileSystem<'a> {

@@ -1,7 +1,13 @@
 use crate::log;
-use engine::Engine;
+use engine::{ConfigurationError, Engine, Report};
+use kore::invariant;
 use kore::{color::Highlight, internal, pretty::Pretty};
+use notify_debouncer_full::notify::Watcher;
+use notify_debouncer_full::{new_debouncer, notify};
 use std::path::Path;
+use std::time::Duration;
+
+const WATCH_SENSITIVITY: Duration = Duration::from_millis(20);
 
 pub struct Options<'a, Platform> {
     pub platform: Platform,
@@ -37,6 +43,71 @@ where
         "out_dir".focus(),
         opts.out_dir.pretty()
     );
+
+    Ok(())
+}
+
+pub fn watch_command<Platform>(opts: &Options<Platform>) -> engine::Result<()>
+where
+    Platform: internal::Platform<Program = lang::ast::shape::Program>,
+{
+    log::entrypoint(opts.verbose, opts.entry);
+
+    let analyzed = Engine::new(opts.source_dir, opts.verbose)
+        .from_entry(opts.entry)
+        .include_libraries(&Platform::libraries())
+        .parse()
+        .inspect(|state, _| state.report_from_entry())
+        .link()
+        .inspect(|state, _| state.report())
+        .analyze()
+        .inspect(|state, _| state.report());
+
+    let count = analyzed
+        .clone()
+        .generate(Platform::generator())
+        .overwrite(opts.out_dir)?;
+
+    log::success(opts.verbose, "transpiled", count);
+    eprintln!(
+        "build artifacts written to {}:\n{}\n",
+        "out_dir".focus(),
+        opts.out_dir.pretty()
+    );
+
+    let mut debouncer = new_debouncer(WATCH_SENSITIVITY, None, |res| match res {
+        Ok(event) => {
+            println!("event: {:?}", event);
+        }
+        Err(e) => eprintln!("watch error: {:?}", e),
+    })
+    .unwrap_or_else(|_| invariant!("failed to create debouncer"));
+
+    debouncer
+        .watcher()
+        .watch(opts.source_dir, notify::RecursiveMode::Recursive)
+        .map_err(|x| match x.kind {
+            notify::ErrorKind::PathNotFound => Report::Configuration(
+                ConfigurationError::SourceDirectoryNotFound(opts.source_dir.to_path_buf()),
+            ),
+
+            notify::ErrorKind::MaxFilesWatch => Report::Environment(
+                engine::EnvironmentError::MaxFilesWatched(opts.source_dir.to_path_buf()),
+            ),
+
+            notify::ErrorKind::Generic(reason) => Report::Environment(
+                engine::EnvironmentError::WatchFailed(opts.source_dir.to_path_buf(), reason),
+            ),
+
+            err => Report::Environment(engine::EnvironmentError::WatchFailed(
+                opts.source_dir.to_path_buf(),
+                format!("{:?}", err),
+            )),
+        })?;
+
+    debouncer
+        .cache()
+        .add_root(opts.source_dir, notify::RecursiveMode::Recursive);
 
     Ok(())
 }

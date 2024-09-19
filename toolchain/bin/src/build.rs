@@ -15,6 +15,7 @@ pub struct Args<'a> {
     pub root_dir: &'a Path,
     pub source_dir: &'a Path,
     pub out_dir: &'a Path,
+    pub watch: bool,
     pub verbose: bool,
 }
 
@@ -26,6 +27,7 @@ impl<'a> Args<'a> {
             out_dir,
             entry,
             target,
+            watch,
             verbose,
         } = self;
 
@@ -48,6 +50,7 @@ impl<'a> Args<'a> {
                 Config::rel_path(out_dir, root_dir.join(out_dir).as_path()),
             ),
             ("target", Config::Target(target)),
+            ("watch", Config::Boolean(*watch)),
             ("verbose", Config::Boolean(*verbose)),
         ]);
     }
@@ -72,11 +75,17 @@ pub fn command(args: Args) -> engine::Result<()> {
 
     eprint!("{}", Phase::Execution);
 
-    build::command(&build::Options {
+    let options = build::Options {
         platform,
         entry: args.entry,
         source_dir: &source_dir,
         out_dir: &out_dir,
         verbose: args.verbose,
-    })
+    };
+
+    if args.watch {
+        build::command(&options)
+    } else {
+        build::watch_command(&options)
+    }
 }

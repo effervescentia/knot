@@ -23,6 +23,8 @@ impl ErrorCode {
     pub const ENTRYPOINT_NOT_FOUND: Self = Self(114);
     pub const ENTRYPOINT_NOT_RELATIVE: Self = Self(115);
     pub const CLEANUP_FAILED: Self = Self(116);
+    pub const MAX_FILES_WATCHED: Self = Self(117);
+    pub const WATCH_FAILED: Self = Self(118);
 
     // 2xx - parsing errors
 
