@@ -2,9 +2,13 @@ use crate::log;
 use engine::{ConfigurationError, Engine, Report};
 use kore::invariant;
 use kore::{color::Highlight, internal, pretty::Pretty};
-use notify_debouncer_full::notify::Watcher;
-use notify_debouncer_full::{new_debouncer, notify};
+use notify_debouncer_full::{
+    new_debouncer,
+    notify::{self, Watcher},
+    DebounceEventHandler, DebouncedEvent,
+};
 use std::path::Path;
+use std::sync::mpsc;
 use std::time::Duration;
 
 const WATCH_SENSITIVITY: Duration = Duration::from_millis(20);
@@ -75,13 +79,10 @@ where
         opts.out_dir.pretty()
     );
 
-    let mut debouncer = new_debouncer(WATCH_SENSITIVITY, None, |res| match res {
-        Ok(event) => {
-            println!("event: {:?}", event);
-        }
-        Err(e) => eprintln!("watch error: {:?}", e),
-    })
-    .unwrap_or_else(|_| invariant!("failed to create debouncer"));
+    let (tx, rx) = mpsc::channel::<Result<Vec<DebouncedEvent>, Vec<notify::Error>>>();
+
+    let mut debouncer = new_debouncer(WATCH_SENSITIVITY, None, tx)
+        .unwrap_or_else(|_| invariant!("failed to create debouncer"));
 
     debouncer
         .watcher()
@@ -108,6 +109,18 @@ where
     debouncer
         .cache()
         .add_root(opts.source_dir, notify::RecursiveMode::Recursive);
+
+    eprintln!("watching for changes in {}", opts.source_dir.pretty());
+    eprintln!("press ctrl+c to cancel");
+
+    for res in rx {
+        match res {
+            Ok(event) => {
+                println!("event: {:?}", event);
+            }
+            Err(e) => eprintln!("watch error: {:?}", e),
+        }
+    }
 
     Ok(())
 }
