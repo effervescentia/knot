@@ -1,30 +1,30 @@
 use super::{
-    pipeline::{Chain, Identity, Map, Peek, Pipeline, Transform},
+    pipeline::{Chain, Container, Identity, Map, Peek, Transform},
     Context,
 };
 use std::path::Path;
 
-pub struct Builder<T>(Pipeline<T>);
+pub struct Builder<T>(T);
 
 impl Builder<Identity<Context>> {
     pub const fn new() -> Self {
-        Self(Pipeline::new())
+        Self(Identity::new())
     }
 }
 
-impl<T> From<Pipeline<T>> for Builder<T> {
-    fn from(value: Pipeline<T>) -> Self {
-        Self(value)
+impl<T> Container for Builder<T> {
+    type Inner = T;
+
+    fn consume(self) -> Self::Inner {
+        self.0
+    }
+
+    fn wrap(inner: Self::Inner) -> Self {
+        Self(inner)
     }
 }
 
-impl<T> From<Builder<T>> for Pipeline<T> {
-    fn from(value: Builder<T>) -> Self {
-        value.0
-    }
-}
-
-impl<In, Out> Map<Pipeline<In>, Pipeline<Out>> for Builder<In> {
+impl<In, Out> Map<In, Out> for Builder<In> {
     type Result = Builder<Out>;
 }
 

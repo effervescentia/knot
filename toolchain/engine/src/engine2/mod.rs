@@ -61,10 +61,7 @@ impl Engine {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        pipeline::{Peek, Transform},
-        Context, Engine, State,
-    };
+    use super::{pipeline::Peek, Context, Engine};
 
     #[test]
     fn one_off_execution() {
