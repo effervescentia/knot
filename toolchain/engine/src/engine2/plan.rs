@@ -1,5 +1,5 @@
 use super::{
-    pipeline::{Chain, Container, Identity, Map, Peek, Transform},
+    pipeline::{Container, Execute, Identity, Map, Peek, Transform},
     State,
 };
 
@@ -30,15 +30,17 @@ impl<In, Out> Map<In, Out> for Builder<In> {
 impl<T, F> Peek<T, F> for Builder<T>
 where
     T: Transform,
-    F: FnMut(&T::Out),
+    F: Fn(&T::Out),
 {
 }
 
-impl<T, U, F> Chain<T, U, F> for Builder<T>
+impl<T> Execute<T> for Builder<T>
 where
     T: Transform,
-    F: FnOnce(T) -> U,
 {
+    fn execute(&self, input: T::In) -> T::Out {
+        self.0.apply(input)
+    }
 }
 
 impl<T> Builder<T>
@@ -46,7 +48,16 @@ where
     T: Transform<Out = (State, Vec<String>)>,
 {
     pub fn parse(self) -> Builder<Parse<T>> {
-        self.chain(Parse)
+        self.map(Parse)
+    }
+}
+
+impl<T> Builder<T>
+where
+    T: Transform<Out = (State, Parsed)>,
+{
+    pub fn format(self) -> Builder<Format<T>> {
+        self.map(Format)
     }
 }
 
@@ -55,7 +66,7 @@ where
     T: Transform<Out = (State, Parsed)>,
 {
     pub fn link(self) -> Builder<Link<T>> {
-        self.chain(Link)
+        self.map(Link)
     }
 }
 
@@ -64,7 +75,16 @@ where
     T: Transform<Out = (State, Linked)>,
 {
     pub fn analyze(self) -> Builder<Analyze<T>> {
-        self.chain(Analyze)
+        self.map(Analyze)
+    }
+}
+
+impl<T> Builder<T>
+where
+    T: Transform<Out = (State, Analyzed)>,
+{
+    pub fn generate<G>(self, generator: G) -> Builder<Generate<T, G>> {
+        self.map(|prev| Generate(prev, generator))
     }
 }
 
@@ -80,6 +100,30 @@ where
 {
     type In = T::In;
     type Out = (State, Parsed);
+
+    fn apply(&self, input: Self::In) -> Self::Out {
+        let (state, _) = self.0.apply(input);
+        (state, Parsed)
+    }
+}
+
+/* format */
+
+pub struct Formatted;
+
+pub struct Format<T>(T);
+
+impl<T> Transform for Format<T>
+where
+    T: Transform<Out = (State, Parsed)>,
+{
+    type In = T::In;
+    type Out = (State, Formatted);
+
+    fn apply(&self, input: Self::In) -> Self::Out {
+        let (state, _) = self.0.apply(input);
+        (state, Formatted)
+    }
 }
 
 /* link */
@@ -94,6 +138,11 @@ where
 {
     type In = T::In;
     type Out = (State, Linked);
+
+    fn apply(&self, input: Self::In) -> Self::Out {
+        let (state, _) = self.0.apply(input);
+        (state, Linked)
+    }
 }
 
 /* analyze */
@@ -108,4 +157,28 @@ where
 {
     type In = T::In;
     type Out = (State, Analyzed);
+
+    fn apply(&self, input: Self::In) -> Self::Out {
+        let (state, _) = self.0.apply(input);
+        (state, Analyzed)
+    }
+}
+
+/* generate */
+
+pub struct Generated;
+
+pub struct Generate<T, G>(T, G);
+
+impl<T, G> Transform for Generate<T, G>
+where
+    T: Transform<Out = (State, Analyzed)>,
+{
+    type In = T::In;
+    type Out = (State, Generated);
+
+    fn apply(&self, input: Self::In) -> Self::Out {
+        let (state, _) = self.0.apply(input);
+        (state, Generated)
+    }
 }

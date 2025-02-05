@@ -2,7 +2,7 @@ mod input;
 mod pipeline;
 mod plan;
 
-use pipeline::{Identity, Transform};
+use pipeline::{Execute, Identity, Transform};
 
 /*
 phases
@@ -15,6 +15,10 @@ phases
 6. generate
 */
 
+#[derive(Clone, Copy)]
+pub struct Library;
+
+#[derive(Clone, Copy)]
 pub struct Context;
 
 pub struct State;
@@ -26,7 +30,7 @@ impl Engine {
         Self(context)
     }
 
-    pub fn input() -> input::Builder<Identity<Context>> {
+    pub fn input() -> input::Builder<Identity<Context>, Library> {
         input::Builder::new()
     }
 
@@ -37,31 +41,37 @@ impl Engine {
     pub fn execute<R, T1, T2, S>(
         &self,
         plan: &plan::Builder<T1>,
-        input: &input::Builder<T2>,
+        input: &input::Builder<T2, Library>,
     ) -> (State, R)
     where
         T1: Transform<In = (State, Vec<String>), Out = (State, R)>,
-        T2: Transform<In = Context, Out = input::Input<S>>,
+        T2: Transform<In = Context, Out = input::Input<S, Library>>,
     {
-        (State, todo!())
+        let state = State;
+        let input::Input { source, libraries } = input.execute(self.0);
+
+        plan.execute((state, vec![]))
     }
 
-    pub fn incremental<R, T>(
+    pub fn incremental<R, T, U>(
         &self,
         state: State,
         plan: &plan::Builder<T>,
-        targets: Vec<&str>,
+        targets: U,
     ) -> (State, R)
     where
         T: Transform<In = (State, Vec<String>), Out = (State, R)>,
+        U: AsRef<[String]>,
     {
-        (state, todo!())
+        let context = self.0;
+
+        plan.execute((state, targets.as_ref().to_vec()))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{pipeline::Peek, Context, Engine};
+    use super::{pipeline::Peek, Context, Engine, Library};
 
     #[test]
     fn one_off_execution() {
@@ -90,24 +100,24 @@ mod tests {
     }
 
     #[test]
-    fn standard_build_pipeline() {
-        let context = Context;
-        let engine = Engine::new(context);
-
-        let input = Engine::input()
-            .from_entry("entry")
-            .peek(|_| ())
-            .with_libraries([""])
-            .peek(|_| ());
-
-        let pipeline = Engine::plan()
+    fn build_pipeline() {
+        let plan = Engine::plan()
             .parse()
             .peek(|_| ())
             .link()
             .peek(|_| ())
             .analyze()
+            .peek(|_| ())
+            .generate(())
             .peek(|_| ());
+    }
 
-        let (_, result) = engine.execute(&pipeline, &input);
+    #[test]
+    fn format_pipeline() {
+        let plan = Engine::plan() //
+            .parse()
+            .peek(|_| ())
+            .format()
+            .peek(|_| ());
     }
 }

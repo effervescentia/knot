@@ -22,28 +22,25 @@ pub trait Map<In, Out>: Container<Inner = In> {
 pub trait Peek<T, F>: Map<T, Sink<T, F>>
 where
     T: Transform,
-    F: FnMut(&T::Out),
+    F: Fn(&T::Out),
 {
     fn peek(self, f: F) -> Self::Result {
         self.map(|x| Sink(x, f))
     }
 }
 
-pub trait Chain<T, U, F>: Map<T, U>
+pub trait Execute<T>: Container<Inner = T>
 where
     T: Transform,
-    F: FnOnce(T) -> U,
 {
-    fn chain(self, f: F) -> Self::Result {
-        self.map(f)
-    }
+    fn execute(&self, input: T::In) -> T::Out;
 }
 
 pub trait Transform: Sized {
     type In;
     type Out;
 
-    // fn apply(&mut self, input: Self::In) -> Self::Out;
+    fn apply(&self, input: Self::In) -> Self::Out;
 }
 
 pub struct Identity<T>(PhantomData<T>);
@@ -57,6 +54,10 @@ impl<T> Identity<T> {
 impl<T> Transform for Identity<T> {
     type In = T;
     type Out = T;
+
+    fn apply(&self, input: Self::In) -> Self::Out {
+        input
+    }
 }
 
 pub struct Sink<P, F>(P, F);
@@ -64,8 +65,14 @@ pub struct Sink<P, F>(P, F);
 impl<P, F> Transform for Sink<P, F>
 where
     P: Transform,
-    F: FnMut(&P::Out),
+    F: Fn(&P::Out),
 {
     type In = P::In;
     type Out = P::Out;
+
+    fn apply(&self, input: Self::In) -> Self::Out {
+        let result = self.0.apply(input);
+        self.1(&result);
+        result
+    }
 }
