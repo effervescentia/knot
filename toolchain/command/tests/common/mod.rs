@@ -51,6 +51,6 @@ pub fn assert_build_single(name: &str, input: &str, output: &str) {
 
     assert_eq_sorted!(
         result.unwrap(),
-        HashMap::from_iter(vec![(str!("main.js"), output.to_owned())])
+        HashMap::from([(str!("main.js"), output.to_owned())])
     );
 }

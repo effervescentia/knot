@@ -334,11 +334,7 @@ mod tests {
 
         assert_eq!(
             graph.cycles_with(&NamespaceId(2)),
-            HashSet::from_iter(vec![Cycle(vec![
-                NamespaceId(2),
-                NamespaceId(1),
-                NamespaceId(0)
-            ])])
+            HashSet::from([Cycle(vec![NamespaceId(2), NamespaceId(1), NamespaceId(0)])])
         );
     }
 
@@ -356,7 +352,7 @@ mod tests {
 
         assert_eq!(
             graph.cycles_with(&NamespaceId(2)),
-            HashSet::from_iter(vec![
+            HashSet::from([
                 Cycle(vec![NamespaceId(2), NamespaceId(3)]),
                 Cycle(vec![NamespaceId(2), NamespaceId(1), NamespaceId(4)]),
                 Cycle(vec![NamespaceId(2), NamespaceId(1), NamespaceId(0)])
@@ -385,11 +381,7 @@ mod tests {
 
         assert_eq!(
             graph.cycles(),
-            HashSet::from_iter(vec![Cycle(vec![
-                NamespaceId(0),
-                NamespaceId(2),
-                NamespaceId(1)
-            ])])
+            HashSet::from([Cycle(vec![NamespaceId(0), NamespaceId(2), NamespaceId(1)])])
         );
     }
 
@@ -407,7 +399,7 @@ mod tests {
 
         assert_eq!(
             graph.cycles(),
-            HashSet::from_iter(vec![
+            HashSet::from([
                 Cycle(vec![NamespaceId(3), NamespaceId(4)]),
                 Cycle(vec![NamespaceId(0), NamespaceId(5), NamespaceId(1)]),
                 Cycle(vec![NamespaceId(0), NamespaceId(2), NamespaceId(1)])

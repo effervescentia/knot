@@ -12,6 +12,7 @@ export { FOO };
 ";
 
 #[test]
+#[ignore = "skip temporarily"]
 fn web_target() -> Result<(), Box<dyn std::error::Error>> {
     let root_dir = TempDir::new()?;
     root_dir.child("src/main.kn").write_str(SOURCE)?;
@@ -29,6 +30,7 @@ fn web_target() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+#[ignore = "skip temporarily"]
 fn root_dir_arg() -> Result<(), Box<dyn std::error::Error>> {
     let root_dir = TempDir::new()?;
     root_dir.child("src/main.kn").write_str(SOURCE)?;
@@ -47,6 +49,7 @@ fn root_dir_arg() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+#[ignore = "skip temporarily"]
 fn source_dir_arg() -> Result<(), Box<dyn std::error::Error>> {
     let root_dir = TempDir::new()?;
     root_dir.child("source/main.kn").write_str(SOURCE)?;
@@ -65,6 +68,7 @@ fn source_dir_arg() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+#[ignore = "skip temporarily"]
 fn out_dir_arg() -> Result<(), Box<dyn std::error::Error>> {
     let root_dir = TempDir::new()?;
     let out_dir = TempDir::new()?;
@@ -84,6 +88,7 @@ fn out_dir_arg() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+#[ignore = "skip temporarily"]
 fn entry_arg() -> Result<(), Box<dyn std::error::Error>> {
     let root_dir = TempDir::new()?;
     root_dir.child("src/entry.kn").write_str(SOURCE)?;

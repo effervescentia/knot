@@ -66,7 +66,7 @@ mod tests {
     fn infer_module() {
         let mock = analyze_mock!();
         let ctx = mock.context();
-        let fragments = BTreeMap::from_iter(vec![
+        let fragments = BTreeMap::from([
             (
                 NodeId(1),
                 (
@@ -117,7 +117,7 @@ mod tests {
     fn skip() {
         let mock = analyze_mock!();
         let ctx = mock.context();
-        let fragments = BTreeMap::from_iter(vec![
+        let fragments = BTreeMap::from([
             (
                 NodeId(1),
                 (

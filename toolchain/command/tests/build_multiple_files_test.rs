@@ -41,7 +41,7 @@ export { ROOT };
 
     assert_eq_sorted!(
         result.unwrap(),
-        HashMap::from_iter(vec![
+        HashMap::from([
             (str!("a.js"), OUTPUT_A.to_owned()),
             (str!("deep/b.js"), OUTPUT_B.to_owned()),
             (str!("main.js"), OUTPUT_ROOT.to_owned())
@@ -87,7 +87,7 @@ export { ROOT };
 
     assert_eq_sorted!(
         result.unwrap(),
-        HashMap::from_iter(vec![
+        HashMap::from([
             (str!("main.js"), OUTPUT_ROOT.to_owned()),
             (str!("deep/b.js"), OUTPUT_B.to_owned()),
             (str!("deep/deeper/a.js"), OUTPUT_A.to_owned()),

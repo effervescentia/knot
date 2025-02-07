@@ -94,7 +94,7 @@ mod tests {
         fn infer_object_spread() {
             let mock = analyze_mock!();
             let ctx = mock.context();
-            let fragments = BTreeMap::from_iter(vec![(
+            let fragments = BTreeMap::from([(
                 NodeId(3),
                 (
                     ScopeId::default(),
@@ -137,7 +137,7 @@ mod tests {
         fn infer_multiple_object_spread() {
             let mock = analyze_mock!();
             let ctx = mock.context();
-            let fragments = BTreeMap::from_iter(vec![(
+            let fragments = BTreeMap::from([(
                 NodeId(3),
                 (
                     ScopeId::default(),
@@ -225,7 +225,7 @@ mod tests {
         fn not_spreadable() {
             let mock = analyze_mock!();
             let ctx = mock.context();
-            let fragments = BTreeMap::from_iter(vec![(
+            let fragments = BTreeMap::from([(
                 NodeId(1),
                 (
                     ScopeId::default(),
@@ -251,7 +251,7 @@ mod tests {
         fn not_inferrable() {
             let mock = analyze_mock!();
             let ctx = mock.context();
-            let fragments = BTreeMap::from_iter(vec![(
+            let fragments = BTreeMap::from([(
                 NodeId(1),
                 (
                     ScopeId::default(),
@@ -274,7 +274,7 @@ mod tests {
         fn skip() {
             let mock = analyze_mock!();
             let ctx = mock.context();
-            let fragments = BTreeMap::from_iter(vec![(
+            let fragments = BTreeMap::from([(
                 NodeId(1),
                 (
                     ScopeId::default(),

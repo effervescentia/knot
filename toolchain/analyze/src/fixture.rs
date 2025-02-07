@@ -17,7 +17,7 @@ pub mod import {
     pub use lang::test::fixture::import::*;
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
-        HashMap::from_iter(vec![(
+        HashMap::from([(
             NodeId(0),
             (
                 Kind::Mixed,
@@ -36,14 +36,14 @@ pub mod type_alias {
     pub use lang::test::fixture::type_alias::*;
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (NodeId(0), (Kind::Type, weak::Type::Value(Type::Nil))),
             (NodeId(1), (Kind::Type, weak::Type::Inherit(NodeId(0)))),
         ])
     }
 
     pub fn strong_types() -> StrongTypes {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 CanonicalId::mock(0),
                 Rc::new((CanonicalId::mock(0), type_of())),
@@ -72,7 +72,7 @@ pub mod constant {
     pub use lang::test::fixture::constant::*;
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (NodeId(0), (Kind::Type, weak::Type::Value(Type::String))),
             (NodeId(1), (Kind::Value, weak::Type::Value(Type::String))),
             (
@@ -83,7 +83,7 @@ pub mod constant {
     }
 
     pub fn strong_types() -> StrongTypes {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 CanonicalId::mock(0),
                 Rc::new((CanonicalId::mock(0), constant::type_of())),
@@ -116,7 +116,7 @@ pub mod enumerated {
     pub use lang::test::fixture::enumerated::*;
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (NodeId(0), (Kind::Type, weak::Type::Value(Type::Boolean))),
             (NodeId(1), (Kind::Type, weak::Type::Value(Type::Style))),
             (
@@ -136,7 +136,7 @@ pub mod enumerated {
     }
 
     pub fn strong_types() -> StrongTypes {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 CanonicalId::mock(0),
                 Rc::new((CanonicalId::mock(0), ast::typed::Type(Type::Boolean))),
@@ -169,7 +169,7 @@ pub mod function {
     pub use lang::test::fixture::function::*;
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 NodeId(0),
                 (
@@ -227,7 +227,7 @@ pub mod view {
     pub use lang::test::fixture::view::*;
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (NodeId(0), (Kind::Type, weak::Type::Value(Type::Element))),
             (
                 NodeId(1),
@@ -311,7 +311,7 @@ pub mod view {
     }
 
     pub fn strong_types() -> StrongTypes {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 CanonicalId::mock(0),
                 Rc::new((CanonicalId::mock(0), ast::typed::Type(Type::Element))),
@@ -425,7 +425,7 @@ pub mod module {
     pub use lang::test::fixture::module::*;
 
     pub fn weak_types<'a>() -> WeakTypes<'a> {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 NodeId(0),
                 (
@@ -478,7 +478,7 @@ pub mod module {
             )])),
         ));
 
-        HashMap::from_iter(vec![
+        HashMap::from([
             (CanonicalId::mock(0), Rc::clone(&theme_type)),
             (CanonicalId::mock(1), Rc::clone(&theme_type)),
             (

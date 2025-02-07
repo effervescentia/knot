@@ -151,16 +151,16 @@ mod tests {
     fn import() {
         let fragments = BTreeMap::from_iter(fixture::import::fragments());
         let modules = ModuleMap {
-            keys: HashMap::from_iter(vec![(
+            keys: HashMap::from([(
                 Namespace::Internal(vec![str!("foo"), str!("bar"), str!("fizz")]),
                 NamespaceId(1),
             )]),
-            by_key: HashMap::from_iter(vec![(
+            by_key: HashMap::from([(
                 NamespaceId(1),
                 (
                     CanonicalId(NamespaceId(1), NodeId(0)),
                     HashMap::new(),
-                    HashMap::from_iter(vec![(
+                    HashMap::from([(
                         CanonicalId(NamespaceId(1), NodeId(0)),
                         Rc::new((
                             CanonicalId(NamespaceId(1), NodeId(0)),
@@ -406,19 +406,19 @@ mod tests {
     #[test]
     fn view() {
         let mock = analyze_mock!(
-            ambient = &HashMap::from_iter(vec![(AmbientScope::Element, NamespaceId(1))]),
+            ambient = &HashMap::from([(AmbientScope::Element, NamespaceId(1))]),
             modules = &ModuleMap {
                 keys: HashMap::new(),
-                by_key: HashMap::from_iter(vec![(
+                by_key: HashMap::from([(
                     NamespaceId(1),
                     (
                         CanonicalId(NamespaceId(1), NodeId(0)),
-                        HashMap::from_iter(vec![
+                        HashMap::from([
                             (str!("div"), CanonicalId(NamespaceId(1), NodeId(1))),
                             (str!("h1"), CanonicalId(NamespaceId(1), NodeId(2))),
                             (str!("main"), CanonicalId(NamespaceId(1), NodeId(3))),
                         ]),
-                        HashMap::from_iter(vec![
+                        HashMap::from([
                             (
                                 CanonicalId(NamespaceId(1), NodeId(1)),
                                 Rc::new((
@@ -573,16 +573,13 @@ mod tests {
         let fragments = BTreeMap::from_iter(fixture::module::fragments());
         let mock = analyze_mock!(
             modules = &ModuleMap {
-                keys: HashMap::from_iter(vec![(
-                    Namespace::Internal(vec![str!("theme")]),
-                    NamespaceId(1),
-                )]),
-                by_key: HashMap::from_iter(vec![(
+                keys: HashMap::from([(Namespace::Internal(vec![str!("theme")]), NamespaceId(1),)]),
+                by_key: HashMap::from([(
                     NamespaceId(1),
                     (
                         CanonicalId(NamespaceId(1), NodeId(0)),
                         HashMap::new(),
-                        HashMap::from_iter(vec![
+                        HashMap::from([
                             (
                                 CanonicalId(NamespaceId(1), NodeId(0)),
                                 Rc::new((

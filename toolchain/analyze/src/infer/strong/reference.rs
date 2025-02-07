@@ -70,10 +70,7 @@ mod tests {
         let ctx = mock.context();
         let state = mock_state(
             &ctx,
-            vec![(
-                (ScopeId(vec![0]), str!("foo")),
-                BTreeSet::from_iter(vec![NodeId(1)]),
-            )],
+            vec![((ScopeId(vec![0]), str!("foo")), BTreeSet::from([NodeId(1)]))],
             vec![(
                 NodeId(1),
                 (Kind::Value, Ok(Type::Value(types::Type::Integer))),

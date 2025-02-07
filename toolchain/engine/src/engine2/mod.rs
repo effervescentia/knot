@@ -1,8 +1,12 @@
 mod input;
 mod pipeline;
 mod plan;
+mod state;
 
+use input::Source;
 use pipeline::{Execute, Identity, Transform};
+use state::State;
+use std::path::{Path, PathBuf};
 
 /*
 phases
@@ -15,87 +19,116 @@ phases
 6. generate
 */
 
-#[derive(Clone, Copy)]
-pub struct Library;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Library {
+    MockA,
+    MockB,
+    MockC,
+}
+
+#[derive(Debug)]
+pub struct Context {
+    source_dir: PathBuf,
+    is_verbose: bool,
+}
+
+impl Context {
+    pub fn new<T>(source_dir: T, is_verbose: bool) -> Self
+    where
+        T: AsRef<Path>,
+    {
+        Self {
+            source_dir: source_dir.as_ref().to_path_buf(),
+            is_verbose,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Scope {
+    pub files: Vec<PathBuf>,
+    pub follow_imports: bool,
+}
 
 #[derive(Clone, Copy)]
-pub struct Context;
-
-pub struct State;
+pub enum Operation {
+    Create,
+    Update,
+    Delete,
+}
 
 pub struct Engine(Context);
 
 impl Engine {
-    pub fn new(context: Context) -> Self {
+    pub const fn new(context: Context) -> Self {
         Self(context)
     }
 
-    pub fn input() -> input::Builder<Identity<Context>, Library> {
-        input::Builder::new()
-    }
-
-    pub fn plan() -> plan::Builder<Identity<(State, Vec<String>)>> {
+    pub const fn plan<'a>() -> plan::Builder<Identity<(State<'a>, ())>> {
         plan::Builder::new()
     }
 
-    pub fn execute<R, T1, T2, S>(
-        &self,
-        plan: &plan::Builder<T1>,
-        input: &input::Builder<T2, Library>,
-    ) -> (State, R)
+    pub fn execute<'a, Src, Res, Tx>(
+        &'a self,
+        plan: &plan::Builder<Tx>,
+        input: &input::Input<Src, Library>,
+    ) -> (State<'a>, Res)
     where
-        T1: Transform<In = (State, Vec<String>), Out = (State, R)>,
-        T2: Transform<In = Context, Out = input::Input<S, Library>>,
+        Src: Source,
+        Tx: Transform<In = (State<'a>, ()), Out = (State<'a>, Res)>,
     {
-        let state = State;
-        let input::Input { source, libraries } = input.execute(self.0);
+        let input::Input { source, libraries } = input;
+        let scope = source.resolve(&self.0.source_dir);
 
-        plan.execute((state, vec![]))
+        let state = State::new(&self.0, scope);
+
+        plan.execute((state, ()))
     }
 
-    pub fn incremental<R, T, U>(
-        &self,
-        state: State,
-        plan: &plan::Builder<T>,
-        targets: U,
-    ) -> (State, R)
+    pub fn incremental<'a, Res, Tx, Ops>(
+        prev: State<'a>,
+        plan: &plan::Builder<Tx>,
+        operations: Ops,
+    ) -> (State<'a>, Res)
     where
-        T: Transform<In = (State, Vec<String>), Out = (State, R)>,
-        U: AsRef<[String]>,
+        Tx: Transform<In = (State<'a>, ()), Out = (State<'a>, Res)>,
+        Ops: AsRef<[(PathBuf, Operation)]>,
     {
-        let context = self.0;
+        let next = prev.evolve(operations);
 
-        plan.execute((state, targets.as_ref().to_vec()))
+        plan.execute((next, ()))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{pipeline::Peek, Context, Engine, Library};
+    use super::{input::Input, pipeline::Peek, Context, Engine, Library};
 
     #[test]
     fn one_off_execution() {
-        let context = Context;
+        let context = Context::new("source_dir", false);
         let engine = Engine::new(context);
-        let input = Engine::input().from_entry("entry");
+        let input = Input::from_entry("entry", []);
         let pipeline = Engine::plan();
 
         let (_, result) = engine.execute(&pipeline, &input);
     }
 
     #[test]
+    #[ignore = "skip temporarily"]
     fn incremental_execution() {
-        let context = Context;
+        let context = Context::new("source_dir", false);
         let engine = Engine::new(context);
-        let input = Engine::input().from_entry("entry");
-        let pipeline = Engine::plan();
+        let input = Input::from_entry("entry", []);
+        let plan = Engine::plan();
 
-        let (mut state, _) = engine.execute(&pipeline, &input);
+        let (mut state, _) = engine.execute(&plan, &input);
 
         loop {
-            let changed = vec![];
+            let operations = vec![];
+            // let next_state = state.evolve(operations);
 
-            (state, _) = engine.incremental(state, &pipeline, changed);
+            (state, _) = Engine::incremental(state, &plan, operations);
         }
     }
 

@@ -1,165 +1,154 @@
-use super::{
-    pipeline::{Container, Execute, Identity, Map, Peek, Transform},
-    Context,
-};
+use super::Scope;
 use std::{
-    marker::PhantomData,
+    collections::HashSet,
+    hash::Hash,
     path::{Path, PathBuf},
 };
 
-pub struct Builder<T, L>(T, PhantomData<L>);
-
-impl<L> Builder<Identity<Context>, L> {
-    pub const fn new() -> Self {
-        Self(Identity::new(), PhantomData)
-    }
+pub struct Input<Src, Lib> {
+    pub source: Src,
+    pub libraries: HashSet<Lib>,
 }
 
-impl<T, L> Container for Builder<T, L> {
-    type Inner = T;
-
-    fn consume(self) -> Self::Inner {
-        self.0
-    }
-
-    fn wrap(inner: Self::Inner) -> Self {
-        Self(inner, PhantomData)
-    }
-}
-
-impl<In, Out, L> Map<In, Out> for Builder<In, L> {
-    type Result = Builder<Out, L>;
-}
-
-impl<T, F, L> Peek<T, F> for Builder<T, L>
+impl<Src, Lib> Input<Src, Lib>
 where
-    T: Transform,
-    F: Fn(&T::Out),
+    Lib: Clone + Eq + Hash,
 {
-}
-
-impl<T, L> Execute<T> for Builder<T, L>
-where
-    T: Transform,
-{
-    fn execute(&self, input: T::In) -> T::Out {
-        self.0.apply(input)
-    }
-}
-
-impl<T, L> Builder<T, L>
-where
-    T: Transform<Out = Context>,
-{
-    pub fn from_entry<E>(self, entry: E) -> Builder<FromEntry<T, E, L>, L>
+    fn from_source<T>(source: Src, libraries: T) -> Self
     where
-        E: AsRef<Path>,
+        T: AsRef<[Lib]>,
     {
-        self.map(|prev| FromEntry::new(prev, entry))
-    }
-
-    pub fn from_glob<G>(self, glob: G) -> Builder<FromGlob<T, G, L>, L>
-    where
-        G: AsRef<str>,
-    {
-        self.map(|prev| FromGlob::new(prev, glob))
-    }
-}
-
-impl<T, S, L> Builder<T, L>
-where
-    T: Transform<Out = Input<S, L>>,
-{
-    pub fn with_libraries<V>(self, libraries: V) -> Builder<WithLibraries<T, L>, L>
-    where
-        V: AsRef<[L]>,
-        L: Clone,
-    {
-        self.map(|prev| WithLibraries(prev, libraries.as_ref().to_vec()))
-    }
-}
-
-pub struct Input<S, L> {
-    pub source: S,
-    pub libraries: Vec<L>,
-}
-
-impl<S, L> Input<S, L> {
-    pub fn from_source(source: S) -> Self {
         Self {
             source,
-            libraries: vec![],
+            libraries: HashSet::from_iter(libraries.as_ref().to_vec()),
         }
     }
 }
 
-pub trait Source {}
+impl<Lib> Input<Entrypoint, Lib>
+where
+    Lib: Clone + Eq + Hash,
+{
+    pub fn from_entry<T, U>(entry: T, libraries: U) -> Self
+    where
+        T: AsRef<Path>,
+        U: AsRef<[Lib]>,
+    {
+        Self::from_source(Entrypoint(entry.as_ref().to_path_buf()), libraries)
+    }
+}
+
+impl<Lib> Input<Glob, Lib>
+where
+    Lib: Clone + Eq + Hash,
+{
+    pub fn from_glob<T, U>(glob: T, libraries: U) -> Self
+    where
+        T: AsRef<str>,
+        U: AsRef<[Lib]>,
+    {
+        Self::from_source(Glob(glob.as_ref().to_owned()), libraries)
+    }
+}
+
+pub trait Source {
+    fn resolve(&self, source_dir: &Path) -> Scope;
+}
 
 pub struct Entrypoint(PathBuf);
 
-impl Source for Entrypoint {}
+impl Source for Entrypoint {
+    // TODO: should return a result to handle error cases
+    fn resolve(&self, source_dir: &Path) -> Scope {
+        let absolute = source_dir.join(&self.0);
+
+        let relative = absolute.strip_prefix(source_dir).unwrap().to_path_buf();
+
+        Scope {
+            files: vec![relative],
+            follow_imports: true,
+        }
+    }
+}
 
 pub struct Glob(String);
 
-impl Source for Glob {}
+impl Source for Glob {
+    // TODO: should handle error cases
+    fn resolve(&self, source_dir: &Path) -> Scope {
+        let files = match glob::glob(&source_dir.join(&self.0).to_string_lossy()) {
+            Ok(x) => x
+                .flat_map(|x| match x {
+                    Ok(absolute) => {
+                        let relative = absolute.strip_prefix(source_dir).unwrap().to_path_buf();
 
-pub struct FromEntry<T, E, L>(T, E, PhantomData<L>);
+                        vec![relative]
+                    }
+                    Err(_) => vec![],
+                })
+                .collect(),
 
-impl<T, E, L> FromEntry<T, E, L> {
-    pub const fn new(prev: T, entry: E) -> Self {
-        Self(prev, entry, PhantomData)
+            Err(_) => vec![],
+        };
+
+        Scope {
+            files,
+            follow_imports: false,
+        }
     }
 }
 
-impl<T, E, L> Transform for FromEntry<T, E, L>
-where
-    T: Transform<Out = Context>,
-    E: AsRef<Path>,
-{
-    type In = T::In;
-    type Out = Input<Entrypoint, L>;
+#[cfg(test)]
+mod tests {
+    use super::{Input, Source};
+    use assert_fs::{
+        prelude::{FileTouch, PathChild},
+        TempDir,
+    };
+    use kore::assert_eq;
+    use std::{collections::HashSet, path::PathBuf};
 
-    fn apply(&self, input: Self::In) -> Self::Out {
-        let context = self.0.apply(input);
-        Input::from_source(Entrypoint(self.1.as_ref().to_path_buf()))
+    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct MockLibrary;
+
+    #[test]
+    fn input_from_glob() -> Result<(), Box<dyn std::error::Error>> {
+        let root_dir = TempDir::new()?;
+
+        root_dir.child("main.kn").touch()?;
+        root_dir.child("foo/foo.kn").touch()?;
+        root_dir.child("bar/bar.kn").touch()?;
+
+        let resolved = Input::from_glob("**/*.kn", [MockLibrary])
+            .source
+            .resolve(&root_dir);
+
+        assert_eq!(resolved.follow_imports, false);
+        assert_eq!(
+            HashSet::from_iter(resolved.files),
+            HashSet::from([
+                PathBuf::from("main.kn"),
+                PathBuf::from("foo/foo.kn"),
+                PathBuf::from("bar/bar.kn")
+            ])
+        );
+
+        Ok(())
     }
-}
 
-pub struct FromGlob<T, G, L>(T, G, PhantomData<L>);
+    #[test]
+    fn input_from_entry() -> Result<(), Box<dyn std::error::Error>> {
+        let root_dir = TempDir::new()?;
 
-impl<T, G, L> FromGlob<T, G, L> {
-    pub const fn new(prev: T, glob: G) -> Self {
-        Self(prev, glob, PhantomData)
-    }
-}
+        root_dir.child("foo/bar/main.kn").touch()?;
 
-impl<T, G, L> Transform for FromGlob<T, G, L>
-where
-    T: Transform<Out = Context>,
-    G: AsRef<str>,
-{
-    type In = T::In;
-    type Out = Input<Glob, L>;
+        let resolved = Input::from_entry("foo/bar/main.kn", [MockLibrary])
+            .source
+            .resolve(&root_dir);
 
-    fn apply(&self, input: Self::In) -> Self::Out {
-        let context = self.0.apply(input);
-        Input::from_source(Glob(self.1.as_ref().to_owned()))
-    }
-}
+        assert_eq!(resolved.follow_imports, true);
+        assert_eq!(resolved.files, vec![PathBuf::from("foo/bar/main.kn")]);
 
-pub struct WithLibraries<T, L>(T, Vec<L>);
-
-impl<T, L, S> Transform for WithLibraries<T, L>
-where
-    T: Transform<Out = Input<S, L>>,
-    L: Clone,
-{
-    type In = T::In;
-    type Out = T::Out;
-
-    fn apply(&self, input: Self::In) -> Self::Out {
-        let mut result = self.0.apply(input);
-        result.libraries.extend(self.1.iter().cloned());
-        result
+        Ok(())
     }
 }

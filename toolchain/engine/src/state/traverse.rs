@@ -33,7 +33,7 @@ pub struct DynamicVisitor(VecDeque<Link>);
 
 impl DynamicVisitor {
     pub fn new(entry: Link) -> Self {
-        Self(VecDeque::from_iter(vec![entry]))
+        Self(VecDeque::from([entry]))
     }
 }
 

@@ -56,9 +56,9 @@ pub mod import {
     }
 
     pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
-        HashMap::from_iter(vec![(
+        HashMap::from([(
             (ScopeId::default().offset(scope), str!("fizz")),
-            BTreeSet::from_iter(vec![NodeId(node)]),
+            BTreeSet::from([NodeId(node)]),
         )])
     }
 
@@ -121,9 +121,9 @@ pub mod type_alias {
     }
 
     pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
-        HashMap::from_iter(vec![(
+        HashMap::from([(
             (ScopeId::default().offset(scope), str!("MyTypeAlias")),
-            BTreeSet::from_iter(vec![NodeId(node + 1)]),
+            BTreeSet::from([NodeId(node + 1)]),
         )])
     }
 
@@ -217,9 +217,9 @@ pub mod constant {
     }
 
     pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
-        HashMap::from_iter(vec![(
+        HashMap::from([(
             (ScopeId::default().offset(scope), str!("MY_CONSTANT")),
-            BTreeSet::from_iter(vec![NodeId(node + 2)]),
+            BTreeSet::from([NodeId(node + 2)]),
         )])
     }
 
@@ -330,9 +330,9 @@ pub mod enumerated {
     }
 
     pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
-        HashMap::from_iter(vec![(
+        HashMap::from([(
             (ScopeId::default().offset(scope), str!("MyEnum")),
-            BTreeSet::from_iter(vec![NodeId(node + 2)]),
+            BTreeSet::from([NodeId(node + 2)]),
         )])
     }
 
@@ -592,22 +592,22 @@ pub mod function {
     }
 
     pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 (ScopeId(vec![1]).offset(scope), str!("first")),
-                BTreeSet::from_iter(vec![NodeId(node)]),
+                BTreeSet::from([NodeId(node)]),
             ),
             (
                 (ScopeId(vec![1]).offset(scope), str!("second")),
-                BTreeSet::from_iter(vec![NodeId(node + 2)]),
+                BTreeSet::from([NodeId(node + 2)]),
             ),
             (
                 (ScopeId(vec![1]).offset(scope), str!("third")),
-                BTreeSet::from_iter(vec![NodeId(node + 4)]),
+                BTreeSet::from([NodeId(node + 4)]),
             ),
             (
                 (ScopeId::default().offset(scope), str!("my_function")),
-                BTreeSet::from_iter(vec![NodeId(node + 11)]),
+                BTreeSet::from([NodeId(node + 11)]),
             ),
         ])
     }
@@ -993,18 +993,18 @@ pub mod view {
     }
 
     pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 (ScopeId(vec![1]).offset(scope), str!("inner")),
-                BTreeSet::from_iter(vec![NodeId(node + 3)]),
+                BTreeSet::from([NodeId(node + 3)]),
             ),
             (
                 (ScopeId(vec![1, 2]).offset(scope), str!("value")),
-                BTreeSet::from_iter(vec![NodeId(node + 6)]),
+                BTreeSet::from([NodeId(node + 6)]),
             ),
             (
                 (ScopeId::default().offset(scope), str!("MyView")),
-                BTreeSet::from_iter(vec![NodeId(node + 20)]),
+                BTreeSet::from([NodeId(node + 20)]),
             ),
         ])
     }
@@ -1350,18 +1350,18 @@ pub mod module {
     }
 
     pub fn bindings_at(node: usize, scope: &(Vec<usize>, usize)) -> Bindings {
-        HashMap::from_iter(vec![
+        HashMap::from([
             (
                 (ScopeId(vec![1]).offset(scope), str!("Theme")),
-                BTreeSet::from_iter(vec![NodeId(node)]),
+                BTreeSet::from([NodeId(node)]),
             ),
             (
                 (ScopeId(vec![1]).offset(scope), str!("MY_STYLE")),
-                BTreeSet::from_iter(vec![NodeId(node + 5)]),
+                BTreeSet::from([NodeId(node + 5)]),
             ),
             (
                 (ScopeId::default().offset(scope), str!("my_module")),
-                BTreeSet::from_iter(vec![NodeId(node + 7)]),
+                BTreeSet::from([NodeId(node + 7)]),
             ),
         ])
     }
