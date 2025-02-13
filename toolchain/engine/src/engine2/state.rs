@@ -104,18 +104,16 @@ pub struct State<'a> {
 
 impl<'a> State<'a> {
     pub fn new(context: &'a Context, scope: Scope) -> Self {
-        let initial = scope.files.clone();
-
         let mut state = Self {
             context,
-            scope,
+            scope: scope.clone(),
             next_id: 0,
             dependencies: Dependencies::default(),
             module_to_path: BiMap::new(),
             modules: HashMap::new(),
         };
 
-        for path in initial {
+        for path in scope {
             state.register_id(path.clone());
         }
 
@@ -237,13 +235,10 @@ impl<'a> State<'a> {
 
         let tainted = self.apply_operations(operations);
 
-        self.scope = Scope {
-            files: tainted
-                .into_iter()
-                .filter_map(|id| self.module_to_path.get_by_left(&id).cloned())
-                .collect(),
-            follow_imports: self.scope.follow_imports,
-        };
+        self.scope = tainted
+            .into_iter()
+            .filter_map(|id| self.module_to_path.get_by_left(&id).cloned())
+            .collect();
 
         self
     }

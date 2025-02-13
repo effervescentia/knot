@@ -1,13 +1,21 @@
+use crate::engine2::{pipeline::Transform, state::ModuleId, State};
 use lang::ast;
-
-use crate::engine2::{input, pipeline::Transform, state::ModuleId, Scope, State};
 use std::{collections::HashSet, fs, path::Path};
 
 pub struct Parsed(HashSet<ModuleId>);
 
-pub struct Parse<Tx>(pub Tx);
+pub struct Options {
+    /** true if imports should be followed */
+    pub follow_imports: bool,
+}
+
+pub struct Parse<Tx>(Tx, Options);
 
 impl<Tx> Parse<Tx> {
+    pub const fn bind(options: Options) -> impl FnOnce(Tx) -> Self {
+        |tx| Self(tx, options)
+    }
+
     fn load_and_parse_module<T>(path: T) -> (String, ast::meta::Program<()>)
     where
         T: AsRef<Path>,
@@ -32,20 +40,22 @@ where
 
         let parsed = state
             .scope
-            .files
             .clone()
             .into_iter()
             .map(|path| {
-                println!("parsing {}", path.display());
-                println!("state {:?}", state);
                 let id = state.identify_path(&path).unwrap();
                 let absolute = &state.context.source_dir.join(&path);
                 let (text, ast) = Self::load_and_parse_module(absolute);
 
                 state.upsert_module(id, path, text, ast);
 
-                if state.scope.follow_imports {
-                    // TODO: do some extra import walking here
+                if self.1.follow_imports {
+                    // TODO: walk and queue imported modules
+                    // for link in ast.to_links(&link) {
+                    //     if !parsed.has_by_link(&link) && !link.is_library() {
+                    //         visitor.queue(link);
+                    //     }
+                    // }
                 }
 
                 id
@@ -60,20 +70,16 @@ where
 mod tests {
     use super::Parsed;
     use crate::engine2::{
-        input::{Input, Source},
-        state::{Module, ModuleId, State, Status},
-        Context, Engine, Library,
+        input::Input,
+        state::{ModuleId, Status},
+        Context, Engine,
     };
     use assert_fs::{
         prelude::{FileTouch, FileWriteStr, PathChild},
         TempDir,
     };
     use kore::assert_eq;
-    use lang::ast;
-    use std::{
-        collections::HashSet,
-        path::{Path, PathBuf},
-    };
+    use std::{collections::HashSet, path::PathBuf};
 
     #[test]
     fn parse_one_empty_file() -> Result<(), Box<dyn std::error::Error>> {

@@ -44,11 +44,7 @@ impl Context {
     }
 }
 
-#[derive(Debug)]
-pub struct Scope {
-    pub files: Vec<PathBuf>,
-    pub follow_imports: bool,
-}
+pub type Scope = Vec<PathBuf>;
 
 #[derive(Clone, Copy)]
 pub enum Operation {

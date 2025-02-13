@@ -1,14 +1,16 @@
+mod link;
 mod parse;
 
 use super::{
     pipeline::{Container, Execute, Identity, Map, Peek, Transform},
-    Scope, State,
+    State,
 };
-use parse::Parsed;
+use link::{Link, Linked};
+use parse::{Parse, Parsed};
 
 pub struct Builder<Tx>(Tx);
 
-impl<'a> Builder<Identity<(State<'a>, ())>> {
+impl Builder<Identity<(State<'_>, ())>> {
     pub const fn new() -> Self {
         Self(Identity::new())
     }
@@ -50,8 +52,18 @@ impl<'a, Tx> Builder<Tx>
 where
     Tx: Transform<Out = (State<'a>, ())>,
 {
-    pub fn parse(self) -> Builder<parse::Parse<Tx>> {
-        self.map(parse::Parse)
+    /** load and parse internal modules without following dependencies */
+    pub fn parse(self) -> Builder<Parse<Tx>> {
+        self.map(Parse::bind(parse::Options {
+            follow_imports: false,
+        }))
+    }
+
+    /** load and parse internal modules and follow dependencies */
+    pub fn parse_and_traverse(self) -> Builder<Parse<Tx>> {
+        self.map(Parse::bind(parse::Options {
+            follow_imports: true,
+        }))
     }
 }
 
@@ -59,6 +71,7 @@ impl<'a, Tx> Builder<Tx>
 where
     Tx: Transform<Out = (State<'a>, Parsed)>,
 {
+    /** transform internal modules using the standard formatter */
     pub fn format(self) -> Builder<Format<Tx>> {
         self.map(Format)
     }
@@ -68,6 +81,7 @@ impl<'a, Tx> Builder<Tx>
 where
     Tx: Transform<Out = (State<'a>, Parsed)>,
 {
+    /** record links between internal modules and their external dependencies (libraries) */
     pub fn link(self) -> Builder<Link<Tx>> {
         self.map(Link)
     }
@@ -77,6 +91,7 @@ impl<'a, Tx> Builder<Tx>
 where
     Tx: Transform<Out = (State<'a>, Linked)>,
 {
+    /** check if the code is semantically correct and determine types of all values */
     pub fn analyze(self) -> Builder<Analyze<Tx>> {
         self.map(Analyze)
     }
@@ -107,25 +122,6 @@ where
     fn apply(&self, input: Self::In) -> Self::Out {
         let (state, _) = self.0.apply(input);
         (state, Formatted)
-    }
-}
-
-/* link */
-
-pub struct Linked;
-
-pub struct Link<Tx>(Tx);
-
-impl<'a, Tx> Transform for Link<Tx>
-where
-    Tx: Transform<Out = (State<'a>, Parsed)>,
-{
-    type In = Tx::In;
-    type Out = (State<'a>, Linked);
-
-    fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, _) = self.0.apply(input);
-        (state, Linked)
     }
 }
 

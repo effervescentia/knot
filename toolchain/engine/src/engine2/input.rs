@@ -64,10 +64,7 @@ impl Source for Entrypoint {
 
         let relative = absolute.strip_prefix(source_dir).unwrap().to_path_buf();
 
-        Scope {
-            files: vec![relative],
-            follow_imports: true,
-        }
+        vec![relative]
     }
 }
 
@@ -76,7 +73,7 @@ pub struct Glob(String);
 impl Source for Glob {
     // TODO: should handle error cases
     fn resolve(&self, source_dir: &Path) -> Scope {
-        let files = match glob::glob(&source_dir.join(&self.0).to_string_lossy()) {
+        match glob::glob(&source_dir.join(&self.0).to_string_lossy()) {
             Ok(x) => x
                 .flat_map(|x| match x {
                     Ok(absolute) => {
@@ -89,11 +86,6 @@ impl Source for Glob {
                 .collect(),
 
             Err(_) => vec![],
-        };
-
-        Scope {
-            files,
-            follow_imports: false,
         }
     }
 }
@@ -123,9 +115,8 @@ mod tests {
             .source
             .resolve(&root_dir);
 
-        assert_eq!(resolved.follow_imports, false);
         assert_eq!(
-            HashSet::from_iter(resolved.files),
+            HashSet::from_iter(resolved),
             HashSet::from([
                 PathBuf::from("main.kn"),
                 PathBuf::from("foo/foo.kn"),
@@ -146,8 +137,7 @@ mod tests {
             .source
             .resolve(&root_dir);
 
-        assert_eq!(resolved.follow_imports, true);
-        assert_eq!(resolved.files, vec![PathBuf::from("foo/bar/main.kn")]);
+        assert_eq!(resolved, vec![PathBuf::from("foo/bar/main.kn")]);
 
         Ok(())
     }
