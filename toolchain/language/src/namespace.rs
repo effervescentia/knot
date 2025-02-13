@@ -1,5 +1,5 @@
 use crate::ast;
-use kore::{internal, invariant};
+use kore::{internal, invariant, str};
 use std::{
     fmt::Debug,
     path::{Path, PathBuf},
@@ -19,7 +19,7 @@ impl Namespace {
 
     #[cfg(feature = "test")]
     pub fn mock() -> Self {
-        Self::Internal(vec![String::from("mock")])
+        Self::Internal(vec![str!("mock")])
     }
 
     pub const fn is_library(&self) -> bool {

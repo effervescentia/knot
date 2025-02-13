@@ -1,16 +1,28 @@
+mod analyze;
+mod format;
+mod generate;
 mod link;
 mod parse;
+mod write;
 
 use super::{
     pipeline::{Container, Execute, Identity, Map, Peek, Transform},
     State,
 };
-use link::{Link, Linked};
-use parse::{Parse, Parsed};
+use analyze::Analyze;
+pub use analyze::Analyzed;
+use format::Format;
+use generate::Generate;
+use link::Link;
+pub use link::Linked;
+use parse::Parse;
+pub use parse::Parsed;
+use write::{Output, Write};
 
+#[derive(Default)]
 pub struct Builder<Tx>(Tx);
 
-impl Builder<Identity<(State<'_>, ())>> {
+impl<Log> Builder<Identity<(State<'_, Log>, ())>> {
     pub const fn new() -> Self {
         Self(Identity::new())
     }
@@ -48,9 +60,10 @@ where
     }
 }
 
-impl<'a, Tx> Builder<Tx>
+impl<'a, Tx, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a>, ())>,
+    Tx: Transform<Out = (State<'a, Log>, ())>,
+    Log: 'a,
 {
     /** load and parse internal modules without following dependencies */
     pub fn parse(self) -> Builder<Parse<Tx>> {
@@ -67,98 +80,56 @@ where
     }
 }
 
-impl<'a, Tx> Builder<Tx>
+impl<'a, Tx, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a>, Parsed)>,
+    Tx: Transform<Out = (State<'a, Log>, Parsed)>,
+    Log: 'a,
 {
     /** transform internal modules using the standard formatter */
     pub fn format(self) -> Builder<Format<Tx>> {
-        self.map(Format)
+        self.map(Format::new)
     }
 }
 
-impl<'a, Tx> Builder<Tx>
+impl<'a, Tx, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a>, Parsed)>,
+    Tx: Transform<Out = (State<'a, Log>, Parsed)>,
+    Log: 'a,
 {
     /** record links between internal modules and their external dependencies (libraries) */
     pub fn link(self) -> Builder<Link<Tx>> {
-        self.map(Link)
+        self.map(Link::new)
     }
 }
 
-impl<'a, Tx> Builder<Tx>
+impl<'a, Tx, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a>, Linked)>,
+    Tx: Transform<Out = (State<'a, Log>, Linked)>,
+    Log: 'a,
 {
     /** check if the code is semantically correct and determine types of all values */
     pub fn analyze(self) -> Builder<Analyze<Tx>> {
-        self.map(Analyze)
+        self.map(Analyze::new)
     }
 }
 
-impl<'a, Tx> Builder<Tx>
+impl<'a, Tx, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a>, Analyzed)>,
+    Tx: Transform<Out = (State<'a, Log>, Analyzed)>,
+    Log: 'a,
 {
     pub fn generate<G>(self, generator: G) -> Builder<Generate<Tx, G>> {
-        self.map(|prev| Generate(prev, generator))
+        self.map(Generate::bind(generator))
     }
 }
 
-/* format */
-
-pub struct Formatted;
-
-pub struct Format<Tx>(Tx);
-
-impl<'a, Tx> Transform for Format<Tx>
+impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a>, Parsed)>,
+    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Res: Output,
+    Log: 'a,
 {
-    type In = Tx::In;
-    type Out = (State<'a>, Formatted);
-
-    fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, _) = self.0.apply(input);
-        (state, Formatted)
-    }
-}
-
-/* analyze */
-
-pub struct Analyzed;
-
-pub struct Analyze<Tx>(Tx);
-
-impl<'a, Tx> Transform for Analyze<Tx>
-where
-    Tx: Transform<Out = (State<'a>, Linked)>,
-{
-    type In = Tx::In;
-    type Out = (State<'a>, Analyzed);
-
-    fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, _) = self.0.apply(input);
-        (state, Analyzed)
-    }
-}
-
-/* generate */
-
-pub struct Generated;
-
-pub struct Generate<Tx, Gen>(Tx, Gen);
-
-impl<'a, Tx, G> Transform for Generate<Tx, G>
-where
-    Tx: Transform<Out = (State<'a>, Analyzed)>,
-{
-    type In = Tx::In;
-    type Out = (State<'a>, Generated);
-
-    fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, _) = self.0.apply(input);
-        (state, Generated)
+    pub fn write(self) -> Builder<Write<Tx>> {
+        self.map(Write::new)
     }
 }

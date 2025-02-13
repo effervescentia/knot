@@ -43,6 +43,7 @@ pub trait Transform: Sized {
     fn apply(&self, input: Self::In) -> Self::Out;
 }
 
+#[derive(Default)]
 pub struct Identity<T>(PhantomData<T>);
 
 impl<T> Identity<T> {

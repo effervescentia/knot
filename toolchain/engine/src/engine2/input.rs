@@ -52,17 +52,17 @@ where
 }
 
 pub trait Source {
-    fn resolve(&self, source_dir: &Path) -> Scope;
+    fn resolve(&self, root_dir: &Path) -> Scope;
 }
 
 pub struct Entrypoint(PathBuf);
 
 impl Source for Entrypoint {
     // TODO: should return a result to handle error cases
-    fn resolve(&self, source_dir: &Path) -> Scope {
-        let absolute = source_dir.join(&self.0);
+    fn resolve(&self, root_dir: &Path) -> Scope {
+        let absolute = root_dir.join(&self.0);
 
-        let relative = absolute.strip_prefix(source_dir).unwrap().to_path_buf();
+        let relative = absolute.strip_prefix(root_dir).unwrap().to_path_buf();
 
         vec![relative]
     }
@@ -72,12 +72,12 @@ pub struct Glob(String);
 
 impl Source for Glob {
     // TODO: should handle error cases
-    fn resolve(&self, source_dir: &Path) -> Scope {
-        match glob::glob(&source_dir.join(&self.0).to_string_lossy()) {
+    fn resolve(&self, root_dir: &Path) -> Scope {
+        match glob::glob(&root_dir.join(&self.0).to_string_lossy()) {
             Ok(x) => x
                 .flat_map(|x| match x {
                     Ok(absolute) => {
-                        let relative = absolute.strip_prefix(source_dir).unwrap().to_path_buf();
+                        let relative = absolute.strip_prefix(root_dir).unwrap().to_path_buf();
 
                         vec![relative]
                     }
@@ -104,12 +104,12 @@ mod tests {
     pub struct MockLibrary;
 
     #[test]
-    fn input_from_glob() -> Result<(), Box<dyn std::error::Error>> {
-        let root_dir = TempDir::new()?;
+    fn input_from_glob() {
+        let root_dir = TempDir::new().unwrap();
 
-        root_dir.child("main.kn").touch()?;
-        root_dir.child("foo/foo.kn").touch()?;
-        root_dir.child("bar/bar.kn").touch()?;
+        root_dir.child("main.kn").touch().unwrap();
+        root_dir.child("foo/foo.kn").touch().unwrap();
+        root_dir.child("bar/bar.kn").touch().unwrap();
 
         let resolved = Input::from_glob("**/*.kn", [MockLibrary])
             .source
@@ -123,22 +123,18 @@ mod tests {
                 PathBuf::from("bar/bar.kn")
             ])
         );
-
-        Ok(())
     }
 
     #[test]
-    fn input_from_entry() -> Result<(), Box<dyn std::error::Error>> {
-        let root_dir = TempDir::new()?;
+    fn input_from_entry() {
+        let root_dir = TempDir::new().unwrap();
 
-        root_dir.child("foo/bar/main.kn").touch()?;
+        root_dir.child("foo/bar/main.kn").touch().unwrap();
 
         let resolved = Input::from_entry("foo/bar/main.kn", [MockLibrary])
             .source
             .resolve(&root_dir);
 
         assert_eq!(resolved, vec![PathBuf::from("foo/bar/main.kn")]);
-
-        Ok(())
     }
 }

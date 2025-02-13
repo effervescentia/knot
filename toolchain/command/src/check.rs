@@ -12,7 +12,7 @@ pub struct Options<'a, Platform> {
     pub verbose: bool,
 }
 
-pub fn command<Platform>(opts: &Options<Box<Platform>>) -> engine::Result<()>
+pub fn command<Platform>(opts: &Options<Platform>) -> engine::Result<()>
 where
     Platform: internal::Platform<Program = lang::ast::shape::Program>,
 {

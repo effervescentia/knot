@@ -5,7 +5,7 @@ type Result = Option<Vec<ExecutionError>>;
 
 pub struct Validator<'a, R>(pub &'a mut Context<R>);
 
-impl<'a, R> Validator<'a, R> {
+impl<R> Validator<'_, R> {
     pub fn validate(self, state: &state::Parsed, graph: &ImportGraph) -> crate::Internal<()> {
         let errors = vec![Self::assert_no_import_cycles(state, graph)]
             .into_iter()

@@ -4,9 +4,9 @@ use assert_fs::TempDir;
 use knot_engine::Engine;
 use kore::internal::{Library, PlatformLibrary};
 
-pub fn assert_valid(source: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let root_dir = TempDir::new()?;
-    root_dir.child("src/main.kn").write_str(source)?;
+pub fn assert_valid(source: &str) {
+    let root_dir = TempDir::new().unwrap();
+    root_dir.child("src/main.kn").write_str(source).unwrap();
 
     let engine = Engine::new(&root_dir, false)
         .from_entry("src/main.kn")
@@ -17,8 +17,6 @@ pub fn assert_valid(source: &str) -> Result<(), Box<dyn std::error::Error>> {
         .into_result();
 
     assert!(engine.is_ok());
-
-    Ok(())
 }
 
 #[derive(Clone, Copy)]

@@ -60,7 +60,7 @@ pub struct Module<Import, Declaration> {
 }
 
 impl<Import, Declaration> Module<Import, Declaration> {
-    pub fn new(imports: Vec<Import>, declarations: Vec<Declaration>) -> Self {
+    pub const fn new(imports: Vec<Import>, declarations: Vec<Declaration>) -> Self {
         Self {
             imports,
             declarations,

@@ -1,4 +1,4 @@
-mod engine2;
+pub mod engine2;
 mod link;
 mod report;
 mod resolve;

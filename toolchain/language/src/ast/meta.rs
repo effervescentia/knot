@@ -62,7 +62,7 @@ impl Expression<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: ExpressionValue<()>) -> Self {
+    pub const fn mock(x: ExpressionValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -97,7 +97,7 @@ impl Statement<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: StatementValue<()>) -> Self {
+    pub const fn mock(x: StatementValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -132,7 +132,7 @@ impl Attribute<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: AttributeValue<()>) -> Self {
+    pub const fn mock(x: AttributeValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -167,7 +167,7 @@ impl Component<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: ComponentValue<()>) -> Self {
+    pub const fn mock(x: ComponentValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -200,7 +200,7 @@ impl TypeExpression<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::TypeExpression<Binding, Self>) -> Self {
+    pub const fn mock(x: super::TypeExpression<Binding, Self>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -235,7 +235,7 @@ impl Parameter<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: ParameterValue<()>) -> Self {
+    pub const fn mock(x: ParameterValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -277,7 +277,7 @@ impl Declaration<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: DeclarationValue<()>) -> Self {
+    pub const fn mock(x: DeclarationValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -310,7 +310,7 @@ impl Import<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::Import) -> Self {
+    pub const fn mock(x: super::Import) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -345,7 +345,7 @@ impl Module<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: ModuleValue<()>) -> Self {
+    pub const fn mock(x: ModuleValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -423,7 +423,7 @@ impl TypeDeclaration<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: TypeDeclarationValue<()>) -> Self {
+    pub const fn mock(x: TypeDeclarationValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -458,7 +458,7 @@ impl TypeModule<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: TypeModuleValue<()>) -> Self {
+    pub const fn mock(x: TypeModuleValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }

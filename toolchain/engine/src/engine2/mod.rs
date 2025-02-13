@@ -1,10 +1,17 @@
 mod input;
+mod logger;
 mod pipeline;
 mod plan;
 mod state;
 
+pub use input::Input;
 use input::Source;
+#[cfg(test)]
+pub use logger::MemoryLogger;
+pub use logger::{Logger, NoopLogger};
+pub use pipeline::Peek;
 use pipeline::{Execute, Identity, Transform};
+pub use plan::{Analyzed, Linked, Parsed};
 use state::State;
 use std::path::{Path, PathBuf};
 
@@ -27,20 +34,27 @@ pub enum Library {
 }
 
 #[derive(Debug)]
-pub struct Context {
-    source_dir: PathBuf,
-    is_verbose: bool,
+pub struct Context<Log> {
+    root_dir: PathBuf,
+    logger: Log,
 }
 
-impl Context {
-    pub fn new<T>(source_dir: T, is_verbose: bool) -> Self
+impl<Log> Context<Log> {
+    pub fn new<T>(root_dir: T, logger: Log) -> Self
     where
         T: AsRef<Path>,
     {
         Self {
-            source_dir: source_dir.as_ref().to_path_buf(),
-            is_verbose,
+            root_dir: root_dir.as_ref().to_path_buf(),
+            logger,
         }
+    }
+}
+
+#[cfg(test)]
+impl Context<logger::NoopLogger> {
+    pub fn mock() -> Self {
+        Self::new("root_dir", logger::NoopLogger)
     }
 }
 
@@ -53,28 +67,28 @@ pub enum Operation {
     Delete,
 }
 
-pub struct Engine(Context);
+pub struct Engine<Log>(Context<Log>);
 
-impl Engine {
-    pub const fn new(context: Context) -> Self {
+impl<Log> Engine<Log> {
+    pub const fn new(context: Context<Log>) -> Self {
         Self(context)
     }
 
-    pub const fn plan<'a>() -> plan::Builder<Identity<(State<'a>, ())>> {
+    pub const fn plan<'a>() -> plan::Builder<Identity<(State<'a, Log>, ())>> {
         plan::Builder::new()
     }
 
     pub fn execute<'a, Src, Res, Tx>(
         &'a self,
         plan: &plan::Builder<Tx>,
-        input: &input::Input<Src, Library>,
-    ) -> (State<'a>, Res)
+        input: &Input<Src, Library>,
+    ) -> (State<'a, Log>, Res)
     where
         Src: Source,
-        Tx: Transform<In = (State<'a>, ()), Out = (State<'a>, Res)>,
+        Tx: Transform<In = (State<'a, Log>, ()), Out = (State<'a, Log>, Res)>,
     {
-        let input::Input { source, libraries } = input;
-        let scope = source.resolve(&self.0.source_dir);
+        let Input { source, libraries } = input;
+        let scope = source.resolve(&self.0.root_dir);
 
         let state = State::new(&self.0, scope);
 
@@ -82,12 +96,12 @@ impl Engine {
     }
 
     pub fn incremental<'a, Res, Tx, Ops>(
-        prev: State<'a>,
+        prev: State<'a, Log>,
         plan: &plan::Builder<Tx>,
         operations: Ops,
-    ) -> (State<'a>, Res)
+    ) -> (State<'a, Log>, Res)
     where
-        Tx: Transform<In = (State<'a>, ()), Out = (State<'a>, Res)>,
+        Tx: Transform<In = (State<'a, Log>, ()), Out = (State<'a, Log>, Res)>,
         Ops: AsRef<[(PathBuf, Operation)]>,
     {
         let next = prev.evolve(operations);
@@ -98,11 +112,11 @@ impl Engine {
 
 #[cfg(test)]
 mod tests {
-    use super::{input::Input, pipeline::Peek, Context, Engine, Library};
+    use super::{logger::NoopLogger, pipeline::Peek, Context, Engine, Input, Library};
 
     #[test]
     fn one_off_execution() {
-        let context = Context::new("source_dir", false);
+        let context = Context::mock();
         let engine = Engine::new(context);
         let input = Input::from_entry("entry", []);
         let pipeline = Engine::plan();
@@ -113,7 +127,7 @@ mod tests {
     #[test]
     #[ignore = "skip temporarily"]
     fn incremental_execution() {
-        let context = Context::new("source_dir", false);
+        let context = Context::mock();
         let engine = Engine::new(context);
         let input = Input::from_entry("entry", []);
         let plan = Engine::plan();
@@ -130,7 +144,7 @@ mod tests {
 
     #[test]
     fn build_pipeline() {
-        let plan = Engine::plan()
+        let plan = Engine::<NoopLogger>::plan()
             .parse()
             .peek(|_| ())
             .link()
@@ -138,15 +152,17 @@ mod tests {
             .analyze()
             .peek(|_| ())
             .generate(())
-            .peek(|_| ());
+            .peek(|_| ())
+            .write();
     }
 
     #[test]
     fn format_pipeline() {
-        let plan = Engine::plan() //
+        let plan = Engine::<NoopLogger>::plan() //
             .parse()
             .peek(|_| ())
             .format()
-            .peek(|_| ());
+            .peek(|_| ())
+            .write();
     }
 }

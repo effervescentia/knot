@@ -1,5 +1,8 @@
-use crate::{log, AssertExists};
-use engine::{ConfigurationError, Engine};
+use crate::{log, AssertExists, Logger};
+use engine::{
+    engine2::{Context, Engine, Input, Parsed, Peek},
+    ConfigurationError,
+};
 use std::path::Path;
 
 pub struct Options<'a> {
@@ -21,12 +24,19 @@ pub fn command(opts: &Options) -> engine::Result<()> {
 
     log::glob(opts.verbose, opts.glob);
 
-    let count = Engine::new(root_dir, opts.verbose)
-        .from_glob(opts.root_dir, opts.glob)
-        .parse()
-        .inspect(|state, _| state.report_from_glob())
-        .format()
-        .write(opts.root_dir)?;
+    let input = Input::from_glob(opts.glob, []);
+    let engine = Engine::new(Context::new(root_dir, Logger));
+
+    let (_, count) = engine.execute(
+        &Engine::plan()
+            .parse()
+            .peek(|(_, Parsed(ids))| {
+                Logger.report_parsed(ids.len());
+            })
+            .format()
+            .write(),
+        &input,
+    );
 
     log::success(opts.verbose, "formatted", count);
 

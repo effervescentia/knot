@@ -8,7 +8,7 @@ use kore::internal::Library;
 use kore::internal::PlatformLibrary;
 
 #[test]
-fn use_platform_enum_in_style_expression() -> Result<(), Box<dyn std::error::Error>> {
+fn use_platform_enum_in_style_expression() {
     #[derive(Clone, Copy)]
     pub enum MockLibrary {
         Std,
@@ -53,11 +53,14 @@ fn use_platform_enum_in_style_expression() -> Result<(), Box<dyn std::error::Err
         }
     }
 
-    let root_dir = TempDir::new()?;
-    root_dir.child("src/main.kn").write_str(
-        "use std;
+    let root_dir = TempDir::new().unwrap();
+    root_dir
+        .child("src/main.kn")
+        .write_str(
+            "use std;
 const STYLE = style { color: std.Color.red };",
-    )?;
+        )
+        .unwrap();
 
     let engine = Engine::new(&root_dir, false)
         .from_entry("src/main.kn")
@@ -68,6 +71,4 @@ const STYLE = style { color: std.Color.red };",
         .into_result();
 
     assert!(engine.is_ok());
-
-    Ok(())
 }

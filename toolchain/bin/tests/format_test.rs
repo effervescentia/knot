@@ -8,12 +8,12 @@ const INPUT: &str = "  const   \nFOO  = \n 123  \n;  ";
 const OUTPUT: &str = "const FOO = 123;\n";
 
 #[test]
-fn no_args() -> Result<(), Box<dyn std::error::Error>> {
-    let root_dir = TempDir::new()?;
+fn no_args() {
+    let root_dir = TempDir::new().unwrap();
     let entry = root_dir.child("src/main.kn");
-    entry.write_str(INPUT)?;
+    entry.write_str(INPUT).unwrap();
 
-    let mut cmd = Command::cargo_bin("knot")?;
+    let mut cmd = Command::cargo_bin("knot").unwrap();
     cmd.current_dir(&root_dir);
     cmd.arg("format");
 
@@ -21,18 +21,16 @@ fn no_args() -> Result<(), Box<dyn std::error::Error>> {
 
     entry.assert(OUTPUT);
 
-    root_dir.close()?;
-
-    Ok(())
+    root_dir.close().unwrap();
 }
 
 #[test]
-fn root_dir_arg() -> Result<(), Box<dyn std::error::Error>> {
-    let root_dir = TempDir::new()?;
+fn root_dir_arg() {
+    let root_dir = TempDir::new().unwrap();
     let entry = root_dir.child("src/main.kn");
-    entry.write_str(INPUT)?;
+    entry.write_str(INPUT).unwrap();
 
-    let mut cmd = Command::cargo_bin("knot")?;
+    let mut cmd = Command::cargo_bin("knot").unwrap();
     cmd.arg("format");
     cmd.arg("--root-dir").arg(root_dir.path());
 
@@ -40,22 +38,20 @@ fn root_dir_arg() -> Result<(), Box<dyn std::error::Error>> {
 
     entry.assert(OUTPUT);
 
-    root_dir.close()?;
-
-    Ok(())
+    root_dir.close().unwrap();
 }
 
 #[test]
-fn glob_arg() -> Result<(), Box<dyn std::error::Error>> {
-    let root_dir = TempDir::new()?;
+fn glob_arg() {
+    let root_dir = TempDir::new().unwrap();
     let file_a = root_dir.child("src/file_a.kn");
     let file_b = root_dir.child("src/file_b.kn");
     let file_c = root_dir.child("src/file_c.kn");
-    file_a.write_str(INPUT)?;
-    file_b.write_str(INPUT)?;
-    file_c.write_str(INPUT)?;
+    file_a.write_str(INPUT).unwrap();
+    file_b.write_str(INPUT).unwrap();
+    file_c.write_str(INPUT).unwrap();
 
-    let mut cmd = Command::cargo_bin("knot")?;
+    let mut cmd = Command::cargo_bin("knot").unwrap();
     cmd.current_dir(&root_dir);
     cmd.arg("format");
     cmd.arg("**/*_a.kn");
@@ -66,22 +62,20 @@ fn glob_arg() -> Result<(), Box<dyn std::error::Error>> {
     file_b.assert(INPUT);
     file_c.assert(INPUT);
 
-    root_dir.close()?;
-
-    Ok(())
+    root_dir.close().unwrap();
 }
 
 #[test]
-fn multiple() -> Result<(), Box<dyn std::error::Error>> {
-    let root_dir = TempDir::new()?;
+fn multiple() {
+    let root_dir = TempDir::new().unwrap();
     let file_a = root_dir.child("src/file_a.kn");
     let file_b = root_dir.child("src/file_b.kn");
     let file_c = root_dir.child("src/file_c.kn");
-    file_a.write_str(INPUT)?;
-    file_b.write_str(INPUT)?;
-    file_c.write_str(INPUT)?;
+    file_a.write_str(INPUT).unwrap();
+    file_b.write_str(INPUT).unwrap();
+    file_c.write_str(INPUT).unwrap();
 
-    let mut cmd = Command::cargo_bin("knot")?;
+    let mut cmd = Command::cargo_bin("knot").unwrap();
     cmd.current_dir(&root_dir);
     cmd.arg("format");
 
@@ -91,18 +85,16 @@ fn multiple() -> Result<(), Box<dyn std::error::Error>> {
     file_b.assert(OUTPUT);
     file_c.assert(OUTPUT);
 
-    root_dir.close()?;
-
-    Ok(())
+    root_dir.close().unwrap();
 }
 
 #[test]
-fn ignore_semantics() -> Result<(), Box<dyn std::error::Error>> {
-    let root_dir = TempDir::new()?;
+fn ignore_semantics() {
+    let root_dir = TempDir::new().unwrap();
     let entry = root_dir.child("src/main.kn");
-    entry.write_str("  const \n  FOO   =  BAR\n ;  ")?;
+    entry.write_str("  const \n  FOO   =  BAR\n ;  ").unwrap();
 
-    let mut cmd = Command::cargo_bin("knot")?;
+    let mut cmd = Command::cargo_bin("knot").unwrap();
     cmd.current_dir(&root_dir);
     cmd.arg("format");
 
@@ -110,7 +102,5 @@ fn ignore_semantics() -> Result<(), Box<dyn std::error::Error>> {
 
     entry.assert("const FOO = BAR;\n");
 
-    root_dir.close()?;
-
-    Ok(())
+    root_dir.close().unwrap();
 }

@@ -546,6 +546,7 @@ dependencies = [
  "knot_engine",
  "knot_language",
  "knot_platform_web",
+ "log",
  "notify-debouncer-full",
  "stdext",
 ]

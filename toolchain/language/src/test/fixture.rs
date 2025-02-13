@@ -678,6 +678,14 @@ pub mod view {
   </>;
 };";
 
+    pub const FORMATTED: &str = "view MyView { inner: element = <div /> } -> {
+  let value = 123 + 45.67;
+  <>
+    <h1>Welcome!</h1>
+    <main>{value}: {inner}</main>
+  </>;
+};";
+
     pub fn raw_at(offset: Offset) -> ast::raw::Declaration {
         ast::meta::Declaration::raw(
             ast::Declaration::view(

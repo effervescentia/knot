@@ -38,7 +38,7 @@ pub struct Module {
     pub id: ModuleId,
     pub path: PathBuf,
     pub text: String,
-    pub ast: ast::meta::Program<()>,
+    pub ast: ast::raw::Program,
     pub status: Status,
 }
 
@@ -84,9 +84,9 @@ impl Dependencies {
 }
 
 #[derive(Debug)]
-pub struct State<'a> {
+pub struct State<'a, Log> {
     /** context of the engine that created this state */
-    pub context: &'a Context,
+    pub context: &'a Context<Log>,
 
     /** scope of the plan that is operating on this state */
     pub scope: Scope,
@@ -102,8 +102,12 @@ pub struct State<'a> {
     modules: HashMap<ModuleId, Module>,
 }
 
-impl<'a> State<'a> {
-    pub fn new(context: &'a Context, scope: Scope) -> Self {
+impl<'a, Log> State<'a, Log> {
+    pub const fn log(&self) -> &Log {
+        &self.context.logger
+    }
+
+    pub fn new(context: &'a Context<Log>, scope: Scope) -> Self {
         let mut state = Self {
             context,
             scope: scope.clone(),
@@ -118,6 +122,11 @@ impl<'a> State<'a> {
         }
 
         state
+    }
+
+    #[cfg(test)]
+    pub fn mock(context: &'a Context<Log>) -> Self {
+        Self::new(context, vec![])
     }
 
     fn register_id<T>(&mut self, path: T) -> ModuleId
@@ -248,7 +257,7 @@ impl<'a> State<'a> {
         id: ModuleId,
         path: PathBuf,
         text: String,
-        ast: ast::meta::Program<()>,
+        ast: ast::raw::Program,
     ) {
         self.modules.insert(
             id,
@@ -264,5 +273,39 @@ impl<'a> State<'a> {
 
     pub fn get_module(&self, id: &ModuleId) -> Option<&Module> {
         self.modules.get(id)
+    }
+
+    pub fn get_absolute_path<T>(&self, path: T) -> PathBuf
+    where
+        T: AsRef<Path>,
+    {
+        self.context.root_dir.join(path.as_ref())
+    }
+
+    #[cfg(test)]
+    pub fn create_module<T, U>(
+        &mut self,
+        path: T,
+        text: U,
+        ast: ast::raw::Program,
+        status: Status,
+    ) -> ModuleId
+    where
+        T: AsRef<Path>,
+        U: AsRef<str>,
+    {
+        let id = self.register_id(&path);
+        self.modules.insert(
+            id,
+            Module {
+                id,
+                path: path.as_ref().to_path_buf(),
+                text: text.as_ref().to_owned(),
+                ast,
+                status,
+            },
+        );
+
+        id
     }
 }

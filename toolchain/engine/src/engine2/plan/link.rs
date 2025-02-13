@@ -3,14 +3,21 @@ use crate::engine2::{pipeline::Transform, state::State};
 
 pub struct Linked;
 
-pub struct Link<Tx>(pub Tx);
+pub struct Link<Tx>(Tx);
 
-impl<'a, Tx> Transform for Link<Tx>
+impl<Tx> Link<Tx> {
+    pub const fn new(tx: Tx) -> Self {
+        Self(tx)
+    }
+}
+
+impl<'a, Tx, Log> Transform for Link<Tx>
 where
-    Tx: Transform<Out = (State<'a>, Parsed)>,
+    Tx: Transform<Out = (State<'a, Log>, Parsed)>,
+    Log: 'a,
 {
     type In = Tx::In;
-    type Out = (State<'a>, Linked);
+    type Out = (State<'a, Log>, Linked);
 
     fn apply(&self, input: Self::In) -> Self::Out {
         let (state, _) = self.0.apply(input);

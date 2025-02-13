@@ -8,7 +8,7 @@ use kore::internal::Library;
 use kore::internal::PlatformLibrary;
 
 #[test]
-fn import_between_libraries() -> Result<(), Box<dyn std::error::Error>> {
+fn import_between_libraries() {
     #[derive(Clone, Copy)]
     pub enum MockLibrary {
         Parent,
@@ -55,9 +55,9 @@ fn import_between_libraries() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    let root_dir = TempDir::new()?;
+    let root_dir = TempDir::new().unwrap();
     // empty because we just want to validate the libraries
-    root_dir.child("src/main.kn").write_str("")?;
+    root_dir.child("src/main.kn").write_str("").unwrap();
 
     let engine = Engine::new(&root_dir, false)
         .from_entry("src/main.kn")
@@ -68,6 +68,4 @@ fn import_between_libraries() -> Result<(), Box<dyn std::error::Error>> {
         .into_result();
 
     assert!(engine.is_ok());
-
-    Ok(())
 }
