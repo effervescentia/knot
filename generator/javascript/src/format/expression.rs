@@ -89,7 +89,7 @@ impl Display for Expression {
 
 struct Property<'a>(&'a String, &'a Expression);
 
-impl<'a> Display for Property<'a> {
+impl Display for Property<'_> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "{key}: {value}", key = self.0, value = self.1)
     }

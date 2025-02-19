@@ -35,9 +35,8 @@ where
             .iter()
             .map(|id| {
                 let module = state.get_module(id).unwrap();
-                let absolute = state.get_absolute_path(&module.path);
 
-                (absolute, module.ast.to_string())
+                (module.path.clone(), module.ast.to_string())
             })
             .collect();
 
@@ -52,13 +51,13 @@ mod tests {
         logger::MemoryLogger,
         pipeline::{Identity, Transform},
         plan::parse::Parsed,
-        state::{ModuleId, State, Status},
+        state::{State, Status},
         Context,
     };
     use assert_fs::TempDir;
     use kore::{assert_eq_sorted, str};
-    use lang::{ast, test::fixture};
-    use std::collections::HashSet;
+    use lang::{ast, test::fixture, ModuleId};
+    use std::{collections::HashSet, path::PathBuf};
 
     fn mock_program(declaration: ast::raw::Declaration) -> ast::raw::Program {
         ast::meta::Program(ast::meta::Module::mock(ast::Module::new(
@@ -92,15 +91,15 @@ mod tests {
             HashSet::from_iter(formatted.0),
             HashSet::from([
                 (
-                    root_dir.join("main.kn"),
+                    PathBuf::from("main.kn"),
                     format!("{}\n", fixture::constant::SOURCE)
                 ),
                 (
-                    root_dir.join("foo.kn"),
+                    PathBuf::from("foo.kn"),
                     format!("{}\n", fixture::function::SOURCE)
                 ),
                 (
-                    root_dir.join("bar.kn"),
+                    PathBuf::from("bar.kn"),
                     format!("{}\n", fixture::view::FORMATTED)
                 )
             ])

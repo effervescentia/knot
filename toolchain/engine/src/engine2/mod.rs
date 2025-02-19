@@ -153,7 +153,7 @@ mod tests {
             .peek(|_| ())
             .generate(())
             .peek(|_| ())
-            .write();
+            .write("out_dir");
     }
 
     #[test]
@@ -163,6 +163,6 @@ mod tests {
             .peek(|_| ())
             .format()
             .peek(|_| ())
-            .write();
+            .write("out_dir");
     }
 }

@@ -40,7 +40,7 @@ impl Display for Statement {
 
 struct Import<'a>(&'a str, &'a Option<String>);
 
-impl<'a> Display for Import<'a> {
+impl Display for Import<'_> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Self(name, Some(alias)) => write!(f, "{name} as {alias}"),

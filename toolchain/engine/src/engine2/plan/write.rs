@@ -20,11 +20,15 @@ impl Output for Vec<(PathBuf, String)> {
     }
 }
 
-pub struct Write<Tx>(Tx);
+pub struct Write<Tx>(Tx, PathBuf);
 
 impl<Tx> Write<Tx> {
-    pub const fn new(tx: Tx) -> Self {
-        Self(tx)
+    pub const fn new(tx: Tx, path: PathBuf) -> Self {
+        Self(tx, path)
+    }
+
+    pub const fn bind(path: PathBuf) -> impl FnOnce(Tx) -> Self {
+        |tx| Self(tx, path)
     }
 }
 
@@ -42,11 +46,13 @@ where
         let mut count = 0;
 
         for (path, data) in output.output() {
-            if let Some(parent) = path.parent() {
+            let absolute = self.1.join(path);
+
+            if let Some(parent) = absolute.parent() {
                 fs::create_dir_all(parent).unwrap();
             }
 
-            let file = fs::File::create(&path).unwrap();
+            let file = fs::File::create(&absolute).unwrap();
 
             let mut writer = BufWriter::new(file);
 
@@ -55,7 +61,7 @@ where
 
             state
                 .log()
-                .debug(format_args!("\u{1f4be} emitted {}", path.display()));
+                .debug(format_args!("\u{1f4be} emitted {}", absolute.display()));
 
             count += 1;
         }
@@ -89,7 +95,7 @@ mod tests {
         let foo_file = root_dir.child("foo.kn");
         let bar_file = root_dir.child("bar.kn");
 
-        let (state, count) = Write::new(Identity::new()).apply((
+        let (state, count) = Write::new(Identity::new(), root_dir.to_path_buf()).apply((
             State::mock(&context),
             vec![
                 (main_file.to_path_buf(), str!("MAIN")),
@@ -127,7 +133,7 @@ mod tests {
 
         file.write_str("OLD").unwrap();
 
-        let (_, count) = Write::new(Identity::new()).apply((
+        let (_, count) = Write::new(Identity::new(), root_dir.to_path_buf()).apply((
             State::mock(&context),
             vec![(file.to_path_buf(), str!("NEW"))],
         ));
@@ -143,7 +149,7 @@ mod tests {
 
         let file = root_dir.child("foo/bar/main.kn");
 
-        Write::new(Identity::new()).apply((
+        Write::new(Identity::new(), root_dir.to_path_buf()).apply((
             State::mock(&context),
             vec![(file.to_path_buf(), str!("CONTENTS"))],
         ));

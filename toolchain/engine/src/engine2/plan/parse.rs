@@ -1,11 +1,11 @@
-use crate::engine2::{pipeline::Transform, state::ModuleId, State};
-use lang::ast;
+use crate::engine2::{pipeline::Transform, State};
+use lang::{ast, ModuleId};
 use std::{collections::HashSet, fs, path::Path};
 
 pub struct Parsed(pub HashSet<ModuleId>);
 
 pub struct Options {
-    /** true if imports should be followed */
+    /// true if imports should be followed
     pub follow_imports: bool,
 }
 
@@ -70,16 +70,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::Parsed;
-    use crate::engine2::{
-        input::Input,
-        state::{ModuleId, Status},
-        Context, Engine,
-    };
+    use crate::engine2::{input::Input, state::Status, Context, Engine};
     use assert_fs::{
         prelude::{FileTouch, FileWriteStr, PathChild},
         TempDir,
     };
     use kore::{assert_eq, str};
+    use lang::ModuleId;
     use std::{collections::HashSet, path::PathBuf};
 
     #[test]
@@ -95,11 +92,11 @@ mod tests {
 
         let (state, Parsed(parsed)) = engine.execute(&plan, &input);
 
-        assert_eq!(parsed, HashSet::from([ModuleId::from(0)]));
+        assert_eq!(parsed, HashSet::from([ModuleId(0)]));
 
-        let module = state.get_module(&ModuleId::from(0)).unwrap();
+        let module = state.get_module(&ModuleId(0)).unwrap();
 
-        assert_eq!(module.id, ModuleId::from(0));
+        assert_eq!(module.id, ModuleId(0));
         assert_eq!(module.path, PathBuf::from("main.kn"));
         assert_eq!(module.text, str!(""));
         assert_eq!(module.status, Status::Pending);
@@ -122,11 +119,11 @@ mod tests {
 
         let (state, Parsed(parsed)) = engine.execute(&plan, &input);
 
-        assert_eq!(parsed, HashSet::from([ModuleId::from(0)]));
+        assert_eq!(parsed, HashSet::from([ModuleId(0)]));
 
-        let module = state.get_module(&ModuleId::from(0)).unwrap();
+        let module = state.get_module(&ModuleId(0)).unwrap();
 
-        assert_eq!(module.id, ModuleId::from(0));
+        assert_eq!(module.id, ModuleId(0));
         assert_eq!(module.path, PathBuf::from("main.kn"));
         assert_eq!(module.text, str!("const FOO = 123;"));
         assert_eq!(module.status, Status::Pending);
@@ -159,28 +156,28 @@ mod tests {
 
         assert_eq!(
             parsed,
-            HashSet::from([ModuleId::from(0), ModuleId::from(1), ModuleId::from(2)])
+            HashSet::from([ModuleId(0), ModuleId(1), ModuleId(2)])
         );
 
-        let bar = state.get_module(&ModuleId::from(0)).unwrap();
+        let bar = state.get_module(&ModuleId(0)).unwrap();
 
-        assert_eq!(bar.id, ModuleId::from(0));
+        assert_eq!(bar.id, ModuleId(0));
         assert_eq!(bar.path, PathBuf::from("bar/bar.kn"));
         assert_eq!(bar.text, str!("const BAR = 456;"));
         assert_eq!(bar.status, Status::Pending);
         insta::assert_debug_snapshot!(bar.ast);
 
-        let foo = state.get_module(&ModuleId::from(1)).unwrap();
+        let foo = state.get_module(&ModuleId(1)).unwrap();
 
-        assert_eq!(foo.id, ModuleId::from(1));
+        assert_eq!(foo.id, ModuleId(1));
         assert_eq!(foo.path, PathBuf::from("foo/foo.kn"));
         assert_eq!(foo.text, str!("const FOO = 123;"));
         assert_eq!(foo.status, Status::Pending);
         insta::assert_debug_snapshot!(foo.ast);
 
-        let main = state.get_module(&ModuleId::from(2)).unwrap();
+        let main = state.get_module(&ModuleId(2)).unwrap();
 
-        assert_eq!(main.id, ModuleId::from(2));
+        assert_eq!(main.id, ModuleId(2));
         assert_eq!(main.path, PathBuf::from("main.kn"));
         assert_eq!(main.text, str!("const ROOT = true;"));
         assert_eq!(main.status, Status::Pending);

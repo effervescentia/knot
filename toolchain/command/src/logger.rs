@@ -15,22 +15,22 @@ impl Logger {
 
 impl engine::engine2::Logger for Logger {
     fn error(&self, args: std::fmt::Arguments) {
-        error!("{}", args);
+        error!("{args}");
     }
 
     fn warn(&self, args: std::fmt::Arguments) {
-        warn!("{}", args);
+        warn!("{args}");
     }
 
     fn info(&self, args: std::fmt::Arguments) {
-        info!("{}", args);
+        info!("{args}");
     }
 
     fn debug(&self, args: std::fmt::Arguments) {
-        debug!("{}", args);
+        debug!("{args}");
     }
 
     fn trace(&self, args: std::fmt::Arguments) {
-        trace!("{}", args);
+        trace!("{args}");
     }
 }

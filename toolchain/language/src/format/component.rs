@@ -74,7 +74,7 @@ where
 
 struct Children<'a, Component>(&'a Vec<Component>);
 
-impl<'a, Component> Display for Children<'a, Component>
+impl<Component> Display for Children<'_, Component>
 where
     Component: Display + IsInline,
 {

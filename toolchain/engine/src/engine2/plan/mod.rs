@@ -17,6 +17,7 @@ use link::Link;
 pub use link::Linked;
 use parse::Parse;
 pub use parse::Parsed;
+use std::path::Path;
 use write::{Output, Write};
 
 #[derive(Default)]
@@ -65,14 +66,14 @@ where
     Tx: Transform<Out = (State<'a, Log>, ())>,
     Log: 'a,
 {
-    /** load and parse internal modules without following dependencies */
+    /// load and parse internal modules without following dependencies
     pub fn parse(self) -> Builder<Parse<Tx>> {
         self.map(Parse::bind(parse::Options {
             follow_imports: false,
         }))
     }
 
-    /** load and parse internal modules and follow dependencies */
+    /// load and parse internal modules and follow dependencies
     pub fn parse_and_traverse(self) -> Builder<Parse<Tx>> {
         self.map(Parse::bind(parse::Options {
             follow_imports: true,
@@ -85,7 +86,7 @@ where
     Tx: Transform<Out = (State<'a, Log>, Parsed)>,
     Log: 'a,
 {
-    /** transform internal modules using the standard formatter */
+    /// transform internal modules using the standard formatter
     pub fn format(self) -> Builder<Format<Tx>> {
         self.map(Format::new)
     }
@@ -96,7 +97,7 @@ where
     Tx: Transform<Out = (State<'a, Log>, Parsed)>,
     Log: 'a,
 {
-    /** record links between internal modules and their external dependencies (libraries) */
+    /// record links between internal modules and their external dependencies (libraries)
     pub fn link(self) -> Builder<Link<Tx>> {
         self.map(Link::new)
     }
@@ -107,7 +108,7 @@ where
     Tx: Transform<Out = (State<'a, Log>, Linked)>,
     Log: 'a,
 {
-    /** check if the code is semantically correct and determine types of all values */
+    /// check if the code is semantically correct and determine types of all values
     pub fn analyze(self) -> Builder<Analyze<Tx>> {
         self.map(Analyze::new)
     }
@@ -129,7 +130,10 @@ where
     Res: Output,
     Log: 'a,
 {
-    pub fn write(self) -> Builder<Write<Tx>> {
-        self.map(Write::new)
+    pub fn write<T>(self, out_dir: T) -> Builder<Write<Tx>>
+    where
+        T: AsRef<Path>,
+    {
+        self.map(Write::bind(out_dir.as_ref().to_path_buf()))
     }
 }

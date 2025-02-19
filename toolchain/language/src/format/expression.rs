@@ -70,7 +70,7 @@ struct StyleRules<'a, T>(&'a Vec<(String, T)>)
 where
     T: Display;
 
-impl<'a, T> Display for StyleRules<'a, T>
+impl<T> Display for StyleRules<'_, T>
 where
     T: Display,
 {

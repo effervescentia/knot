@@ -17,7 +17,7 @@ pub struct Import {
 }
 
 impl Import {
-    pub fn new(source: ImportSource, path: Vec<String>, alias: Option<String>) -> Self {
+    pub const fn new(source: ImportSource, path: Vec<String>, alias: Option<String>) -> Self {
         Self {
             source,
             path,

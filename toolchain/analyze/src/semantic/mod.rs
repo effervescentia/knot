@@ -65,7 +65,7 @@ impl<'a> Visitor<'a> {
     }
 }
 
-impl<'a> CommonVisitor for Visitor<'a> {
+impl CommonVisitor for Visitor<'_> {
     type Context = (Range, ast::typed::Meta);
     type Binding = ast::typed::Binding;
     type TypeExpression = ast::typed::TypeExpression;
@@ -92,7 +92,7 @@ impl<'a> CommonVisitor for Visitor<'a> {
     }
 }
 
-impl<'a> ProgramVisitor for Visitor<'a> {
+impl ProgramVisitor for Visitor<'_> {
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;
     type Attribute = ast::typed::Attribute;
@@ -178,7 +178,7 @@ impl<'a> ProgramVisitor for Visitor<'a> {
     }
 }
 
-impl<'a> TypingsVisitor for Visitor<'a> {
+impl TypingsVisitor for Visitor<'_> {
     type TypeDeclaration = ast::typed::TypeDeclaration;
     type TypeModule = ast::typed::TypeModule;
 

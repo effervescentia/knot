@@ -6,7 +6,7 @@ use kore::{internal::AmbientScope, str};
 use lang::{
     ast,
     types::{Enumerated, Kind, Type},
-    CanonicalId, NamespaceId, NodeId,
+    CanonicalId, ModuleId, NodeId,
 };
 use std::{collections::HashMap, rc::Rc};
 
@@ -319,7 +319,7 @@ pub mod view {
             (
                 CanonicalId::mock(1),
                 Rc::new((
-                    CanonicalId(NamespaceId(1), NodeId(1)),
+                    CanonicalId(ModuleId(1), NodeId(1)),
                     ast::typed::Type(Type::View(vec![])),
                 )),
             ),
@@ -354,7 +354,7 @@ pub mod view {
             (
                 CanonicalId::mock(9),
                 Rc::new((
-                    CanonicalId(NamespaceId(1), NodeId(2)),
+                    CanonicalId(ModuleId(1), NodeId(2)),
                     ast::typed::Type(Type::View(vec![])),
                 )),
             ),
@@ -381,7 +381,7 @@ pub mod view {
             (
                 CanonicalId::mock(15),
                 Rc::new((
-                    CanonicalId(NamespaceId(1), NodeId(3)),
+                    CanonicalId(ModuleId(1), NodeId(3)),
                     ast::typed::Type(Type::View(vec![])),
                 )),
             ),
@@ -467,12 +467,12 @@ pub mod module {
 
     pub fn strong_types() -> StrongTypes {
         let theme_type = Rc::new((
-            CanonicalId(NamespaceId(1), NodeId(0)),
+            CanonicalId(ModuleId(1), NodeId(0)),
             ast::typed::Type(Type::Module(vec![(
                 str!("PRIMARY"),
                 Kind::Value,
                 Rc::new((
-                    CanonicalId(NamespaceId(1), NodeId(1)),
+                    CanonicalId(ModuleId(1), NodeId(1)),
                     ast::typed::Type(Type::String),
                 )),
             )])),
@@ -484,7 +484,7 @@ pub mod module {
             (
                 CanonicalId::mock(2),
                 Rc::new((
-                    CanonicalId(NamespaceId(1), NodeId(1)),
+                    CanonicalId(ModuleId(1), NodeId(1)),
                     ast::typed::Type(Type::String),
                 )),
             ),

@@ -198,7 +198,7 @@ impl<'a> State<'a> {
     }
 }
 
-impl<'a> Canonicalize for State<'a> {
+impl Canonicalize for State<'_> {
     fn canonicalize(&self, id: NodeId) -> CanonicalId {
         CanonicalId(self.context.id, id)
     }

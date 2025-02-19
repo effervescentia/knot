@@ -8,7 +8,7 @@ pub trait ResolveTarget {
 
 struct NodeTarget<'a>(&'a NodeId, &'a ScopeId);
 
-impl<'a> ResolveTarget for NodeTarget<'a> {
+impl ResolveTarget for NodeTarget<'_> {
     fn id(&self) -> &NodeId {
         self.0
     }

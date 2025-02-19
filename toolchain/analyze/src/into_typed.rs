@@ -2,7 +2,7 @@ use crate::{ast, infer, Context};
 use kore::{invariant, Incrementor};
 use lang::{
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
-    CanonicalId, NamespaceId, Node, NodeId, Range,
+    CanonicalId, ModuleId, Node, NodeId, Range,
 };
 use std::{cell::OnceCell, marker::PhantomData};
 
@@ -27,7 +27,7 @@ impl<Meta> IntoTyped<ast::typed::Typings> for ast::meta::Typings<Meta> {
 struct Visitor<'a, Meta> {
     _meta: PhantomData<Meta>,
     node_id: Incrementor,
-    namespace_id: NamespaceId,
+    namespace_id: ModuleId,
     strong: &'a infer::strong::Output,
 }
 
@@ -36,7 +36,7 @@ impl<'a, Meta> Visitor<'a, Meta> {
         CanonicalId(self.namespace_id, node_id)
     }
 
-    pub fn new(namespace_id: NamespaceId, strong: &'a infer::strong::Output) -> Self {
+    pub fn new(namespace_id: ModuleId, strong: &'a infer::strong::Output) -> Self {
         Self {
             _meta: PhantomData,
             node_id: Default::default(),
@@ -67,7 +67,7 @@ impl<'a, Meta> Visitor<'a, Meta> {
     }
 }
 
-impl<'a, Meta> CommonVisitor for Visitor<'a, Meta> {
+impl<Meta> CommonVisitor for Visitor<'_, Meta> {
     type Context = (Range, Meta);
     type Binding = ast::typed::Binding;
     type TypeExpression = ast::typed::TypeExpression;
@@ -90,7 +90,7 @@ impl<'a, Meta> CommonVisitor for Visitor<'a, Meta> {
     }
 }
 
-impl<'a, Meta> ProgramVisitor for Visitor<'a, Meta> {
+impl<Meta> ProgramVisitor for Visitor<'_, Meta> {
     type Expression = ast::typed::Expression;
     type Statement = ast::typed::Statement;
     type Attribute = ast::typed::Attribute;
@@ -162,7 +162,7 @@ impl<'a, Meta> ProgramVisitor for Visitor<'a, Meta> {
     }
 }
 
-impl<'a, Meta> TypingsVisitor for Visitor<'a, Meta> {
+impl<Meta> TypingsVisitor for Visitor<'_, Meta> {
     type TypeDeclaration = ast::typed::TypeDeclaration;
     type TypeModule = ast::typed::TypeModule;
 

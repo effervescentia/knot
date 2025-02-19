@@ -13,7 +13,7 @@ pub use analyzed::Analyzed;
 pub use ast::Ast;
 pub use base::Base;
 use kore::internal::{self, PlatformLibrary};
-use lang::NamespaceId;
+use lang::ModuleId;
 pub use linked::Linked;
 pub use parsed::Parsed;
 use std::{fmt::Debug, path::Path};
@@ -72,13 +72,13 @@ impl<State, Library> Enrich for WithLibraries<State, Library> where State: Enric
 
 #[derive(Clone, Debug)]
 pub struct Module<T> {
-    pub id: NamespaceId,
+    pub id: ModuleId,
     pub text: String,
     pub ast: Ast<T>,
 }
 
 impl<T> Module<T> {
-    pub const fn new(id: NamespaceId, text: String, ast: Ast<T>) -> Self {
+    pub const fn new(id: ModuleId, text: String, ast: Ast<T>) -> Self {
         Self { id, text, ast }
     }
 }

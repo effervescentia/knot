@@ -34,7 +34,7 @@ pub fn command(opts: &Options) -> engine::Result<()> {
                 Logger.report_parsed(ids.len());
             })
             .format()
-            .write(),
+            .write(root_dir),
         &input,
     );
 

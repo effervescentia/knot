@@ -1,35 +1,27 @@
 use super::{Context, Operation, Scope};
 use bimap::BiMap;
-use lang::ast;
+use kore::Incrementor;
+use lang::{ast, ModuleId};
 use std::{
     collections::{HashMap, HashSet},
     path::{Path, PathBuf},
 };
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct ModuleId(usize);
-
-impl From<usize> for ModuleId {
-    fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Status {
-    /** being processed for the first time */
+    /// being processed for the first time
     Pending,
 
-    /** completely processed and available for use */
+    /// completely processed and available for use
     Active,
 
-    /** must be re-analyzed before it can be used */
+    /// must be re-analyzed before it can be used
     Stale,
 
-    /** must be re-loaded and processed before it can be used */
+    /// must be re-loaded and processed before it can be used
     Tainted,
 
-    /** will be purged on the next incremental execution */
+    /// will be purged on the next incremental execution
     Evicted,
 }
 
@@ -85,18 +77,18 @@ impl Dependencies {
 
 #[derive(Debug)]
 pub struct State<'a, Log> {
-    /** context of the engine that created this state */
+    /// context of the engine that created this state
     pub context: &'a Context<Log>,
 
-    /** scope of the plan that is operating on this state */
+    /// scope of the plan that is operating on this state
     pub scope: Scope,
 
-    next_id: usize,
+    namespace_id: Incrementor,
 
-    /** contains all dependencies based on the most recently parsed ASTs */
+    /// contains all dependencies based on the most recently parsed ASTs
     dependencies: Dependencies,
 
-    /** contains all module ID mappings (even for deleted modules) */
+    /// contains all module ID mappings (even for deleted modules)
     module_to_path: BiMap<ModuleId, PathBuf>,
 
     modules: HashMap<ModuleId, Module>,
@@ -111,7 +103,7 @@ impl<'a, Log> State<'a, Log> {
         let mut state = Self {
             context,
             scope: scope.clone(),
-            next_id: 0,
+            namespace_id: Incrementor::default(),
             dependencies: Dependencies::default(),
             module_to_path: BiMap::new(),
             modules: HashMap::new(),
@@ -133,9 +125,8 @@ impl<'a, Log> State<'a, Log> {
     where
         T: AsRef<Path>,
     {
-        let id = ModuleId(self.next_id);
+        let id = ModuleId(self.namespace_id.increment());
 
-        self.next_id += 1;
         self.module_to_path.insert(id, path.as_ref().to_path_buf());
 
         id

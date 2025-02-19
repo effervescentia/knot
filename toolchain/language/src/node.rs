@@ -5,7 +5,7 @@ use std::fmt::{Debug, Display};
 pub struct Node<Value, Meta>(pub Value, pub Range, pub Meta);
 
 impl<Value, Meta> Node<Value, Meta> {
-    pub fn typed(v: Value, m: Meta) -> Self {
+    pub const fn typed(v: Value, m: Meta) -> Self {
         Self(v, Range::nil(), m)
     }
 
@@ -40,7 +40,7 @@ impl<Value, Meta> Node<Value, Meta> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(v: Value, m: Meta) -> Self {
+    pub const fn mock(v: Value, m: Meta) -> Self {
         Self(v, Range::nil(), m)
     }
 }

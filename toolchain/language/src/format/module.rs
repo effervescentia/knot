@@ -44,7 +44,7 @@ impl Display for ast::Import {
 
 struct Alias<'a>(Option<&'a str>);
 
-impl<'a> Display for Alias<'a> {
+impl Display for Alias<'_> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         if let Some(x) = &self.0 {
             write!(f, " as {x}")

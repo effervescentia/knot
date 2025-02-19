@@ -1,6 +1,6 @@
 use super::{base::Base, IsVerbose, Parsed};
 use crate::{link::ImportGraph, report};
-use lang::NamespaceId;
+use lang::ModuleId;
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone)]
@@ -11,7 +11,7 @@ impl Linked {
         Self(state.0, graph)
     }
 
-    pub fn iter_graph(&self) -> impl Iterator<Item = NamespaceId> + '_ {
+    pub fn iter_graph(&self) -> impl Iterator<Item = ModuleId> + '_ {
         self.1.iter()
     }
 

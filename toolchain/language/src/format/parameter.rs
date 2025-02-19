@@ -29,7 +29,7 @@ struct FormatDefault<'a, T>(&'a Option<T>)
 where
     T: Display;
 
-impl<'a, T> Display for FormatDefault<'a, T>
+impl<T> Display for FormatDefault<'_, T>
 where
     T: Display,
 {

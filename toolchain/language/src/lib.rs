@@ -19,10 +19,11 @@ pub use range::{Point, Range};
 use std::fmt::Display;
 pub use type_of::TypeOf;
 
+/// unique identifier for each internal or external module
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct NamespaceId(pub usize);
+pub struct ModuleId(pub usize);
 
-impl Display for NamespaceId {
+impl Display for ModuleId {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         self.0.fmt(f)
     }
@@ -41,12 +42,12 @@ impl ScopeId {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct CanonicalId(pub NamespaceId, pub NodeId);
+pub struct CanonicalId(pub ModuleId, pub NodeId);
 
 impl CanonicalId {
     #[cfg(feature = "test")]
     pub const fn mock(id: usize) -> Self {
-        Self(NamespaceId(0), NodeId(id))
+        Self(ModuleId(0), NodeId(id))
     }
 }
 

@@ -24,7 +24,7 @@ pub struct CodeFrame<'a> {
     pub padding: usize,
 }
 
-impl<'a> CodeFrame<'a> {
+impl CodeFrame<'_> {
     pub const fn link(&self) -> &Link {
         self.link
     }
@@ -92,7 +92,7 @@ impl<'a> CodeFrame<'a> {
     }
 }
 
-impl<'a> Display for CodeFrame<'a> {
+impl Display for CodeFrame<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         fn format_caret(
             gutter_width: usize,

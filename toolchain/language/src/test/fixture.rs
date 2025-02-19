@@ -1193,7 +1193,7 @@ pub mod view {
 }
 
 pub mod module {
-    use crate::NamespaceId;
+    use crate::ModuleId;
 
     use self::types::Kind;
     use super::*;
@@ -1392,7 +1392,7 @@ pub mod module {
                 str!("PRIMARY"),
                 Kind::Value,
                 Rc::new((
-                    CanonicalId(NamespaceId(1), NodeId(1)),
+                    CanonicalId(ModuleId(1), NodeId(1)),
                     ast::typed::Type(types::Type::String),
                 )),
             )]))

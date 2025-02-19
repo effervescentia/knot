@@ -43,7 +43,7 @@ pub trait Highlight: Colorize + Sized {
     }
 }
 
-impl<'a> Highlight for &'a str {}
+impl Highlight for &str {}
 
 pub trait ClearIf {
     fn clear_if(self, condition: bool) -> Self;

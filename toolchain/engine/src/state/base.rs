@@ -4,7 +4,7 @@ use bimap::BiMap;
 use kore::{internal, Incrementor};
 use lang::{
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
-    CanonicalId, NamespaceId, NodeId, Range,
+    CanonicalId, ModuleId, NodeId, Range,
 };
 use std::{collections::HashMap, marker::PhantomData};
 
@@ -14,7 +14,7 @@ pub type ModuleIterator<'a, T> =
 #[derive(Clone)]
 pub struct Base<T> {
     modules: HashMap<Link, super::Module<T>>,
-    lookup: BiMap<Link, NamespaceId>,
+    lookup: BiMap<Link, ModuleId>,
     library_order: Vec<Link>,
     ambient: analyze::AmbientMap,
     verbose: bool,
@@ -39,11 +39,11 @@ impl<T> Base<T> {
         self.modules.contains_key(link)
     }
 
-    pub fn get_id_by_link(&self, link: &Link) -> Option<&NamespaceId> {
+    pub fn get_id_by_link(&self, link: &Link) -> Option<&ModuleId> {
         self.lookup.get_by_left(link)
     }
 
-    pub fn get_link_by_id(&self, id: &NamespaceId) -> Option<&Link> {
+    pub fn get_link_by_id(&self, id: &ModuleId) -> Option<&Link> {
         self.lookup.get_by_right(id)
     }
 
@@ -51,7 +51,7 @@ impl<T> Base<T> {
         self.modules.get(link)
     }
 
-    pub fn get_link_and_module_by_id(&self, id: &NamespaceId) -> Option<(&Link, &Module<T>)> {
+    pub fn get_link_and_module_by_id(&self, id: &ModuleId) -> Option<(&Link, &Module<T>)> {
         let link = self.get_link_by_id(id)?;
 
         Some((link, self.modules.get(link)?))
@@ -152,13 +152,13 @@ impl<T> IsVerbose for Base<T> {
 
 struct Visitor<T> {
     _context: PhantomData<T>,
-    namespace_id: NamespaceId,
+    namespace_id: ModuleId,
     node_id: Incrementor,
     nodes: HashMap<CanonicalId, Range>,
 }
 
 impl<T> Visitor<T> {
-    pub fn new(namespace_id: NamespaceId) -> Self {
+    pub fn new(namespace_id: ModuleId) -> Self {
         Self {
             _context: PhantomData,
             namespace_id,

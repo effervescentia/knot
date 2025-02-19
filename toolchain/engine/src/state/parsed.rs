@@ -1,7 +1,7 @@
 use super::{base::Base, Ast, FromPaths, IsVerbose, Module};
 use crate::{link::ImportGraph, report, Context, ExecutionError, Link};
 use kore::{color::Highlight, Incrementor};
-use lang::{Namespace, NamespaceId};
+use lang::{Namespace, ModuleId};
 use std::{
     cell::RefCell,
     ops::{Deref, DerefMut},
@@ -50,7 +50,7 @@ impl Parsed {
     pub fn register_source(&mut self, link: Link, text: String, ast: Ast<()>) {
         let incrementor = self.incrementor();
         let module = Module {
-            id: NamespaceId(incrementor.borrow_mut().deref_mut().increment()),
+            id: ModuleId(incrementor.borrow_mut().deref_mut().increment()),
             text,
             ast,
         };

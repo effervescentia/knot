@@ -8,7 +8,7 @@ mod write;
 
 use analyze::ModuleMap;
 use kore::{internal, invariant, Incrementor};
-use lang::{ast, Canonicalize, NamespaceId, NodeId};
+use lang::{ast, Canonicalize, ModuleId, NodeId};
 pub use link::Link;
 use report::Enrich;
 pub use report::{
@@ -131,7 +131,7 @@ where
             (
                 library,
                 Link::from_library(&library),
-                state::Module::new(NamespaceId(incrementor.increment()), input, ast),
+                state::Module::new(ModuleId(incrementor.increment()), input, ast),
             )
         })
     }
@@ -367,7 +367,7 @@ where
 {
     fn get_module<'a>(
         state: &'a state::Linked,
-        id: &'a NamespaceId,
+        id: &'a ModuleId,
     ) -> (&'a Link, &'a state::Module<()>) {
         state.get_link_and_module_by_id(id).unwrap_or_else(|| {
             invariant!("did not find link for module with id {id} in state lookup")

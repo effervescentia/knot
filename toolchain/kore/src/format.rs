@@ -40,7 +40,7 @@ where
     T: Display,
     I: IntoIterator<Item = T>;
 
-impl<'a, T, I> Display for PrefixEach<'a, T, I>
+impl<T, I> Display for PrefixEach<'_, T, I>
 where
     T: Display,
     I: Clone + IntoIterator<Item = T>,
@@ -59,7 +59,7 @@ where
     T: Display,
     I: IntoIterator<Item = T>;
 
-impl<'a, T, I> Display for SuffixEach<'a, T, I>
+impl<T, I> Display for SuffixEach<'_, T, I>
 where
     T: Display,
     I: Clone + IntoIterator<Item = T>,
@@ -119,7 +119,7 @@ where
     }
 }
 
-impl<'a, T> Write for BlockFormatter<'a, T>
+impl<T> Write for BlockFormatter<'_, T>
 where
     T: Write,
 {

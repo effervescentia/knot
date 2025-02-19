@@ -1,7 +1,9 @@
 use super::parse::Parsed;
 use crate::engine2::{pipeline::Transform, state::State};
+use lang::ModuleId;
+use std::collections::HashSet;
 
-pub struct Linked;
+pub struct Linked(pub HashSet<ModuleId>);
 
 pub struct Link<Tx>(Tx);
 
@@ -20,7 +22,7 @@ where
     type Out = (State<'a, Log>, Linked);
 
     fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, _) = self.0.apply(input);
+        let (state, Parsed(ids)) = self.0.apply(input);
 
         // let linked = state.link_modules(context)?;
 
@@ -28,6 +30,6 @@ where
 
         // Ok(state::Linked::new(state, linked));
 
-        (state, Linked)
+        (state, Linked(ids))
     }
 }

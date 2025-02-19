@@ -14,7 +14,7 @@ where
     }
 }
 
-impl<'a, T> Resolver for FileCache<'a, T>
+impl<T> Resolver for FileCache<'_, T>
 where
     T: Resolver,
 {
