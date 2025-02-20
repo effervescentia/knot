@@ -13,6 +13,7 @@ use analyze::Analyze;
 pub use analyze::Analyzed;
 use format::Format;
 use generate::Generate;
+use kore::internal;
 use link::Link;
 pub use link::Linked;
 use parse::Parse;
@@ -119,7 +120,10 @@ where
     Tx: Transform<Out = (State<'a, Log>, Analyzed)>,
     Log: 'a,
 {
-    pub fn generate<G>(self, generator: G) -> Builder<Generate<Tx, G>> {
+    pub fn generate<Gen>(self, generator: Gen) -> Builder<Generate<Tx, Gen>>
+    where
+        Gen: internal::Generator,
+    {
         self.map(Generate::bind(generator))
     }
 }

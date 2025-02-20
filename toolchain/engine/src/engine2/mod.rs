@@ -87,7 +87,7 @@ impl<Log> Engine<Log> {
         Src: Source,
         Tx: Transform<In = (State<'a, Log>, ()), Out = (State<'a, Log>, Res)>,
     {
-        let Input { source, libraries } = input;
+        let Input { source, .. } = input;
         let scope = source.resolve(&self.0.root_dir);
 
         let state = State::new(&self.0, scope);
@@ -112,7 +112,24 @@ impl<Log> Engine<Log> {
 
 #[cfg(test)]
 mod tests {
-    use super::{logger::NoopLogger, pipeline::Peek, Context, Engine, Input, Library};
+    use super::{logger::NoopLogger, pipeline::Peek, Context, Engine, Input};
+    use kore::{internal, str};
+    use lang::ast;
+
+    #[derive(Clone, Copy)]
+    struct MockGenerator;
+
+    impl internal::Generator for MockGenerator {
+        type Input = ast::shape::Program;
+        type Output = String;
+
+        fn generate<T>(&self, path: T, _: Self::Input) -> (std::path::PathBuf, Self::Output)
+        where
+            T: AsRef<std::path::Path>,
+        {
+            (path.as_ref().with_extension("out"), str!("output"))
+        }
+    }
 
     #[test]
     fn one_off_execution() {
@@ -121,7 +138,7 @@ mod tests {
         let input = Input::from_entry("entry", []);
         let pipeline = Engine::plan();
 
-        let (_, result) = engine.execute(&pipeline, &input);
+        engine.execute(&pipeline, &input);
     }
 
     #[test]
@@ -144,21 +161,21 @@ mod tests {
 
     #[test]
     fn build_pipeline() {
-        let plan = Engine::<NoopLogger>::plan()
+        Engine::<NoopLogger>::plan()
             .parse()
             .peek(|_| ())
             .link()
             .peek(|_| ())
             .analyze()
             .peek(|_| ())
-            .generate(())
+            .generate(MockGenerator)
             .peek(|_| ())
             .write("out_dir");
     }
 
     #[test]
     fn format_pipeline() {
-        let plan = Engine::<NoopLogger>::plan() //
+        Engine::<NoopLogger>::plan()
             .parse()
             .peek(|_| ())
             .format()

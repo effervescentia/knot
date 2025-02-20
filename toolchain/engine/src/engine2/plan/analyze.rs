@@ -1,7 +1,9 @@
 use super::link::Linked;
 use crate::engine2::{pipeline::Transform, state::State};
+use lang::ModuleId;
+use std::collections::HashSet;
 
-pub struct Analyzed;
+pub struct Analyzed(pub HashSet<ModuleId>);
 
 pub struct Analyze<Tx>(Tx);
 
@@ -51,6 +53,6 @@ where
         //     );
         // }
 
-        (state, Analyzed)
+        (state, Analyzed(HashSet::default()))
     }
 }

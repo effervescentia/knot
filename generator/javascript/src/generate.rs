@@ -1,7 +1,7 @@
 use crate::{resolve::Resolver, JavaScript, Module, Options};
 use kore::{internal, str};
 use lang::ast as knot;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Clone, Copy)]
 pub struct Generator<Library>(Resolver<Library>);
@@ -19,7 +19,11 @@ where
     type Input = knot::shape::Program;
     type Output = JavaScript;
 
-    fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output) {
+    fn generate<T>(&self, path: T, input: Self::Input) -> (PathBuf, Self::Output)
+    where
+        T: AsRef<std::path::Path>,
+    {
+        let path = path.as_ref();
         let mut path_to_root = path
             .parent()
             .map(|x| x.iter().map(|_| "..").collect::<Vec<_>>().join("/"))

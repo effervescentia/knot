@@ -20,7 +20,9 @@ pub trait Generator: Copy {
     type Input;
     type Output: Display;
 
-    fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output);
+    fn generate<T>(&self, path: T, input: Self::Input) -> (PathBuf, Self::Output)
+    where
+        T: AsRef<Path>;
 }
 
 pub trait Platform {

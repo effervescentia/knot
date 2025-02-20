@@ -199,22 +199,6 @@ where
     T: Clone,
     R: Resolver,
 {
-    /// generate output files by formatting the loaded modules
-    pub fn format(&self) -> Writer<ast::meta::Program<T>> {
-        self.to_writer(|state| {
-            state
-                .modules()
-                .filter_map(|(link, state::Module { ast, .. })| match ast {
-                    state::Ast::Program(x) if link.is_internal() => {
-                        Some((link.to_path(), x.clone()))
-                    }
-
-                    state::Ast::Program(_) | state::Ast::Typings(_) => None,
-                })
-                .collect()
-        })
-    }
-
     fn to_writer<F, T2>(&self, f: F) -> Writer<T2>
     where
         T2: Display,
