@@ -1,9 +1,21 @@
-use super::link::Linked;
+use super::{link::Linked, Parsed};
 use crate::engine2::{pipeline::Transform, state::State};
 use lang::ModuleId;
 use std::collections::HashSet;
 
 pub struct Analyzed(pub HashSet<ModuleId>);
+
+impl From<Analyzed> for Parsed {
+    fn from(val: Analyzed) -> Self {
+        Self(val.0)
+    }
+}
+
+impl From<Analyzed> for Linked {
+    fn from(val: Analyzed) -> Self {
+        Self(val.0)
+    }
+}
 
 pub struct Analyze<Tx>(Tx);
 
@@ -13,16 +25,18 @@ impl<Tx> Analyze<Tx> {
     }
 }
 
-impl<'a, Tx, Log> Transform for Analyze<Tx>
+impl<'a, Tx, Res, Log> Transform for Analyze<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Linked)>,
+    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Res: Into<Linked>,
     Log: 'a,
 {
     type In = Tx::In;
     type Out = (State<'a, Log>, Analyzed);
 
     fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, _) = self.0.apply(input);
+        let (state, result) = self.0.apply(input);
+        let Linked(ids) = result.into();
 
         // let mut analyzed = HashMap::default();
         // let mut modules = ModuleMap::default();
@@ -53,6 +67,6 @@ where
         //     );
         // }
 
-        (state, Analyzed(HashSet::default()))
+        (state, Analyzed(ids))
     }
 }

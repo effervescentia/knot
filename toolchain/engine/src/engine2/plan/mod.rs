@@ -82,9 +82,10 @@ where
     }
 }
 
-impl<'a, Tx, Log> Builder<Tx>
+impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Parsed)>,
+    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Res: Into<Parsed>,
     Log: 'a,
 {
     /// transform internal modules using the standard formatter
@@ -93,9 +94,10 @@ where
     }
 }
 
-impl<'a, Tx, Log> Builder<Tx>
+impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Parsed)>,
+    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Res: Into<Parsed>,
     Log: 'a,
 {
     /// record links between internal modules and their external dependencies (libraries)
@@ -104,9 +106,10 @@ where
     }
 }
 
-impl<'a, Tx, Log> Builder<Tx>
+impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Linked)>,
+    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Res: Into<Linked>,
     Log: 'a,
 {
     /// check if the code is semantically correct and determine types of all values
@@ -115,9 +118,10 @@ where
     }
 }
 
-impl<'a, Tx, Log> Builder<Tx>
+impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Analyzed)>,
+    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Res: Into<Parsed>,
     Log: 'a,
 {
     pub fn generate<Gen>(self, generator: Gen) -> Builder<Generate<Tx, Gen>>

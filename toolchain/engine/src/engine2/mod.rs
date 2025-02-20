@@ -182,4 +182,17 @@ mod tests {
             .peek(|_| ())
             .write("out_dir");
     }
+
+    #[test]
+    fn flexible_pipeline() {
+        Engine::<NoopLogger>::plan()
+            .parse()
+            .link()
+            .analyze()
+            .link()
+            .analyze()
+            .link()
+            .generate(MockGenerator)
+            .write("out_dir");
+    }
 }

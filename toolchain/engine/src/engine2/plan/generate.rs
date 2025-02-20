@@ -1,4 +1,4 @@
-use super::{analyze::Analyzed, write::Output};
+use super::{write::Output, Parsed};
 use crate::engine2::{pipeline::Transform, state::State};
 use kore::internal;
 use lang::ast;
@@ -26,9 +26,10 @@ impl<Tx, Gen> Generate<Tx, Gen> {
     }
 }
 
-impl<'a, Tx, Gen, Log> Transform for Generate<Tx, Gen>
+impl<'a, Tx, Res, Gen, Log> Transform for Generate<Tx, Gen>
 where
-    Tx: Transform<Out = (State<'a, Log>, Analyzed)>,
+    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Res: Into<Parsed>,
     Gen: internal::Generator<Input = ast::shape::Program>,
     Log: 'a,
 {
@@ -36,7 +37,8 @@ where
     type Out = (State<'a, Log>, Generated);
 
     fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, Analyzed(ids)) = self.0.apply(input);
+        let (state, result) = self.0.apply(input);
+        let Parsed(ids) = result.into();
 
         let output = ids
             .iter()

@@ -20,16 +20,18 @@ impl<Tx> Format<Tx> {
     }
 }
 
-impl<'a, Tx, Log> Transform for Format<Tx>
+impl<'a, Tx, Res, Log> Transform for Format<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Parsed)>,
+    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Res: Into<Parsed>,
     Log: 'a,
 {
     type In = Tx::In;
     type Out = (State<'a, Log>, Formatted);
 
     fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, Parsed(ids)) = self.0.apply(input);
+        let (state, result) = self.0.apply(input);
+        let Parsed(ids) = result.into();
 
         let output = ids
             .iter()
