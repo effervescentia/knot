@@ -46,13 +46,13 @@ impl Hash for Cycle {
     }
 }
 
-#[derive(Clone)]
-pub struct ImportGraph {
+#[derive(Clone, Debug)]
+pub struct Graph {
     graph: StableDiGraph<ModuleId, ()>,
     lookup: BiMap<ModuleId, NodeIndex>,
 }
 
-impl ImportGraph {
+impl Graph {
     pub fn new() -> Self {
         Self {
             graph: StableDiGraph::new(),
@@ -85,6 +85,13 @@ impl ImportGraph {
         self.lookup.insert(node, index);
 
         index
+    }
+
+    pub fn remove_node(&mut self, node: &ModuleId) {
+        if let Some(index) = self.index_of(node) {
+            self.graph.remove_node(index);
+            self.lookup.remove_by_left(node);
+        }
     }
 
     pub fn add_edge(&mut self, from: &ModuleId, to: &ModuleId) -> Result<EdgeIndex, ()> {
@@ -137,7 +144,7 @@ impl ImportGraph {
     ) -> HashSet<Cycle> {
         fn visit(
             _visited: &mut HashSet<ModuleId>,
-            graph: &ImportGraph,
+            graph: &Graph,
             chain: &[ModuleId],
             node: ModuleId,
         ) -> Vec<Cycle> {
@@ -188,7 +195,7 @@ impl ImportGraph {
     }
 }
 
-impl Default for ImportGraph {
+impl Default for Graph {
     fn default() -> Self {
         Self::new()
     }
@@ -196,12 +203,12 @@ impl Default for ImportGraph {
 
 #[cfg(test)]
 mod tests {
-    use super::{Cycle, ImportGraph};
+    use super::{Cycle, Graph};
     use lang::ModuleId;
     use std::collections::HashSet;
 
     #[allow(clippy::multiple_inherent_impl)]
-    impl ImportGraph {
+    impl Graph {
         pub fn from_nodes(nodes: &[ModuleId]) -> Self {
             let mut graph = Self::new();
 
@@ -227,7 +234,7 @@ mod tests {
 
     #[test]
     fn add_new_node() {
-        let mut graph = ImportGraph::new();
+        let mut graph = Graph::new();
 
         let index = graph.add_node(ModuleId(0));
 
@@ -241,7 +248,7 @@ mod tests {
 
     #[test]
     fn add_edge() {
-        let mut graph = ImportGraph::from_nodes(&[ModuleId(0), ModuleId(1)]);
+        let mut graph = Graph::from_nodes(&[ModuleId(0), ModuleId(1)]);
 
         graph.add_edge(&ModuleId(0), &ModuleId(1)).ok();
 
@@ -250,7 +257,7 @@ mod tests {
 
     #[test]
     fn add_existing_node() {
-        let mut graph = ImportGraph::from_nodes(&[ModuleId(0)]);
+        let mut graph = Graph::from_nodes(&[ModuleId(0)]);
 
         let index = graph.add_node(ModuleId(0));
 
@@ -264,7 +271,7 @@ mod tests {
 
     #[test]
     fn parents() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(2), ModuleId(1)),
             (ModuleId(3), ModuleId(1)),
@@ -278,7 +285,7 @@ mod tests {
 
     #[test]
     fn children() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(0), ModuleId(2)),
             (ModuleId(0), ModuleId(3)),
@@ -292,7 +299,7 @@ mod tests {
 
     #[test]
     fn is_cyclic_false() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(2), ModuleId(3)),
@@ -303,7 +310,7 @@ mod tests {
 
     #[test]
     fn is_cyclic_true() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(2), ModuleId(0)),
@@ -314,7 +321,7 @@ mod tests {
 
     #[test]
     fn cycles_with_none() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(2), ModuleId(0)),
@@ -326,7 +333,7 @@ mod tests {
 
     #[test]
     fn cycles_with_one() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(2), ModuleId(0)),
@@ -340,7 +347,7 @@ mod tests {
 
     #[test]
     fn cycles_with_multiple() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(2), ModuleId(0)),
@@ -362,7 +369,7 @@ mod tests {
 
     #[test]
     fn cycles_none() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(2), ModuleId(3)),
@@ -373,7 +380,7 @@ mod tests {
 
     #[test]
     fn cycles_one() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(2), ModuleId(0)),
@@ -387,7 +394,7 @@ mod tests {
 
     #[test]
     fn cycles_multiple() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(1), ModuleId(5)),

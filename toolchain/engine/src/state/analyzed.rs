@@ -1,12 +1,12 @@
 use super::{base::Base, IsVerbose, Linked, Module};
-use crate::{link::ImportGraph, report, Link};
+use crate::{graph::Graph, report, Link};
 use std::{
     collections::HashMap,
     ops::{Deref, DerefMut},
 };
 
 #[derive(Clone)]
-pub struct Analyzed(pub Base<lang::ast::typed::Meta>, pub ImportGraph);
+pub struct Analyzed(pub Base<lang::ast::typed::Meta>, pub Graph);
 
 impl Analyzed {
     pub fn new(state: Linked, modules: HashMap<Link, Module<lang::ast::typed::Meta>>) -> Self {

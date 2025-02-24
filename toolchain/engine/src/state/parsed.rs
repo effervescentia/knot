@@ -1,7 +1,7 @@
 use super::{base::Base, Ast, FromPaths, IsVerbose, Module};
-use crate::{link::ImportGraph, report, Context, ExecutionError, Link};
+use crate::{graph::Graph, report, Context, ExecutionError, Link};
 use kore::{color::Highlight, Incrementor};
-use lang::{Namespace, ModuleId};
+use lang::{ModuleId, Namespace};
 use std::{
     cell::RefCell,
     ops::{Deref, DerefMut},
@@ -20,15 +20,15 @@ impl Parsed {
         Rc::clone(&self.1)
     }
 
-    pub fn to_import_graph(&self) -> ImportGraph {
+    pub fn to_import_graph(&self) -> Graph {
         self.internal_modules()
-            .fold(ImportGraph::new(), |mut graph, (_, x)| {
+            .fold(Graph::new(), |mut graph, (_, x)| {
                 graph.add_node(x.id);
                 graph
             })
     }
 
-    pub fn link_modules<R>(&self, context: &mut Context<R>) -> crate::Internal<ImportGraph> {
+    pub fn link_modules<R>(&self, context: &mut Context<R>) -> crate::Internal<Graph> {
         self.internal_modules()
             .try_fold(self.to_import_graph(), |mut acc, (link, module)| {
                 let links = module.ast.to_links(link);

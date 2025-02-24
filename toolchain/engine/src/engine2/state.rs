@@ -1,4 +1,5 @@
 use super::{Context, Operation, Scope};
+use crate::graph::Graph;
 use bimap::BiMap;
 use kore::Incrementor;
 use lang::{ast, ModuleId};
@@ -35,43 +36,19 @@ pub struct Module {
 }
 
 #[derive(Debug, Default)]
-struct Dependencies {
-    depends_on: HashMap<ModuleId, HashSet<ModuleId>>,
-    dependency_of: HashMap<ModuleId, HashSet<ModuleId>>,
-}
+struct Dependencies(Graph);
 
-// TODO: replace this with an actual graph solution
 impl Dependencies {
-    pub fn add_link(&mut self, from: ModuleId, to: ModuleId) {
-        self.depends_on
-            .entry(from)
-            .and_modify(|x| {
-                x.insert(to);
-            })
-            .or_insert_with(|| HashSet::from([to]));
-
-        self.dependency_of
-            .entry(to)
-            .and_modify(|x| {
-                x.insert(from);
-            })
-            .or_insert_with(|| HashSet::from([from]));
+    pub fn add_dependency(&mut self, from: &ModuleId, to: &ModuleId) {
+        self.0.add_edge(from, to).unwrap();
     }
 
-    pub fn remove_module(&mut self, id: ModuleId) -> HashSet<ModuleId> {
-        let depends_on = self.depends_on.remove(&id).unwrap_or_default();
-
-        for dep in depends_on {
-            self.dependency_of.entry(dep).and_modify(|x| {
-                x.remove(&id);
-            });
-        }
-
-        self.dependency_of.remove(&id).unwrap_or_default()
+    pub fn remove_module(&mut self, id: &ModuleId) {
+        self.0.remove_node(id);
     }
 
-    pub fn get_dependents(&self, id: ModuleId) -> HashSet<ModuleId> {
-        self.dependency_of.get(&id).cloned().unwrap_or_default()
+    pub fn get_dependents(&self, id: &ModuleId) -> HashSet<ModuleId> {
+        self.0.parents(id).collect()
     }
 }
 
@@ -85,7 +62,7 @@ pub struct State<'a, Log> {
 
     namespace_id: Incrementor,
 
-    /// contains all dependencies based on the most recently parsed ASTs
+    /// represents the dependencies of all modules on each other
     dependencies: Dependencies,
 
     /// contains all module ID mappings (even for deleted modules)
@@ -105,8 +82,8 @@ impl<'a, Log> State<'a, Log> {
             scope: scope.clone(),
             namespace_id: Incrementor::default(),
             dependencies: Dependencies::default(),
-            module_to_path: BiMap::new(),
-            modules: HashMap::new(),
+            module_to_path: BiMap::default(),
+            modules: HashMap::default(),
         };
 
         for path in scope {
@@ -155,9 +132,9 @@ impl<'a, Log> State<'a, Log> {
             })
     }
 
-    fn purge_module_by_id(&mut self, id: ModuleId) {
+    fn purge_module_by_id(&mut self, id: &ModuleId) {
         self.dependencies.remove_module(id);
-        self.modules.remove(&id);
+        self.modules.remove(id);
     }
 
     fn set_status_by_id(&mut self, id: ModuleId, status: Status) {
@@ -167,7 +144,7 @@ impl<'a, Log> State<'a, Log> {
     }
 
     fn evict_module_by_id(&mut self, id: ModuleId) -> HashSet<ModuleId> {
-        let tainted = self.dependencies.get_dependents(id);
+        let tainted = self.dependencies.get_dependents(&id);
 
         self.set_status_by_id(id, Status::Evicted);
 
@@ -203,7 +180,7 @@ impl<'a, Log> State<'a, Log> {
             .collect::<Vec<_>>();
 
         for id in to_purge {
-            self.purge_module_by_id(id);
+            self.purge_module_by_id(&id);
         }
     }
 

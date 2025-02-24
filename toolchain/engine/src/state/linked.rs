@@ -1,13 +1,13 @@
 use super::{base::Base, IsVerbose, Parsed};
-use crate::{link::ImportGraph, report};
+use crate::{graph::Graph, report};
 use lang::ModuleId;
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone)]
-pub struct Linked(pub Base<()>, pub ImportGraph);
+pub struct Linked(pub Base<()>, pub Graph);
 
 impl Linked {
-    pub fn new(state: Parsed, graph: ImportGraph) -> Self {
+    pub fn new(state: Parsed, graph: Graph) -> Self {
         Self(state.0, graph)
     }
 

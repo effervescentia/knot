@@ -1,16 +1,16 @@
-use super::ImportGraph;
+use super::Graph;
 use kore::{invariant, str};
 use lang::ModuleId;
 use std::{
     collections::HashSet,
-    fmt::{Display, Formatter, Write},
+    fmt::{self, Formatter, Write},
 };
 
 const GAP: usize = 1;
 
-impl Display for ImportGraph {
+impl fmt::Display for Graph {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        Graph::from_import_graph(self).fmt(f)
+        Display::from_graph(self).fmt(f)
     }
 }
 
@@ -28,7 +28,7 @@ impl Node {
     }
 }
 
-impl Display for Node {
+impl fmt::Display for Node {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         f.write_str(&self.value)
     }
@@ -49,11 +49,7 @@ impl Tree {
         }
     }
 
-    fn from_graph(
-        root: ModuleId,
-        graph: &ImportGraph,
-        visited: &mut HashSet<ModuleId>,
-    ) -> Self {
+    fn from_graph(root: ModuleId, graph: &Graph, visited: &mut HashSet<ModuleId>) -> Self {
         if visited.contains(&root) {
             return Self::from_root(format!("cycle({root})"));
         }
@@ -133,24 +129,24 @@ impl Tree {
     }
 }
 
-struct Graph {
+struct Display {
     trees: Vec<Tree>,
 }
 
-impl Graph {
-    fn from_import_graph(import_graph: &ImportGraph) -> Self {
+impl Display {
+    fn from_graph(graph: &Graph) -> Self {
         // nodes that don't have any parents
-        let mut roots = import_graph.roots().collect::<Vec<_>>();
+        let mut roots = graph.roots().collect::<Vec<_>>();
         let mut visited = HashSet::new();
 
         // the entire graph is empty or a cycle
         if roots.is_empty() {
-            roots = import_graph.graph.node_weights().copied().collect();
+            roots = graph.graph.node_weights().copied().collect();
         }
 
         let trees = roots
             .iter()
-            .map(|x| Tree::from_graph(*x, import_graph, &mut visited))
+            .map(|x| Tree::from_graph(*x, graph, &mut visited))
             .collect::<Vec<_>>();
 
         Self { trees }
@@ -161,7 +157,7 @@ impl Graph {
     }
 }
 
-impl Display for Graph {
+impl fmt::Display for Display {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         self.to_block().fmt(f)
     }
@@ -205,7 +201,7 @@ impl Row {
     }
 }
 
-impl Display for Row {
+impl fmt::Display for Row {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         for x in &self.segments {
             f.write_str(x)?;
@@ -302,7 +298,7 @@ impl Block {
     }
 }
 
-impl Display for Block {
+impl fmt::Display for Block {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         self.rows
             .iter()
@@ -312,20 +308,20 @@ impl Display for Block {
 
 #[cfg(test)]
 mod tests {
-    use super::ImportGraph;
+    use super::Graph;
     use kore::{assert_str_eq, str};
     use lang::ModuleId;
 
     #[test]
     fn empty() {
-        let graph = ImportGraph::from_nodes(&[]);
+        let graph = Graph::from_nodes(&[]);
 
         assert_str_eq!(graph.to_string(), "");
     }
 
     #[test]
     fn roots() {
-        let graph = ImportGraph::from_nodes(&[ModuleId(0), ModuleId(1), ModuleId(2)]);
+        let graph = Graph::from_nodes(&[ModuleId(0), ModuleId(1), ModuleId(2)]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -336,7 +332,7 @@ mod tests {
 
     #[test]
     fn deep() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(2), ModuleId(3)),
@@ -357,10 +353,7 @@ mod tests {
 
     #[test]
     fn branching() {
-        let graph = ImportGraph::from_edges(&[
-            (ModuleId(0), ModuleId(1)),
-            (ModuleId(0), ModuleId(2)),
-        ]);
+        let graph = Graph::from_edges(&[(ModuleId(0), ModuleId(1)), (ModuleId(0), ModuleId(2))]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -374,7 +367,7 @@ mod tests {
 
     #[test]
     fn wide() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(0), ModuleId(2)),
             (ModuleId(0), ModuleId(3)),
@@ -395,7 +388,7 @@ mod tests {
 
     #[test]
     fn cyclic() {
-        let graph = ImportGraph::from_edges(&[
+        let graph = Graph::from_edges(&[
             (ModuleId(0), ModuleId(1)),
             (ModuleId(1), ModuleId(2)),
             (ModuleId(1), ModuleId(6)),

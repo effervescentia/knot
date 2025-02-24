@@ -1,6 +1,3 @@
-mod import_graph;
-
-pub use import_graph::ImportGraph;
 use kore::internal::Library;
 use lang::{ast, Namespace};
 use std::{
