@@ -47,7 +47,7 @@ where
             .iter()
             .map(|id| {
                 let module = state.get_module(id).unwrap();
-                let Ast::Program(ast) = &module.ast;
+                let Ast::Program(ast) = &module.raw;
 
                 let (out_path, out_data) = self.1.generate(&module.path, ast.clone().to_shape());
 

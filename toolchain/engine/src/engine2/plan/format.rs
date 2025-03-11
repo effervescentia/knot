@@ -38,7 +38,7 @@ where
             .map(|id| {
                 let module = state.get_module(id).unwrap();
 
-                (module.path.clone(), module.ast.to_string())
+                (module.path.clone(), module.raw.to_string())
             })
             .collect();
 

@@ -91,8 +91,8 @@ mod tests {
         assert_eq!(module.id, ModuleId(0));
         assert_eq!(module.path, PathBuf::from("main.kn"));
         assert_eq!(module.text, str!(""));
-        assert_eq!(module.status, Status::Pending);
-        insta::assert_debug_snapshot!(module.ast);
+        assert_eq!(module.status, Status::Active);
+        insta::assert_debug_snapshot!(module.raw);
     }
 
     #[test]
@@ -118,8 +118,8 @@ mod tests {
         assert_eq!(module.id, ModuleId(0));
         assert_eq!(module.path, PathBuf::from("main.kn"));
         assert_eq!(module.text, str!("const FOO = 123;"));
-        assert_eq!(module.status, Status::Pending);
-        insta::assert_debug_snapshot!(module.ast);
+        assert_eq!(module.status, Status::Active);
+        insta::assert_debug_snapshot!(module.raw);
     }
 
     #[test]
@@ -156,23 +156,23 @@ mod tests {
         assert_eq!(bar.id, ModuleId(0));
         assert_eq!(bar.path, PathBuf::from("bar/bar.kn"));
         assert_eq!(bar.text, str!("const BAR = 456;"));
-        assert_eq!(bar.status, Status::Pending);
-        insta::assert_debug_snapshot!(bar.ast);
+        assert_eq!(bar.status, Status::Active);
+        insta::assert_debug_snapshot!(bar.raw);
 
         let foo = state.get_module(&ModuleId(1)).unwrap();
 
         assert_eq!(foo.id, ModuleId(1));
         assert_eq!(foo.path, PathBuf::from("foo/foo.kn"));
         assert_eq!(foo.text, str!("const FOO = 123;"));
-        assert_eq!(foo.status, Status::Pending);
-        insta::assert_debug_snapshot!(foo.ast);
+        assert_eq!(foo.status, Status::Active);
+        insta::assert_debug_snapshot!(foo.raw);
 
         let main = state.get_module(&ModuleId(2)).unwrap();
 
         assert_eq!(main.id, ModuleId(2));
         assert_eq!(main.path, PathBuf::from("main.kn"));
         assert_eq!(main.text, str!("const ROOT = true;"));
-        assert_eq!(main.status, Status::Pending);
-        insta::assert_debug_snapshot!(main.ast);
+        assert_eq!(main.status, Status::Active);
+        insta::assert_debug_snapshot!(main.raw);
     }
 }

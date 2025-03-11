@@ -37,7 +37,7 @@ where
 
         for id in &ids {
             if let Some(module) = state.get_module(id) {
-                let dependencies = module.ast.get_dependencies(&module.path);
+                let dependencies = module.raw.get_dependencies(&module.path);
 
                 for dependency_path in &dependencies {
                     if let Some(dependency_id) = state.identify_path(dependency_path) {

@@ -12,13 +12,10 @@ use std::{
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Status {
-    /// being processed for the first time
-    Pending,
-
-    /// completely processed and available for use
+    /// all available data can be used
     Active,
 
-    /// must be re-analyzed before it can be used
+    /// must be re-analyzed before the typed AST can be used
     Stale,
 
     /// must be re-loaded and processed before it can be used
@@ -29,11 +26,11 @@ pub enum Status {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Ast {
-    Program(ast::raw::Program),
+pub enum Ast<Meta> {
+    Program(ast::meta::Program<Meta>),
 }
 
-impl Ast {
+impl<Meta> Ast<Meta> {
     pub fn get_dependencies<T>(&self, relative_to: T) -> Vec<PathBuf>
     where
         T: AsRef<Path>,
@@ -44,7 +41,10 @@ impl Ast {
     }
 }
 
-impl Display for Ast {
+impl<Meta> Display for Ast<Meta>
+where
+    Meta: Clone,
+{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Program(ast) => ast.fmt(f),
@@ -57,7 +57,8 @@ pub struct Module {
     pub id: ModuleId,
     pub path: PathBuf,
     pub text: String,
-    pub ast: Ast,
+    pub raw: Ast<()>,
+    pub typed: Option<Ast<ast::typed::Meta>>,
     pub status: Status,
 }
 
@@ -263,8 +264,9 @@ impl<'a, Log> State<'a, Log> {
                 id,
                 path,
                 text,
-                ast: Ast::Program(ast),
-                status: Status::Pending,
+                raw: Ast::Program(ast),
+                typed: None,
+                status: Status::Active,
             },
         );
     }
@@ -315,7 +317,8 @@ impl<'a, Log> State<'a, Log> {
                 id,
                 path: path.as_ref().to_path_buf(),
                 text: text.as_ref().to_owned(),
-                ast: Ast::Program(ast),
+                raw: Ast::Program(ast),
+                typed: None,
                 status,
             },
         );
