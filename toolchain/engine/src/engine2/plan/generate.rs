@@ -1,5 +1,8 @@
 use super::{write::Output, Parsed};
-use crate::engine2::{pipeline::Transform, state::State};
+use crate::engine2::{
+    pipeline::Transform,
+    state::{Ast, State},
+};
 use kore::internal;
 use lang::ast;
 use std::path::PathBuf;
@@ -44,8 +47,9 @@ where
             .iter()
             .map(|id| {
                 let module = state.get_module(id).unwrap();
-                let (out_path, out_data) =
-                    self.1.generate(&module.path, module.ast.clone().to_shape());
+                let Ast::Program(ast) = &module.ast;
+
+                let (out_path, out_data) = self.1.generate(&module.path, ast.clone().to_shape());
 
                 (out_path, out_data.to_string())
             })

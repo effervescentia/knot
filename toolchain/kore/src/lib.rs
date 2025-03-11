@@ -6,6 +6,7 @@ mod incrementor;
 pub mod internal;
 pub mod pretty;
 mod string;
+pub mod uniqueue;
 
 pub use incrementor::Incrementor;
 #[cfg(feature = "test")]

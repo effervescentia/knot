@@ -12,7 +12,7 @@ pub use logger::{Logger, NoopLogger};
 pub use pipeline::Peek;
 use pipeline::{Execute, Identity, Transform};
 pub use plan::{Analyzed, Linked, Parsed};
-use state::State;
+pub use state::State;
 use std::path::{Path, PathBuf};
 
 /*

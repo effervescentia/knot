@@ -1,4 +1,4 @@
-use crate::{graph::Graph, state, Context, ExecutionError};
+use crate::{engine2, graph::Graph, state, Context, ExecutionError};
 use kore::invariant;
 
 type Result = Option<Vec<ExecutionError>>;
@@ -38,6 +38,33 @@ impl<R> Validator<'_, R> {
                         .collect(),
                 )
             })
+            .collect::<Vec<_>>();
+
+        if errors.is_empty() {
+            None
+        } else {
+            Some(errors)
+        }
+    }
+}
+
+pub struct Validator2;
+
+impl Validator2 {
+    pub fn validate<Log>(self, state: &engine2::State<Log>) {
+        Self::assert_no_import_cycles(state);
+    }
+
+    fn assert_no_import_cycles<Log>(state: &engine2::State<Log>) -> Result {
+        let graph = state.graph();
+        if !graph.is_cyclic() {
+            return None;
+        }
+
+        let errors = graph
+            .cycles()
+            .into_iter()
+            .map(|x| panic!("dependency cycle found {x:?}"))
             .collect::<Vec<_>>();
 
         if errors.is_empty() {

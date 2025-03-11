@@ -3,23 +3,25 @@ source: toolchain/engine/src/engine2/plan/parse.rs
 expression: module.ast
 ---
 Program(
-    Module(
-        Node(
-            Module {
-                imports: [],
-                declarations: [],
-            },
-            Range(
-                Point(
-                    1,
-                    1,
+    Program(
+        Module(
+            Node(
+                Module {
+                    imports: [],
+                    declarations: [],
+                },
+                Range(
+                    Point(
+                        1,
+                        1,
+                    ),
+                    Point(
+                        1,
+                        1,
+                    ),
                 ),
-                Point(
-                    1,
-                    1,
-                ),
+                (),
             ),
-            (),
         ),
     ),
 )

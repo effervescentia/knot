@@ -1,6 +1,10 @@
 use crate::engine2::{pipeline::Transform, State};
+use kore::uniqueue::Uniqueue;
 use lang::{ast, ModuleId};
-use std::{collections::HashSet, fs, path::Path};
+use std::{
+    collections::HashSet,
+    path::{Path, PathBuf},
+};
 
 pub struct Parsed(pub HashSet<ModuleId>);
 
@@ -16,15 +20,11 @@ impl<Tx> Parse<Tx> {
         |tx| Self(tx, options)
     }
 
-    fn load_and_parse_module<T>(path: T) -> (String, ast::raw::Program)
-    where
-        T: AsRef<Path>,
-    {
-        let text = fs::read_to_string(path).unwrap();
-
-        let (ast, _) = parse::program::parse(&text).unwrap();
-
-        (text, ast)
+    fn extract_dependencies(&self, ast: &ast::raw::Program, relative_to: &Path) -> Vec<PathBuf> {
+        self.1
+            .follow_imports
+            .then(|| ast.get_dependencies(relative_to))
+            .unwrap_or_default()
     }
 }
 
@@ -39,29 +39,21 @@ where
     fn apply(&self, input: Self::In) -> Self::Out {
         let (mut state, ()) = self.0.apply(input);
 
-        let parsed = state
-            .scope
-            .clone()
-            .into_iter()
-            .map(|path| {
-                let id = state.identify_path(&path).unwrap();
-                let absolute = state.get_absolute_path(&path);
-                let (text, ast) = Self::load_and_parse_module(absolute);
+        let mut queue = Uniqueue::from(state.scope.clone());
+        let mut parsed = HashSet::new();
 
-                state.upsert_module(id, path, text, ast);
+        while let Some(path) = queue.pop() {
+            let id = state.identify_path(&path).unwrap();
+            let (text, ast) = state.load_and_parse_module(&path);
+            let dependencies = self.extract_dependencies(&ast, &path);
 
-                if self.1.follow_imports {
-                    // TODO: walk and queue imported modules
-                    // for link in ast.to_links(&link) {
-                    //     if !parsed.has_by_link(&link) && !link.is_library() {
-                    //         visitor.queue(link);
-                    //     }
-                    // }
-                }
+            state.upsert_module(id, path, text, ast);
+            parsed.insert(id);
 
-                id
-            })
-            .collect();
+            for dependency in dependencies {
+                queue.push(dependency);
+            }
+        }
 
         (state, Parsed(parsed))
     }

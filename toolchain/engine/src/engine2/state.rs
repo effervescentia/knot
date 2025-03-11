@@ -5,6 +5,8 @@ use kore::Incrementor;
 use lang::{ast, ModuleId};
 use std::{
     collections::{HashMap, HashSet},
+    fmt::{Display, Formatter},
+    fs,
     path::{Path, PathBuf},
 };
 
@@ -27,11 +29,35 @@ pub enum Status {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum Ast {
+    Program(ast::raw::Program),
+}
+
+impl Ast {
+    pub fn get_dependencies<T>(&self, relative_to: T) -> Vec<PathBuf>
+    where
+        T: AsRef<Path>,
+    {
+        let Self::Program(program) = self;
+
+        program.get_dependencies(relative_to)
+    }
+}
+
+impl Display for Ast {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Program(ast) => ast.fmt(f),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Module {
     pub id: ModuleId,
     pub path: PathBuf,
     pub text: String,
-    pub ast: ast::raw::Program,
+    pub ast: Ast,
     pub status: Status,
 }
 
@@ -74,6 +100,10 @@ pub struct State<'a, Log> {
 impl<'a, Log> State<'a, Log> {
     pub const fn log(&self) -> &Log {
         &self.context.logger
+    }
+
+    pub const fn graph(&self) -> &Graph {
+        &self.dependencies.0
     }
 
     pub fn new(context: &'a Context<Log>, scope: Scope) -> Self {
@@ -233,7 +263,7 @@ impl<'a, Log> State<'a, Log> {
                 id,
                 path,
                 text,
-                ast,
+                ast: Ast::Program(ast),
                 status: Status::Pending,
             },
         );
@@ -248,6 +278,22 @@ impl<'a, Log> State<'a, Log> {
         T: AsRef<Path>,
     {
         self.context.root_dir.join(path.as_ref())
+    }
+
+    pub fn add_dependency(&mut self, from: &ModuleId, to: &ModuleId) {
+        self.dependencies.add_dependency(from, to);
+    }
+
+    pub fn load_and_parse_module<T>(&self, path: T) -> (String, ast::raw::Program)
+    where
+        T: AsRef<Path>,
+    {
+        let absolute = self.get_absolute_path(path.as_ref());
+        let text = fs::read_to_string(absolute).unwrap();
+
+        let (ast, _) = parse::program::parse(&text).unwrap();
+
+        (text, ast)
     }
 
     #[cfg(test)]
@@ -269,7 +315,7 @@ impl<'a, Log> State<'a, Log> {
                 id,
                 path: path.as_ref().to_path_buf(),
                 text: text.as_ref().to_owned(),
-                ast,
+                ast: Ast::Program(ast),
                 status,
             },
         );

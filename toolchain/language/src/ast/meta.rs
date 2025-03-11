@@ -3,7 +3,10 @@ use crate::{
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     Node, Range,
 };
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    path::{Path, PathBuf},
+};
 
 /* binding */
 
@@ -376,6 +379,20 @@ impl<Meta> Program<Meta> {
         let Self(Module(Node(super::Module { imports, .. }, ..), ..)) = self;
 
         imports
+    }
+
+    pub fn get_dependencies<T>(&self, relative_to: T) -> Vec<PathBuf>
+    where
+        T: AsRef<Path>,
+    {
+        self.imports()
+            .iter()
+            .map(|x| {
+                let import = x.0.value();
+
+                import.to_path(&relative_to)
+            })
+            .collect()
     }
 
     pub fn to_shape(self) -> shape::Program {

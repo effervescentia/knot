@@ -444,7 +444,7 @@ where
                 .internal_modules()
                 .filter_map(|(key, state::Module { ast, .. })| {
                     if let state::Ast::Program(program) = ast {
-                        Some(generator.generate(&key.to_path(), program.clone().to_shape()))
+                        Some(generator.generate(key.to_path(), program.clone().to_shape()))
                     } else {
                         None
                     }

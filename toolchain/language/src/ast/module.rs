@@ -1,5 +1,8 @@
 use crate::walk::{CommonVisitor, ProgramVisitor, Walk, WalkEach};
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    path::{Path, PathBuf},
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ImportSource {
@@ -22,6 +25,21 @@ impl Import {
             source,
             path,
             alias,
+        }
+    }
+
+    pub fn to_path<T>(&self, relative_to: T) -> PathBuf
+    where
+        T: AsRef<Path>,
+    {
+        let path: PathBuf = self.path.join("/").into();
+
+        match self.source {
+            ImportSource::Root => path.with_extension("kn"),
+
+            ImportSource::Local => relative_to.as_ref().join(path).with_extension("kn"),
+
+            ImportSource::Named(_) | ImportSource::Scoped { .. } => todo!(),
         }
     }
 }

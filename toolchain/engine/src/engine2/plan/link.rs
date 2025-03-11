@@ -1,5 +1,8 @@
 use super::parse::Parsed;
-use crate::engine2::{pipeline::Transform, state::State};
+use crate::{
+    engine2::{pipeline::Transform, state::State},
+    validate::Validator2,
+};
 use lang::ModuleId;
 use std::collections::HashSet;
 
@@ -29,14 +32,24 @@ where
     type Out = (State<'a, Log>, Linked);
 
     fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, result) = self.0.apply(input);
+        let (mut state, result) = self.0.apply(input);
         let Parsed(ids) = result.into();
 
-        // let linked = state.link_modules(context)?;
+        for id in &ids {
+            if let Some(module) = state.get_module(id) {
+                let dependencies = module.ast.get_dependencies(&module.path);
 
-        // Validator(context).validate(&state, &linked)?;
+                for dependency_path in &dependencies {
+                    if let Some(dependency_id) = state.identify_path(dependency_path) {
+                        state.add_dependency(id, &dependency_id);
+                    } else {
+                        panic!("replace this with an actual error");
+                    }
+                }
+            }
+        }
 
-        // Ok(state::Linked::new(state, linked));
+        Validator2.validate(&state);
 
         (state, Linked(ids))
     }
