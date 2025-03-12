@@ -43,7 +43,7 @@ where
         let mut parsed = HashSet::new();
 
         while let Some(path) = queue.pop() {
-            let id = state.identify_path(&path).unwrap();
+            let id = state.registry.upsert(&path);
             let (text, ast) = state.load_and_parse_module(&path);
             let dependencies = self.extract_dependencies(&ast, &path);
 
@@ -123,7 +123,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_multiple_files() {
+    fn parse_multiple_files_from_glob() {
         let root_dir = TempDir::new().unwrap();
 
         root_dir
@@ -174,5 +174,59 @@ mod tests {
         assert_eq!(main.text, str!("const ROOT = true;"));
         assert_eq!(main.status, Status::Active);
         insta::assert_debug_snapshot!(main.raw);
+    }
+
+    #[test]
+    fn parse_multiple_files_from_entrypoint() {
+        let root_dir = TempDir::new().unwrap();
+
+        root_dir
+            .child("main.kn")
+            .write_str("use @/foo/foo;")
+            .unwrap();
+        root_dir
+            .child("foo/foo.kn")
+            .write_str("use ./bar;")
+            .unwrap();
+        root_dir
+            .child("foo/bar.kn")
+            .write_str("const BAR = 456;")
+            .unwrap();
+
+        let context = Context::new(&root_dir, false);
+        let engine = Engine::new(context);
+        let input = Input::from_entry("main.kn", []);
+        let plan = Engine::plan().parse_and_traverse();
+
+        let (state, Parsed(parsed)) = engine.execute(&plan, &input);
+
+        assert_eq!(
+            parsed,
+            HashSet::from([ModuleId(0), ModuleId(1), ModuleId(2)])
+        );
+
+        let main = state.get_module(&ModuleId(0)).unwrap();
+
+        assert_eq!(main.id, ModuleId(0));
+        assert_eq!(main.path, PathBuf::from("main.kn"));
+        assert_eq!(main.text, str!("use @/foo/foo;"));
+        assert_eq!(main.status, Status::Active);
+        insta::assert_debug_snapshot!(main.raw);
+
+        let foo = state.get_module(&ModuleId(1)).unwrap();
+
+        assert_eq!(foo.id, ModuleId(1));
+        assert_eq!(foo.path, PathBuf::from("foo/foo.kn"));
+        assert_eq!(foo.text, str!("use ./bar;"));
+        assert_eq!(foo.status, Status::Active);
+        insta::assert_debug_snapshot!(foo.raw);
+
+        let bar = state.get_module(&ModuleId(2)).unwrap();
+
+        assert_eq!(bar.id, ModuleId(2));
+        assert_eq!(bar.path, PathBuf::from("foo/bar.kn"));
+        assert_eq!(bar.text, str!("const BAR = 456;"));
+        assert_eq!(bar.status, Status::Active);
+        insta::assert_debug_snapshot!(bar.raw);
     }
 }

@@ -79,6 +79,41 @@ impl Dependencies {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct Registry {
+    incrementor: Incrementor,
+    lookup: BiMap<ModuleId, PathBuf>,
+}
+
+impl Registry {
+    pub fn upsert<T>(&mut self, path: T) -> ModuleId
+    where
+        T: AsRef<Path>,
+    {
+        self.get_id(&path).unwrap_or_else(|| {
+            let id = ModuleId(self.incrementor.increment());
+
+            self.lookup.insert(id, path.as_ref().to_path_buf());
+
+            id
+        })
+    }
+
+    pub fn get_id<T>(&self, path: T) -> Option<ModuleId>
+    where
+        T: AsRef<Path>,
+    {
+        self.lookup.get_by_right(path.as_ref()).copied()
+    }
+
+    pub fn get_path<T>(&self, id: T) -> Option<PathBuf>
+    where
+        T: AsRef<ModuleId>,
+    {
+        self.lookup.get_by_left(id.as_ref()).cloned()
+    }
+}
+
 #[derive(Debug)]
 pub struct State<'a, Log> {
     /// context of the engine that created this state
@@ -87,13 +122,10 @@ pub struct State<'a, Log> {
     /// scope of the plan that is operating on this state
     pub scope: Scope,
 
-    namespace_id: Incrementor,
+    pub registry: Registry,
 
     /// represents the dependencies of all modules on each other
     dependencies: Dependencies,
-
-    /// contains all module ID mappings (even for deleted modules)
-    module_to_path: BiMap<ModuleId, PathBuf>,
 
     modules: HashMap<ModuleId, Module>,
 }
@@ -111,47 +143,24 @@ impl<'a, Log> State<'a, Log> {
         let mut state = Self {
             context,
             scope: scope.clone(),
-            namespace_id: Incrementor::default(),
             dependencies: Dependencies::default(),
-            module_to_path: BiMap::default(),
+            registry: Registry::default(),
             modules: HashMap::default(),
         };
 
         for path in scope {
-            state.register_id(path.clone());
+            state.registry.upsert(path.clone());
         }
 
         state
     }
 
-    #[cfg(test)]
-    pub fn mock(context: &'a Context<Log>) -> Self {
-        Self::new(context, vec![])
-    }
-
-    fn register_id<T>(&mut self, path: T) -> ModuleId
+    fn identify_live_path<T>(&self, path: T) -> Option<ModuleId>
     where
         T: AsRef<Path>,
     {
-        let id = ModuleId(self.namespace_id.increment());
-
-        self.module_to_path.insert(id, path.as_ref().to_path_buf());
-
-        id
-    }
-
-    pub fn identify_path<T>(&self, path: T) -> Option<ModuleId>
-    where
-        T: AsRef<Path>,
-    {
-        self.module_to_path.get_by_right(path.as_ref()).copied()
-    }
-
-    pub fn identify_live_path<T>(&self, path: T) -> Option<ModuleId>
-    where
-        T: AsRef<Path>,
-    {
-        self.identify_path(path)
+        self.registry
+            .get_id(path)
             .and_then(|id| match self.modules.get(&id) {
                 Some(Module {
                     status: Status::Evicted,
@@ -223,7 +232,7 @@ impl<'a, Log> State<'a, Log> {
             .as_ref()
             .iter()
             .flat_map(|(path, op)| match op {
-                Operation::Create => HashSet::from([self.register_id(path)]),
+                Operation::Create => HashSet::from([self.registry.upsert(path)]),
 
                 Operation::Update => self
                     .taint_module_by_path(path)
@@ -245,7 +254,7 @@ impl<'a, Log> State<'a, Log> {
 
         self.scope = tainted
             .into_iter()
-            .filter_map(|id| self.module_to_path.get_by_left(&id).cloned())
+            .filter_map(|id| self.registry.get_path(id))
             .collect();
 
         self
@@ -299,6 +308,11 @@ impl<'a, Log> State<'a, Log> {
     }
 
     #[cfg(test)]
+    pub fn mock(context: &'a Context<Log>) -> Self {
+        Self::new(context, vec![])
+    }
+
+    #[cfg(test)]
     pub fn create_module<T, U>(
         &mut self,
         path: T,
@@ -310,7 +324,8 @@ impl<'a, Log> State<'a, Log> {
         T: AsRef<Path>,
         U: AsRef<str>,
     {
-        let id = self.register_id(&path);
+        let id = self.registry.upsert(&path);
+
         self.modules.insert(
             id,
             Module {

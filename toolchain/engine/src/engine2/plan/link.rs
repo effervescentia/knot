@@ -39,8 +39,8 @@ where
             if let Some(module) = state.get_module(id) {
                 let dependencies = module.raw.get_dependencies(&module.path);
 
-                for dependency_path in &dependencies {
-                    if let Some(dependency_id) = state.identify_path(dependency_path) {
+                for dependency in &dependencies {
+                    if let Some(dependency_id) = state.registry.get_id(dependency) {
                         state.add_dependency(id, &dependency_id);
                     } else {
                         panic!("replace this with an actual error");

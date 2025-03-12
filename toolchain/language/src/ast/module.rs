@@ -37,7 +37,13 @@ impl Import {
         match self.source {
             ImportSource::Root => path.with_extension("kn"),
 
-            ImportSource::Local => relative_to.as_ref().join(path).with_extension("kn"),
+            ImportSource::Local => {
+                if let Some(base_dir) = relative_to.as_ref().parent() {
+                    base_dir.join(path).with_extension("kn")
+                } else {
+                    path.with_extension("kn")
+                }
+            }
 
             ImportSource::Named(_) | ImportSource::Scoped { .. } => todo!(),
         }

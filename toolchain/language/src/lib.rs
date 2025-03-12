@@ -29,6 +29,12 @@ impl Display for ModuleId {
     }
 }
 
+impl AsRef<Self> for ModuleId {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct NodeId(pub usize);
 
