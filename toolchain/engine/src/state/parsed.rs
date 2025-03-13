@@ -23,7 +23,7 @@ impl Parsed {
     pub fn to_import_graph(&self) -> Graph {
         self.internal_modules()
             .fold(Graph::new(), |mut graph, (_, x)| {
-                graph.add_node(x.id);
+                graph.upsert_node(x.id);
                 graph
             })
     }

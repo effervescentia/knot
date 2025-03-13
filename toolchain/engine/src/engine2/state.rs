@@ -67,6 +67,8 @@ struct Dependencies(Graph);
 
 impl Dependencies {
     pub fn add_dependency(&mut self, from: &ModuleId, to: &ModuleId) {
+        self.0.upsert_node(*from);
+        self.0.upsert_node(*to);
         self.0.add_edge(from, to).unwrap();
     }
 

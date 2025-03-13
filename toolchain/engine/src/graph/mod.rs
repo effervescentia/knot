@@ -6,7 +6,7 @@ use lang::ModuleId;
 use petgraph::{
     algo::is_cyclic_directed,
     stable_graph::{EdgeIndex, NodeIndex, StableDiGraph},
-    visit::{Reversed, Topo, Walker},
+    visit::{EdgeRef, IntoEdgeReferences, Reversed, Topo, Walker},
     Direction,
 };
 use std::{collections::HashSet, hash::Hash, iter::empty};
@@ -75,7 +75,7 @@ impl Graph {
             .unwrap_or_else(|| invariant!("node with index {index:?} not found in the lookup"))
     }
 
-    pub fn add_node(&mut self, node: ModuleId) -> NodeIndex {
+    pub fn upsert_node(&mut self, node: ModuleId) -> NodeIndex {
         if let Some(index) = self.index_of(&node) {
             return index;
         }
@@ -131,6 +131,15 @@ impl Graph {
 
     pub fn children<'a>(&'a self, node: &'a ModuleId) -> impl Iterator<Item = ModuleId> + 'a {
         self.neighbors(node, Direction::Outgoing)
+    }
+
+    pub fn edges(&self) -> impl Iterator<Item = (ModuleId, ModuleId)> + '_ {
+        self.graph.edge_references().filter_map(|x| {
+            Some((
+                *self.lookup.get_by_right(&x.source())?,
+                *self.lookup.get_by_right(&x.target())?,
+            ))
+        })
     }
 
     pub fn is_cyclic(&self) -> bool {
@@ -213,7 +222,7 @@ mod tests {
             let mut graph = Self::new();
 
             for x in nodes {
-                graph.add_node(*x);
+                graph.upsert_node(*x);
             }
 
             graph
@@ -223,8 +232,8 @@ mod tests {
             let mut graph = Self::new();
 
             for (from, to) in edges {
-                graph.add_node(*from);
-                graph.add_node(*to);
+                graph.upsert_node(*from);
+                graph.upsert_node(*to);
                 graph.add_edge(from, to).ok();
             }
 
@@ -236,7 +245,7 @@ mod tests {
     fn add_new_node() {
         let mut graph = Graph::new();
 
-        let index = graph.add_node(ModuleId(0));
+        let index = graph.upsert_node(ModuleId(0));
 
         assert_eq!(index.index(), 0);
         assert_eq!(
@@ -259,7 +268,7 @@ mod tests {
     fn add_existing_node() {
         let mut graph = Graph::from_nodes(&[ModuleId(0)]);
 
-        let index = graph.add_node(ModuleId(0));
+        let index = graph.upsert_node(ModuleId(0));
 
         assert_eq!(index.index(), 0);
         assert_eq!(

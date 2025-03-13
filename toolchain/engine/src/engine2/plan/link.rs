@@ -46,11 +46,80 @@ where
                         panic!("replace this with an actual error");
                     }
                 }
+            } else {
+                panic!("replace this with an actual error");
             }
         }
 
         Validator2.validate(&state);
 
         (state, Linked(ids))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::engine2::{input::Input, Context, Engine, Linked};
+    use assert_fs::{
+        prelude::{FileWriteStr, PathChild},
+        TempDir,
+    };
+    use kore::assert_eq;
+    use lang::ModuleId;
+    use std::collections::HashSet;
+
+    #[test]
+    fn link_one_file() {
+        let root_dir = TempDir::new().unwrap();
+
+        root_dir
+            .child("main.kn")
+            .write_str("const FOO = 123;")
+            .unwrap();
+
+        let context = Context::new(&root_dir, false);
+        let engine = Engine::new(context);
+        let input = Input::from_entry("main.kn", []);
+        let plan = Engine::plan().parse().link();
+
+        let (state, Linked(linked)) = engine.execute(&plan, &input);
+
+        let id = ModuleId(0);
+        assert_eq!(linked, HashSet::from([id]));
+        assert_eq!(state.graph().edges().count(), 0);
+    }
+
+    #[test]
+    fn link_multiple_files_from_glob() {
+        let root_dir = TempDir::new().unwrap();
+
+        root_dir
+            .child("main.kn")
+            .write_str("use @/foo/foo;")
+            .unwrap();
+        root_dir
+            .child("foo/foo.kn")
+            .write_str("use ./bar;")
+            .unwrap();
+        root_dir
+            .child("foo/bar.kn")
+            .write_str("const BAR = 456;")
+            .unwrap();
+
+        let context = Context::new(&root_dir, false);
+        let engine = Engine::new(context);
+        let input = Input::from_entry("main.kn", []);
+        let plan = Engine::plan().parse_and_traverse().link();
+
+        let (state, Linked(linked)) = engine.execute(&plan, &input);
+
+        let main_id = ModuleId(0);
+        let foo_id = ModuleId(1);
+        let bar_id = ModuleId(2);
+        assert_eq!(linked, HashSet::from([main_id, foo_id, bar_id]));
+        assert_eq!(
+            state.graph().edges().collect::<HashSet<_>>(),
+            HashSet::from([(main_id, foo_id), (foo_id, bar_id)])
+        );
     }
 }
