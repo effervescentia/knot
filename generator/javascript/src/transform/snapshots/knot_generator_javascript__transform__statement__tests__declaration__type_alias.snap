@@ -1,0 +1,5 @@
+---
+source: generator/javascript/src/transform/statement.rs
+expression: ast
+---
+[]

@@ -1,0 +1,32 @@
+---
+source: generator/javascript/src/transform/expression.rs
+expression: ast
+---
+FunctionCall(
+    FunctionCall(
+        Identifier(
+            "$knot.plugin.get",
+        ),
+        [
+            String(
+                "style",
+            ),
+            String(
+                "createStyle",
+            ),
+            String(
+                "1.0",
+            ),
+        ],
+    ),
+    [
+        Object(
+            [
+                (
+                    "foo",
+                    Null,
+                ),
+            ],
+        ),
+    ],
+)

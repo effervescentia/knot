@@ -1,0 +1,53 @@
+---
+source: generator/javascript/src/transform/statement.rs
+expression: ast
+---
+[
+    Expression(
+        Function(
+            Some(
+                "foo",
+            ),
+            [
+                "$props",
+            ],
+            [
+                Variable(
+                    "bar",
+                    PropertyAccess(
+                        Identifier(
+                            "$props",
+                        ),
+                        "bar",
+                    ),
+                ),
+                Assignment(
+                    Identifier(
+                        "fizz",
+                    ),
+                    FunctionCall(
+                        Identifier(
+                            "$knot.util.defaultParameter",
+                        ),
+                        [
+                            PropertyAccess(
+                                Identifier(
+                                    "$props",
+                                ),
+                                "fizz",
+                            ),
+                            Boolean(
+                                true,
+                            ),
+                        ],
+                    ),
+                ),
+                Return(
+                    Some(
+                        Null,
+                    ),
+                ),
+            ],
+        ),
+    ),
+]

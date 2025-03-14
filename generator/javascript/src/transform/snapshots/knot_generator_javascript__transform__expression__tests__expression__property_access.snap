@@ -1,0 +1,8 @@
+---
+source: generator/javascript/src/transform/expression.rs
+expression: ast
+---
+PropertyAccess(
+    Null,
+    "foo",
+)

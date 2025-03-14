@@ -211,10 +211,7 @@ impl Expression {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{Expression, Statement},
-        test::MOCK_OPTIONS,
-    };
+    use crate::{ast::Expression, test::MOCK_OPTIONS};
     use kore::str;
     use lang::ast;
 
@@ -224,13 +221,12 @@ mod tests {
 
         #[test]
         fn primitive_nil() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Null
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
@@ -257,121 +253,104 @@ mod tests {
 
         #[test]
         fn primitive_integer() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Integer(
-                        123
-                    ))),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Number(str!("123"))
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Integer(123))),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn primitive_float() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Float(
-                        45.67, 2
-                    ))),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Number(str!("45.67"))
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Float(
+                    45.67, 2,
+                ))),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn primitive_string() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::String(
-                        str!("foo")
-                    ))),
-                    &MOCK_OPTIONS
-                ),
-                Expression::String(str!("foo"))
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::String(str!(
+                    "foo"
+                )))),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn identifier() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Identifier(str!("foo"))),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Identifier(str!("foo"))
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Identifier(str!("foo"))),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn group() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Group(Box::new(
-                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                    ))),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Group(Box::new(Expression::Null))
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Group(Box::new(ast::shape::Expression(
+                    ast::Expression::Primitive(ast::Primitive::Nil),
+                )))),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn empty_closure() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Closure(vec![])),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Null
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Closure(vec![])),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn closure_with_last_expression() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Closure(vec![
-                        ast::shape::Statement(ast::Statement::Variable(
-                            str!("foo"),
-                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                        )),
-                        ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
-                            ast::Expression::Primitive(ast::Primitive::Boolean(true))
-                        )))
-                    ])),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Closure(vec![
-                    Statement::Variable(str!("foo"), Expression::Null),
-                    Statement::Return(Some(Expression::Boolean(true)))
-                ])
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Closure(vec![
+                    ast::shape::Statement(ast::Statement::Variable(
+                        str!("foo"),
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                    )),
+                    ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
+                        ast::Expression::Primitive(ast::Primitive::Boolean(true)),
+                    ))),
+                ])),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn closure_with_last_variable() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Closure(vec![
-                        ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
-                            ast::Expression::Primitive(ast::Primitive::Boolean(true))
-                        ))),
-                        ast::shape::Statement(ast::Statement::Variable(
-                            str!("foo"),
-                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                        ))
-                    ])),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Closure(vec![
-                    Statement::Expression(Expression::Boolean(true)),
-                    Statement::Variable(str!("foo"), Expression::Null),
-                    Statement::Return(None)
-                ])
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Closure(vec![
+                    ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
+                        ast::Expression::Primitive(ast::Primitive::Boolean(true)),
+                    ))),
+                    ast::shape::Statement(ast::Statement::Variable(
+                        str!("foo"),
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                    )),
+                ])),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
@@ -400,21 +379,17 @@ mod tests {
 
         #[test]
         fn unary_absolute_operation() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::UnaryOperation(
-                        ast::UnaryOperator::Absolute,
-                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        )))
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::Identifier(str!("Math.abs"))),
-                    vec![Expression::Null]
-                ),
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::UnaryOperation(
+                    ast::UnaryOperator::Absolute,
+                    Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                        ast::Primitive::Nil,
+                    ))),
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
@@ -487,105 +462,77 @@ mod tests {
 
         #[test]
         fn binary_exponent_operation() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::BinaryOperation(
-                        ast::BinaryOperator::Exponent,
-                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))),
-                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        )))
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::Identifier(str!("Math.pow"))),
-                    vec![Expression::Null, Expression::Null]
-                ),
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::BinaryOperation(
+                    ast::BinaryOperator::Exponent,
+                    Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                        ast::Primitive::Nil,
+                    ))),
+                    Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                        ast::Primitive::Nil,
+                    ))),
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn property_access() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::PropertyAccess(
-                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))),
-                        str!("foo")
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                Expression::PropertyAccess(Box::new(Expression::Null), str!("foo")),
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::PropertyAccess(
+                    Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                        ast::Primitive::Nil,
+                    ))),
+                    str!("foo"),
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn function_call() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::FunctionCall(
-                        Box::new(ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))),
-                        vec![ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))]
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(Box::new(Expression::Null), vec![Expression::Null]),
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::FunctionCall(
+                    Box::new(ast::shape::Expression(ast::Expression::Primitive(
+                        ast::Primitive::Nil,
+                    ))),
+                    vec![ast::shape::Expression(ast::Expression::Primitive(
+                        ast::Primitive::Nil,
+                    ))],
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn style() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Style(vec![(
-                        str!("foo"),
-                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                    )])),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("style")),
-                            Expression::String(str!("createStyle")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
-                    vec![Expression::Object(vec![(str!("foo"), Expression::Null)])]
-                ),
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Style(vec![(
+                    str!("foo"),
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                )])),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn view() {
-            assert_eq!(
-                Expression::from_expression(
-                    &ast::shape::Expression(ast::Expression::Component(Box::new(
-                        ast::shape::Component(ast::Component::ClosedElement(str!("Foo"), vec![]))
-                    ))),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("view")),
-                            Expression::String(str!("createElement")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
-                    vec![Expression::Identifier(str!("Foo"))]
-                ),
+            let ast = Expression::from_expression(
+                &ast::shape::Expression(ast::Expression::Component(Box::new(
+                    ast::shape::Component(ast::Component::ClosedElement(str!("Foo"), vec![])),
+                ))),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
     }
 
@@ -594,252 +541,139 @@ mod tests {
 
         #[test]
         fn text() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::Text(str!("foo"))),
-                    &MOCK_OPTIONS
-                ),
-                Expression::String(str!("foo"))
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::Text(str!("foo"))),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn inline() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::Expression(ast::shape::Expression(
-                        ast::Expression::Primitive(ast::Primitive::Nil)
-                    ))),
-                    &MOCK_OPTIONS
-                ),
-                Expression::Null
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::Expression(ast::shape::Expression(
+                    ast::Expression::Primitive(ast::Primitive::Nil),
+                ))),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn fragment() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::Fragment(vec![
-                        ast::shape::Component(ast::Component::Text(str!("foo"))),
-                        ast::shape::Component(ast::Component::Text(str!("bar"))),
-                    ])),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("view")),
-                            Expression::String(str!("createFragment")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
-                    vec![
-                        Expression::String(str!("foo")),
-                        Expression::String(str!("bar")),
-                    ]
-                )
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::Fragment(vec![
+                    ast::shape::Component(ast::Component::Text(str!("foo"))),
+                    ast::shape::Component(ast::Component::Text(str!("bar"))),
+                ])),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn empty_fragment() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::Fragment(vec![])),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("view")),
-                            Expression::String(str!("createFragment")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
-                    vec![]
-                )
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::Fragment(vec![])),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn closed_element() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::ClosedElement(
-                        str!("Foo"),
-                        vec![
-                            ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
-                            ast::shape::Attribute(ast::Attribute::Explicit(
-                                str!("fizz"),
-                                ast::shape::Expression(ast::Expression::Primitive(
-                                    ast::Primitive::Nil
-                                ))
-                            )),
-                        ]
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("view")),
-                            Expression::String(str!("createElement")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::ClosedElement(
+                    str!("Foo"),
                     vec![
-                        Expression::Identifier(str!("Foo")),
-                        Expression::Object(vec![
-                            (str!("bar"), Expression::Identifier(str!("bar"))),
-                            (str!("fizz"), Expression::Null)
-                        ])
-                    ]
-                )
+                        ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
+                        ast::shape::Attribute(ast::Attribute::Explicit(
+                            str!("fizz"),
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                        )),
+                    ],
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn closed_element_no_attributes() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::ClosedElement(str!("Foo"), vec![])),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("view")),
-                            Expression::String(str!("createElement")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
-                    vec![Expression::Identifier(str!("Foo"))]
-                )
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::ClosedElement(str!("Foo"), vec![])),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn open_element() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::open_element(
-                        str!("Foo"),
-                        vec![
-                            ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
-                            ast::shape::Attribute(ast::Attribute::Explicit(
-                                str!("fizz"),
-                                ast::shape::Expression(ast::Expression::Primitive(
-                                    ast::Primitive::Nil
-                                ))
-                            )),
-                        ],
-                        vec![
-                            ast::shape::Component(ast::Component::Text(str!("foo"))),
-                            ast::shape::Component(ast::Component::Text(str!("bar"))),
-                        ],
-                        str!("Foo"),
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("view")),
-                            Expression::String(str!("createElement")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::open_element(
+                    str!("Foo"),
                     vec![
-                        Expression::Identifier(str!("Foo")),
-                        Expression::Object(vec![
-                            (str!("bar"), Expression::Identifier(str!("bar"))),
-                            (str!("fizz"), Expression::Null)
-                        ]),
-                        Expression::String(str!("foo")),
-                        Expression::String(str!("bar")),
-                    ]
-                )
+                        ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
+                        ast::shape::Attribute(ast::Attribute::Explicit(
+                            str!("fizz"),
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                        )),
+                    ],
+                    vec![
+                        ast::shape::Component(ast::Component::Text(str!("foo"))),
+                        ast::shape::Component(ast::Component::Text(str!("bar"))),
+                    ],
+                    str!("Foo"),
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn open_element_no_attributes() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::open_element(
-                        str!("Foo"),
-                        vec![],
-                        vec![
-                            ast::shape::Component(ast::Component::Text(str!("foo"))),
-                            ast::shape::Component(ast::Component::Text(str!("bar"))),
-                        ],
-                        str!("Foo"),
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("view")),
-                            Expression::String(str!("createElement")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::open_element(
+                    str!("Foo"),
+                    vec![],
                     vec![
-                        Expression::Identifier(str!("Foo")),
-                        Expression::Null,
-                        Expression::String(str!("foo")),
-                        Expression::String(str!("bar")),
-                    ]
-                )
+                        ast::shape::Component(ast::Component::Text(str!("foo"))),
+                        ast::shape::Component(ast::Component::Text(str!("bar"))),
+                    ],
+                    str!("Foo"),
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn open_element_no_children() {
-            assert_eq!(
-                Expression::from_component(
-                    &ast::shape::Component(ast::Component::open_element(
-                        str!("Foo"),
-                        vec![
-                            ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
-                            ast::shape::Attribute(ast::Attribute::Explicit(
-                                str!("fizz"),
-                                ast::shape::Expression(ast::Expression::Primitive(
-                                    ast::Primitive::Nil
-                                ))
-                            )),
-                        ],
-                        vec![],
-                        str!("Foo"),
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                Expression::FunctionCall(
-                    Box::new(Expression::FunctionCall(
-                        Box::new(Expression::Identifier(str!("$knot.plugin.get"))),
-                        vec![
-                            Expression::String(str!("view")),
-                            Expression::String(str!("createElement")),
-                            Expression::String(str!("1.0")),
-                        ]
-                    )),
+            let ast = Expression::from_component(
+                &ast::shape::Component(ast::Component::open_element(
+                    str!("Foo"),
                     vec![
-                        Expression::Identifier(str!("Foo")),
-                        Expression::Object(vec![
-                            (str!("bar"), Expression::Identifier(str!("bar"))),
-                            (str!("fizz"), Expression::Null)
-                        ]),
-                    ]
-                )
+                        ast::shape::Attribute(ast::Attribute::Punned(str!("bar"))),
+                        ast::shape::Attribute(ast::Attribute::Explicit(
+                            str!("fizz"),
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                        )),
+                    ],
+                    vec![],
+                    str!("Foo"),
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
     }
 }

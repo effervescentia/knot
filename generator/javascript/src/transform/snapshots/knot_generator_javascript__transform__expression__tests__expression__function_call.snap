@@ -1,0 +1,10 @@
+---
+source: generator/javascript/src/transform/expression.rs
+expression: ast
+---
+FunctionCall(
+    Null,
+    [
+        Null,
+    ],
+)

@@ -1,0 +1,19 @@
+---
+source: generator/javascript/src/transform/expression.rs
+expression: ast
+---
+Closure(
+    [
+        Variable(
+            "foo",
+            Null,
+        ),
+        Return(
+            Some(
+                Boolean(
+                    true,
+                ),
+            ),
+        ),
+    ],
+)

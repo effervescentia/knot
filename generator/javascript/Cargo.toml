@@ -9,5 +9,8 @@ edition = "2021"
 kore = { package = "knot_core", path = "../../toolchain/kore", default-features = false }
 lang = { package = "knot_language", path = "../../toolchain/language" }
 
+[dev-dependencies]
+insta = "1.42.1"
+
 [features]
 format = ["kore/format"]

@@ -274,342 +274,228 @@ impl Statement {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{Expression, Statement},
-        test::MOCK_OPTIONS,
-    };
+    use crate::{ast::Statement, test::MOCK_OPTIONS};
     use kore::str;
     use lang::ast;
 
     mod statement {
         use super::*;
-        use kore::assert_eq;
 
         #[test]
         fn expression() {
-            assert_eq!(
-                Statement::from_statement(
-                    &ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
-                        ast::Expression::Primitive(ast::Primitive::Nil)
-                    ))),
-                    false,
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Expression(Expression::Null)]
+            let ast = Statement::from_statement(
+                &ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
+                    ast::Expression::Primitive(ast::Primitive::Nil),
+                ))),
+                false,
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn last_expression() {
-            assert_eq!(
-                Statement::from_statement(
-                    &ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
-                        ast::Expression::Primitive(ast::Primitive::Nil)
-                    ))),
-                    true,
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Return(Some(Expression::Null))]
+            let ast = Statement::from_statement(
+                &ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
+                    ast::Expression::Primitive(ast::Primitive::Nil),
+                ))),
+                true,
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn variable() {
-            assert_eq!(
-                Statement::from_statement(
-                    &ast::shape::Statement(ast::Statement::Variable(
-                        str!("foo"),
-                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                    )),
-                    false,
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Variable(str!("foo"), Expression::Null)]
+            let ast = Statement::from_statement(
+                &ast::shape::Statement(ast::Statement::Variable(
+                    str!("foo"),
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                )),
+                false,
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn last_variable() {
-            assert_eq!(
-                Statement::from_statement(
-                    &ast::shape::Statement(ast::Statement::Variable(
-                        str!("foo"),
-                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                    )),
-                    true,
-                    &MOCK_OPTIONS
-                ),
-                vec![
-                    Statement::Variable(str!("foo"), Expression::Null),
-                    Statement::Return(None)
-                ]
+            let ast = Statement::from_statement(
+                &ast::shape::Statement(ast::Statement::Variable(
+                    str!("foo"),
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                )),
+                true,
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
     }
 
     mod declaration {
         use super::*;
-        use kore::assert_eq;
         use lang::ast;
 
         #[test]
         fn type_alias() {
-            assert_eq!(
-                Statement::from_declaration(
-                    ".",
-                    &ast::shape::Declaration(ast::Declaration::TypeAlias {
-                        storage: ast::Storage::public(str!("foo")),
-                        value: ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                            ast::TypePrimitive::Nil
-                        ))
-                    }),
-                    &MOCK_OPTIONS
-                ),
-                vec![]
+            let ast = Statement::from_declaration(
+                ".",
+                &ast::shape::Declaration(ast::Declaration::TypeAlias {
+                    storage: ast::Storage::public(str!("foo")),
+                    value: ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                        ast::TypePrimitive::Nil,
+                    )),
+                }),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn enumerated() {
-            assert_eq!(
-                Statement::from_declaration(
-                    ".",
-                    &ast::shape::Declaration(ast::Declaration::Enumerated {
-                        storage: ast::Storage::public(str!("foo")),
-                        variants: vec![
-                            (
-                                str!("Bar"),
-                                vec![ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                                    ast::TypePrimitive::Nil
-                                ))]
-                            ),
-                            (str!("Fizz"), vec![])
-                        ]
-                    }),
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Variable(
-                    str!("foo"),
-                    Expression::Object(vec![
+            let ast = Statement::from_declaration(
+                ".",
+                &ast::shape::Declaration(ast::Declaration::Enumerated {
+                    storage: ast::Storage::public(str!("foo")),
+                    variants: vec![
                         (
                             str!("Bar"),
-                            Expression::Function(
-                                Some(str!("Bar")),
-                                vec![str!("$param_0")],
-                                vec![Statement::Return(Some(Expression::Array(vec![
-                                    Expression::PropertyAccess(
-                                        Box::new(Expression::Identifier(str!("foo"))),
-                                        str!("Bar")
-                                    ),
-                                    Expression::Identifier(str!("$param_0"))
-                                ])))]
-                            )
+                            vec![ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                                ast::TypePrimitive::Nil,
+                            ))],
                         ),
-                        (
-                            str!("Fizz"),
-                            Expression::Array(vec![Expression::Function(
-                                Some(str!("Fizz")),
-                                vec![],
-                                vec![]
-                            )])
-                        )
-                    ])
-                )]
+                        (str!("Fizz"), vec![]),
+                    ],
+                }),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn constant() {
-            assert_eq!(
-                Statement::from_declaration(
-                    ".",
-                    &ast::shape::Declaration(ast::Declaration::constant(
-                        ast::Storage::public(str!("foo")),
-                        None,
-                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                    )),
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Variable(str!("foo"), Expression::Null)]
+            let ast = Statement::from_declaration(
+                ".",
+                &ast::shape::Declaration(ast::Declaration::constant(
+                    ast::Storage::public(str!("foo")),
+                    None,
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                )),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn function() {
-            assert_eq!(
-                Statement::from_declaration(
-                    ".",
-                    &ast::shape::Declaration(ast::Declaration::Function {
-                        storage: ast::Storage::public(str!("foo")),
-                        parameters: vec![
-                            ast::shape::Parameter(ast::Parameter::new(str!("bar"), None, None)),
-                            ast::shape::Parameter(ast::Parameter::new(
-                                str!("fizz"),
-                                None,
-                                Some(ast::shape::Expression(ast::Expression::Primitive(
-                                    ast::Primitive::Boolean(true)
-                                )))
-                            )),
-                        ],
-                        body_type: None,
-                        body: ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))
-                    }),
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Expression(Expression::Function(
-                    Some(str!("foo")),
-                    vec![str!("bar"), str!("fizz")],
-                    vec![
-                        Statement::Assignment(
-                            Expression::Identifier(str!("fizz")),
-                            Expression::FunctionCall(
-                                Box::new(Expression::Identifier(str!(
-                                    "$knot.util.defaultParameter"
-                                ))),
-                                vec![
-                                    Expression::Identifier(str!("fizz")),
-                                    Expression::Boolean(true)
-                                ]
-                            )
-                        ),
-                        Statement::Return(Some(Expression::Null))
-                    ]
-                ))]
+            let ast = Statement::from_declaration(
+                ".",
+                &ast::shape::Declaration(ast::Declaration::Function {
+                    storage: ast::Storage::public(str!("foo")),
+                    parameters: vec![
+                        ast::shape::Parameter(ast::Parameter::new(str!("bar"), None, None)),
+                        ast::shape::Parameter(ast::Parameter::new(
+                            str!("fizz"),
+                            None,
+                            Some(ast::shape::Expression(ast::Expression::Primitive(
+                                ast::Primitive::Boolean(true),
+                            ))),
+                        )),
+                    ],
+                    body_type: None,
+                    body: ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                }),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn function_closure_body() {
-            assert_eq!(
-                Statement::from_declaration(
-                    ".",
-                    &ast::shape::Declaration(ast::Declaration::Function {
-                        storage: ast::Storage::public(str!("foo")),
-                        parameters: vec![],
-                        body_type: None,
-                        body: ast::shape::Expression(ast::Expression::Closure(vec![
-                            ast::shape::Statement(ast::Statement::Variable(
-                                str!("bar"),
-                                ast::shape::Expression(ast::Expression::Primitive(
-                                    ast::Primitive::Nil
-                                ))
-                            )),
-                            ast::shape::Statement(ast::Statement::Expression(
-                                ast::shape::Expression(ast::Expression::Identifier(str!("bar")))
-                            ))
-                        ]))
-                    }),
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Expression(Expression::Function(
-                    Some(str!("foo")),
-                    vec![],
-                    vec![
-                        Statement::Variable(str!("bar"), Expression::Null),
-                        Statement::Return(Some(Expression::Identifier(str!("bar"))))
-                    ]
-                ))]
+            let ast = Statement::from_declaration(
+                ".",
+                &ast::shape::Declaration(ast::Declaration::Function {
+                    storage: ast::Storage::public(str!("foo")),
+                    parameters: vec![],
+                    body_type: None,
+                    body: ast::shape::Expression(ast::Expression::Closure(vec![
+                        ast::shape::Statement(ast::Statement::Variable(
+                            str!("bar"),
+                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                        )),
+                        ast::shape::Statement(ast::Statement::Expression(ast::shape::Expression(
+                            ast::Expression::Identifier(str!("bar")),
+                        ))),
+                    ])),
+                }),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn view() {
-            assert_eq!(
-                Statement::from_declaration(
-                    ".",
-                    &ast::shape::Declaration(ast::Declaration::View {
-                        storage: ast::Storage::public(str!("foo")),
-                        parameters: vec![
-                            ast::shape::Parameter(ast::Parameter::new(str!("bar"), None, None)),
-                            ast::shape::Parameter(ast::Parameter::new(
-                                str!("fizz"),
-                                None,
-                                Some(ast::shape::Expression(ast::Expression::Primitive(
-                                    ast::Primitive::Boolean(true)
-                                )))
-                            )),
-                        ],
-                        body: ast::shape::Expression(ast::Expression::Primitive(
-                            ast::Primitive::Nil
-                        ))
-                    }),
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Expression(Expression::Function(
-                    Some(str!("foo")),
-                    vec![str!("$props")],
-                    vec![
-                        Statement::Variable(
-                            str!("bar"),
-                            Expression::PropertyAccess(
-                                Box::new(Expression::Identifier(str!("$props"))),
-                                str!("bar")
-                            )
-                        ),
-                        Statement::Assignment(
-                            Expression::Identifier(str!("fizz")),
-                            Expression::FunctionCall(
-                                Box::new(Expression::Identifier(str!(
-                                    "$knot.util.defaultParameter"
-                                ))),
-                                vec![
-                                    Expression::PropertyAccess(
-                                        Box::new(Expression::Identifier(str!("$props"))),
-                                        str!("fizz")
-                                    ),
-                                    Expression::Boolean(true)
-                                ]
-                            )
-                        ),
-                        Statement::Return(Some(Expression::Null))
-                    ]
-                ))]
+            let ast = Statement::from_declaration(
+                ".",
+                &ast::shape::Declaration(ast::Declaration::View {
+                    storage: ast::Storage::public(str!("foo")),
+                    parameters: vec![
+                        ast::shape::Parameter(ast::Parameter::new(str!("bar"), None, None)),
+                        ast::shape::Parameter(ast::Parameter::new(
+                            str!("fizz"),
+                            None,
+                            Some(ast::shape::Expression(ast::Expression::Primitive(
+                                ast::Primitive::Boolean(true),
+                            ))),
+                        )),
+                    ],
+                    body: ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                }),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
 
         #[test]
         fn module() {
-            assert_eq!(
-                Statement::from_declaration(
-                    ".",
-                    &ast::shape::Declaration(ast::Declaration::Module {
-                        storage: ast::Storage::public(str!("foo")),
-                        value: ast::shape::Module(ast::Module {
-                            imports: vec![],
-                            declarations: vec![
-                                ast::shape::Declaration(ast::Declaration::constant(
-                                    ast::Storage::public(str!("bar")),
-                                    None,
-                                    ast::shape::Expression(ast::Expression::Primitive(
-                                        ast::Primitive::Nil
-                                    ))
+            let ast = Statement::from_declaration(
+                ".",
+                &ast::shape::Declaration(ast::Declaration::Module {
+                    storage: ast::Storage::public(str!("foo")),
+                    value: ast::shape::Module(ast::Module {
+                        imports: vec![],
+                        declarations: vec![
+                            ast::shape::Declaration(ast::Declaration::constant(
+                                ast::Storage::public(str!("bar")),
+                                None,
+                                ast::shape::Expression(ast::Expression::Primitive(
+                                    ast::Primitive::Nil,
                                 )),
-                                ast::shape::Declaration(ast::Declaration::constant(
-                                    ast::Storage::public(str!("fizz")),
-                                    None,
-                                    ast::shape::Expression(ast::Expression::Primitive(
-                                        ast::Primitive::Nil
-                                    ))
-                                ))
-                            ]
-                        })
+                            )),
+                            ast::shape::Declaration(ast::Declaration::constant(
+                                ast::Storage::public(str!("fizz")),
+                                None,
+                                ast::shape::Expression(ast::Expression::Primitive(
+                                    ast::Primitive::Nil,
+                                )),
+                            )),
+                        ],
                     }),
-                    &MOCK_OPTIONS
-                ),
-                vec![Statement::Variable(
-                    str!("foo"),
-                    Expression::Closure(vec![
-                        Statement::Variable(str!("bar"), Expression::Null),
-                        Statement::Variable(str!("fizz"), Expression::Null),
-                        Statement::Return(Some(Expression::Object(vec![
-                            (str!("bar"), Expression::Identifier(str!("bar"))),
-                            (str!("fizz"), Expression::Identifier(str!("fizz")))
-                        ]))),
-                    ])
-                )]
+                }),
+                &MOCK_OPTIONS,
             );
+
+            insta::assert_debug_snapshot!(ast);
         }
     }
 }

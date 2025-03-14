@@ -1,0 +1,7 @@
+---
+source: generator/javascript/src/transform/expression.rs
+expression: ast
+---
+Group(
+    Null,
+)

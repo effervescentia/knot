@@ -584,6 +584,7 @@ dependencies = [
 name = "knot_generator_javascript"
 version = "0.1.0"
 dependencies = [
+ "insta",
  "knot_core",
  "knot_language",
 ]

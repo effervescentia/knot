@@ -43,113 +43,77 @@ impl JavaScript {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ast::{Expression, JavaScript, Statement},
-        resolve::Resolver,
-        test::MOCK_OPTIONS,
-        Module, Options,
-    };
+    use crate::{ast::JavaScript, resolve::Resolver, test::MOCK_OPTIONS, Module, Options};
     use kore::str;
     use lang::ast;
 
     #[test]
     fn export_public_values() {
-        assert_eq!(
-            JavaScript::from_program(
-                ".",
-                &ast::shape::Program(ast::shape::Module(ast::Module::new(
-                    vec![],
-                    vec![
-                        ast::shape::Declaration(ast::Declaration::type_alias(
-                            ast::Storage::public(str!("foo")),
-                            ast::shape::TypeExpression(ast::TypeExpression::Primitive(
-                                ast::TypePrimitive::Nil
-                            ))
+        let ast = JavaScript::from_program(
+            ".",
+            &ast::shape::Program(ast::shape::Module(ast::Module::new(
+                vec![],
+                vec![
+                    ast::shape::Declaration(ast::Declaration::type_alias(
+                        ast::Storage::public(str!("foo")),
+                        ast::shape::TypeExpression(ast::TypeExpression::Primitive(
+                            ast::TypePrimitive::Nil,
                         )),
-                        ast::shape::Declaration(ast::Declaration::constant(
-                            ast::Storage::private(str!("bar")),
-                            None,
-                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                        )),
-                        ast::shape::Declaration(ast::Declaration::constant(
-                            ast::Storage::public(str!("fizz")),
-                            None,
-                            ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                        )),
-                    ]
-                ))),
-                &MOCK_OPTIONS
-            ),
-            JavaScript(vec![
-                Statement::Import(str!("@knot/runtime"), vec![(str!("$knot"), None)]),
-                Statement::Variable(str!("bar"), Expression::Null),
-                Statement::Variable(str!("fizz"), Expression::Null),
-                Statement::Export(str!("fizz")),
-            ])
+                    )),
+                    ast::shape::Declaration(ast::Declaration::constant(
+                        ast::Storage::private(str!("bar")),
+                        None,
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                    )),
+                    ast::shape::Declaration(ast::Declaration::constant(
+                        ast::Storage::public(str!("fizz")),
+                        None,
+                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                    )),
+                ],
+            ))),
+            &MOCK_OPTIONS,
         );
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn esm_export() {
-        assert_eq!(
-            JavaScript::from_program(
-                ".",
-                &ast::shape::Program(ast::shape::Module(ast::Module::new(
-                    vec![],
-                    vec![ast::shape::Declaration(ast::Declaration::constant(
-                        ast::Storage::public(str!("bar")),
-                        None,
-                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                    ))]
-                ))),
-                &MOCK_OPTIONS
-            ),
-            JavaScript(vec![
-                Statement::Import(str!("@knot/runtime"), vec![(str!("$knot"), None)]),
-                Statement::Variable(str!("bar"), Expression::Null),
-                Statement::Export(str!("bar")),
-            ])
+        let ast = JavaScript::from_program(
+            ".",
+            &ast::shape::Program(ast::shape::Module(ast::Module::new(
+                vec![],
+                vec![ast::shape::Declaration(ast::Declaration::constant(
+                    ast::Storage::public(str!("bar")),
+                    None,
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                ))],
+            ))),
+            &MOCK_OPTIONS,
         );
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn cjs_export() {
-        assert_eq!(
-            JavaScript::from_program(
-                ".",
-                &ast::shape::Program(ast::shape::Module(ast::Module::new(
-                    vec![],
-                    vec![ast::shape::Declaration(ast::Declaration::constant(
-                        ast::Storage::public(str!("bar")),
-                        None,
-                        ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil))
-                    ))]
-                ))),
-                &Options {
-                    resolver: Resolver::new(Module::CJS),
-                    ..MOCK_OPTIONS
-                }
-            ),
-            JavaScript(vec![
-                Statement::Variable(
-                    str!("$knot"),
-                    Expression::PropertyAccess(
-                        Box::new(Expression::FunctionCall(
-                            Box::new(Expression::Identifier(str!("require"))),
-                            vec![Expression::String(str!("@knot/runtime"))]
-                        )),
-                        str!("$knot")
-                    )
-                ),
-                Statement::Variable(str!("bar"), Expression::Null),
-                Statement::Assignment(
-                    Expression::PropertyAccess(
-                        Box::new(Expression::Identifier(str!("exports")),),
-                        str!("bar")
-                    ),
-                    Expression::Identifier(str!("bar"))
-                ),
-            ])
+        let ast = JavaScript::from_program(
+            ".",
+            &ast::shape::Program(ast::shape::Module(ast::Module::new(
+                vec![],
+                vec![ast::shape::Declaration(ast::Declaration::constant(
+                    ast::Storage::public(str!("bar")),
+                    None,
+                    ast::shape::Expression(ast::Expression::Primitive(ast::Primitive::Nil)),
+                ))],
+            ))),
+            &Options {
+                resolver: Resolver::new(Module::CJS),
+                ..MOCK_OPTIONS
+            },
         );
+
+        insta::assert_debug_snapshot!(ast);
     }
 }
