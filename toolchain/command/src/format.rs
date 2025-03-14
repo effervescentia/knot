@@ -1,6 +1,6 @@
 use crate::{log, AssertExists, Logger};
 use engine::{
-    engine2::{Context, Engine, Input, Parsed, Peek},
+    engine2::{Context, Engine, Input, Peek},
     ConfigurationError,
 };
 use std::path::Path;
@@ -27,16 +27,13 @@ pub fn command(opts: &Options) -> engine::Result<()> {
     let input = Input::from_glob(opts.glob, []);
     let engine = Engine::new(Context::new(root_dir, Logger));
 
-    let (_, count) = engine.execute(
-        &Engine::plan()
-            .parse()
-            .peek(|(_, Parsed(ids))| {
-                Logger.report_parsed(ids.len());
-            })
-            .format()
-            .write(root_dir),
-        &input,
-    );
+    let plan = Engine::plan()
+        .parse()
+        .peek(|(_, x)| Logger.report_parsed(x))
+        .format()
+        .write(root_dir);
+
+    let (_, count) = engine.execute(&plan, &input);
 
     log::success(opts.verbose, "formatted", count);
 

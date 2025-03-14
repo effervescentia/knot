@@ -1,14 +1,28 @@
-use engine::engine2::Logger as _;
+use engine::engine2::{Analyzed, Linked, Logger as _, Parsed};
 use kore::color::Highlight;
 use log::{debug, error, info, trace, warn};
 
 pub struct Logger;
 
 impl Logger {
-    pub fn report_parsed(&self, count: usize) {
+    pub fn report_parsed(&self, Parsed(ids): &Parsed) {
         self.debug(format_args!(
             "\u{1f440} parsed {} matching module(s)",
-            count.to_string().focus()
+            ids.len().to_string().focus()
+        ));
+    }
+
+    pub fn report_linked(&self, Linked(ids): &Linked) {
+        self.debug(format_args!(
+            "\u{1f440} linked {} module(s)",
+            ids.len().to_string().focus()
+        ));
+    }
+
+    pub fn report_analyzed(&self, Analyzed(ids): &Analyzed) {
+        self.debug(format_args!(
+            "\u{1f440} analyzed {} module(s)",
+            ids.len().to_string().focus()
         ));
     }
 }

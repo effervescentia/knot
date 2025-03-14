@@ -1,5 +1,5 @@
-use crate::log;
-use engine::Engine;
+use crate::{log, Logger};
+use engine::engine2::{Analyzed, Context, Engine, Input, Peek};
 use kore::internal;
 use std::path::Path;
 
@@ -18,17 +18,19 @@ where
 {
     log::entrypoint(opts.verbose, opts.entry);
 
-    let result = Engine::new(opts.source_dir, opts.verbose)
-        .from_entry(opts.entry)
-        .include_libraries(&Platform::libraries())
-        .parse()
-        .inspect(|state, _| state.report_from_entry())
-        .link()
-        .inspect(|state, _| state.report())
-        .analyze()
-        .into_result()?;
+    let input = Input::from_entry(opts.entry, []);
+    let engine = Engine::new(Context::new(opts.source_dir, Logger));
 
-    log::success(opts.verbose, "analyzed", result.1.size());
+    let plan = Engine::plan()
+        .parse()
+        .peek(|(_, x)| Logger.report_parsed(x))
+        .link()
+        .peek(|(_, x)| Logger.report_linked(x))
+        .analyze();
+
+    let (_, Analyzed(ids)) = engine.execute(&plan, &input);
+
+    log::success(opts.verbose, "analyzed", ids.len());
 
     Ok(())
 }

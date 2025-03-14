@@ -1,4 +1,5 @@
-use crate::log;
+use crate::{log, Logger};
+use engine::engine2::{self, Context, Input, Peek};
 use engine::{ConfigurationError, Engine, Report};
 use kore::invariant;
 use kore::{color::Highlight, internal, pretty::Pretty};
@@ -29,17 +30,20 @@ where
 {
     log::entrypoint(opts.verbose, opts.entry);
 
-    let count = Engine::new(opts.source_dir, opts.verbose)
-        .from_entry(opts.entry)
-        .include_libraries(&Platform::libraries())
+    let input = Input::from_entry(opts.entry, []);
+    let engine = engine2::Engine::new(Context::new(opts.source_dir, Logger));
+
+    let plan = engine2::Engine::plan()
         .parse()
-        .inspect(|state, _| state.report_from_entry())
+        .peek(|(_, x)| Logger.report_parsed(x))
         .link()
-        .inspect(|state, _| state.report())
+        .peek(|(_, x)| Logger.report_linked(x))
         .analyze()
-        .inspect(|state, _| state.report())
+        .peek(|(_, x)| Logger.report_analyzed(x))
         .generate(Platform::generator())
-        .overwrite(opts.out_dir)?;
+        .write(opts.out_dir);
+
+    let (_, count) = engine.execute(&plan, &input);
 
     log::success(opts.verbose, "transpiled", count);
     eprintln!(

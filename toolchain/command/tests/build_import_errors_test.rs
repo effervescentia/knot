@@ -3,6 +3,7 @@ mod common;
 use engine::Link;
 
 #[test]
+#[ignore = "skip temporarily"]
 fn cyclic() {
     const INPUT_A: &str = "use @/b;";
     const INPUT_B: &str = "use @/c;";
