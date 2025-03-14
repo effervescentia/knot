@@ -1,12 +1,12 @@
 use crate::{log, Logger};
-use engine::engine2::{Context, Engine, Input, Peek};
+use engine::engine2::{Builder, Context, Engine, Input, Peek, State, Transform};
 use engine::{ConfigurationError, Report};
 use kore::invariant;
 use kore::{color::Highlight, internal, pretty::Pretty};
 use notify_debouncer_full::{
     new_debouncer,
     notify::{self, Watcher},
-    DebounceEventHandler, DebouncedEvent,
+    DebouncedEvent,
 };
 use std::path::Path;
 use std::sync::mpsc;
@@ -24,6 +24,23 @@ pub struct Options<'a, Platform> {
     pub verbose: bool,
 }
 
+fn build_plan<'a, Platform>(
+    opts: &Options<'_, Platform>,
+) -> Builder<impl Transform<In = (State<'a, Logger>, ()), Out = (State<'a, Logger>, usize)>>
+where
+    Platform: internal::Platform<Program = lang::ast::shape::Program>,
+{
+    Engine::<Logger>::plan()
+        .parse()
+        .peek(|(_, x)| Logger.report_parsed(x))
+        .link()
+        .peek(|(_, x)| Logger.report_linked(x))
+        .analyze()
+        .peek(|(_, x)| Logger.report_analyzed(x))
+        .generate(Platform::generator())
+        .write(opts.out_dir)
+}
+
 pub fn command<Platform>(opts: &Options<Platform>) -> engine::Result<()>
 where
     Platform: internal::Platform<Program = lang::ast::shape::Program>,
@@ -32,16 +49,7 @@ where
 
     let input = Input::from_entry(opts.entry, []);
     let engine = Engine::new(Context::new(opts.source_dir, Logger));
-
-    let plan = Engine::plan()
-        .parse()
-        .peek(|(_, x)| Logger.report_parsed(x))
-        .link()
-        .peek(|(_, x)| Logger.report_linked(x))
-        .analyze()
-        .peek(|(_, x)| Logger.report_analyzed(x))
-        .generate(Platform::generator())
-        .write(opts.out_dir);
+    let plan = build_plan(opts);
 
     let (_, count) = engine.execute(&plan, &input);
 
@@ -63,16 +71,7 @@ where
 
     let input = Input::from_entry(opts.entry, []);
     let engine = Engine::new(Context::new(opts.source_dir, Logger));
-
-    let plan = Engine::plan()
-        .parse()
-        .peek(|(_, x)| Logger.report_parsed(x))
-        .link()
-        .peek(|(_, x)| Logger.report_linked(x))
-        .analyze()
-        .peek(|(_, x)| Logger.report_analyzed(x))
-        .generate(Platform::generator())
-        .write(opts.out_dir);
+    let plan = build_plan(opts);
 
     let (mut state, count) = engine.execute(&plan, &input);
 
