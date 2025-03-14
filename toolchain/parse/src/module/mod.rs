@@ -43,9 +43,8 @@ where
 
 #[cfg(test)]
 mod tests {
-
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::{assert_eq, str};
+    use kore::assert_eq;
     use lang::{ast, test::fixture, Range};
 
     fn parse(s: &str) -> crate::Result<ast::raw::Module> {
@@ -54,54 +53,23 @@ mod tests {
 
     #[test]
     fn module_empty() {
-        assert_eq!(
-            parse("").unwrap().0,
-            ast::raw::Module::raw(ast::Module::new(vec![], vec![]), Range::new((1, 1), (1, 1)))
-        );
+        let ast = parse("").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn module_import() {
-        assert_eq!(
-            parse("use @/foo;").unwrap().0,
-            ast::raw::Module::raw(
-                ast::Module::new(
-                    vec![ast::raw::Import::raw(
-                        ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
-                        Range::new((1, 1), (1, 9))
-                    )],
-                    vec![]
-                ),
-                Range::new((1, 1), (1, 10))
-            )
-        );
+        let ast = parse("use @/foo;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn module_declaration() {
-        assert_eq!(
-            parse("const foo = nil;").unwrap().0,
-            ast::raw::Module::raw(
-                ast::Module::new(
-                    vec![],
-                    vec![ast::raw::Declaration::raw(
-                        ast::Declaration::constant(
-                            ast::Storage::public(ast::raw::Binding::new(
-                                ast::Binding(str!("foo")),
-                                Range::new((1, 7), (1, 9))
-                            )),
-                            None,
-                            ast::raw::Expression::raw(
-                                ast::Expression::Primitive(ast::Primitive::Nil),
-                                Range::new((1, 13), (1, 15))
-                            )
-                        ),
-                        Range::new((1, 1), (1, 15))
-                    )]
-                ),
-                Range::new((1, 1), (1, 16))
-            )
-        );
+        let ast = parse("const foo = nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]

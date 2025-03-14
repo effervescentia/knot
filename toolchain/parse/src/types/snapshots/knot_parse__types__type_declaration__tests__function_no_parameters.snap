@@ -1,0 +1,58 @@
+---
+source: toolchain/parse/src/types/type_declaration.rs
+expression: ast
+---
+TypeDeclaration(
+    Node(
+        Function {
+            binding: Binding(
+                Node(
+                    Binding(
+                        "foo",
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            6,
+                        ),
+                        Point(
+                            1,
+                            8,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+            parameters: [],
+            result: TypeExpression(
+                Node(
+                    Primitive(
+                        String,
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            13,
+                        ),
+                        Point(
+                            1,
+                            18,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                18,
+            ),
+        ),
+        (),
+    ),
+)

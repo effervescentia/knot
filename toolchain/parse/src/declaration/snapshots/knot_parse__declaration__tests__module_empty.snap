@@ -1,0 +1,61 @@
+---
+source: toolchain/parse/src/declaration/mod.rs
+expression: ast
+---
+Declaration(
+    Node(
+        Module {
+            storage: Storage {
+                visibility: Public,
+                binding: Binding(
+                    Node(
+                        Binding(
+                            "foo",
+                        ),
+                        Range(
+                            Point(
+                                1,
+                                8,
+                            ),
+                            Point(
+                                1,
+                                10,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+            },
+            value: Module(
+                Node(
+                    Module {
+                        imports: [],
+                        declarations: [],
+                    },
+                    Range(
+                        Point(
+                            1,
+                            13,
+                        ),
+                        Point(
+                            1,
+                            13,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                13,
+            ),
+        ),
+        (),
+    ),
+)

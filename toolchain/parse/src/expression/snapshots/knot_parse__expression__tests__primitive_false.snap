@@ -1,0 +1,24 @@
+---
+source: toolchain/parse/src/expression/mod.rs
+expression: ast
+---
+Expression(
+    Node(
+        Primitive(
+            Boolean(
+                false,
+            ),
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                5,
+            ),
+        ),
+        (),
+    ),
+)

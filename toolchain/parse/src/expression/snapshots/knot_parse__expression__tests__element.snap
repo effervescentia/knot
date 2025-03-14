@@ -1,0 +1,40 @@
+---
+source: toolchain/parse/src/expression/mod.rs
+expression: ast
+---
+Expression(
+    Node(
+        Component(
+            Component(
+                Node(
+                    ClosedElement(
+                        "foo",
+                        [],
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            1,
+                        ),
+                        Point(
+                            1,
+                            7,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                7,
+            ),
+        ),
+        (),
+    ),
+)

@@ -84,62 +84,36 @@ where
 #[cfg(test)]
 mod tests {
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::{assert_eq, str};
-    use lang::{ast, Range};
 
-    fn parse(s: &str) -> crate::Result<ast::raw::Import> {
+    fn parse(s: &str) -> crate::Result<lang::ast::raw::Import> {
         super::import().skip(eof()).easy_parse(Stream::new(s))
     }
 
     #[test]
     fn import() {
-        assert_eq!(
-            parse("use @/foo;").unwrap().0,
-            ast::raw::Import::raw(
-                ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
-                Range::new((1, 1), (1, 9))
-            )
-        );
+        let ast = parse("use @/foo;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn import_nested() {
-        assert_eq!(
-            parse("use @/foo/bar/fizz;").unwrap().0,
-            ast::raw::Import::raw(
-                ast::Import::new(
-                    ast::ImportSource::Root,
-                    vec![str!("foo"), str!("bar"), str!("fizz")],
-                    None
-                ),
-                Range::new((1, 1), (1, 18))
-            )
-        );
+        let ast = parse("use @/foo/bar/fizz;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn import_named_no_alias() {
-        assert_eq!(
-            parse("use @/foo;").unwrap().0,
-            ast::raw::Import::raw(
-                ast::Import::new(ast::ImportSource::Root, vec![str!("foo")], None),
-                Range::new((1, 1), (1, 9))
-            )
-        );
+        let ast = parse("use @/foo;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn import_named_with_alias() {
-        assert_eq!(
-            parse("use @/foo/fizz as buzz;").unwrap().0,
-            ast::raw::Import::raw(
-                ast::Import::new(
-                    ast::ImportSource::Root,
-                    vec![str!("foo"), str!("fizz")],
-                    Some(str!("buzz"))
-                ),
-                Range::new((1, 1), (1, 22))
-            )
-        );
+        let ast = parse("use @/foo/fizz as buzz;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 }

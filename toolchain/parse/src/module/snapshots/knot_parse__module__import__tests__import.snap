@@ -1,0 +1,26 @@
+---
+source: toolchain/parse/src/module/import.rs
+expression: ast
+---
+Import(
+    Node(
+        Import {
+            source: Root,
+            path: [
+                "foo",
+            ],
+            alias: None,
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                9,
+            ),
+        ),
+        (),
+    ),
+)

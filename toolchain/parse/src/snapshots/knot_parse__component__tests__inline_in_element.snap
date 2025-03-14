@@ -1,0 +1,61 @@
+---
+source: toolchain/parse/src/component.rs
+expression: ast
+---
+Component(
+    Node(
+        OpenElement {
+            start_tag: "foo",
+            attributes: [],
+            children: [
+                Component(
+                    Node(
+                        Expression(
+                            Expression(
+                                Node(
+                                    Primitive(
+                                        Nil,
+                                    ),
+                                    Range(
+                                        Point(
+                                            1,
+                                            7,
+                                        ),
+                                        Point(
+                                            1,
+                                            9,
+                                        ),
+                                    ),
+                                    (),
+                                ),
+                            ),
+                        ),
+                        Range(
+                            Point(
+                                1,
+                                6,
+                            ),
+                            Point(
+                                1,
+                                10,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+            ],
+            end_tag: "foo",
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                16,
+            ),
+        ),
+        (),
+    ),
+)

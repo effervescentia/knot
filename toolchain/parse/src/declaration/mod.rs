@@ -9,10 +9,9 @@ mod view;
 
 use crate::matcher as m;
 use combine::{choice, parser, Stream};
-use lang::ast;
 
 parser! {
-    pub fn declaration[T]()(T) -> ast::raw::Declaration
+    pub fn declaration[T]()(T) -> lang::ast::raw::Declaration
     where
         [T: Stream<Token = char>, T::Position: m::Position]
     {
@@ -30,300 +29,99 @@ parser! {
 #[cfg(test)]
 mod tests {
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::{assert_eq, str};
-    use lang::{ast, Range};
 
-    fn parse(s: &str) -> crate::Result<ast::raw::Declaration> {
+    fn parse(s: &str) -> crate::Result<lang::ast::raw::Declaration> {
         super::declaration().skip(eof()).easy_parse(Stream::new(s))
     }
 
     #[test]
     fn type_alias() {
-        assert_eq!(
-            parse("type foo = nil;").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::type_alias(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    ast::raw::TypeExpression::raw(
-                        ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                        Range::new((1, 12), (1, 14))
-                    )
-                ),
-                Range::new((1, 1), (1, 14))
-            )
-        );
+        let ast = parse("type foo = nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn constant() {
-        assert_eq!(
-            parse("const foo = nil;").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::constant(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 7), (1, 9))
-                    )),
-                    None,
-                    ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 13), (1, 15))
-                    )
-                ),
-                Range::new((1, 1), (1, 15))
-            )
-        );
+        let ast = parse("const foo = nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn enumerated() {
-        assert_eq!(
-            parse("enum foo { Fizz(nil) }").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::enumerated(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![(
-                        str!("Fizz"),
-                        vec![ast::raw::TypeExpression::raw(
-                            ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                            Range::new((1, 17), (1, 19))
-                        )]
-                    )]
-                ),
-                Range::new((1, 1), (1, 22))
-            )
-        );
+        let ast = parse("enum foo { Fizz(nil) }").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn enumerated_empty_parameters() {
-        assert_eq!(
-            parse("enum foo { Fizz() }").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::enumerated(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![(str!("Fizz"), vec![])]
-                ),
-                Range::new((1, 1), (1, 19))
-            )
-        );
+        let ast = parse("enum foo { Fizz() }").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn enumerated_no_parameters() {
-        assert_eq!(
-            parse("enum foo { Fizz }").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::enumerated(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![(str!("Fizz"), vec![])]
-                ),
-                Range::new((1, 1), (1, 17))
-            )
-        );
+        let ast = parse("enum foo { Fizz }").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn function() {
-        assert_eq!(
-            parse("func foo -> nil;").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::function(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![],
-                    None,
-                    ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 13), (1, 15))
-                    )
-                ),
-                Range::new((1, 1), (1, 15))
-            )
-        );
+        let ast = parse("func foo -> nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn function_result_typedef() {
-        assert_eq!(
-            parse("func foo: nil -> nil;").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::function(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![],
-                    Some(ast::raw::TypeExpression::raw(
-                        ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                        Range::new((1, 11), (1, 13))
-                    )),
-                    ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 18), (1, 20))
-                    )
-                ),
-                Range::new((1, 1), (1, 20))
-            )
-        );
+        let ast = parse("func foo: nil -> nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn function_empty_parameters() {
-        assert_eq!(
-            parse("func foo() -> nil;").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::function(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![],
-                    None,
-                    ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 15), (1, 17))
-                    )
-                ),
-                Range::new((1, 1), (1, 17))
-            )
-        );
+        let ast = parse("func foo() -> nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn function_empty_parameters_result_typedef() {
-        assert_eq!(
-            parse("func foo(): nil -> nil;").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::function(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![],
-                    Some(ast::raw::TypeExpression::raw(
-                        ast::TypeExpression::Primitive(ast::TypePrimitive::Nil),
-                        Range::new((1, 13), (1, 15))
-                    )),
-                    ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 20), (1, 22))
-                    )
-                ),
-                Range::new((1, 1), (1, 22))
-            )
-        );
+        let ast = parse("func foo(): nil -> nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn view() {
-        assert_eq!(
-            parse("view foo -> nil;").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::view(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![],
-                    ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 13), (1, 15))
-                    )
-                ),
-                Range::new((1, 1), (1, 15))
-            )
-        );
+        let ast = parse("view foo -> nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn view_empty_arguments() {
-        assert_eq!(
-            parse("view foo {} -> nil;").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::view(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 6), (1, 8))
-                    )),
-                    vec![],
-                    ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 16), (1, 18))
-                    )
-                ),
-                Range::new((1, 1), (1, 18))
-            )
-        );
+        let ast = parse("view foo {} -> nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn module_empty() {
-        assert_eq!(
-            parse("module foo {}").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::module(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 8), (1, 10))
-                    )),
-                    ast::raw::Module::raw(
-                        ast::Module::new(vec![], vec![]),
-                        Range::new((1, 13), (1, 13))
-                    )
-                ),
-                Range::new((1, 1), (1, 13))
-            )
-        );
+        let ast = parse("module foo {}").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn module() {
-        assert_eq!(
-            parse("module foo { const bar = nil; }").unwrap().0,
-            ast::raw::Declaration::raw(
-                ast::Declaration::module(
-                    ast::Storage::public(ast::raw::Binding::new(
-                        ast::Binding(str!("foo")),
-                        Range::new((1, 8), (1, 10))
-                    )),
-                    ast::raw::Module::raw(
-                        ast::Module::new(
-                            vec![],
-                            vec![ast::raw::Declaration::raw(
-                                ast::Declaration::constant(
-                                    ast::Storage::public(ast::raw::Binding::new(
-                                        ast::Binding(str!("bar")),
-                                        Range::new((1, 20), (1, 22))
-                                    )),
-                                    None,
-                                    ast::raw::Expression::raw(
-                                        ast::Expression::Primitive(ast::Primitive::Nil),
-                                        Range::new((1, 26), (1, 28))
-                                    )
-                                ),
-                                Range::new((1, 14), (1, 28))
-                            )]
-                        ),
-                        Range::new((1, 14), (1, 30))
-                    )
-                ),
-                Range::new((1, 1), (1, 31))
-            )
-        );
+        let ast = parse("module foo { const bar = nil; }").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 }

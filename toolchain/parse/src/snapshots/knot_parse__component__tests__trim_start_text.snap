@@ -1,0 +1,79 @@
+---
+source: toolchain/parse/src/component.rs
+expression: ast
+---
+Component(
+    Node(
+        OpenElement {
+            start_tag: "foo",
+            attributes: [],
+            children: [
+                Component(
+                    Node(
+                        Text(
+                            "bar  ",
+                        ),
+                        Range(
+                            Point(
+                                1,
+                                6,
+                            ),
+                            Point(
+                                3,
+                                7,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+                Component(
+                    Node(
+                        Expression(
+                            Expression(
+                                Node(
+                                    Identifier(
+                                        "fizz",
+                                    ),
+                                    Range(
+                                        Point(
+                                            3,
+                                            9,
+                                        ),
+                                        Point(
+                                            3,
+                                            12,
+                                        ),
+                                    ),
+                                    (),
+                                ),
+                            ),
+                        ),
+                        Range(
+                            Point(
+                                3,
+                                8,
+                            ),
+                            Point(
+                                3,
+                                13,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+            ],
+            end_tag: "foo",
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                4,
+                6,
+            ),
+        ),
+        (),
+    ),
+)

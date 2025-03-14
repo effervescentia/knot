@@ -1,0 +1,22 @@
+---
+source: toolchain/parse/src/expression/mod.rs
+expression: ast
+---
+Expression(
+    Node(
+        Identifier(
+            "foo",
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                3,
+            ),
+        ),
+        (),
+    ),
+)

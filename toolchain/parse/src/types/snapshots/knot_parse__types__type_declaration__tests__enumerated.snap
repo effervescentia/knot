@@ -1,0 +1,68 @@
+---
+source: toolchain/parse/src/types/type_declaration.rs
+expression: ast
+---
+TypeDeclaration(
+    Node(
+        Enumerated {
+            binding: Binding(
+                Node(
+                    Binding(
+                        "foo",
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            6,
+                        ),
+                        Point(
+                            1,
+                            8,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+            variants: [
+                (
+                    "Fizz",
+                    [],
+                ),
+                (
+                    "Buzz",
+                    [
+                        TypeExpression(
+                            Node(
+                                Primitive(
+                                    Integer,
+                                ),
+                                Range(
+                                    Point(
+                                        1,
+                                        24,
+                                    ),
+                                    Point(
+                                        1,
+                                        30,
+                                    ),
+                                ),
+                                (),
+                            ),
+                        ),
+                    ],
+                ),
+            ],
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                33,
+            ),
+        ),
+        (),
+    ),
+)

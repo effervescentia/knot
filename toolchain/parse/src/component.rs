@@ -195,350 +195,141 @@ parser! {
 mod tests {
     use super::component;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::{assert_eq, str};
-    use lang::{ast, Range};
 
-    fn parse(s: &str) -> crate::Result<ast::raw::Component> {
+    fn parse(s: &str) -> crate::Result<lang::ast::raw::Component> {
         component().skip(eof()).easy_parse(Stream::new(s))
     }
 
     #[test]
     fn fragment() {
-        assert_eq!(
-            parse("<></>").unwrap().0,
-            ast::raw::Component::raw(ast::Component::Fragment(vec![]), Range::new((1, 1), (1, 5)))
-        );
+        let ast = parse("<></>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn open_element() {
-        assert_eq!(
-            parse("<foo></foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(str!("foo"), vec![], vec![], str!("foo")),
-                Range::new((1, 1), (1, 11))
-            )
-        );
+        let ast = parse("<foo></foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn closed_element() {
-        assert_eq!(
-            parse("<foo />").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::ClosedElement(str!("foo"), vec![]),
-                Range::new((1, 1), (1, 7))
-            )
-        );
+        let ast = parse("<foo />").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn fragment_in_fragment() {
-        assert_eq!(
-            parse("<><></></>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::Fragment(vec![ast::raw::Component::raw(
-                    ast::Component::Fragment(vec![]),
-                    Range::new((1, 3), (1, 7))
-                )]),
-                Range::new((1, 1), (1, 10))
-            )
-        );
+        let ast = parse("<><></></>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn element_in_fragment() {
-        assert_eq!(
-            parse("<><foo /></>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::Fragment(vec![ast::raw::Component::raw(
-                    ast::Component::ClosedElement(str!("foo"), vec![]),
-                    Range::new((1, 3), (1, 9))
-                )]),
-                Range::new((1, 1), (1, 12))
-            )
-        );
+        let ast = parse("<><foo /></>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn fragment_in_element() {
-        assert_eq!(
-            parse("<foo><></></foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![],
-                    vec![ast::raw::Component::raw(
-                        ast::Component::Fragment(vec![]),
-                        Range::new((1, 6), (1, 10))
-                    )],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (1, 16))
-            )
-        );
+        let ast = parse("<foo><></></foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn element_in_element() {
-        assert_eq!(
-            parse("<foo><bar /></foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![],
-                    vec![ast::raw::Component::raw(
-                        ast::Component::ClosedElement(str!("bar"), vec![]),
-                        Range::new((1, 6), (1, 12))
-                    )],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (1, 18))
-            )
-        );
+        let ast = parse("<foo><bar /></foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn inline_in_fragment() {
-        assert_eq!(
-            parse("<>{nil}</>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::Fragment(vec![ast::raw::Component::raw(
-                    ast::Component::Expression(ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 4), (1, 6))
-                    )),
-                    Range::new((1, 3), (1, 7))
-                )]),
-                Range::new((1, 1), (1, 10))
-            )
-        );
+        let ast = parse("<>{nil}</>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn inline_in_element() {
-        assert_eq!(
-            parse("<foo>{nil}</foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![],
-                    vec![ast::raw::Component::raw(
-                        ast::Component::Expression(ast::raw::Expression::raw(
-                            ast::Expression::Primitive(ast::Primitive::Nil),
-                            Range::new((1, 7), (1, 9))
-                        )),
-                        Range::new((1, 6), (1, 10))
-                    )],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (1, 16))
-            )
-        );
+        let ast = parse("<foo>{nil}</foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn text_in_fragment() {
-        assert_eq!(
-            parse("<>foo</>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::Fragment(vec![ast::raw::Component::raw(
-                    ast::Component::Text(str!("foo")),
-                    Range::new((1, 3), (1, 5))
-                )]),
-                Range::new((1, 1), (1, 8))
-            )
-        );
+        let ast = parse("<>foo</>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn text_in_element() {
-        assert_eq!(
-            parse("<foo>bar</foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![],
-                    vec![ast::raw::Component::raw(
-                        ast::Component::Text(str!("bar")),
-                        Range::new((1, 6), (1, 8))
-                    )],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (1, 14))
-            )
-        );
+        let ast = parse("<foo>bar</foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn attribute_on_element() {
-        assert_eq!(
-            parse("<foo bar=nil></foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![ast::raw::Attribute::raw(
-                        ast::Attribute::Explicit(
-                            str!("bar"),
-                            ast::raw::Expression::raw(
-                                ast::Expression::Primitive(ast::Primitive::Nil),
-                                Range::new((1, 10), (1, 12))
-                            )
-                        ),
-                        Range::new((1, 6), (1, 12))
-                    )],
-                    vec![],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (1, 19))
-            )
-        );
+        let ast = parse("<foo bar=nil></foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn attribute_on_self_closing_element() {
-        assert_eq!(
-            parse("<foo bar=nil />").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::ClosedElement(
-                    str!("foo"),
-                    vec![ast::raw::Attribute::raw(
-                        ast::Attribute::Explicit(
-                            str!("bar"),
-                            ast::raw::Expression::raw(
-                                ast::Expression::Primitive(ast::Primitive::Nil),
-                                Range::new((1, 10), (1, 12))
-                            )
-                        ),
-                        Range::new((1, 6), (1, 12))
-                    )],
-                ),
-                Range::new((1, 1), (1, 15))
-            )
-        );
+        let ast = parse("<foo bar=nil />").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn attribute_punned() {
-        assert_eq!(
-            parse("<foo bar />").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::ClosedElement(
-                    str!("foo"),
-                    vec![ast::raw::Attribute::raw(
-                        ast::Attribute::Punned(str!("bar")),
-                        Range::new((1, 6), (1, 8))
-                    )],
-                ),
-                Range::new((1, 1), (1, 11))
-            )
-        );
+        let ast = parse("<foo bar />").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn trim_text() {
-        assert_eq!(
-            parse("<foo>  \n  \n  bar  \n  \n  </foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![],
-                    vec![ast::raw::Component::raw(
-                        ast::Component::Text(str!("bar")),
-                        Range::new((1, 6), (5, 2))
-                    )],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (5, 8))
-            )
-        );
+        let ast = parse("<foo>  \n  \n  bar  \n  \n  </foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn trim_start_text() {
-        assert_eq!(
-            parse("<foo>  \n  \n  bar  {fizz}\n</foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![],
-                    vec![
-                        ast::raw::Component::raw(
-                            ast::Component::Text(str!("bar  ")),
-                            Range::new((1, 6), (3, 7))
-                        ),
-                        ast::raw::Component::raw(
-                            ast::Component::Expression(ast::raw::Expression::raw(
-                                ast::Expression::Identifier(str!("fizz")),
-                                Range::new((3, 9), (3, 12))
-                            )),
-                            Range::new((3, 8), (3, 13))
-                        )
-                    ],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (4, 6))
-            )
-        );
+        let ast = parse("<foo>  \n  \n  bar  {fizz}\n</foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn trim_end_text() {
-        assert_eq!(
-            parse("<foo>\n{fizz}  bar  \n  \n  </foo>").unwrap().0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![],
-                    vec![
-                        ast::raw::Component::raw(
-                            ast::Component::Expression(ast::raw::Expression::raw(
-                                ast::Expression::Identifier(str!("fizz")),
-                                Range::new((2, 2), (2, 5))
-                            )),
-                            Range::new((2, 1), (2, 6))
-                        ),
-                        ast::raw::Component::raw(
-                            ast::Component::Text(str!("  bar")),
-                            Range::new((2, 7), (4, 2))
-                        )
-                    ],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (4, 8))
-            )
-        );
+        let ast = parse("<foo>\n{fizz}  bar  \n  \n  </foo>").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn drop_empty_text() {
-        assert_eq!(
-            parse(
-                "<foo>
+        let ast = parse(
+            "<foo>
   <bar />
   <fizz />
-</foo>"
-            )
-            .unwrap()
-            .0,
-            ast::raw::Component::raw(
-                ast::Component::open_element(
-                    str!("foo"),
-                    vec![],
-                    vec![
-                        ast::raw::Component::raw(
-                            ast::Component::ClosedElement(str!("bar"), vec![]),
-                            Range::new((2, 3), (2, 9))
-                        ),
-                        ast::raw::Component::raw(
-                            ast::Component::ClosedElement(str!("fizz"), vec![]),
-                            Range::new((3, 3), (3, 10))
-                        )
-                    ],
-                    str!("foo"),
-                ),
-                Range::new((1, 1), (4, 6))
-            )
-        );
+</foo>",
+        )
+        .unwrap()
+        .0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 }

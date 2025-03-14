@@ -1,0 +1,24 @@
+---
+source: toolchain/parse/src/expression/mod.rs
+expression: ast
+---
+Expression(
+    Node(
+        Primitive(
+            String(
+                "foo",
+            ),
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                5,
+            ),
+        ),
+        (),
+    ),
+)

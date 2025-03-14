@@ -77,14 +77,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::engine2::{input::Input, modules::Status, Analyzed, Context, Engine, Linked};
+    use crate::engine2::{input::Input, Analyzed, Context, Engine};
     use assert_fs::{
         prelude::{FileWriteStr, PathChild},
         TempDir,
     };
-    use kore::{assert_eq, str};
+    use kore::assert_eq;
     use lang::ModuleId;
-    use std::{collections::HashSet, path::PathBuf};
+    use std::collections::HashSet;
 
     #[test]
     fn analyze_one_file() {

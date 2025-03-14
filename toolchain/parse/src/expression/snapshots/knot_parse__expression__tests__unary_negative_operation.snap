@@ -1,0 +1,40 @@
+---
+source: toolchain/parse/src/expression/mod.rs
+expression: ast
+---
+Expression(
+    Node(
+        UnaryOperation(
+            Negate,
+            Expression(
+                Node(
+                    Primitive(
+                        Nil,
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            2,
+                        ),
+                        Point(
+                            1,
+                            4,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                4,
+            ),
+        ),
+        (),
+    ),
+)

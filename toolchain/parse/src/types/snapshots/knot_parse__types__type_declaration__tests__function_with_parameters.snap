@@ -1,0 +1,95 @@
+---
+source: toolchain/parse/src/types/type_declaration.rs
+expression: ast
+---
+TypeDeclaration(
+    Node(
+        Function {
+            binding: Binding(
+                Node(
+                    Binding(
+                        "foo",
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            6,
+                        ),
+                        Point(
+                            1,
+                            8,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+            parameters: [
+                TypeExpression(
+                    Node(
+                        Primitive(
+                            Integer,
+                        ),
+                        Range(
+                            Point(
+                                1,
+                                11,
+                            ),
+                            Point(
+                                1,
+                                17,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+                TypeExpression(
+                    Node(
+                        Primitive(
+                            Boolean,
+                        ),
+                        Range(
+                            Point(
+                                1,
+                                20,
+                            ),
+                            Point(
+                                1,
+                                26,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+            ],
+            result: TypeExpression(
+                Node(
+                    Primitive(
+                        String,
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            32,
+                        ),
+                        Point(
+                            1,
+                            37,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                37,
+            ),
+        ),
+        (),
+    ),
+)

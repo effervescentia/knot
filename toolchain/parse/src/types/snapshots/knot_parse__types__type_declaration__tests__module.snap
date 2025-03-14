@@ -1,0 +1,112 @@
+---
+source: toolchain/parse/src/types/type_declaration.rs
+expression: ast
+---
+TypeDeclaration(
+    Node(
+        Module {
+            binding: Binding(
+                Node(
+                    Binding(
+                        "foo",
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            8,
+                        ),
+                        Point(
+                            1,
+                            10,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+            module: TypeModule(
+                Node(
+                    TypeModule {
+                        imports: [],
+                        declarations: [
+                            TypeDeclaration(
+                                Node(
+                                    TypeAlias {
+                                        binding: Binding(
+                                            Node(
+                                                Binding(
+                                                    "Bar",
+                                                ),
+                                                Range(
+                                                    Point(
+                                                        2,
+                                                        8,
+                                                    ),
+                                                    Point(
+                                                        2,
+                                                        10,
+                                                    ),
+                                                ),
+                                                (),
+                                            ),
+                                        ),
+                                        value: TypeExpression(
+                                            Node(
+                                                Primitive(
+                                                    Nil,
+                                                ),
+                                                Range(
+                                                    Point(
+                                                        2,
+                                                        14,
+                                                    ),
+                                                    Point(
+                                                        2,
+                                                        16,
+                                                    ),
+                                                ),
+                                                (),
+                                            ),
+                                        ),
+                                    },
+                                    Range(
+                                        Point(
+                                            2,
+                                            3,
+                                        ),
+                                        Point(
+                                            2,
+                                            16,
+                                        ),
+                                    ),
+                                    (),
+                                ),
+                            ),
+                        ],
+                    },
+                    Range(
+                        Point(
+                            2,
+                            3,
+                        ),
+                        Point(
+                            3,
+                            0,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                3,
+                1,
+            ),
+        ),
+        (),
+    ),
+)

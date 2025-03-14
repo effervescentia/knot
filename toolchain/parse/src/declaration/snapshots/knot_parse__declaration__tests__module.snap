@@ -1,0 +1,119 @@
+---
+source: toolchain/parse/src/declaration/mod.rs
+expression: ast
+---
+Declaration(
+    Node(
+        Module {
+            storage: Storage {
+                visibility: Public,
+                binding: Binding(
+                    Node(
+                        Binding(
+                            "foo",
+                        ),
+                        Range(
+                            Point(
+                                1,
+                                8,
+                            ),
+                            Point(
+                                1,
+                                10,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+            },
+            value: Module(
+                Node(
+                    Module {
+                        imports: [],
+                        declarations: [
+                            Declaration(
+                                Node(
+                                    Constant {
+                                        storage: Storage {
+                                            visibility: Public,
+                                            binding: Binding(
+                                                Node(
+                                                    Binding(
+                                                        "bar",
+                                                    ),
+                                                    Range(
+                                                        Point(
+                                                            1,
+                                                            20,
+                                                        ),
+                                                        Point(
+                                                            1,
+                                                            22,
+                                                        ),
+                                                    ),
+                                                    (),
+                                                ),
+                                            ),
+                                        },
+                                        value_type: None,
+                                        value: Expression(
+                                            Node(
+                                                Primitive(
+                                                    Nil,
+                                                ),
+                                                Range(
+                                                    Point(
+                                                        1,
+                                                        26,
+                                                    ),
+                                                    Point(
+                                                        1,
+                                                        28,
+                                                    ),
+                                                ),
+                                                (),
+                                            ),
+                                        ),
+                                    },
+                                    Range(
+                                        Point(
+                                            1,
+                                            14,
+                                        ),
+                                        Point(
+                                            1,
+                                            28,
+                                        ),
+                                    ),
+                                    (),
+                                ),
+                            ),
+                        ],
+                    },
+                    Range(
+                        Point(
+                            1,
+                            14,
+                        ),
+                        Point(
+                            1,
+                            30,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                31,
+            ),
+        ),
+        (),
+    ),
+)
