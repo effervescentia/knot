@@ -1,5 +1,6 @@
 mod input;
 mod logger;
+mod modules;
 mod pipeline;
 mod plan;
 mod state;

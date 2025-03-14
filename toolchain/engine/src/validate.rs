@@ -56,13 +56,9 @@ impl Validator2 {
     }
 
     fn assert_no_import_cycles<Log>(state: &engine2::State<Log>) -> Result {
-        let graph = state.graph();
-        if !graph.is_cyclic() {
-            return None;
-        }
-
-        let errors = graph
-            .cycles()
+        let errors = state
+            .modules
+            .get_dependency_cycles()
             .into_iter()
             .map(|x| panic!("dependency cycle found {x:?}"))
             .collect::<Vec<_>>();

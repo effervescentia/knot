@@ -43,7 +43,7 @@ where
         let mut parsed = HashSet::new();
 
         while let Some(path) = queue.pop() {
-            let id = state.registry.upsert(&path);
+            let id = state.modules.register(&path);
             let (text, ast) = state.load_and_parse_module(&path);
             let dependencies = self.extract_dependencies(&ast, &path);
 
@@ -62,7 +62,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::Parsed;
-    use crate::engine2::{input::Input, state::Status, Context, Engine};
+    use crate::engine2::{input::Input, modules::Status, Context, Engine};
     use assert_fs::{
         prelude::{FileTouch, FileWriteStr, PathChild},
         TempDir,
@@ -86,7 +86,7 @@ mod tests {
 
         assert_eq!(parsed, HashSet::from([ModuleId(0)]));
 
-        let module = state.get_module(&ModuleId(0)).unwrap();
+        let module = state.modules.get_by_id(&ModuleId(0)).unwrap();
 
         assert_eq!(module.id, ModuleId(0));
         assert_eq!(module.path, PathBuf::from("main.kn"));
@@ -113,7 +113,7 @@ mod tests {
 
         assert_eq!(parsed, HashSet::from([ModuleId(0)]));
 
-        let module = state.get_module(&ModuleId(0)).unwrap();
+        let module = state.modules.get_by_id(&ModuleId(0)).unwrap();
 
         assert_eq!(module.id, ModuleId(0));
         assert_eq!(module.path, PathBuf::from("main.kn"));
@@ -151,7 +151,7 @@ mod tests {
             HashSet::from([ModuleId(0), ModuleId(1), ModuleId(2)])
         );
 
-        let bar = state.get_module(&ModuleId(0)).unwrap();
+        let bar = state.modules.get_by_id(&ModuleId(0)).unwrap();
 
         assert_eq!(bar.id, ModuleId(0));
         assert_eq!(bar.path, PathBuf::from("bar/bar.kn"));
@@ -159,7 +159,7 @@ mod tests {
         assert_eq!(bar.status, Status::Active);
         insta::assert_debug_snapshot!(bar.raw);
 
-        let foo = state.get_module(&ModuleId(1)).unwrap();
+        let foo = state.modules.get_by_id(&ModuleId(1)).unwrap();
 
         assert_eq!(foo.id, ModuleId(1));
         assert_eq!(foo.path, PathBuf::from("foo/foo.kn"));
@@ -167,7 +167,7 @@ mod tests {
         assert_eq!(foo.status, Status::Active);
         insta::assert_debug_snapshot!(foo.raw);
 
-        let main = state.get_module(&ModuleId(2)).unwrap();
+        let main = state.modules.get_by_id(&ModuleId(2)).unwrap();
 
         assert_eq!(main.id, ModuleId(2));
         assert_eq!(main.path, PathBuf::from("main.kn"));
@@ -205,7 +205,7 @@ mod tests {
             HashSet::from([ModuleId(0), ModuleId(1), ModuleId(2)])
         );
 
-        let main = state.get_module(&ModuleId(0)).unwrap();
+        let main = state.modules.get_by_id(&ModuleId(0)).unwrap();
 
         assert_eq!(main.id, ModuleId(0));
         assert_eq!(main.path, PathBuf::from("main.kn"));
@@ -213,7 +213,7 @@ mod tests {
         assert_eq!(main.status, Status::Active);
         insta::assert_debug_snapshot!(main.raw);
 
-        let foo = state.get_module(&ModuleId(1)).unwrap();
+        let foo = state.modules.get_by_id(&ModuleId(1)).unwrap();
 
         assert_eq!(foo.id, ModuleId(1));
         assert_eq!(foo.path, PathBuf::from("foo/foo.kn"));
@@ -221,7 +221,7 @@ mod tests {
         assert_eq!(foo.status, Status::Active);
         insta::assert_debug_snapshot!(foo.raw);
 
-        let bar = state.get_module(&ModuleId(2)).unwrap();
+        let bar = state.modules.get_by_id(&ModuleId(2)).unwrap();
 
         assert_eq!(bar.id, ModuleId(2));
         assert_eq!(bar.path, PathBuf::from("foo/bar.kn"));

@@ -36,12 +36,12 @@ where
         let Parsed(ids) = result.into();
 
         for id in &ids {
-            if let Some(module) = state.get_module(id) {
+            if let Some(module) = state.modules.get_by_id(id) {
                 let dependencies = module.raw.get_dependencies(&module.path);
 
                 for dependency in &dependencies {
-                    if let Some(dependency_id) = state.registry.get_id(dependency) {
-                        state.add_dependency(id, &dependency_id);
+                    if let Some(dependency_id) = state.modules.get_id_by_path(dependency) {
+                        state.modules.add_dependency(id, &dependency_id);
                     } else {
                         panic!("replace this with an actual error");
                     }
@@ -86,7 +86,7 @@ mod tests {
 
         let id = ModuleId(0);
         assert_eq!(linked, HashSet::from([id]));
-        assert_eq!(state.graph().edges().count(), 0);
+        assert_eq!(state.modules.dependencies().edges().count(), 0);
     }
 
     #[test]
@@ -118,7 +118,7 @@ mod tests {
         let bar_id = ModuleId(2);
         assert_eq!(linked, HashSet::from([main_id, foo_id, bar_id]));
         assert_eq!(
-            state.graph().edges().collect::<HashSet<_>>(),
+            state.modules.dependencies().edges().collect::<HashSet<_>>(),
             HashSet::from([(main_id, foo_id), (foo_id, bar_id)])
         );
     }

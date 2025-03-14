@@ -1,8 +1,5 @@
 use super::{write::Output, Parsed};
-use crate::engine2::{
-    pipeline::Transform,
-    state::{Ast, State},
-};
+use crate::engine2::{modules::Ast, pipeline::Transform, state::State};
 use kore::internal;
 use lang::ast;
 use std::path::PathBuf;
@@ -46,7 +43,7 @@ where
         let output = ids
             .iter()
             .map(|id| {
-                let module = state.get_module(id).unwrap();
+                let module = state.modules.get_by_id(id).unwrap();
                 let Ast::Program(ast) = &module.raw;
 
                 let (out_path, out_data) = self.1.generate(&module.path, ast.clone().to_shape());
@@ -64,8 +61,9 @@ mod tests {
     use super::Generate;
     use crate::engine2::{
         logger::MemoryLogger,
+        modules::Status,
         pipeline::{Identity, Transform},
-        state::{State, Status},
+        state::State,
         Analyzed, Context,
     };
     use assert_fs::TempDir;

@@ -36,7 +36,7 @@ where
         let output = ids
             .iter()
             .map(|id| {
-                let module = state.get_module(id).unwrap();
+                let module = state.modules.get_by_id(id).unwrap();
 
                 (module.path.clone(), module.raw.to_string())
             })
@@ -51,9 +51,10 @@ mod tests {
     use super::Format;
     use crate::engine2::{
         logger::MemoryLogger,
+        modules::Status,
         pipeline::{Identity, Transform},
         plan::parse::Parsed,
-        state::{State, Status},
+        state::State,
         Context,
     };
     use assert_fs::TempDir;
