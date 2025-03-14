@@ -67,6 +67,9 @@ mod tests {
     use lang::ModuleId;
     use std::collections::HashSet;
 
+    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct MockLibrary;
+
     #[test]
     fn link_one_file() {
         let root_dir = TempDir::new().unwrap();
@@ -76,9 +79,8 @@ mod tests {
             .write_str("const FOO = 123;")
             .unwrap();
 
-        let context = Context::new(&root_dir, false);
-        let engine = Engine::new(context);
-        let input = Input::from_entry("main.kn", []);
+        let engine = Engine::new(Context::new(&root_dir, false));
+        let input = Input::from_entry("main.kn", [MockLibrary]);
         let plan = Engine::plan().parse().link();
 
         let (state, Linked(linked)) = engine.execute(&plan, &input);
@@ -105,9 +107,8 @@ mod tests {
             .write_str("const BAR = 456;")
             .unwrap();
 
-        let context = Context::new(&root_dir, false);
-        let engine = Engine::new(context);
-        let input = Input::from_entry("main.kn", []);
+        let engine = Engine::new(Context::new(&root_dir, false));
+        let input = Input::from_entry("main.kn", [MockLibrary]);
         let plan = Engine::plan().parse_and_traverse().link();
 
         let (state, Linked(linked)) = engine.execute(&plan, &input);

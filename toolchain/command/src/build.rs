@@ -63,7 +63,7 @@ where
 
     log::entrypoint(opts.verbose, opts.entry);
 
-    let input = Input::from_entry(opts.entry, []);
+    let input = Input::from_entry(opts.entry, Platform::libraries());
     let engine = Engine::new(Context::new(source_dir, Logger));
     let plan = build_plan(opts);
 
@@ -89,7 +89,7 @@ where
 
     log::entrypoint(opts.verbose, opts.entry);
 
-    let input = Input::from_entry(opts.entry, []);
+    let input = Input::from_entry(opts.entry, Platform::libraries());
     let engine = Engine::new(Context::new(source_dir, Logger));
     let plan = build_plan(opts);
 

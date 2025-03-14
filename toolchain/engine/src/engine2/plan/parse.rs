@@ -72,15 +72,17 @@ mod tests {
     use lang::ModuleId;
     use std::{collections::HashSet, path::PathBuf};
 
+    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+    pub struct MockLibrary;
+
     #[test]
     fn parse_one_empty_file() {
         let root_dir = TempDir::new().unwrap();
 
         root_dir.child("main.kn").touch().unwrap();
 
-        let context = Context::new(&root_dir, false);
-        let engine = Engine::new(context);
-        let input = Input::from_entry("main.kn", []);
+        let engine = Engine::new(Context::new(&root_dir, false));
+        let input = Input::from_entry("main.kn", [MockLibrary]);
         let plan = Engine::plan().parse();
 
         let (state, Parsed(parsed)) = engine.execute(&plan, &input);
@@ -105,9 +107,8 @@ mod tests {
             .write_str("const FOO = 123;")
             .unwrap();
 
-        let context = Context::new(&root_dir, false);
-        let engine = Engine::new(context);
-        let input = Input::from_entry("main.kn", []);
+        let engine = Engine::new(Context::new(&root_dir, false));
+        let input = Input::from_entry("main.kn", [MockLibrary]);
         let plan = Engine::plan().parse();
 
         let (state, Parsed(parsed)) = engine.execute(&plan, &input);
@@ -140,9 +141,8 @@ mod tests {
             .write_str("const BAR = 456;")
             .unwrap();
 
-        let context = Context::new(&root_dir, false);
-        let engine = Engine::new(context);
-        let input = Input::from_glob("**/*.kn", []);
+        let engine = Engine::new(Context::new(&root_dir, false));
+        let input = Input::from_glob("**/*.kn", [MockLibrary]);
         let plan = Engine::plan().parse();
 
         let (state, Parsed(parsed)) = engine.execute(&plan, &input);
@@ -194,9 +194,8 @@ mod tests {
             .write_str("const BAR = 456;")
             .unwrap();
 
-        let context = Context::new(&root_dir, false);
-        let engine = Engine::new(context);
-        let input = Input::from_entry("main.kn", []);
+        let engine = Engine::new(Context::new(&root_dir, false));
+        let input = Input::from_entry("main.kn", [MockLibrary]);
         let plan = Engine::plan().parse_and_traverse();
 
         let (state, Parsed(parsed)) = engine.execute(&plan, &input);

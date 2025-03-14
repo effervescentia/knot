@@ -1,7 +1,7 @@
 use crate::{resolve::Resolver, Module, Options};
 use kore::internal;
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
 pub struct MockLibrary;
 
 impl internal::PlatformLibrary for MockLibrary {

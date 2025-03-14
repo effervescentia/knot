@@ -38,7 +38,7 @@ pub fn command(opts: &Options) -> engine::Result<()> {
 
     log::glob(opts.verbose, opts.glob);
 
-    let input = Input::from_glob(opts.glob, []);
+    let input: Input<_, ()> = Input::from_glob(opts.glob, []);
     let engine = Engine::new(Context::new(root_dir, Logger));
     let plan = format_plan(root_dir);
 

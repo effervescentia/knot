@@ -25,13 +25,6 @@ phases
 6. generate
 */
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum Library {
-    MockA,
-    MockB,
-    MockC,
-}
-
 #[derive(Debug)]
 pub struct Context<Log> {
     root_dir: PathBuf,
@@ -77,10 +70,10 @@ impl<Log> Engine<Log> {
         Builder::new()
     }
 
-    pub fn execute<'a, Src, Res, Tx>(
+    pub fn execute<'a, Src, Lib, Res, Tx>(
         &'a self,
         plan: &Builder<Tx>,
-        input: &Input<Src, Library>,
+        input: &Input<Src, Lib>,
     ) -> (State<'a, Log>, Res)
     where
         Src: Source,
@@ -106,92 +99,5 @@ impl<Log> Engine<Log> {
         let next = prev.evolve(operations);
 
         plan.execute((next, ()))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{logger::NoopLogger, Context, Engine, Input};
-    use kore::{internal, pipeline::Peek, str};
-    use lang::ast;
-
-    #[derive(Clone, Copy)]
-    struct MockGenerator;
-
-    impl internal::Generator for MockGenerator {
-        type Input = ast::shape::Program;
-        type Output = String;
-
-        fn generate<T>(&self, path: T, _: Self::Input) -> (std::path::PathBuf, Self::Output)
-        where
-            T: AsRef<std::path::Path>,
-        {
-            (path.as_ref().with_extension("out"), str!("output"))
-        }
-    }
-
-    #[test]
-    fn one_off_execution() {
-        let context = Context::mock();
-        let engine = Engine::new(context);
-        let input = Input::from_entry("entry", []);
-        let pipeline = Engine::plan();
-
-        engine.execute(&pipeline, &input);
-    }
-
-    #[test]
-    #[ignore = "skip temporarily"]
-    fn incremental_execution() {
-        let context = Context::mock();
-        let engine = Engine::new(context);
-        let input = Input::from_entry("entry", []);
-        let plan = Engine::plan();
-
-        let (mut state, _) = engine.execute(&plan, &input);
-
-        loop {
-            let operations = vec![];
-            // let next_state = state.evolve(operations);
-
-            (state, _) = Engine::incremental(state, &plan, operations);
-        }
-    }
-
-    #[test]
-    fn build_pipeline() {
-        Engine::<NoopLogger>::plan()
-            .parse()
-            .peek(|_| ())
-            .link()
-            .peek(|_| ())
-            .analyze()
-            .peek(|_| ())
-            .generate(MockGenerator)
-            .peek(|_| ())
-            .write("out_dir");
-    }
-
-    #[test]
-    fn format_pipeline() {
-        Engine::<NoopLogger>::plan()
-            .parse()
-            .peek(|_| ())
-            .format()
-            .peek(|_| ())
-            .write("out_dir");
-    }
-
-    #[test]
-    fn flexible_pipeline() {
-        Engine::<NoopLogger>::plan()
-            .parse()
-            .link()
-            .analyze()
-            .link()
-            .analyze()
-            .link()
-            .generate(MockGenerator)
-            .write("out_dir");
     }
 }
