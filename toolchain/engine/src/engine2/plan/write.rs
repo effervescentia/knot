@@ -35,14 +35,15 @@ impl<Tx> Write<Tx> {
 
 impl<'a, Tx, Out, Log> Transform for Write<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Out)>,
+    Tx: Transform<Context = State<'a, Log>, Out = Out>,
     Out: Output,
     Log: Logger + 'a,
 {
+    type Context = Tx::Context;
     type In = Tx::In;
-    type Out = (State<'a, Log>, usize);
+    type Out = usize;
 
-    fn apply(&self, input: Self::In) -> Self::Out {
+    fn apply(&self, input: (Self::Context, Self::In)) -> (Self::Context, Self::Out) {
         let (state, output) = self.0.apply(input);
         let mut count = 0;
 

@@ -73,7 +73,7 @@ impl<Log> Engine<Log> {
         Self(context)
     }
 
-    pub const fn plan<'a>() -> Builder<Identity<(State<'a, Log>, ())>> {
+    pub const fn plan<'a>() -> Builder<Identity<State<'a, Log>, ()>> {
         Builder::new()
     }
 
@@ -84,7 +84,7 @@ impl<Log> Engine<Log> {
     ) -> (State<'a, Log>, Res)
     where
         Src: Source,
-        Tx: Transform<In = (State<'a, Log>, ()), Out = (State<'a, Log>, Res)>,
+        Tx: Transform<Context = State<'a, Log>, In = (), Out = Res>,
     {
         let Input { source, .. } = input;
         let scope = source.resolve(&self.0.root_dir);
@@ -100,7 +100,7 @@ impl<Log> Engine<Log> {
         operations: Ops,
     ) -> (State<'a, Log>, Res)
     where
-        Tx: Transform<In = (State<'a, Log>, ()), Out = (State<'a, Log>, Res)>,
+        Tx: Transform<Context = State<'a, Log>, In = (), Out = Res>,
         Ops: AsRef<[(PathBuf, Operation)]>,
     {
         let next = prev.evolve(operations);

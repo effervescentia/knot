@@ -24,7 +24,7 @@ use write::{Output, Write};
 #[derive(Default)]
 pub struct Builder<Tx>(Tx);
 
-impl<Log> Builder<Identity<(State<'_, Log>, ())>> {
+impl<Log> Builder<Identity<State<'_, Log>, ()>> {
     pub const fn new() -> Self {
         Self(Identity::new())
     }
@@ -49,7 +49,7 @@ impl<In, Out> Map<In, Out> for Builder<In> {
 impl<Tx, F> Peek<Tx, F> for Builder<Tx>
 where
     Tx: Transform,
-    F: Fn(&Tx::Out),
+    F: Fn(&(Tx::Context, Tx::Out)),
 {
 }
 
@@ -57,14 +57,14 @@ impl<Tx> Execute<Tx> for Builder<Tx>
 where
     Tx: Transform,
 {
-    fn execute(&self, input: Tx::In) -> Tx::Out {
+    fn execute(&self, input: (Tx::Context, Tx::In)) -> (Tx::Context, Tx::Out) {
         self.0.apply(input)
     }
 }
 
 impl<'a, Tx, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, ())>,
+    Tx: Transform<Context = State<'a, Log>, Out = ()>,
     Log: 'a,
 {
     /// load and parse internal modules without following dependencies
@@ -84,7 +84,7 @@ where
 
 impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
     Res: Into<Parsed>,
     Log: 'a,
 {
@@ -96,7 +96,7 @@ where
 
 impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
     Res: Into<Parsed>,
     Log: 'a,
 {
@@ -108,7 +108,7 @@ where
 
 impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
     Res: Into<Linked>,
     Log: 'a,
 {
@@ -120,7 +120,7 @@ where
 
 impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
     Res: Into<Parsed>,
     Log: 'a,
 {
@@ -134,7 +134,7 @@ where
 
 impl<'a, Tx, Res, Log> Builder<Tx>
 where
-    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
     Res: Output,
     Log: 'a,
 {

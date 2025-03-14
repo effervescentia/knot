@@ -20,7 +20,7 @@ pub struct Options<'a> {
 
 fn format_plan<'a, T>(
     root_dir: T,
-) -> Builder<impl Transform<In = (State<'a, Logger>, ()), Out = (State<'a, Logger>, usize)>>
+) -> Builder<impl Transform<Context = State<'a, Logger>, In = (), Out = usize>>
 where
     T: AsRef<Path>,
 {

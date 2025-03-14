@@ -28,15 +28,16 @@ impl<Tx, Gen> Generate<Tx, Gen> {
 
 impl<'a, Tx, Res, Gen, Log> Transform for Generate<Tx, Gen>
 where
-    Tx: Transform<Out = (State<'a, Log>, Res)>,
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
     Res: Into<Parsed>,
     Gen: internal::Generator<Input = ast::shape::Program>,
     Log: 'a,
 {
+    type Context = Tx::Context;
     type In = Tx::In;
-    type Out = (State<'a, Log>, Generated);
+    type Out = Generated;
 
-    fn apply(&self, input: Self::In) -> Self::Out {
+    fn apply(&self, input: (Self::Context, Self::In)) -> (Self::Context, Self::Out) {
         let (state, result) = self.0.apply(input);
         let Parsed(ids) = result.into();
 
