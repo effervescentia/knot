@@ -1,7 +1,7 @@
 use super::{link::Linked, Parsed};
 use crate::engine2::{pipeline::Transform, state::State};
 use lang::ModuleId;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 pub struct Analyzed(pub HashSet<ModuleId>);
 
@@ -35,61 +35,122 @@ where
     type Out = (State<'a, Log>, Analyzed);
 
     fn apply(&self, input: Self::In) -> Self::Out {
-        let (state, result) = self.0.apply(input);
+        let (mut state, result) = self.0.apply(input);
         let Linked(ids) = result.into();
 
+        let mut analyzed = HashMap::new();
         let mut modules = analyze::ModuleMap::default();
 
-        // for id in state.graph().iter() {
-        //     let analyze_context = analyze::Context {
-        //         id: module.id,
-        //         namespace: &namespace,
-        //         modules: &modules,
-        //         ambient: state.ambient(),
-        //     };
+        // iterate through the modules in import order
+        for module in state.modules.iter() {
+            // skip the modules that aren't the focus of this operation
+            if !ids.contains(&module.id) {
+                continue;
+            }
 
-        //     // TODO: see if it's possible to fail after all modules are processed instead of immediately
-        //     let (typed, types) = module
-        //         .ast
-        //         .analyze(&analyze_context)
-        //         .map_err(|errs| context.fail(Self::bind_errors(&analyze_context, errs)))?;
+            // TODO: this should be derived from the state
+            let ambient = HashMap::default();
+            let context = analyze::Context {
+                id: module.id,
+                namespace: &module.namespace,
+                modules: &modules,
+                ambient: &ambient,
+            };
 
-        //     modules.keys.insert(namespace, module.id);
-        //     modules
-        //         .by_key
-        //         .insert(module.id, (*typed.id(), typed.exports(), types));
-        //     analyzed.insert(
-        //         link.clone(),
-        //         state::Module::new(module.id, module.text.clone(), typed),
-        //     );
-        // }
+            // TODO: it should be possible to fail after all modules are processed instead of immediately
+            let (typed, types) = module.raw.analyze(&context).unwrap();
 
-        // for id in state.iter_graph() {
-        //     let (link, module) = Self::get_module(&state, &id);
-        //     let namespace = link.clone().to_namespace();
-        //     let analyze_context = analyze::Context {
-        //         id: module.id,
-        //         namespace: &namespace,
-        //         modules: &modules,
-        //         ambient: state.ambient(),
-        //     };
+            modules.keys.insert(module.namespace.clone(), module.id);
+            modules
+                .by_key
+                .insert(module.id, (*typed.id(), typed.exports(), types));
+            analyzed.insert(module.id, module.typed(typed));
+        }
 
-        //     // TODO: see if it's possible to fail after all modules are processed instead of immediately
-        //     let (typed, types) = module
-        //         .ast
-        //         .analyze(&analyze_context)
-        //         .map_err(|errs| context.fail(Self::bind_errors(&analyze_context, errs)))?;
-
-        //     modules.keys.insert(namespace, module.id);
-        //     modules
-        //         .by_key
-        //         .insert(module.id, (*typed.id(), typed.exports(), types));
-        //     analyzed.insert(
-        //         link.clone(),
-        //         state::Module::new(module.id, module.text.clone(), typed),
-        //     );
-        // }
+        analyzed
+            .into_values()
+            .for_each(|x| state.modules.insert(x.id, x));
 
         (state, Analyzed(ids))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::engine2::{input::Input, modules::Status, Analyzed, Context, Engine, Linked};
+    use assert_fs::{
+        prelude::{FileWriteStr, PathChild},
+        TempDir,
+    };
+    use kore::{assert_eq, str};
+    use lang::ModuleId;
+    use std::{collections::HashSet, path::PathBuf};
+
+    #[test]
+    fn analyze_one_file() {
+        let root_dir = TempDir::new().unwrap();
+
+        root_dir
+            .child("main.kn")
+            .write_str("const FOO = 123;")
+            .unwrap();
+
+        let context = Context::new(&root_dir, false);
+        let engine = Engine::new(context);
+        let input = Input::from_entry("main.kn", []);
+        let plan = Engine::plan().parse().link().analyze();
+
+        let (state, Analyzed(analyzed)) = engine.execute(&plan, &input);
+
+        let id = ModuleId(0);
+        assert_eq!(analyzed, HashSet::from([id]));
+
+        let main = state.modules.get_by_id(&id).unwrap();
+        insta::assert_debug_snapshot!(main.typed);
+    }
+
+    #[test]
+    fn analyze_multiple_files() {
+        let root_dir = TempDir::new().unwrap();
+
+        root_dir
+            .child("main.kn")
+            .write_str(
+                "use @/foo/foo;
+const MAIN = foo.FOO;",
+            )
+            .unwrap();
+        root_dir
+            .child("foo/foo.kn")
+            .write_str(
+                "use ./bar;
+const FOO = bar.BAR;",
+            )
+            .unwrap();
+        root_dir
+            .child("foo/bar.kn")
+            .write_str("const BAR = 456;")
+            .unwrap();
+
+        let context = Context::new(&root_dir, false);
+        let engine = Engine::new(context);
+        let input = Input::from_entry("main.kn", []);
+        let plan = Engine::plan().parse_and_traverse().link().analyze();
+
+        let (state, Analyzed(analyzed)) = engine.execute(&plan, &input);
+
+        let main_id = ModuleId(0);
+        let foo_id = ModuleId(1);
+        let bar_id = ModuleId(2);
+        assert_eq!(analyzed, HashSet::from([main_id, foo_id, bar_id]));
+
+        let bar = state.modules.get_by_id(&main_id).unwrap();
+        insta::assert_debug_snapshot!(bar.typed);
+
+        let foo = state.modules.get_by_id(&main_id).unwrap();
+        insta::assert_debug_snapshot!(foo.typed);
+
+        let main = state.modules.get_by_id(&main_id).unwrap();
+        insta::assert_debug_snapshot!(main.typed);
     }
 }

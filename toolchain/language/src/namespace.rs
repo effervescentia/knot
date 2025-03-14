@@ -26,6 +26,19 @@ impl Namespace {
         matches!(self, Self::Library(_))
     }
 
+    pub fn from_internal_path<T>(path: T) -> Self
+    where
+        T: AsRef<Path>,
+    {
+        Self::Internal(
+            path.as_ref()
+                .with_extension("")
+                .components()
+                .map(|x| x.as_os_str().to_string_lossy().to_string())
+                .collect(),
+        )
+    }
+
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self
     where
         P: AsRef<Path>,

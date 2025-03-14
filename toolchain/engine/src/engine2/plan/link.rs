@@ -90,7 +90,7 @@ mod tests {
     }
 
     #[test]
-    fn link_multiple_files_from_glob() {
+    fn link_multiple_files() {
         let root_dir = TempDir::new().unwrap();
 
         root_dir

@@ -576,7 +576,6 @@ dependencies = [
  "knot_engine",
  "knot_language",
  "knot_parse",
- "petgraph",
  "tempfile",
  "thiserror",
 ]
