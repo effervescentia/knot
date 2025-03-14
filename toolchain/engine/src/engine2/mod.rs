@@ -11,8 +11,9 @@ use input::Source;
 pub use logger::MemoryLogger;
 pub use logger::{Logger, NoopLogger};
 pub use pipeline::Peek;
-use pipeline::{Execute, Identity, Transform};
-pub use plan::{Analyzed, Linked, Parsed};
+pub use pipeline::Transform;
+use pipeline::{Execute, Identity};
+pub use plan::{Analyzed, Builder, Linked, Parsed};
 pub use state::State;
 use std::path::{Path, PathBuf};
 
@@ -75,13 +76,13 @@ impl<Log> Engine<Log> {
         Self(context)
     }
 
-    pub const fn plan<'a>() -> plan::Builder<Identity<(State<'a, Log>, ())>> {
-        plan::Builder::new()
+    pub const fn plan<'a>() -> Builder<Identity<(State<'a, Log>, ())>> {
+        Builder::new()
     }
 
     pub fn execute<'a, Src, Res, Tx>(
         &'a self,
-        plan: &plan::Builder<Tx>,
+        plan: &Builder<Tx>,
         input: &Input<Src, Library>,
     ) -> (State<'a, Log>, Res)
     where
@@ -98,7 +99,7 @@ impl<Log> Engine<Log> {
 
     pub fn incremental<'a, Res, Tx, Ops>(
         prev: State<'a, Log>,
-        plan: &plan::Builder<Tx>,
+        plan: &Builder<Tx>,
         operations: Ops,
     ) -> (State<'a, Log>, Res)
     where

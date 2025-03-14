@@ -1,6 +1,6 @@
 use crate::{log, Logger};
-use engine::engine2::{self, Context, Input, Peek};
-use engine::{ConfigurationError, Engine, Report};
+use engine::engine2::{Context, Engine, Input, Peek};
+use engine::{ConfigurationError, Report};
 use kore::invariant;
 use kore::{color::Highlight, internal, pretty::Pretty};
 use notify_debouncer_full::{
@@ -31,9 +31,9 @@ where
     log::entrypoint(opts.verbose, opts.entry);
 
     let input = Input::from_entry(opts.entry, []);
-    let engine = engine2::Engine::new(Context::new(opts.source_dir, Logger));
+    let engine = Engine::new(Context::new(opts.source_dir, Logger));
 
-    let plan = engine2::Engine::plan()
+    let plan = Engine::plan()
         .parse()
         .peek(|(_, x)| Logger.report_parsed(x))
         .link()
@@ -61,20 +61,20 @@ where
 {
     log::entrypoint(opts.verbose, opts.entry);
 
-    let analyzed = Engine::new(opts.source_dir, opts.verbose)
-        .from_entry(opts.entry)
-        .include_libraries(&Platform::libraries())
-        .parse()
-        .inspect(|state, _| state.report_from_entry())
-        .link()
-        .inspect(|state, _| state.report())
-        .analyze()
-        .inspect(|state, _| state.report());
+    let input = Input::from_entry(opts.entry, []);
+    let engine = Engine::new(Context::new(opts.source_dir, Logger));
 
-    let count = analyzed
-        .clone()
+    let plan = Engine::plan()
+        .parse()
+        .peek(|(_, x)| Logger.report_parsed(x))
+        .link()
+        .peek(|(_, x)| Logger.report_linked(x))
+        .analyze()
+        .peek(|(_, x)| Logger.report_analyzed(x))
         .generate(Platform::generator())
-        .overwrite(opts.out_dir)?;
+        .write(opts.out_dir);
+
+    let (mut state, count) = engine.execute(&plan, &input);
 
     log::success(opts.verbose, "transpiled", count);
     eprintln!(
@@ -121,6 +121,10 @@ where
         match res {
             Ok(event) => {
                 println!("event: {:?}", event);
+
+                let operations = vec![];
+
+                (state, _) = Engine::incremental(state, &plan, operations);
             }
             Err(e) => eprintln!("watch error: {:?}", e),
         }
