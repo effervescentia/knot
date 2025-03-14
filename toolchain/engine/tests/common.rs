@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use assert_fs::prelude::*;
 use assert_fs::TempDir;
-use knot_engine::engine2::{Analyzed, Context, Engine, Input, NoopLogger};
+use knot_engine::{Analyzed, Context, Engine, Input, NoopLogger};
 use kore::internal::{Library, PlatformLibrary};
 
 pub fn assert_valid(source: &str) {

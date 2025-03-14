@@ -1,4 +1,4 @@
-use super::{ExecutionError, Failure, IntoErrors};
+use super::{ExecutionError, Failure};
 use std::{
     cell::{Ref, RefCell, RefMut},
     rc::Rc,
@@ -45,13 +45,13 @@ impl Reporter {
         !self.state().errors.is_empty()
     }
 
-    /// add errors to state
-    fn extend<T>(&mut self, x: T)
-    where
-        T: IntoErrors,
-    {
-        self.state_mut().errors.extend(x.into_errors());
-    }
+    // /// add errors to state
+    // fn extend<T>(&mut self, x: T)
+    // where
+    //     T: IntoErrors,
+    // {
+    //     self.state_mut().errors.extend(x.into_errors());
+    // }
 
     fn to_failure(&self) -> Failure {
         let state = (*self.state).borrow();
@@ -59,38 +59,38 @@ impl Reporter {
         Failure::Execution(state.errors.clone())
     }
 
-    /// report an error
-    /// returns an `Err` if configured to fail fast otherwise `Ok`
-    pub fn raise<T>(&mut self, x: T) -> crate::Internal<()>
-    where
-        T: IntoErrors,
-    {
-        self.extend(x);
+    // /// report an error
+    // /// returns an `Err` if configured to fail fast otherwise `Ok`
+    // pub fn raise<T>(&mut self, x: T) -> crate::Internal<()>
+    // where
+    //     T: IntoErrors,
+    // {
+    //     self.extend(x);
 
-        if self.should_fail_early() {
-            Err(Box::new(self.to_failure()))
-        } else {
-            Ok(())
-        }
-    }
+    //     if self.should_fail_early() {
+    //         Err(Box::new(self.to_failure()))
+    //     } else {
+    //         Ok(())
+    //     }
+    // }
 
-    /// returns an `Err` if any errors have been reported otherwise `Ok`
-    pub fn flush(&self) -> crate::Internal<()> {
-        if self.should_fail() {
-            Err(Box::new(self.to_failure()))
-        } else {
-            Ok(())
-        }
-    }
+    // /// returns an `Err` if any errors have been reported otherwise `Ok`
+    // pub fn flush(&self) -> crate::Internal<()> {
+    //     if self.should_fail() {
+    //         Err(Box::new(self.to_failure()))
+    //     } else {
+    //         Ok(())
+    //     }
+    // }
 
-    /// report an error and return the report
-    pub fn fail<T>(&mut self, x: T) -> Failure
-    where
-        T: IntoErrors,
-    {
-        self.extend(x);
-        self.to_failure()
-    }
+    // /// report an error and return the report
+    // pub fn fail<T>(&mut self, x: T) -> Failure
+    // where
+    //     T: IntoErrors,
+    // {
+    //     self.extend(x);
+    //     self.to_failure()
+    // }
 }
 
 impl Clone for Reporter {

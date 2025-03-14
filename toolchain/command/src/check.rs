@@ -1,8 +1,5 @@
 use crate::{log, AssertExists, Logger};
-use engine::{
-    engine2::{Analyzed, Builder, Context, Engine, Input, State},
-    ConfigurationError,
-};
+use engine::{Analyzed, Builder, ConfigurationError, Context, Engine, Input, State};
 use kore::{
     internal,
     pipeline::{Peek, Transform},

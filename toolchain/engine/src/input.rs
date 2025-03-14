@@ -1,4 +1,4 @@
-use super::Scope;
+use crate::Scope;
 use std::{
     collections::HashSet,
     hash::Hash,

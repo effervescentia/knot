@@ -1,6 +1,4 @@
-use crate::{engine2, ExecutionError};
-use kore::{graph::Graph, invariant};
-use lang::ModuleId;
+use crate::{ExecutionError, State};
 
 type Result = Option<Vec<ExecutionError>>;
 
@@ -49,14 +47,14 @@ type Result = Option<Vec<ExecutionError>>;
 //     }
 // }
 
-pub struct Validator2;
+pub struct Validator;
 
-impl Validator2 {
-    pub fn validate<Log>(self, state: &engine2::State<Log>) {
+impl Validator {
+    pub fn validate<Log>(self, state: &State<Log>) {
         Self::assert_no_import_cycles(state);
     }
 
-    fn assert_no_import_cycles<Log>(state: &engine2::State<Log>) -> Result {
+    fn assert_no_import_cycles<Log>(state: &State<Log>) -> Result {
         let errors = state
             .modules
             .get_dependency_cycles()

@@ -1,6 +1,6 @@
 ---
-source: toolchain/engine/src/engine2/plan/analyze.rs
-expression: main.typed
+source: toolchain/engine/src/plan/analyze.rs
+expression: bar.typed
 ---
 Some(
     Program(

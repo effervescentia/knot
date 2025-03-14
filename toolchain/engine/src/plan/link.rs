@@ -1,5 +1,5 @@
 use super::parse::Parsed;
-use crate::{engine2::state::State, validate::Validator2};
+use crate::{validate::Validator, State};
 use kore::pipeline::Transform;
 use lang::ModuleId;
 use std::collections::HashSet;
@@ -50,7 +50,7 @@ where
             }
         }
 
-        Validator2.validate(&state);
+        Validator.validate(&state);
 
         (state, Linked(ids))
     }
@@ -58,7 +58,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::engine2::{input::Input, Context, Engine, Linked};
+    use crate::{Context, Engine, Input, Linked};
     use assert_fs::{
         prelude::{FileWriteStr, PathChild},
         TempDir,

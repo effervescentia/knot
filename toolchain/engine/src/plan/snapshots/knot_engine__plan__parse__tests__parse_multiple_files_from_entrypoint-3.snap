@@ -1,6 +1,6 @@
 ---
-source: toolchain/engine/src/engine2/plan/parse.rs
-expression: main.ast
+source: toolchain/engine/src/plan/parse.rs
+expression: bar.raw
 ---
 Program(
     Program(
@@ -17,7 +17,7 @@ Program(
                                         binding: Binding(
                                             Node(
                                                 Binding(
-                                                    "ROOT",
+                                                    "BAR",
                                                 ),
                                                 Range(
                                                     Point(
@@ -26,7 +26,7 @@ Program(
                                                     ),
                                                     Point(
                                                         1,
-                                                        10,
+                                                        9,
                                                     ),
                                                 ),
                                                 (),
@@ -37,18 +37,18 @@ Program(
                                     value: Expression(
                                         Node(
                                             Primitive(
-                                                Boolean(
-                                                    true,
+                                                Integer(
+                                                    456,
                                                 ),
                                             ),
                                             Range(
                                                 Point(
                                                     1,
-                                                    14,
+                                                    13,
                                                 ),
                                                 Point(
                                                     1,
-                                                    17,
+                                                    15,
                                                 ),
                                             ),
                                             (),
@@ -62,7 +62,7 @@ Program(
                                     ),
                                     Point(
                                         1,
-                                        17,
+                                        15,
                                     ),
                                 ),
                                 (),
@@ -77,7 +77,7 @@ Program(
                     ),
                     Point(
                         1,
-                        18,
+                        16,
                     ),
                 ),
                 (),

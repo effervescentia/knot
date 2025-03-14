@@ -1,5 +1,10 @@
-use super::{modules::Modules, Context, Operation, Scope};
+mod modules;
+
+use crate::{Context, Operation, Scope};
 use lang::ast;
+#[cfg(test)]
+pub use modules::Status;
+pub use modules::{Ast, Module, Modules};
 use std::{
     fs,
     path::{Path, PathBuf},

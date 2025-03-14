@@ -1,5 +1,5 @@
 ---
-source: toolchain/engine/src/engine2/plan/parse.rs
+source: toolchain/engine/src/plan/parse.rs
 expression: foo.raw
 ---
 Program(

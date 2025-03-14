@@ -1,5 +1,5 @@
-use super::{link::Linked, Parsed};
-use crate::engine2::state::State;
+use super::{Linked, Parsed};
+use crate::State;
 use kore::pipeline::Transform;
 use lang::ModuleId;
 use std::collections::{HashMap, HashSet};
@@ -79,7 +79,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::engine2::{input::Input, Analyzed, Context, Engine};
+    use crate::{Analyzed, Context, Engine, Input};
     use assert_fs::{
         prelude::{FileWriteStr, PathChild},
         TempDir,

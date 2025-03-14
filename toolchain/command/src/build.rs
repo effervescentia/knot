@@ -1,10 +1,8 @@
 use crate::{log, AssertExists, Logger};
-use engine::engine2::{Builder, Context, Engine, Input, State};
-use engine::{ConfigurationError, Report};
-use kore::invariant;
+use engine::{Builder, ConfigurationError, Context, Engine, Input, Report, State};
 use kore::{
     color::Highlight,
-    internal,
+    internal, invariant,
     pipeline::{Peek, Transform},
     pretty::Pretty,
 };
@@ -13,9 +11,7 @@ use notify_debouncer_full::{
     notify::{self, Watcher},
     DebouncedEvent,
 };
-use std::path::Path;
-use std::sync::mpsc;
-use std::time::Duration;
+use std::{path::Path, sync::mpsc, time::Duration};
 
 const WATCH_SENSITIVITY: Duration = Duration::from_millis(20);
 

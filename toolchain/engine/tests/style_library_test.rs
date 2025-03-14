@@ -1,7 +1,7 @@
 mod common;
 
 use assert_fs::{prelude::*, TempDir};
-use knot_engine::engine2::{Analyzed, Context, Engine, Input, NoopLogger};
+use knot_engine::{Analyzed, Context, Engine, Input, NoopLogger};
 use kore::internal::{AmbientScope, Library, PlatformLibrary};
 use std::collections::HashSet;
 

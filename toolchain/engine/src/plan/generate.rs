@@ -1,5 +1,5 @@
-use super::{write::Output, Parsed};
-use crate::engine2::{modules::Ast, state::State};
+use super::{Output, Parsed};
+use crate::{state::Ast, State};
 use kore::{internal, pipeline::Transform};
 use lang::ast;
 use std::path::PathBuf;
@@ -60,7 +60,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::Generate;
-    use crate::engine2::{logger::MemoryLogger, modules::Status, state::State, Analyzed, Context};
+    use crate::{state::Status, Analyzed, Context, MemoryLogger, State};
     use assert_fs::TempDir;
     use kore::{
         assert_eq_sorted, internal,

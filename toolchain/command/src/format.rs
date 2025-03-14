@@ -1,8 +1,5 @@
 use crate::{log, AssertExists, Logger};
-use engine::{
-    engine2::{Builder, Context, Engine, Input, State},
-    ConfigurationError,
-};
+use engine::{Builder, ConfigurationError, Context, Engine, Input, State};
 use kore::pipeline::{Peek, Transform};
 use std::path::Path;
 

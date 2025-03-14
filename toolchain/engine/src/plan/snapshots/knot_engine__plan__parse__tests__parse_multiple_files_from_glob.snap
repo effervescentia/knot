@@ -1,6 +1,6 @@
 ---
-source: toolchain/engine/src/engine2/plan/parse.rs
-expression: bar.ast
+source: toolchain/engine/src/plan/parse.rs
+expression: bar.raw
 ---
 Program(
     Program(

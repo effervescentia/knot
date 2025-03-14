@@ -1,5 +1,5 @@
 ---
-source: toolchain/engine/src/engine2/plan/analyze.rs
+source: toolchain/engine/src/plan/analyze.rs
 expression: foo.typed
 ---
 Some(

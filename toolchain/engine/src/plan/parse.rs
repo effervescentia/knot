@@ -1,4 +1,4 @@
-use crate::engine2::{modules::Module, State};
+use crate::{state::Module, State};
 use kore::{pipeline::Transform, uniqueue::Uniqueue};
 use lang::{ast, ModuleId};
 use std::{
@@ -63,7 +63,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::Parsed;
-    use crate::engine2::{input::Input, modules::Status, Context, Engine};
+    use crate::{state::Status, Context, Engine, Input};
     use assert_fs::{
         prelude::{FileTouch, FileWriteStr, PathChild},
         TempDir,

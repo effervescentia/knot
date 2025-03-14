@@ -5,7 +5,7 @@ mod link;
 mod parse;
 mod write;
 
-use super::State;
+use crate::State;
 use analyze::Analyze;
 pub use analyze::Analyzed;
 use format::Format;

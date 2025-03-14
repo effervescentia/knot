@@ -1,4 +1,4 @@
-use engine::engine2::{Analyzed, Linked, Logger as _, Parsed};
+use engine::{Analyzed, Linked, Logger as _, Parsed};
 use kore::color::Highlight;
 use log::{debug, error, info, trace, warn};
 
@@ -27,7 +27,7 @@ impl Logger {
     }
 }
 
-impl engine::engine2::Logger for Logger {
+impl engine::Logger for Logger {
     fn error(&self, args: std::fmt::Arguments) {
         error!("{args}");
     }

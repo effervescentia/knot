@@ -1,4 +1,4 @@
-use crate::engine2::{logger::Logger, state::State};
+use crate::{Logger, State};
 use kore::pipeline::Transform;
 use std::{
     fmt::Display,
@@ -75,7 +75,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::Write;
-    use crate::engine2::{logger::MemoryLogger, state::State, Context};
+    use crate::{Context, MemoryLogger, State};
     use assert_fs::{
         assert::PathAssert,
         prelude::{FileWriteStr, PathChild},

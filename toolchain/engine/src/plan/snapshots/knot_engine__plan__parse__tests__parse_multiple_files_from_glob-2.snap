@@ -1,6 +1,6 @@
 ---
-source: toolchain/engine/src/engine2/plan/parse.rs
-expression: bar.raw
+source: toolchain/engine/src/plan/parse.rs
+expression: foo.raw
 ---
 Program(
     Program(
@@ -17,7 +17,7 @@ Program(
                                         binding: Binding(
                                             Node(
                                                 Binding(
-                                                    "BAR",
+                                                    "FOO",
                                                 ),
                                                 Range(
                                                     Point(
@@ -38,7 +38,7 @@ Program(
                                         Node(
                                             Primitive(
                                                 Integer(
-                                                    456,
+                                                    123,
                                                 ),
                                             ),
                                             Range(
