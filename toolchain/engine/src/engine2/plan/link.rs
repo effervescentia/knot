@@ -1,8 +1,6 @@
 use super::parse::Parsed;
-use crate::{
-    engine2::{pipeline::Transform, state::State},
-    validate::Validator2,
-};
+use crate::{engine2::state::State, validate::Validator2};
+use kore::pipeline::Transform;
 use lang::ModuleId;
 use std::collections::HashSet;
 

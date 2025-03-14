@@ -1,5 +1,6 @@
 use super::{link::Linked, Parsed};
-use crate::engine2::{pipeline::Transform, state::State};
+use crate::engine2::state::State;
+use kore::pipeline::Transform;
 use lang::ModuleId;
 use std::collections::{HashMap, HashSet};
 

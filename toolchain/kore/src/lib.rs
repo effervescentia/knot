@@ -5,6 +5,7 @@ pub mod format;
 pub mod graph;
 mod incrementor;
 pub mod internal;
+pub mod pipeline;
 pub mod pretty;
 mod string;
 pub mod uniqueue;

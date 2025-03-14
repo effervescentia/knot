@@ -1,4 +1,5 @@
-use crate::engine2::{logger::Logger, pipeline::Transform, state::State};
+use crate::engine2::{logger::Logger, state::State};
+use kore::pipeline::Transform;
 use std::{
     fmt::Display,
     fs,
@@ -73,18 +74,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::Write;
-    use crate::engine2::{
-        logger::MemoryLogger,
-        pipeline::{Identity, Transform},
-        state::State,
-        Context,
-    };
+    use crate::engine2::{logger::MemoryLogger, state::State, Context};
     use assert_fs::{
         assert::PathAssert,
         prelude::{FileWriteStr, PathChild},
         TempDir,
     };
-    use kore::{assert_eq, str};
+    use kore::{
+        assert_eq,
+        pipeline::{Identity, Transform},
+        str,
+    };
 
     #[test]
     fn write_multiple_files() {

@@ -5,15 +5,15 @@ mod link;
 mod parse;
 mod write;
 
-use super::{
-    pipeline::{Container, Execute, Identity, Map, Peek, Transform},
-    State,
-};
+use super::State;
 use analyze::Analyze;
 pub use analyze::Analyzed;
 use format::Format;
 use generate::Generate;
-use kore::internal;
+use kore::{
+    internal,
+    pipeline::{Container, Execute, Identity, Map, Peek, Transform},
+};
 use link::Link;
 pub use link::Linked;
 use parse::Parse;

@@ -1,6 +1,6 @@
 use super::{write::Output, Parsed};
-use crate::engine2::{modules::Ast, pipeline::Transform, state::State};
-use kore::internal;
+use crate::engine2::{modules::Ast, state::State};
+use kore::{internal, pipeline::Transform};
 use lang::ast;
 use std::path::PathBuf;
 
@@ -59,15 +59,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::Generate;
-    use crate::engine2::{
-        logger::MemoryLogger,
-        modules::Status,
-        pipeline::{Identity, Transform},
-        state::State,
-        Analyzed, Context,
-    };
+    use crate::engine2::{logger::MemoryLogger, modules::Status, state::State, Analyzed, Context};
     use assert_fs::TempDir;
-    use kore::{assert_eq_sorted, internal, str};
+    use kore::{
+        assert_eq_sorted, internal,
+        pipeline::{Identity, Transform},
+        str,
+    };
     use lang::{ast, test::fixture, ModuleId};
     use std::{collections::HashSet, path::PathBuf};
 

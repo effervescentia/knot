@@ -1,5 +1,5 @@
-use crate::engine2::{modules::Module, pipeline::Transform, State};
-use kore::uniqueue::Uniqueue;
+use crate::engine2::{modules::Module, State};
+use kore::{pipeline::Transform, uniqueue::Uniqueue};
 use lang::{ast, ModuleId};
 use std::{
     collections::HashSet,

@@ -1,8 +1,9 @@
 use crate::{log, AssertExists, Logger};
 use engine::{
-    engine2::{Context, Engine, Input, Peek},
+    engine2::{Builder, Context, Engine, Input, State},
     ConfigurationError,
 };
+use kore::pipeline::{Peek, Transform};
 use std::path::Path;
 
 pub struct Options<'a> {
@@ -17,6 +18,19 @@ pub struct Options<'a> {
     pub verbose: bool,
 }
 
+fn format_plan<'a, T>(
+    root_dir: T,
+) -> Builder<impl Transform<In = (State<'a, Logger>, ()), Out = (State<'a, Logger>, usize)>>
+where
+    T: AsRef<Path>,
+{
+    Engine::<Logger>::plan()
+        .parse()
+        .peek(|(_, x)| Logger.report_parsed(x))
+        .format()
+        .write(root_dir)
+}
+
 pub fn command(opts: &Options) -> engine::Result<()> {
     let root_dir = opts
         .root_dir
@@ -26,12 +40,7 @@ pub fn command(opts: &Options) -> engine::Result<()> {
 
     let input = Input::from_glob(opts.glob, []);
     let engine = Engine::new(Context::new(root_dir, Logger));
-
-    let plan = Engine::plan()
-        .parse()
-        .peek(|(_, x)| Logger.report_parsed(x))
-        .format()
-        .write(root_dir);
+    let plan = format_plan(root_dir);
 
     let (_, count) = engine.execute(&plan, &input);
 

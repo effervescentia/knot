@@ -1,5 +1,6 @@
 use super::{parse::Parsed, write::Output};
-use crate::engine2::{pipeline::Transform, state::State};
+use crate::engine2::state::State;
+use kore::pipeline::Transform;
 use std::path::PathBuf;
 
 pub struct Formatted(Vec<(PathBuf, String)>);
@@ -50,15 +51,14 @@ where
 mod tests {
     use super::Format;
     use crate::engine2::{
-        logger::MemoryLogger,
-        modules::Status,
-        pipeline::{Identity, Transform},
-        plan::parse::Parsed,
-        state::State,
-        Context,
+        logger::MemoryLogger, modules::Status, plan::parse::Parsed, state::State, Context,
     };
     use assert_fs::TempDir;
-    use kore::{assert_eq_sorted, str};
+    use kore::{
+        assert_eq_sorted,
+        pipeline::{Identity, Transform},
+        str,
+    };
     use lang::{ast, test::fixture, ModuleId};
     use std::{collections::HashSet, path::PathBuf};
 

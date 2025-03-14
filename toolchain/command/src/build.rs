@@ -1,8 +1,13 @@
 use crate::{log, Logger};
-use engine::engine2::{Builder, Context, Engine, Input, Peek, State, Transform};
+use engine::engine2::{Builder, Context, Engine, Input, State};
 use engine::{ConfigurationError, Report};
 use kore::invariant;
-use kore::{color::Highlight, internal, pretty::Pretty};
+use kore::{
+    color::Highlight,
+    internal,
+    pipeline::{Peek, Transform},
+    pretty::Pretty,
+};
 use notify_debouncer_full::{
     new_debouncer,
     notify::{self, Watcher},

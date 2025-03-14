@@ -1,18 +1,15 @@
 mod input;
 mod logger;
 mod modules;
-mod pipeline;
 mod plan;
 mod state;
 
 pub use input::Input;
 use input::Source;
+use kore::pipeline::{Execute, Identity, Transform};
 #[cfg(test)]
 pub use logger::MemoryLogger;
 pub use logger::{Logger, NoopLogger};
-pub use pipeline::Peek;
-pub use pipeline::Transform;
-use pipeline::{Execute, Identity};
 pub use plan::{Analyzed, Builder, Linked, Parsed};
 pub use state::State;
 use std::path::{Path, PathBuf};
@@ -114,8 +111,8 @@ impl<Log> Engine<Log> {
 
 #[cfg(test)]
 mod tests {
-    use super::{logger::NoopLogger, pipeline::Peek, Context, Engine, Input};
-    use kore::{internal, str};
+    use super::{logger::NoopLogger, Context, Engine, Input};
+    use kore::{internal, pipeline::Peek, str};
     use lang::ast;
 
     #[derive(Clone, Copy)]
