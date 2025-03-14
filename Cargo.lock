@@ -555,8 +555,10 @@ dependencies = [
 name = "knot_core"
 version = "0.1.0"
 dependencies = [
+ "bimap",
  "colored",
  "indenter",
+ "petgraph",
  "pretty_assertions",
  "pretty_assertions_sorted",
 ]

@@ -1,5 +1,6 @@
 use super::{base::Base, Ast, FromPaths, IsVerbose, Module};
-use crate::{graph::Graph, report, Context, ExecutionError, Link};
+use crate::{report, Context, ExecutionError, Link};
+use kore::graph::Graph;
 use kore::{color::Highlight, Incrementor};
 use lang::{ModuleId, Namespace};
 use std::{
@@ -20,7 +21,7 @@ impl Parsed {
         Rc::clone(&self.1)
     }
 
-    pub fn to_import_graph(&self) -> Graph {
+    pub fn to_import_graph(&self) -> Graph<ModuleId> {
         self.internal_modules()
             .fold(Graph::new(), |mut graph, (_, x)| {
                 graph.upsert_node(x.id);
@@ -28,14 +29,14 @@ impl Parsed {
             })
     }
 
-    pub fn link_modules<R>(&self, context: &mut Context<R>) -> crate::Internal<Graph> {
+    pub fn link_modules<R>(&self, context: &mut Context<R>) -> crate::Internal<Graph<ModuleId>> {
         self.internal_modules()
             .try_fold(self.to_import_graph(), |mut acc, (link, module)| {
                 let links = module.ast.to_links(link);
 
                 for x in &links {
                     if let Some(x) = self.get_id_by_link(x) {
-                        acc.add_edge(&module.id, x).ok();
+                        acc.add_edge(&module.id, x);
                     } else if matches!(x.0, Namespace::Library(_)) {
                         continue;
                     } else {

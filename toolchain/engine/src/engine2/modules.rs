@@ -1,6 +1,8 @@
-use crate::graph::{Cycle, Graph};
 use bimap::BiMap;
-use kore::Incrementor;
+use kore::{
+    graph::{Cycle, Graph},
+    Incrementor,
+};
 use lang::{ast, ModuleId};
 use std::{
     collections::{HashMap, HashSet},
@@ -14,9 +16,9 @@ pub struct Modules {
 
     registry: BiMap<ModuleId, PathBuf>,
 
-    dependencies: Graph,
+    dependencies: Graph<ModuleId>,
 
-    map: HashMap<ModuleId, Module>,
+    data: HashMap<ModuleId, Module>,
 }
 
 impl Modules {
@@ -43,7 +45,7 @@ impl Modules {
     }
 
     pub fn insert(&mut self, id: ModuleId, module: Module) {
-        self.map.insert(id, module);
+        self.data.insert(id, module);
     }
 
     pub fn get_id_by_path<T>(&self, path: T) -> Option<ModuleId>
@@ -54,7 +56,7 @@ impl Modules {
     }
 
     pub fn get_by_id(&self, id: &ModuleId) -> Option<&Module> {
-        self.map.get(id)
+        self.data.get(id)
     }
 
     pub fn get_by_path<T>(&self, path: T) -> Option<&Module>
@@ -64,7 +66,7 @@ impl Modules {
         self.get_id_by_path(path).and_then(|id| self.get_by_id(&id))
     }
 
-    pub fn get_dependency_cycles(&self) -> Option<HashSet<Cycle>> {
+    pub fn get_dependency_cycles(&self) -> Option<HashSet<Cycle<ModuleId>>> {
         if !self.dependencies.is_cyclic() {
             return None;
         }
@@ -73,8 +75,37 @@ impl Modules {
     }
 
     #[cfg(test)]
-    pub fn dependencies(&self) -> &Graph {
+    pub const fn dependencies(&self) -> &Graph<ModuleId> {
         &self.dependencies
+    }
+
+    #[cfg(test)]
+    pub fn insert_mock<T, U>(
+        &mut self,
+        path: T,
+        text: U,
+        ast: ast::raw::Program,
+        status: Status,
+    ) -> ModuleId
+    where
+        T: AsRef<Path>,
+        U: AsRef<str>,
+    {
+        let id = self.register(&path);
+
+        self.insert(
+            id,
+            Module {
+                id,
+                path: path.as_ref().to_path_buf(),
+                text: text.as_ref().to_owned(),
+                raw: Ast::Program(ast),
+                typed: None,
+                status,
+            },
+        );
+
+        id
     }
 }
 
@@ -128,4 +159,20 @@ pub struct Module {
     pub raw: Ast<()>,
     pub typed: Option<Ast<ast::typed::Meta>>,
     pub status: Status,
+}
+
+impl Module {
+    pub fn raw<T>(id: ModuleId, path: T, text: String, ast: ast::raw::Program) -> Self
+    where
+        T: AsRef<Path>,
+    {
+        Self {
+            id,
+            path: path.as_ref().to_path_buf(),
+            text,
+            raw: Ast::Program(ast),
+            typed: None,
+            status: Status::Active,
+        }
+    }
 }

@@ -1,14 +1,17 @@
 use super::Graph;
-use kore::{invariant, str};
-use lang::ModuleId;
+use crate::{invariant, str};
 use std::{
     collections::HashSet,
     fmt::{self, Formatter, Write},
+    hash::Hash,
 };
 
 const GAP: usize = 1;
 
-impl fmt::Display for Graph {
+impl<Node> fmt::Display for Graph<Node>
+where
+    Node: Copy + Eq + Hash + fmt::Display,
+{
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         Display::from_graph(self).fmt(f)
     }
@@ -49,7 +52,10 @@ impl Tree {
         }
     }
 
-    fn from_graph(root: ModuleId, graph: &Graph, visited: &mut HashSet<ModuleId>) -> Self {
+    fn from_graph<T>(root: T, graph: &Graph<T>, visited: &mut HashSet<T>) -> Self
+    where
+        T: Copy + Eq + Hash + fmt::Display,
+    {
         if visited.contains(&root) {
             return Self::from_root(format!("cycle({root})"));
         }
@@ -134,7 +140,10 @@ struct Display {
 }
 
 impl Display {
-    fn from_graph(graph: &Graph) -> Self {
+    fn from_graph<T>(graph: &Graph<T>) -> Self
+    where
+        T: Copy + Eq + Hash + fmt::Display,
+    {
         // nodes that don't have any parents
         let mut roots = graph.roots().collect::<Vec<_>>();
         let mut visited = HashSet::new();
@@ -309,8 +318,7 @@ impl fmt::Display for Block {
 #[cfg(test)]
 mod tests {
     use super::Graph;
-    use kore::{assert_str_eq, str};
-    use lang::ModuleId;
+    use crate::{assert_str_eq, str};
 
     #[test]
     fn empty() {
@@ -321,7 +329,7 @@ mod tests {
 
     #[test]
     fn roots() {
-        let graph = Graph::from_nodes(&[ModuleId(0), ModuleId(1), ModuleId(2)]);
+        let graph = Graph::from_nodes(&[0, 1, 2]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -332,11 +340,7 @@ mod tests {
 
     #[test]
     fn deep() {
-        let graph = Graph::from_edges(&[
-            (ModuleId(0), ModuleId(1)),
-            (ModuleId(1), ModuleId(2)),
-            (ModuleId(2), ModuleId(3)),
-        ]);
+        let graph = Graph::from_edges(&[(0, 1), (1, 2), (2, 3)]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -353,7 +357,7 @@ mod tests {
 
     #[test]
     fn branching() {
-        let graph = Graph::from_edges(&[(ModuleId(0), ModuleId(1)), (ModuleId(0), ModuleId(2))]);
+        let graph = Graph::from_edges(&[(0, 1), (0, 2)]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -367,12 +371,7 @@ mod tests {
 
     #[test]
     fn wide() {
-        let graph = Graph::from_edges(&[
-            (ModuleId(0), ModuleId(1)),
-            (ModuleId(0), ModuleId(2)),
-            (ModuleId(0), ModuleId(3)),
-            (ModuleId(1), ModuleId(6)),
-        ]);
+        let graph = Graph::from_edges(&[(0, 1), (0, 2), (0, 3), (1, 6)]);
 
         assert_str_eq!(
             graph.to_string(),
@@ -389,14 +388,14 @@ mod tests {
     #[test]
     fn cyclic() {
         let graph = Graph::from_edges(&[
-            (ModuleId(0), ModuleId(1)),
-            (ModuleId(1), ModuleId(2)),
-            (ModuleId(1), ModuleId(6)),
-            (ModuleId(2), ModuleId(0)),
-            (ModuleId(3), ModuleId(4)),
-            (ModuleId(4), ModuleId(3)),
-            (ModuleId(5), ModuleId(6)),
-            (ModuleId(6), ModuleId(1)),
+            (0, 1),
+            (1, 2),
+            (1, 6),
+            (2, 0),
+            (3, 4),
+            (4, 3),
+            (5, 6),
+            (6, 1),
         ]);
 
         assert_str_eq!(

@@ -1,14 +1,6 @@
-use super::{
-    modules::{Ast, Module, Modules, Status},
-    Context, Operation, Scope,
-};
-use crate::graph::Graph;
-use bimap::BiMap;
-use kore::Incrementor;
-use lang::{ast, ModuleId};
+use super::{modules::Modules, Context, Operation, Scope};
+use lang::ast;
 use std::{
-    collections::{HashMap, HashSet},
-    fmt::{Display, Formatter},
     fs,
     path::{Path, PathBuf},
 };
@@ -47,19 +39,19 @@ impl<'a, Log> State<'a, Log> {
         state
     }
 
-    fn identify_live_path<T>(&self, path: T) -> Option<ModuleId>
-    where
-        T: AsRef<Path>,
-    {
-        self.modules.get_by_path(path).and_then(|x| match x {
-            Module {
-                status: Status::Evicted,
-                ..
-            } => None,
+    // fn identify_live_path<T>(&self, path: T) -> Option<ModuleId>
+    // where
+    //     T: AsRef<Path>,
+    // {
+    //     self.modules.get_by_path(path).and_then(|x| match x {
+    //         Module {
+    //             status: Status::Evicted,
+    //             ..
+    //         } => None,
 
-            _ => Some(x.id),
-        })
-    }
+    //         _ => Some(x.id),
+    //     })
+    // }
 
     // fn purge_module_by_id(&mut self, id: &ModuleId) {
     //     self.dependencies.remove_module(id);
@@ -149,26 +141,6 @@ impl<'a, Log> State<'a, Log> {
         self
     }
 
-    pub fn upsert_module(
-        &mut self,
-        id: ModuleId,
-        path: PathBuf,
-        text: String,
-        ast: ast::raw::Program,
-    ) {
-        self.modules.insert(
-            id,
-            Module {
-                id,
-                path,
-                text,
-                raw: Ast::Program(ast),
-                typed: None,
-                status: Status::Active,
-            },
-        );
-    }
-
     pub fn get_absolute_path<T>(&self, path: T) -> PathBuf
     where
         T: AsRef<Path>,
@@ -191,34 +163,5 @@ impl<'a, Log> State<'a, Log> {
     #[cfg(test)]
     pub fn mock(context: &'a Context<Log>) -> Self {
         Self::new(context, vec![])
-    }
-
-    #[cfg(test)]
-    pub fn create_module<T, U>(
-        &mut self,
-        path: T,
-        text: U,
-        ast: ast::raw::Program,
-        status: Status,
-    ) -> ModuleId
-    where
-        T: AsRef<Path>,
-        U: AsRef<str>,
-    {
-        let id = self.modules.register(&path);
-
-        self.modules.insert(
-            id,
-            Module {
-                id,
-                path: path.as_ref().to_path_buf(),
-                text: text.as_ref().to_owned(),
-                raw: Ast::Program(ast),
-                typed: None,
-                status,
-            },
-        );
-
-        id
     }
 }

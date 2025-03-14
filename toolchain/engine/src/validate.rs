@@ -1,12 +1,13 @@
-use crate::{engine2, graph::Graph, state, Context, ExecutionError};
-use kore::invariant;
+use crate::{engine2, state, Context, ExecutionError};
+use kore::{graph::Graph, invariant};
+use lang::ModuleId;
 
 type Result = Option<Vec<ExecutionError>>;
 
 pub struct Validator<'a, R>(pub &'a mut Context<R>);
 
 impl<R> Validator<'_, R> {
-    pub fn validate(self, state: &state::Parsed, graph: &Graph) -> crate::Internal<()> {
+    pub fn validate(self, state: &state::Parsed, graph: &Graph<ModuleId>) -> crate::Internal<()> {
         let errors = vec![Self::assert_no_import_cycles(state, graph)]
             .into_iter()
             .flat_map(std::option::Option::unwrap_or_default)
@@ -15,7 +16,7 @@ impl<R> Validator<'_, R> {
         self.0.raise(errors)
     }
 
-    fn assert_no_import_cycles(state: &state::Parsed, graph: &Graph) -> Result {
+    fn assert_no_import_cycles(state: &state::Parsed, graph: &Graph<ModuleId>) -> Result {
         if !graph.is_cyclic() {
             return None;
         }

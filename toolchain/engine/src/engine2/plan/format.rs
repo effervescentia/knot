@@ -74,7 +74,9 @@ mod tests {
         path: &str,
         declaration: ast::raw::Declaration,
     ) -> ModuleId {
-        state.create_module(path, str!(""), mock_program(declaration), Status::Active)
+        state
+            .modules
+            .insert_mock(path, str!(""), mock_program(declaration), Status::Active)
     }
 
     #[test]

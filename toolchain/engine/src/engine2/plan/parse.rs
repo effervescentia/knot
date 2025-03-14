@@ -1,4 +1,4 @@
-use crate::engine2::{pipeline::Transform, State};
+use crate::engine2::{modules::Module, pipeline::Transform, State};
 use kore::uniqueue::Uniqueue;
 use lang::{ast, ModuleId};
 use std::{
@@ -47,7 +47,7 @@ where
             let (text, ast) = state.load_and_parse_module(&path);
             let dependencies = self.extract_dependencies(&ast, &path);
 
-            state.upsert_module(id, path, text, ast);
+            state.modules.insert(id, Module::raw(id, path, text, ast));
             parsed.insert(id);
 
             for dependency in dependencies {

@@ -2,6 +2,7 @@
 pub mod color;
 #[cfg(feature = "format")]
 pub mod format;
+pub mod graph;
 mod incrementor;
 pub mod internal;
 pub mod pretty;

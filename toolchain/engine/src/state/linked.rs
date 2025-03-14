@@ -1,13 +1,14 @@
 use super::{base::Base, IsVerbose, Parsed};
-use crate::{graph::Graph, report};
+use crate::report;
+use kore::graph::Graph;
 use lang::ModuleId;
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone)]
-pub struct Linked(pub Base<()>, pub Graph);
+pub struct Linked(pub Base<()>, pub Graph<ModuleId>);
 
 impl Linked {
-    pub fn new(state: Parsed, graph: Graph) -> Self {
+    pub fn new(state: Parsed, graph: Graph<ModuleId>) -> Self {
         Self(state.0, graph)
     }
 
