@@ -10,7 +10,7 @@ pub fn assert_valid(source: &str) {
 
     let input = Input::from_entry("src/main.kn", [MockLibrary]);
     let engine = Engine::new(Context::new(root_dir, NoopLogger));
-    let plan = Engine::plan().parse().link().analyze();
+    let plan = Engine::plan().parse_and_traverse().link().analyze();
 
     let (_, Analyzed(analyzed)) = engine.execute(&plan, &input);
 

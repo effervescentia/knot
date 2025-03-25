@@ -42,7 +42,7 @@ where
                     if let Some(dependency_id) = state.modules.get_id_by_path(dependency) {
                         state.modules.add_dependency(id, &dependency_id);
                     } else {
-                        panic!("replace this with an actual error");
+                        panic!("replace this with an actual error {dependency:?}");
                     }
                 }
             } else {

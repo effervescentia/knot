@@ -1,7 +1,7 @@
 use crate::{resolve::Resolver, JavaScript, Module, Options};
 use kore::{internal, str};
 use lang::ast as knot;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone, Copy)]
 pub struct Generator<Library>(Resolver<Library>);
@@ -21,7 +21,7 @@ where
 
     fn generate<T>(&self, path: T, input: Self::Input) -> (PathBuf, Self::Output)
     where
-        T: AsRef<std::path::Path>,
+        T: AsRef<Path>,
     {
         let path = path.as_ref();
         let mut path_to_root = path

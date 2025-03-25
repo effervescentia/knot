@@ -23,7 +23,7 @@ pub struct Options<'a, Platform> {
 fn check_plan<'a>() -> Builder<impl Transform<Context = State<'a, Logger>, In = (), Out = Analyzed>>
 {
     Engine::<Logger>::plan()
-        .parse()
+        .parse_and_traverse()
         .peek(|(_, x)| Logger.report_parsed(x))
         .link()
         .peek(|(_, x)| Logger.report_linked(x))

@@ -1,10 +1,13 @@
-mod modules;
+mod ast;
+mod module;
+mod registry;
 
 use crate::{Context, Operation, Scope};
-use lang::ast;
+pub use ast::Ast;
+pub use module::Module;
 #[cfg(test)]
-pub use modules::Status;
-pub use modules::{Ast, Module, Modules};
+pub use module::Status;
+pub use registry::Registry;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -18,7 +21,7 @@ pub struct State<'a, Log> {
     /// scope of the plan that is operating on this state
     pub scope: Scope,
 
-    pub modules: Modules,
+    pub modules: Registry,
 }
 
 impl<'a, Log> State<'a, Log> {
@@ -34,7 +37,7 @@ impl<'a, Log> State<'a, Log> {
         let mut state = Self {
             context,
             scope: scope.clone(),
-            modules: Modules::default(),
+            modules: Registry::default(),
         };
 
         for path in scope {
@@ -153,12 +156,13 @@ impl<'a, Log> State<'a, Log> {
         self.context.root_dir.join(path.as_ref())
     }
 
-    pub fn load_and_parse_module<T>(&self, path: T) -> (String, ast::raw::Program)
+    pub fn load_and_parse_module<T>(&self, path: T) -> (String, lang::ast::raw::Program)
     where
         T: AsRef<Path>,
     {
         let absolute = self.get_absolute_path(path.as_ref());
-        let text = fs::read_to_string(absolute).unwrap();
+        let text = fs::read_to_string(&absolute)
+            .unwrap_or_else(|_| panic!("failed to load module with path {absolute:?}"));
 
         let (ast, _) = parse::program::parse(&text).unwrap();
 

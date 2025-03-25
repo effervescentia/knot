@@ -1,5 +1,7 @@
 use crate::ast;
-use kore::{internal, invariant, str};
+#[cfg(feature = "test")]
+use kore::str;
+use kore::{internal, invariant};
 use std::{
     fmt::Debug,
     path::{Path, PathBuf},

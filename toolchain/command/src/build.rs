@@ -39,7 +39,7 @@ where
     Platform: internal::Platform<Program = lang::ast::shape::Program>,
 {
     Engine::<Logger>::plan()
-        .parse()
+        .parse_and_traverse()
         .peek(|(_, x)| Logger.report_parsed(x))
         .link()
         .peek(|(_, x)| Logger.report_linked(x))
