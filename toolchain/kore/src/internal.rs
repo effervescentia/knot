@@ -1,5 +1,6 @@
 use std::{
     fmt::Display,
+    hash::Hash,
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -10,7 +11,7 @@ pub enum Mode {
     Production,
 }
 
-pub trait PlatformLibrary: Copy + Into<Library> + From<Library> {
+pub trait PlatformLibrary: Copy + Clone + Eq + Hash + Into<Library> + From<Library> {
     fn text(&self) -> &str;
 
     fn module(&self) -> Option<&'static str>;
@@ -20,7 +21,9 @@ pub trait Generator: Copy {
     type Input;
     type Output: Display;
 
-    fn generate(&self, path: &Path, input: Self::Input) -> (PathBuf, Self::Output);
+    fn generate<T>(&self, path: T, input: Self::Input) -> (PathBuf, Self::Output)
+    where
+        T: AsRef<Path>;
 }
 
 pub trait Platform {

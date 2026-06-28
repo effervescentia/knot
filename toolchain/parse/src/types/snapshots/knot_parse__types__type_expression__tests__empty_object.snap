@@ -1,0 +1,22 @@
+---
+source: toolchain/parse/src/types/type_expression.rs
+expression: ast
+---
+TypeExpression(
+    Node(
+        Object(
+            [],
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                2,
+            ),
+        ),
+        (),
+    ),
+)

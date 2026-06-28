@@ -1,4 +1,4 @@
-use super::Resolver;
+use super::FileResolver;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -8,7 +8,7 @@ use std::{
 #[derive(Clone)]
 pub struct FileSystem<'a>(pub &'a Path);
 
-impl<'a> FileSystem<'a> {
+impl FileSystem<'_> {
     fn make_absolute<P>(&self, relative: P) -> PathBuf
     where
         P: AsRef<Path>,
@@ -17,7 +17,7 @@ impl<'a> FileSystem<'a> {
     }
 }
 
-impl<'a> Resolver for FileSystem<'a> {
+impl FileResolver for FileSystem<'_> {
     fn resolve<P>(&mut self, relative: P) -> Option<String>
     where
         P: AsRef<Path>,
@@ -41,11 +41,11 @@ impl<'a> Resolver for FileSystem<'a> {
 #[cfg(test)]
 mod tests {
     use super::FileSystem;
-    use crate::resolve::Resolver;
+    use crate::resolve::FileResolver;
     use std::{fs::File, io::Write, path::Path};
     use tempfile::tempdir;
 
-    impl<'a> FileSystem<'a> {
+    impl FileSystem<'_> {
         pub fn write(&self, path: &str, contents: &str) {
             let mut file = File::create(self.0.join(path)).unwrap();
             write!(file, "{}", contents).unwrap();

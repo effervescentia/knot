@@ -1,22 +1,22 @@
-use super::{file_system::FileSystem, Resolver};
+use super::{file_system::FileSystem, FileResolver};
 use std::{fs, path::Path, time::SystemTime};
 
 pub struct FileCache<'a, T>(FileSystem<'a>, T)
 where
-    T: Resolver;
+    T: FileResolver;
 
 impl<'a, T> FileCache<'a, T>
 where
-    T: Resolver,
+    T: FileResolver,
 {
     pub const fn new(cache_dir: &'a Path, inner: T) -> Self {
         Self(FileSystem(cache_dir), inner)
     }
 }
 
-impl<'a, T> Resolver for FileCache<'a, T>
+impl<T> FileResolver for FileCache<'_, T>
 where
-    T: Resolver,
+    T: FileResolver,
 {
     fn resolve<P>(&mut self, relative: P) -> Option<String>
     where
@@ -57,7 +57,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::FileCache;
-    use crate::{resolve::Resolver, FileSystem};
+    use crate::{resolve::FileResolver, FileSystem};
     use std::{fs, path::Path, thread::sleep, time::Duration};
     use tempfile::tempdir;
 

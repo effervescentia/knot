@@ -3,22 +3,7 @@ use crate::{
     context::{AmbientMap, TypeMap},
     Context, ModuleMap, Result,
 };
-use kore::Serializable;
 use lang::ast;
-use std::str::FromStr;
-
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
-pub struct MockLibrary;
-
-impl Serializable for MockLibrary {}
-
-impl FromStr for MockLibrary {
-    type Err = ();
-
-    fn from_str(_: &str) -> std::result::Result<Self, Self::Err> {
-        Err(())
-    }
-}
 
 #[derive(Debug, Default)]
 pub struct Mock {

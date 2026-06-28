@@ -1,0 +1,48 @@
+---
+source: toolchain/parse/src/declaration/mod.rs
+expression: ast
+---
+Declaration(
+    Node(
+        Enumerated {
+            storage: Storage {
+                visibility: Public,
+                binding: Binding(
+                    Node(
+                        Binding(
+                            "foo",
+                        ),
+                        Range(
+                            Point(
+                                1,
+                                6,
+                            ),
+                            Point(
+                                1,
+                                8,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+            },
+            variants: [
+                (
+                    "Fizz",
+                    [],
+                ),
+            ],
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                17,
+            ),
+        ),
+        (),
+    ),
+)

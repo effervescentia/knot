@@ -1,5 +1,7 @@
 use crate::ast;
-use kore::{internal, invariant};
+#[cfg(feature = "test")]
+use kore::str;
+use kore::{internal, invariant, pretty::Pretty};
 use std::{
     fmt::Debug,
     path::{Path, PathBuf},
@@ -19,11 +21,24 @@ impl Namespace {
 
     #[cfg(feature = "test")]
     pub fn mock() -> Self {
-        Self::Internal(vec![String::from("mock")])
+        Self::Internal(vec![str!("mock")])
     }
 
     pub const fn is_library(&self) -> bool {
         matches!(self, Self::Library(_))
+    }
+
+    pub fn from_internal_path<T>(path: T) -> Self
+    where
+        T: AsRef<Path>,
+    {
+        Self::Internal(
+            path.as_ref()
+                .with_extension("")
+                .components()
+                .map(|x| x.as_os_str().to_string_lossy().to_string())
+                .collect(),
+        )
     }
 
     pub fn from_path<P>(file_path: P, source: &ast::ImportSource, path: &[String]) -> Self
@@ -75,5 +90,11 @@ impl Namespace {
 
             Self::Internal(path) => PathBuf::from_iter(path).with_extension(extension),
         }
+    }
+}
+
+impl Pretty for Namespace {
+    fn pretty(&self) -> kore::color::ColoredString {
+        self.to_path("kn").pretty()
     }
 }

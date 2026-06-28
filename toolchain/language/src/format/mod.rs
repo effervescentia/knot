@@ -11,7 +11,7 @@ use std::fmt::{Display, Formatter, Result, Write};
 
 struct Typedef<'a, TypeExpression>(&'a Option<TypeExpression>);
 
-impl<'a, TypeExpression> Display for Typedef<'a, TypeExpression>
+impl<TypeExpression> Display for Typedef<'_, TypeExpression>
 where
     TypeExpression: Display,
 {
@@ -28,7 +28,7 @@ struct Parameters<'a, T>(&'a Vec<T>)
 where
     T: Display;
 
-impl<'a, T> Display for Parameters<'a, T>
+impl<T> Display for Parameters<'_, T>
 where
     T: Display,
 {
@@ -43,7 +43,7 @@ where
 
 pub struct Lambda<'a, P, R>(pub &'a [P], pub R);
 
-impl<'a, P, R> Display for Lambda<'a, P, R>
+impl<P, R> Display for Lambda<'_, P, R>
 where
     P: Display,
     R: Display,

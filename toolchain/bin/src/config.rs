@@ -23,7 +23,7 @@ impl<'a> Config<'a> {
     }
 }
 
-impl<'a> Display for Config<'a> {
+impl Display for Config<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::Path(path) => path.pretty().fmt(f),
@@ -47,12 +47,12 @@ impl<'a> Display for Config<'a> {
 pub struct ConfigList<'a>(Vec<(&'static str, Config<'a>)>);
 
 impl<'a> ConfigList<'a> {
-    pub fn new(configs: Vec<(&'static str, Config<'a>)>) -> Self {
+    pub const fn new(configs: Vec<(&'static str, Config<'a>)>) -> Self {
         Self(configs)
     }
 }
 
-impl<'a> Display for ConfigList<'a> {
+impl Display for ConfigList<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let max_len = self
             .0

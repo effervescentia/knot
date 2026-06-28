@@ -1,5 +1,6 @@
-use crate::{log, AssertExists};
-use engine::{ConfigurationError, Engine};
+use crate::{log, AssertExists, Logger};
+use engine::{Builder, ConfigurationError, Context, Engine, Input, State};
+use kore::pipeline::{Peek, Transform};
 use std::path::Path;
 
 pub struct Options<'a> {
@@ -14,6 +15,19 @@ pub struct Options<'a> {
     pub verbose: bool,
 }
 
+fn format_plan<'a, T>(
+    root_dir: T,
+) -> Builder<impl Transform<Context = State<'a, Logger>, In = (), Out = usize>>
+where
+    T: AsRef<Path>,
+{
+    Engine::<Logger>::plan()
+        .parse()
+        .peek(|(_, x)| Logger.report_parsed(x))
+        .format()
+        .write(root_dir)
+}
+
 pub fn command(opts: &Options) -> engine::Result<()> {
     let root_dir = opts
         .root_dir
@@ -21,12 +35,11 @@ pub fn command(opts: &Options) -> engine::Result<()> {
 
     log::glob(opts.verbose, opts.glob);
 
-    let count = Engine::new(root_dir, opts.verbose)
-        .from_glob(opts.root_dir, opts.glob)
-        .parse()
-        .inspect(|state, _| state.report_from_glob())
-        .format()
-        .write(opts.root_dir)?;
+    let input: Input<_, ()> = Input::from_glob(opts.glob, []);
+    let engine = Engine::new(Context::new(root_dir, Logger));
+    let plan = format_plan(root_dir);
+
+    let (_, count) = engine.execute(&plan, &input);
 
     log::success(opts.verbose, "formatted", count);
 

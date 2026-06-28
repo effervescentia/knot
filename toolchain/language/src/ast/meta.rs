@@ -3,7 +3,10 @@ use crate::{
     walk::{CommonVisitor, ProgramVisitor, TypingsVisitor, Walk},
     Node, Range,
 };
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    path::{Path, PathBuf},
+};
 
 /* binding */
 
@@ -51,7 +54,7 @@ type ExpressionValue<Meta> = super::Expression<Expression<Meta>, Statement<Meta>
 pub struct Expression<Meta>(pub Node<ExpressionValue<Meta>, Meta>);
 
 impl<Meta> Expression<Meta> {
-    pub fn typed(v: ExpressionValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: ExpressionValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -62,7 +65,7 @@ impl Expression<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: ExpressionValue<()>) -> Self {
+    pub const fn mock(x: ExpressionValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -86,7 +89,7 @@ type StatementValue<Meta> = super::Statement<Expression<Meta>>;
 pub struct Statement<Meta>(pub Node<StatementValue<Meta>, Meta>);
 
 impl<Meta> Statement<Meta> {
-    pub fn typed(v: StatementValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: StatementValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -97,7 +100,7 @@ impl Statement<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: StatementValue<()>) -> Self {
+    pub const fn mock(x: StatementValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -121,7 +124,7 @@ type AttributeValue<Meta> = super::Attribute<Expression<Meta>>;
 pub struct Attribute<Meta>(pub Node<AttributeValue<Meta>, Meta>);
 
 impl<Meta> Attribute<Meta> {
-    pub fn typed(v: AttributeValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: AttributeValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -132,7 +135,7 @@ impl Attribute<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: AttributeValue<()>) -> Self {
+    pub const fn mock(x: AttributeValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -156,7 +159,7 @@ type ComponentValue<Meta> = super::Component<Component<Meta>, Expression<Meta>, 
 pub struct Component<Meta>(pub Node<ComponentValue<Meta>, Meta>);
 
 impl<Meta> Component<Meta> {
-    pub fn typed(v: ComponentValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: ComponentValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -167,7 +170,7 @@ impl Component<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: ComponentValue<()>) -> Self {
+    pub const fn mock(x: ComponentValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -189,7 +192,7 @@ where
 pub struct TypeExpression<Meta>(pub Node<super::TypeExpression<Binding, Self>, Meta>);
 
 impl<Meta> TypeExpression<Meta> {
-    pub fn typed(v: super::TypeExpression<Binding, Self>, m: Meta) -> Self {
+    pub const fn typed(v: super::TypeExpression<Binding, Self>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -200,7 +203,7 @@ impl TypeExpression<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::TypeExpression<Binding, Self>) -> Self {
+    pub const fn mock(x: super::TypeExpression<Binding, Self>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -224,7 +227,7 @@ type ParameterValue<Meta> = super::Parameter<Binding, Expression<Meta>, TypeExpr
 pub struct Parameter<Meta>(pub Node<ParameterValue<Meta>, Meta>);
 
 impl<Meta> Parameter<Meta> {
-    pub fn typed(v: ParameterValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: ParameterValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -235,7 +238,7 @@ impl Parameter<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: ParameterValue<()>) -> Self {
+    pub const fn mock(x: ParameterValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -266,7 +269,7 @@ type DeclarationValue<Meta> = super::Declaration<
 pub struct Declaration<Meta>(pub Node<DeclarationValue<Meta>, Meta>);
 
 impl<Meta> Declaration<Meta> {
-    pub fn typed(v: DeclarationValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: DeclarationValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -277,7 +280,7 @@ impl Declaration<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: DeclarationValue<()>) -> Self {
+    pub const fn mock(x: DeclarationValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -299,7 +302,7 @@ where
 pub struct Import<Meta>(pub Node<super::Import, Meta>);
 
 impl<Meta> Import<Meta> {
-    pub fn typed(v: super::Import, m: Meta) -> Self {
+    pub const fn typed(v: super::Import, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -310,7 +313,7 @@ impl Import<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: super::Import) -> Self {
+    pub const fn mock(x: super::Import) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -334,7 +337,7 @@ type ModuleValue<Meta> = super::Module<Import<Meta>, Declaration<Meta>>;
 pub struct Module<Meta>(pub Node<ModuleValue<Meta>, Meta>);
 
 impl<Meta> Module<Meta> {
-    pub fn typed(v: ModuleValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: ModuleValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -345,7 +348,7 @@ impl Module<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: ModuleValue<()>) -> Self {
+    pub const fn mock(x: ModuleValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -376,6 +379,20 @@ impl<Meta> Program<Meta> {
         let Self(Module(Node(super::Module { imports, .. }, ..), ..)) = self;
 
         imports
+    }
+
+    pub fn get_dependencies<T>(&self, relative_to: T) -> Vec<PathBuf>
+    where
+        T: AsRef<Path>,
+    {
+        self.imports()
+            .iter()
+            .map(|x| {
+                let import = x.0.value();
+
+                import.to_path(&relative_to)
+            })
+            .collect()
     }
 
     pub fn to_shape(self) -> shape::Program {
@@ -412,7 +429,7 @@ type TypeDeclarationValue<Meta> =
 pub struct TypeDeclaration<Meta>(pub Node<TypeDeclarationValue<Meta>, Meta>);
 
 impl<Meta> TypeDeclaration<Meta> {
-    pub fn typed(v: TypeDeclarationValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: TypeDeclarationValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -423,7 +440,7 @@ impl TypeDeclaration<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: TypeDeclarationValue<()>) -> Self {
+    pub const fn mock(x: TypeDeclarationValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }
@@ -447,7 +464,7 @@ type TypeModuleValue<Meta> = super::TypeModule<Import<Meta>, TypeDeclaration<Met
 pub struct TypeModule<Meta>(pub Node<TypeModuleValue<Meta>, Meta>);
 
 impl<Meta> TypeModule<Meta> {
-    pub fn typed(v: TypeModuleValue<Meta>, m: Meta) -> Self {
+    pub const fn typed(v: TypeModuleValue<Meta>, m: Meta) -> Self {
         Self(Node::typed(v, m))
     }
 }
@@ -458,7 +475,7 @@ impl TypeModule<()> {
     }
 
     #[cfg(feature = "test")]
-    pub fn mock(x: TypeModuleValue<()>) -> Self {
+    pub const fn mock(x: TypeModuleValue<()>) -> Self {
         Self::raw(x, Range::nil())
     }
 }

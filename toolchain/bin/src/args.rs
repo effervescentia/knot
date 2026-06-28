@@ -21,9 +21,9 @@ pub enum Target {
 }
 
 impl Target {
-    pub fn to_platform(self) -> Box<impl internal::Platform<Program = lang::ast::shape::Program>> {
+    pub fn to_platform(self) -> impl internal::Platform<Program = lang::ast::shape::Program> {
         match self {
-            Self::Web => Box::new(web::Web),
+            Self::Web => web::Web,
         }
     }
 }

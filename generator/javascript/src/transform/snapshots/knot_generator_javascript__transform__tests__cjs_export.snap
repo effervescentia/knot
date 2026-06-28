@@ -1,0 +1,39 @@
+---
+source: generator/javascript/src/transform/mod.rs
+expression: ast
+---
+JavaScript(
+    [
+        Variable(
+            "$knot",
+            PropertyAccess(
+                FunctionCall(
+                    Identifier(
+                        "require",
+                    ),
+                    [
+                        String(
+                            "@knot/runtime",
+                        ),
+                    ],
+                ),
+                "$knot",
+            ),
+        ),
+        Variable(
+            "bar",
+            Null,
+        ),
+        Assignment(
+            PropertyAccess(
+                Identifier(
+                    "exports",
+                ),
+                "bar",
+            ),
+            Identifier(
+                "bar",
+            ),
+        ),
+    ],
+)

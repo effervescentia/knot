@@ -1,16 +1,16 @@
 use kore::internal;
-use lang::{ast, CanonicalId, Canonicalize, Namespace, NamespaceId, NodeId};
+use lang::{ast, CanonicalId, Canonicalize, ModuleId, Namespace, NodeId};
 use std::{collections::HashMap, fmt::Debug, rc::Rc};
 
 pub type TypeMap = HashMap<CanonicalId, Rc<ast::typed::Meta>>;
-pub type AmbientMap = HashMap<internal::AmbientScope, NamespaceId>;
+pub type AmbientMap = HashMap<internal::AmbientScope, ModuleId>;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ModuleMap {
-    pub keys: HashMap<Namespace, NamespaceId>,
+    pub keys: HashMap<Namespace, ModuleId>,
 
     #[allow(clippy::type_complexity)]
-    pub by_key: HashMap<NamespaceId, (CanonicalId, HashMap<String, CanonicalId>, TypeMap)>,
+    pub by_key: HashMap<ModuleId, (CanonicalId, HashMap<String, CanonicalId>, TypeMap)>,
 }
 
 impl ModuleMap {
@@ -30,7 +30,7 @@ impl ModuleMap {
 
     pub fn get_export_type(
         &self,
-        namespace: &NamespaceId,
+        namespace: &ModuleId,
         name: &str,
     ) -> Option<&Rc<ast::typed::Meta>> {
         let (_, exports, types) = self.by_key.get(namespace)?;
@@ -42,7 +42,7 @@ impl ModuleMap {
 
 #[derive(Debug, PartialEq)]
 pub struct Context<'a> {
-    pub id: NamespaceId,
+    pub id: ModuleId,
 
     pub namespace: &'a Namespace,
 
@@ -57,13 +57,13 @@ impl<'a> Context<'a> {
         Self {
             modules,
             ambient,
-            id: NamespaceId(0),
+            id: ModuleId(0),
             namespace: Namespace::MOCK,
         }
     }
 }
 
-impl<'a> Canonicalize for Context<'a> {
+impl Canonicalize for Context<'_> {
     fn canonicalize(&self, id: NodeId) -> CanonicalId {
         CanonicalId(self.id, id)
     }

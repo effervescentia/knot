@@ -1,0 +1,27 @@
+---
+source: generator/javascript/src/transform/statement.rs
+expression: ast
+---
+[
+    Expression(
+        Function(
+            Some(
+                "foo",
+            ),
+            [],
+            [
+                Variable(
+                    "bar",
+                    Null,
+                ),
+                Return(
+                    Some(
+                        Identifier(
+                            "bar",
+                        ),
+                    ),
+                ),
+            ],
+        ),
+    ),
+]

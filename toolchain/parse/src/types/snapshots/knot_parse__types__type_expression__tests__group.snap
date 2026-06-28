@@ -1,0 +1,39 @@
+---
+source: toolchain/parse/src/types/type_expression.rs
+expression: ast
+---
+TypeExpression(
+    Node(
+        Group(
+            TypeExpression(
+                Node(
+                    Primitive(
+                        Nil,
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            2,
+                        ),
+                        Point(
+                            1,
+                            4,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                5,
+            ),
+        ),
+        (),
+    ),
+)

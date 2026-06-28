@@ -82,13 +82,13 @@ impl<'a> Display<'a> for analyze::Error {
             let range = *nodes
                 .get(id)
                 .unwrap_or_else(|| invariant!("node {id:?} does not exist in error context"));
-            let (link, text) = modules
+            let (path, text) = modules
                 .get(&id.0)
                 .unwrap_or_else(|| invariant!("module {:?} does not exist in error context", id.0));
 
             CodeFrame {
                 root_dir,
-                link,
+                path,
                 source: text,
                 focus,
                 range,

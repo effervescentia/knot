@@ -13,7 +13,7 @@ use kore::{
     color::{Colorize, Highlight},
     format::{indented, Indented},
 };
-use std::{collections::HashMap, fmt::Write};
+use std::{collections::HashMap, fmt::Write, path::PathBuf};
 
 pub trait Display<'a> {
     type Context;
@@ -24,7 +24,7 @@ pub trait Display<'a> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ErrorContext {
     pub root_dir: String,
-    pub modules: HashMap<lang::NamespaceId, (crate::Link, String)>,
+    pub modules: HashMap<lang::ModuleId, (PathBuf, String)>,
     pub nodes: HashMap<lang::CanonicalId, lang::Range>,
 }
 
@@ -52,7 +52,7 @@ impl<'a> ErrorDisplay<'a> {
     }
 }
 
-impl<'a> std::fmt::Display for ErrorDisplay<'a> {
+impl std::fmt::Display for ErrorDisplay<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,

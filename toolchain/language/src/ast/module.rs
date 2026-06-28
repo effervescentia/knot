@@ -1,5 +1,8 @@
 use crate::walk::{CommonVisitor, ProgramVisitor, Walk, WalkEach};
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    path::{Path, PathBuf},
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum ImportSource {
@@ -17,11 +20,32 @@ pub struct Import {
 }
 
 impl Import {
-    pub fn new(source: ImportSource, path: Vec<String>, alias: Option<String>) -> Self {
+    pub const fn new(source: ImportSource, path: Vec<String>, alias: Option<String>) -> Self {
         Self {
             source,
             path,
             alias,
+        }
+    }
+
+    pub fn to_path<T>(&self, relative_to: T) -> PathBuf
+    where
+        T: AsRef<Path>,
+    {
+        let path: PathBuf = self.path.join("/").into();
+
+        match self.source {
+            ImportSource::Root => path.with_extension("kn"),
+
+            ImportSource::Local => {
+                if let Some(base_dir) = relative_to.as_ref().parent() {
+                    base_dir.join(path).with_extension("kn")
+                } else {
+                    path.with_extension("kn")
+                }
+            }
+
+            ImportSource::Named(_) | ImportSource::Scoped { .. } => todo!(),
         }
     }
 }
@@ -60,7 +84,7 @@ pub struct Module<Import, Declaration> {
 }
 
 impl<Import, Declaration> Module<Import, Declaration> {
-    pub fn new(imports: Vec<Import>, declarations: Vec<Declaration>) -> Self {
+    pub const fn new(imports: Vec<Import>, declarations: Vec<Declaration>) -> Self {
         Self {
             imports,
             declarations,

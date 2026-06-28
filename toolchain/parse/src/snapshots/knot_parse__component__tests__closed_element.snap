@@ -1,0 +1,23 @@
+---
+source: toolchain/parse/src/component.rs
+expression: ast
+---
+Component(
+    Node(
+        ClosedElement(
+            "foo",
+            [],
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                7,
+            ),
+        ),
+        (),
+    ),
+)

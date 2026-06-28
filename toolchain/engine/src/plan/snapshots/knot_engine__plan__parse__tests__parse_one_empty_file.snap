@@ -1,0 +1,27 @@
+---
+source: toolchain/engine/src/plan/parse.rs
+expression: module.raw
+---
+Program(
+    Program(
+        Module(
+            Node(
+                Module {
+                    imports: [],
+                    declarations: [],
+                },
+                Range(
+                    Point(
+                        1,
+                        1,
+                    ),
+                    Point(
+                        1,
+                        1,
+                    ),
+                ),
+                (),
+            ),
+        ),
+    ),
+)

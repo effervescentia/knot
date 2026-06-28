@@ -1,0 +1,145 @@
+---
+source: toolchain/engine/src/plan/analyze.rs
+expression: main.typed
+---
+Some(
+    Program(
+        Program(
+            Module(
+                Node(
+                    Module {
+                        imports: [],
+                        declarations: [
+                            Declaration(
+                                Node(
+                                    Constant {
+                                        storage: Storage {
+                                            visibility: Public,
+                                            binding: Binding(
+                                                Node(
+                                                    Binding(
+                                                        "FOO",
+                                                    ),
+                                                    Range(
+                                                        Point(
+                                                            1,
+                                                            7,
+                                                        ),
+                                                        Point(
+                                                            1,
+                                                            9,
+                                                        ),
+                                                    ),
+                                                    (),
+                                                ),
+                                            ),
+                                        },
+                                        value_type: None,
+                                        value: Expression(
+                                            Node(
+                                                Primitive(
+                                                    Integer(
+                                                        123,
+                                                    ),
+                                                ),
+                                                Range(
+                                                    Point(
+                                                        1,
+                                                        13,
+                                                    ),
+                                                    Point(
+                                                        1,
+                                                        15,
+                                                    ),
+                                                ),
+                                                (
+                                                    CanonicalId(
+                                                        ModuleId(
+                                                            0,
+                                                        ),
+                                                        NodeId(
+                                                            0,
+                                                        ),
+                                                    ),
+                                                    Type(
+                                                        Integer,
+                                                    ),
+                                                ),
+                                            ),
+                                        ),
+                                    },
+                                    Range(
+                                        Point(
+                                            1,
+                                            1,
+                                        ),
+                                        Point(
+                                            1,
+                                            15,
+                                        ),
+                                    ),
+                                    (
+                                        CanonicalId(
+                                            ModuleId(
+                                                0,
+                                            ),
+                                            NodeId(
+                                                1,
+                                            ),
+                                        ),
+                                        Type(
+                                            Integer,
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ],
+                    },
+                    Range(
+                        Point(
+                            1,
+                            1,
+                        ),
+                        Point(
+                            1,
+                            16,
+                        ),
+                    ),
+                    (
+                        CanonicalId(
+                            ModuleId(
+                                0,
+                            ),
+                            NodeId(
+                                2,
+                            ),
+                        ),
+                        Type(
+                            Module(
+                                [
+                                    (
+                                        "FOO",
+                                        Value,
+                                        (
+                                            CanonicalId(
+                                                ModuleId(
+                                                    0,
+                                                ),
+                                                NodeId(
+                                                    0,
+                                                ),
+                                            ),
+                                            Type(
+                                                Integer,
+                                            ),
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+)

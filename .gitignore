@@ -5,6 +5,9 @@
 tarpaulin-report.html
 *.profraw
 
+# snapshots
+*.snap.new
+
 # yarn
 .yarn/*
 !.yarn/patches

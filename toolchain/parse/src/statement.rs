@@ -49,10 +49,8 @@ where
 mod tests {
     use crate::expression;
     use combine::{eof, stream::position::Stream, EasyParser, Parser};
-    use kore::str;
-    use lang::{ast, Range};
 
-    fn parse(s: &str) -> crate::Result<ast::raw::Statement> {
+    fn parse(s: &str) -> crate::Result<lang::ast::raw::Statement> {
         super::statement(expression::expression)
             .skip(eof())
             .easy_parse(Stream::new(s))
@@ -60,32 +58,15 @@ mod tests {
 
     #[test]
     fn expression() {
-        assert_eq!(
-            parse("nil;").unwrap().0,
-            ast::raw::Statement::raw(
-                ast::Statement::Expression(ast::raw::Expression::raw(
-                    ast::Expression::Primitive(ast::Primitive::Nil),
-                    Range::new((1, 1), (1, 3))
-                )),
-                Range::new((1, 1), (1, 3))
-            )
-        );
+        let ast = parse("nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 
     #[test]
     fn variable() {
-        assert_eq!(
-            parse("let foo = nil;").unwrap().0,
-            ast::raw::Statement::raw(
-                ast::Statement::Variable(
-                    str!("foo"),
-                    ast::raw::Expression::raw(
-                        ast::Expression::Primitive(ast::Primitive::Nil),
-                        Range::new((1, 11), (1, 13))
-                    )
-                ),
-                Range::new((1, 1), (1, 13))
-            )
-        );
+        let ast = parse("let foo = nil;").unwrap().0;
+
+        insta::assert_debug_snapshot!(ast);
     }
 }

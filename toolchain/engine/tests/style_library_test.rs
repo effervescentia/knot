@@ -1,15 +1,14 @@
 mod common;
 
-use assert_fs::prelude::*;
-use assert_fs::TempDir;
-use knot_engine::Engine;
-use kore::internal::AmbientScope;
-use kore::internal::Library;
-use kore::internal::PlatformLibrary;
+use assert_fs::{prelude::*, TempDir};
+use knot_engine::{Analyzed, Context, Engine, Input, NoopLogger};
+use kore::internal::{AmbientScope, Library, PlatformLibrary};
+use lang::ModuleId;
+use std::collections::HashSet;
 
 #[test]
-fn use_platform_enum_in_style_expression() -> Result<(), Box<dyn std::error::Error>> {
-    #[derive(Clone, Copy)]
+fn use_platform_enum_in_style_expression() {
+    #[derive(Clone, Copy, Eq, Hash, PartialEq)]
     pub enum MockLibrary {
         Std,
         Style,
@@ -22,7 +21,7 @@ fn use_platform_enum_in_style_expression() -> Result<(), Box<dyn std::error::Err
                 Self::Std => "enum Color { red }",
                 Self::Style => {
                     "use std;
-  func color(std.Color) -> nil;"
+func color(std.Color) -> nil;"
                 }
                 Self::Noop => "",
             }
@@ -53,21 +52,20 @@ fn use_platform_enum_in_style_expression() -> Result<(), Box<dyn std::error::Err
         }
     }
 
-    let root_dir = TempDir::new()?;
-    root_dir.child("src/main.kn").write_str(
-        "use std;
+    let root_dir = TempDir::new().unwrap();
+    root_dir
+        .child("src/main.kn")
+        .write_str(
+            "use std;
 const STYLE = style { color: std.Color.red };",
-    )?;
+        )
+        .unwrap();
 
-    let engine = Engine::new(&root_dir, false)
-        .from_entry("src/main.kn")
-        .include_libraries(&[MockLibrary::Std, MockLibrary::Style])
-        .parse()
-        .link()
-        .analyze()
-        .into_result();
+    let input = Input::from_entry("src/main.kn", [MockLibrary::Std, MockLibrary::Style]);
+    let engine = Engine::new(Context::mock_from(&root_dir));
+    let plan = Engine::plan().parse().link().analyze();
 
-    assert!(engine.is_ok());
+    let (_, Analyzed(analyzed)) = engine.execute(&plan, &input);
 
-    Ok(())
+    assert_eq!(analyzed, HashSet::from([ModuleId(0)]));
 }

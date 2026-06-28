@@ -1,0 +1,13 @@
+---
+source: generator/javascript/src/transform/expression.rs
+expression: ast
+---
+FunctionCall(
+    Identifier(
+        "Math.pow",
+    ),
+    [
+        Null,
+        Null,
+    ],
+)

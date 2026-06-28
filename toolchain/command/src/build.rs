@@ -1,41 +1,69 @@
-use crate::log;
-use engine::{ConfigurationError, Engine, Report};
-use kore::invariant;
-use kore::{color::Highlight, internal, pretty::Pretty};
-use notify_debouncer_full::notify::Watcher;
-use notify_debouncer_full::{new_debouncer, notify};
-use std::path::Path;
-use std::time::Duration;
+use crate::{log, AssertExists, Logger};
+use engine::{Builder, ConfigurationError, Context, Engine, Input, Report, State};
+use kore::{
+    color::Highlight,
+    internal, invariant,
+    pipeline::{Peek, Transform},
+    pretty::Pretty,
+};
+use notify_debouncer_full::{
+    new_debouncer,
+    notify::{self, Watcher},
+    DebouncedEvent,
+};
+use std::{path::Path, sync::mpsc, time::Duration};
 
 const WATCH_SENSITIVITY: Duration = Duration::from_millis(20);
 
 pub struct Options<'a, Platform> {
     pub platform: Platform,
+
+    /// absolute path to the directory where build artifacts should be written
     pub out_dir: &'a Path,
+
+    /// absolute path to the directory containing the source code
     pub source_dir: &'a Path,
+
+    /// path to the entry file for this application or library
+    /// relative to the `source_dir`
     pub entry: &'a Path,
 
     /// enables a higher level of logging for additional information
     pub verbose: bool,
 }
 
+fn build_plan<'a, Platform>(
+    opts: &Options<'_, Platform>,
+) -> Builder<impl Transform<Context = State<'a, Logger>, In = (), Out = usize>>
+where
+    Platform: internal::Platform<Program = lang::ast::shape::Program>,
+{
+    Engine::<Logger>::plan()
+        .parse_and_traverse()
+        .peek(|(_, x)| Logger.report_parsed(x))
+        .link()
+        .peek(|(_, x)| Logger.report_linked(x))
+        .analyze()
+        .peek(|(_, x)| Logger.report_analyzed(x))
+        .generate(Platform::generator())
+        .write(opts.out_dir)
+}
+
 pub fn command<Platform>(opts: &Options<Platform>) -> engine::Result<()>
 where
     Platform: internal::Platform<Program = lang::ast::shape::Program>,
 {
+    let source_dir = opts
+        .source_dir
+        .assert_dir_exists(ConfigurationError::SourceDirectoryNotFound)?;
+
     log::entrypoint(opts.verbose, opts.entry);
 
-    let count = Engine::new(opts.source_dir, opts.verbose)
-        .from_entry(opts.entry)
-        .include_libraries(&Platform::libraries())
-        .parse()
-        .inspect(|state, _| state.report_from_entry())
-        .link()
-        .inspect(|state, _| state.report())
-        .analyze()
-        .inspect(|state, _| state.report())
-        .generate(Platform::generator())
-        .overwrite(opts.out_dir)?;
+    let input = Input::from_entry(opts.entry, Platform::libraries());
+    let engine = Engine::new(Context::new(source_dir, Logger));
+    let plan = build_plan(opts);
+
+    let (_, count) = engine.execute(&plan, &input);
 
     log::success(opts.verbose, "transpiled", count);
     eprintln!(
@@ -51,22 +79,17 @@ pub fn watch_command<Platform>(opts: &Options<Platform>) -> engine::Result<()>
 where
     Platform: internal::Platform<Program = lang::ast::shape::Program>,
 {
+    let source_dir = opts
+        .source_dir
+        .assert_dir_exists(ConfigurationError::SourceDirectoryNotFound)?;
+
     log::entrypoint(opts.verbose, opts.entry);
 
-    let analyzed = Engine::new(opts.source_dir, opts.verbose)
-        .from_entry(opts.entry)
-        .include_libraries(&Platform::libraries())
-        .parse()
-        .inspect(|state, _| state.report_from_entry())
-        .link()
-        .inspect(|state, _| state.report())
-        .analyze()
-        .inspect(|state, _| state.report());
+    let input = Input::from_entry(opts.entry, Platform::libraries());
+    let engine = Engine::new(Context::new(source_dir, Logger));
+    let plan = build_plan(opts);
 
-    let count = analyzed
-        .clone()
-        .generate(Platform::generator())
-        .overwrite(opts.out_dir)?;
+    let (mut state, count) = engine.execute(&plan, &input);
 
     log::success(opts.verbose, "transpiled", count);
     eprintln!(
@@ -75,39 +98,52 @@ where
         opts.out_dir.pretty()
     );
 
-    let mut debouncer = new_debouncer(WATCH_SENSITIVITY, None, |res| match res {
-        Ok(event) => {
-            println!("event: {:?}", event);
-        }
-        Err(e) => eprintln!("watch error: {:?}", e),
-    })
-    .unwrap_or_else(|_| invariant!("failed to create debouncer"));
+    let (tx, rx) = mpsc::channel::<Result<Vec<DebouncedEvent>, Vec<notify::Error>>>();
+
+    let mut debouncer = new_debouncer(WATCH_SENSITIVITY, None, tx)
+        .unwrap_or_else(|_| invariant!("failed to create debouncer"));
 
     debouncer
         .watcher()
         .watch(opts.source_dir, notify::RecursiveMode::Recursive)
         .map_err(|x| match x.kind {
             notify::ErrorKind::PathNotFound => Report::Configuration(
-                ConfigurationError::SourceDirectoryNotFound(opts.source_dir.to_path_buf()),
+                ConfigurationError::SourceDirectoryNotFound(source_dir.to_path_buf()),
             ),
 
             notify::ErrorKind::MaxFilesWatch => Report::Environment(
-                engine::EnvironmentError::MaxFilesWatched(opts.source_dir.to_path_buf()),
+                engine::EnvironmentError::MaxFilesWatched(source_dir.to_path_buf()),
             ),
 
             notify::ErrorKind::Generic(reason) => Report::Environment(
-                engine::EnvironmentError::WatchFailed(opts.source_dir.to_path_buf(), reason),
+                engine::EnvironmentError::WatchFailed(source_dir.to_path_buf(), reason),
             ),
 
             err => Report::Environment(engine::EnvironmentError::WatchFailed(
-                opts.source_dir.to_path_buf(),
+                source_dir.to_path_buf(),
                 format!("{:?}", err),
             )),
         })?;
 
     debouncer
         .cache()
-        .add_root(opts.source_dir, notify::RecursiveMode::Recursive);
+        .add_root(source_dir, notify::RecursiveMode::Recursive);
+
+    eprintln!("watching for changes in {}", source_dir.pretty());
+    eprintln!("press ctrl+c to cancel");
+
+    for res in rx {
+        match res {
+            Ok(event) => {
+                println!("event: {:?}", event);
+
+                let operations = vec![];
+
+                (state, _) = Engine::incremental(state, &plan, operations);
+            }
+            Err(e) => eprintln!("watch error: {:?}", e),
+        }
+    }
 
     Ok(())
 }

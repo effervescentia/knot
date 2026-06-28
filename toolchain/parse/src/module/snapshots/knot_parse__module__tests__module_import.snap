@@ -1,0 +1,46 @@
+---
+source: toolchain/parse/src/module/mod.rs
+expression: ast
+---
+Module(
+    Node(
+        Module {
+            imports: [
+                Import(
+                    Node(
+                        Import {
+                            source: Root,
+                            path: [
+                                "foo",
+                            ],
+                            alias: None,
+                        },
+                        Range(
+                            Point(
+                                1,
+                                1,
+                            ),
+                            Point(
+                                1,
+                                9,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+            ],
+            declarations: [],
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                10,
+            ),
+        ),
+        (),
+    ),
+)

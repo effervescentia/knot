@@ -11,6 +11,7 @@ kore = { package = "knot_core", path = "../kore" }
 lang = { package = "knot_language", path = "../language" }
 
 [dev-dependencies]
+insta = "1.42.1"
 lang = { package = "knot_language", path = "../language" }
 
 [features]

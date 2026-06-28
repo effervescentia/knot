@@ -1,0 +1,58 @@
+---
+source: toolchain/parse/src/types/type_declaration.rs
+expression: ast
+---
+TypeDeclaration(
+    Node(
+        Module {
+            binding: Binding(
+                Node(
+                    Binding(
+                        "foo",
+                    ),
+                    Range(
+                        Point(
+                            1,
+                            8,
+                        ),
+                        Point(
+                            1,
+                            10,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+            module: TypeModule(
+                Node(
+                    TypeModule {
+                        imports: [],
+                        declarations: [],
+                    },
+                    Range(
+                        Point(
+                            1,
+                            13,
+                        ),
+                        Point(
+                            1,
+                            13,
+                        ),
+                    ),
+                    (),
+                ),
+            ),
+        },
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                13,
+            ),
+        ),
+        (),
+    ),
+)

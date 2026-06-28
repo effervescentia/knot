@@ -1,0 +1,87 @@
+---
+source: toolchain/engine/src/plan/parse.rs
+expression: module.raw
+---
+Program(
+    Program(
+        Module(
+            Node(
+                Module {
+                    imports: [],
+                    declarations: [
+                        Declaration(
+                            Node(
+                                Constant {
+                                    storage: Storage {
+                                        visibility: Public,
+                                        binding: Binding(
+                                            Node(
+                                                Binding(
+                                                    "FOO",
+                                                ),
+                                                Range(
+                                                    Point(
+                                                        1,
+                                                        7,
+                                                    ),
+                                                    Point(
+                                                        1,
+                                                        9,
+                                                    ),
+                                                ),
+                                                (),
+                                            ),
+                                        ),
+                                    },
+                                    value_type: None,
+                                    value: Expression(
+                                        Node(
+                                            Primitive(
+                                                Integer(
+                                                    123,
+                                                ),
+                                            ),
+                                            Range(
+                                                Point(
+                                                    1,
+                                                    13,
+                                                ),
+                                                Point(
+                                                    1,
+                                                    15,
+                                                ),
+                                            ),
+                                            (),
+                                        ),
+                                    ),
+                                },
+                                Range(
+                                    Point(
+                                        1,
+                                        1,
+                                    ),
+                                    Point(
+                                        1,
+                                        15,
+                                    ),
+                                ),
+                                (),
+                            ),
+                        ),
+                    ],
+                },
+                Range(
+                    Point(
+                        1,
+                        1,
+                    ),
+                    Point(
+                        1,
+                        16,
+                    ),
+                ),
+                (),
+            ),
+        ),
+    ),
+)

@@ -1,6 +1,6 @@
 use crate::infer::{BindingMap, NodeDescriptor};
 use kore::internal;
-use lang::{ast, types, CanonicalId, FragmentMap, NamespaceId, NodeId};
+use lang::{ast, types, CanonicalId, FragmentMap, ModuleId, NodeId};
 use std::collections::HashMap;
 
 /// all inference cases encoded as variants
@@ -53,7 +53,7 @@ impl<'a> Output<'a> {
         }
     }
 
-    pub fn build_descriptors(&mut self, namespace: NamespaceId) -> Vec<NodeDescriptor> {
+    pub fn build_descriptors(&mut self, namespace: ModuleId) -> Vec<NodeDescriptor> {
         self.fragments
             .iter()
             .filter_map(|(id, (scope, ..))| {

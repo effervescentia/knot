@@ -1,0 +1,147 @@
+mod analyze;
+mod format;
+mod generate;
+mod link;
+mod parse;
+mod write;
+
+use crate::State;
+use analyze::Analyze;
+pub use analyze::Analyzed;
+use format::Format;
+use generate::Generate;
+use kore::{
+    internal,
+    pipeline::{Container, Execute, Identity, Map, Peek, Transform},
+};
+use link::Link;
+pub use link::Linked;
+use parse::Parse;
+pub use parse::Parsed;
+use std::path::Path;
+use write::{Output, Write};
+
+#[derive(Default)]
+pub struct Builder<Tx>(Tx);
+
+impl<Log> Builder<Identity<State<'_, Log>, ()>> {
+    pub const fn new() -> Self {
+        Self(Identity::new())
+    }
+}
+
+impl<Tx> Container for Builder<Tx> {
+    type Inner = Tx;
+
+    fn consume(self) -> Self::Inner {
+        self.0
+    }
+
+    fn wrap(inner: Self::Inner) -> Self {
+        Self(inner)
+    }
+}
+
+impl<In, Out> Map<In, Out> for Builder<In> {
+    type Result = Builder<Out>;
+}
+
+impl<Tx, F> Peek<Tx, F> for Builder<Tx>
+where
+    Tx: Transform,
+    F: Fn(&(Tx::Context, Tx::Out)),
+{
+}
+
+impl<Tx> Execute<Tx> for Builder<Tx>
+where
+    Tx: Transform,
+{
+    fn execute(&self, input: (Tx::Context, Tx::In)) -> (Tx::Context, Tx::Out) {
+        self.0.apply(input)
+    }
+}
+
+impl<'a, Tx, Log> Builder<Tx>
+where
+    Tx: Transform<Context = State<'a, Log>, Out = ()>,
+    Log: 'a,
+{
+    /// load and parse internal modules without following dependencies
+    pub fn parse(self) -> Builder<Parse<Tx>> {
+        self.map(Parse::bind(parse::Options {
+            follow_imports: false,
+        }))
+    }
+
+    /// load and parse internal modules and follow dependencies
+    pub fn parse_and_traverse(self) -> Builder<Parse<Tx>> {
+        self.map(Parse::bind(parse::Options {
+            follow_imports: true,
+        }))
+    }
+}
+
+impl<'a, Tx, Res, Log> Builder<Tx>
+where
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
+    Res: Into<Parsed>,
+    Log: 'a,
+{
+    /// transform internal modules using the standard formatter
+    pub fn format(self) -> Builder<Format<Tx>> {
+        self.map(Format::new)
+    }
+}
+
+impl<'a, Tx, Res, Log> Builder<Tx>
+where
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
+    Res: Into<Parsed>,
+    Log: 'a,
+{
+    /// record links between internal modules and their external dependencies (libraries)
+    pub fn link(self) -> Builder<Link<Tx>> {
+        self.map(Link::new)
+    }
+}
+
+impl<'a, Tx, Res, Log> Builder<Tx>
+where
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
+    Res: Into<Linked>,
+    Log: 'a,
+{
+    /// check if the code is semantically correct and determine types of all values
+    pub fn analyze(self) -> Builder<Analyze<Tx>> {
+        self.map(Analyze::new)
+    }
+}
+
+impl<'a, Tx, Res, Log> Builder<Tx>
+where
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
+    Res: Into<Parsed>,
+    Log: 'a,
+{
+    pub fn generate<Gen>(self, generator: Gen) -> Builder<Generate<Tx, Gen>>
+    where
+        Gen: internal::Generator,
+    {
+        self.map(Generate::bind(generator))
+    }
+}
+
+impl<'a, Tx, Res, Log> Builder<Tx>
+where
+    Tx: Transform<Context = State<'a, Log>, Out = Res>,
+    Res: Output,
+    Log: 'a,
+{
+    pub fn write<T>(self, out_dir: T) -> Builder<Write<Tx>>
+    where
+        T: AsRef<Path>,
+    {
+        self.map(Write::bind(out_dir.as_ref().to_path_buf()))
+    }
+}

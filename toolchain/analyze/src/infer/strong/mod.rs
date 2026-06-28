@@ -39,7 +39,7 @@ mod tests {
     use lang::{
         ast,
         types::{Kind, Type},
-        CanonicalId, Namespace, NamespaceId, NodeId,
+        CanonicalId, ModuleId, Namespace, NodeId,
     };
     use std::{
         cell::OnceCell,
@@ -53,7 +53,7 @@ mod tests {
         type_: ast::typed::InnerType,
     ) -> Rc<ast::typed::Meta> {
         Rc::new((
-            CanonicalId(NamespaceId(namespace_id), NodeId(node_id)),
+            CanonicalId(ModuleId(namespace_id), NodeId(node_id)),
             ast::typed::Type(type_),
         ))
     }
@@ -63,19 +63,19 @@ mod tests {
         let fragments = BTreeMap::from_iter(fixture::import::fragments());
         let mock = analyze_mock!(
             modules = &ModuleMap {
-                keys: HashMap::from_iter(vec![(
+                keys: HashMap::from([(
                     Namespace::Internal(vec![str!("foo"), str!("bar"), str!("fizz")],),
-                    NamespaceId(1),
+                    ModuleId(1),
                 )]),
-                by_key: HashMap::from_iter(vec![(
-                    NamespaceId(1),
+                by_key: HashMap::from([(
+                    ModuleId(1),
                     (
-                        CanonicalId(NamespaceId(1), NodeId(0)),
+                        CanonicalId(ModuleId(1), NodeId(0)),
                         HashMap::new(),
-                        HashMap::from_iter(vec![(
-                            CanonicalId(NamespaceId(1), NodeId(0)),
+                        HashMap::from([(
+                            CanonicalId(ModuleId(1), NodeId(0)),
                             Rc::new((
-                                CanonicalId(NamespaceId(1), NodeId(0)),
+                                CanonicalId(ModuleId(1), NodeId(0)),
                                 ast::typed::Type(Type::Module(vec![])),
                             )),
                         )]),
@@ -92,7 +92,7 @@ mod tests {
         assert_eq_sorted!(
             super::infer_types(&mock.context(), weak),
             Ok(super::Output {
-                types: HashMap::from_iter(vec![(
+                types: HashMap::from([(
                     NodeId(0),
                     OnceCell::from(type_(1, 0, Type::Module(vec![])))
                 )]),
@@ -180,7 +180,7 @@ mod tests {
         assert_eq_sorted!(
             super::infer_types(&mock.context(), weak),
             Ok(super::Output {
-                types: HashMap::from_iter(vec![
+                types: HashMap::from([
                     (NodeId(0), OnceCell::from(type_(0, 0, Type::Boolean))),
                     (NodeId(1), OnceCell::from(type_(0, 1, Type::Style))),
                     (NodeId(2), OnceCell::from(type_(0, 2, Type::String))),
@@ -192,37 +192,37 @@ mod tests {
     #[test]
     fn view() {
         let mock = analyze_mock!(
-            ambient = &HashMap::from_iter(vec![(AmbientScope::Element, NamespaceId(1))]),
+            ambient = &HashMap::from([(AmbientScope::Element, ModuleId(1))]),
             modules = &ModuleMap {
                 keys: HashMap::new(),
-                by_key: HashMap::from_iter(vec![(
-                    NamespaceId(1),
+                by_key: HashMap::from([(
+                    ModuleId(1),
                     (
-                        CanonicalId(NamespaceId(1), NodeId(0)),
-                        HashMap::from_iter(vec![
-                            (str!("div"), CanonicalId(NamespaceId(1), NodeId(1))),
-                            (str!("h1"), CanonicalId(NamespaceId(1), NodeId(2))),
-                            (str!("main"), CanonicalId(NamespaceId(1), NodeId(3))),
+                        CanonicalId(ModuleId(1), NodeId(0)),
+                        HashMap::from([
+                            (str!("div"), CanonicalId(ModuleId(1), NodeId(1))),
+                            (str!("h1"), CanonicalId(ModuleId(1), NodeId(2))),
+                            (str!("main"), CanonicalId(ModuleId(1), NodeId(3))),
                         ]),
-                        HashMap::from_iter(vec![
+                        HashMap::from([
                             (
-                                CanonicalId(NamespaceId(1), NodeId(1)),
+                                CanonicalId(ModuleId(1), NodeId(1)),
                                 Rc::new((
-                                    CanonicalId(NamespaceId(1), NodeId(1)),
+                                    CanonicalId(ModuleId(1), NodeId(1)),
                                     ast::typed::Type(Type::View(vec![])),
                                 )),
                             ),
                             (
-                                CanonicalId(NamespaceId(1), NodeId(2)),
+                                CanonicalId(ModuleId(1), NodeId(2)),
                                 Rc::new((
-                                    CanonicalId(NamespaceId(1), NodeId(2)),
+                                    CanonicalId(ModuleId(1), NodeId(2)),
                                     ast::typed::Type(Type::View(vec![])),
                                 )),
                             ),
                             (
-                                CanonicalId(NamespaceId(1), NodeId(3)),
+                                CanonicalId(ModuleId(1), NodeId(3)),
                                 Rc::new((
-                                    CanonicalId(NamespaceId(1), NodeId(3)),
+                                    CanonicalId(ModuleId(1), NodeId(3)),
                                     ast::typed::Type(Type::View(vec![])),
                                 )),
                             ),
@@ -254,34 +254,31 @@ mod tests {
     fn module() {
         let fragments = BTreeMap::from_iter(fixture::module::fragments());
         let modules = ModuleMap {
-            keys: HashMap::from_iter(vec![(
-                Namespace::Internal(vec![str!("theme")]),
-                NamespaceId(1),
-            )]),
-            by_key: HashMap::from_iter(vec![(
-                NamespaceId(1),
+            keys: HashMap::from([(Namespace::Internal(vec![str!("theme")]), ModuleId(1))]),
+            by_key: HashMap::from([(
+                ModuleId(1),
                 (
-                    CanonicalId(NamespaceId(1), NodeId(0)),
+                    CanonicalId(ModuleId(1), NodeId(0)),
                     HashMap::new(),
-                    HashMap::from_iter(vec![
+                    HashMap::from([
                         (
-                            CanonicalId(NamespaceId(1), NodeId(0)),
+                            CanonicalId(ModuleId(1), NodeId(0)),
                             Rc::new((
-                                CanonicalId(NamespaceId(1), NodeId(0)),
+                                CanonicalId(ModuleId(1), NodeId(0)),
                                 ast::typed::Type(Type::Module(vec![(
                                     str!("PRIMARY"),
                                     Kind::Value,
                                     Rc::new((
-                                        CanonicalId(NamespaceId(1), NodeId(1)),
+                                        CanonicalId(ModuleId(1), NodeId(1)),
                                         ast::typed::Type(Type::String),
                                     )),
                                 )])),
                             )),
                         ),
                         (
-                            CanonicalId(NamespaceId(1), NodeId(1)),
+                            CanonicalId(ModuleId(1), NodeId(1)),
                             Rc::new((
-                                CanonicalId(NamespaceId(1), NodeId(1)),
+                                CanonicalId(ModuleId(1), NodeId(1)),
                                 ast::typed::Type(Type::String),
                             )),
                         ),

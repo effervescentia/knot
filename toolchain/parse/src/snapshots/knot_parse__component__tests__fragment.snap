@@ -1,0 +1,22 @@
+---
+source: toolchain/parse/src/component.rs
+expression: ast
+---
+Component(
+    Node(
+        Fragment(
+            [],
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                5,
+            ),
+        ),
+        (),
+    ),
+)

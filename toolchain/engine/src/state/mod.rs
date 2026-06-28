@@ -1,194 +1,176 @@
-mod analyzed;
 mod ast;
-mod base;
-mod linked;
-mod parsed;
-mod traverse;
+mod module;
+mod registry;
 
-use crate::{
-    report::{Enrich, Report},
-    ConfigurationError, IntoResult, Link, Result,
-};
-pub use analyzed::Analyzed;
+use crate::{Context, Operation, Scope};
 pub use ast::Ast;
-pub use base::Base;
-use kore::internal::{self, PlatformLibrary};
-use lang::NamespaceId;
-pub use linked::Linked;
-pub use parsed::Parsed;
-use std::{fmt::Debug, path::Path};
-use traverse::{DynamicVisitor, StaticVisitor};
-pub use traverse::{Traverse, Visitor};
+pub use module::Module;
+#[cfg(test)]
+pub use module::Status;
+pub use registry::Registry;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
-pub trait IsVerbose {
-    fn is_verbose(&self) -> bool;
+#[derive(Debug)]
+pub struct State<'a, Log> {
+    /// context of the engine that created this state
+    pub context: &'a Context<Log>,
+
+    /// scope of the plan that is operating on this state
+    pub scope: Scope,
+
+    pub modules: Registry,
 }
 
-pub trait ToLibraries {
-    fn to_libraries(&self) -> Vec<(internal::Library, &str)> {
-        vec![]
+impl<'a, Log> State<'a, Log> {
+    pub const fn log(&self) -> &Log {
+        &self.context.logger
     }
-}
 
-#[derive(Clone)]
-pub struct WithLibraries<State, Library> {
-    pub state: State,
-    pub libraries: Vec<Library>,
-}
+    // pub const fn graph(&self) -> &Graph {
+    //     &self.dependencies.0
+    // }
 
-impl<State, Library> ToLibraries for WithLibraries<State, Library>
-where
-    Library: Clone + PlatformLibrary,
-{
-    fn to_libraries(&self) -> Vec<(internal::Library, &str)> {
-        self.libraries
-            .iter()
-            .map(|x| ((*x).into(), x.text()))
-            .collect()
-    }
-}
+    pub fn new(context: &'a Context<Log>, scope: Scope) -> Self {
+        let mut state = Self {
+            context,
+            scope: scope.clone(),
+            modules: Registry::default(),
+        };
 
-impl<State, Library> Traverse for WithLibraries<State, Library>
-where
-    State: Traverse,
-{
-    type Visitor = State::Visitor;
-
-    fn traverse(&self) -> Self::Visitor {
-        self.state.traverse()
-    }
-}
-
-impl<State, Library> IsVerbose for WithLibraries<State, Library>
-where
-    State: IsVerbose,
-{
-    fn is_verbose(&self) -> bool {
-        self.state.is_verbose()
-    }
-}
-
-impl<State, Library> Enrich for WithLibraries<State, Library> where State: Enrich {}
-
-#[derive(Clone, Debug)]
-pub struct Module<T> {
-    pub id: NamespaceId,
-    pub text: String,
-    pub ast: Ast<T>,
-}
-
-impl<T> Module<T> {
-    pub const fn new(id: NamespaceId, text: String, ast: Ast<T>) -> Self {
-        Self { id, text, ast }
-    }
-}
-
-#[derive(Clone)]
-pub struct FromEntry {
-    pub entry: Link,
-    pub verbose: bool,
-}
-
-impl Enrich for FromEntry {}
-
-impl ToLibraries for FromEntry {}
-
-impl IntoResult for FromEntry {
-    type Value = Self;
-
-    fn into_result(self) -> Result<Self> {
-        Ok(self)
-    }
-}
-
-impl Traverse for FromEntry {
-    type Visitor = DynamicVisitor;
-
-    fn traverse(&self) -> Self::Visitor {
-        DynamicVisitor::new(self.entry.clone())
-    }
-}
-
-impl IsVerbose for FromEntry {
-    fn is_verbose(&self) -> bool {
-        self.verbose
-    }
-}
-
-#[derive(Clone)]
-pub struct FromPaths {
-    pub paths: Vec<Link>,
-    pub verbose: bool,
-}
-
-impl Enrich for FromPaths {}
-
-impl ToLibraries for FromPaths {}
-
-impl IntoResult for FromPaths {
-    type Value = Self;
-
-    fn into_result(self) -> Result<Self> {
-        Ok(self)
-    }
-}
-
-impl Traverse for FromPaths {
-    type Visitor = StaticVisitor;
-
-    fn traverse(&self) -> Self::Visitor {
-        StaticVisitor::new(self.paths.clone())
-    }
-}
-
-impl IsVerbose for FromPaths {
-    fn is_verbose(&self) -> bool {
-        self.verbose
-    }
-}
-
-pub struct FromGlob<'a> {
-    pub dir: &'a Path,
-    pub glob: &'a str,
-    pub verbose: bool,
-}
-
-impl<'a> FromGlob<'a> {
-    pub fn to_paths(&'a self) -> Result<FromPaths> {
-        let FromGlob { dir, glob, verbose } = self;
-
-        match glob::glob(&[dir.to_string_lossy().to_string().as_str(), glob].join("/")) {
-            Ok(x) => {
-                let (paths, errors) = x.fold((vec![], vec![]), |(mut paths, mut errors), x| {
-                    match x {
-                        Ok(path) => match path.strip_prefix(dir) {
-                            Ok(x) => paths.push(x.to_path_buf()),
-                            Err(_) => errors.push(format!(
-                                "failed to strip prefix '{}' from path '{}'",
-                                dir.display(),
-                                path.display()
-                            )),
-                        },
-                        Err(err) => {
-                            errors.push(err.to_string());
-                        }
-                    }
-
-                    (paths, errors)
-                });
-
-                if errors.is_empty() {
-                    Ok(FromPaths {
-                        paths: paths.iter().map(Link::from).collect(),
-                        verbose: *verbose,
-                    })
-                } else {
-                    Err(errors)
-                }
-            }
-
-            Err(err) => Err(vec![err.to_string()]),
+        for path in scope {
+            state.modules.register(path);
         }
-        .map_err(|errs| Box::new(Report::Configuration(ConfigurationError::InvalidGlob(errs))))
+
+        state
+    }
+
+    // fn identify_live_path<T>(&self, path: T) -> Option<ModuleId>
+    // where
+    //     T: AsRef<Path>,
+    // {
+    //     self.modules.get_by_path(path).and_then(|x| match x {
+    //         Module {
+    //             status: Status::Evicted,
+    //             ..
+    //         } => None,
+
+    //         _ => Some(x.id),
+    //     })
+    // }
+
+    // fn purge_module_by_id(&mut self, id: &ModuleId) {
+    //     self.dependencies.remove_module(id);
+    //     self.modules.remove(id);
+    // }
+
+    // fn set_status_by_id(&mut self, id: ModuleId, status: Status) {
+    //     self.modules.entry(id).and_modify(|x| {
+    //         x.status = status;
+    //     });
+    // }
+
+    // fn evict_module_by_id(&mut self, id: ModuleId) -> HashSet<ModuleId> {
+    //     let tainted = self.dependencies.get_dependents(&id);
+
+    //     self.set_status_by_id(id, Status::Evicted);
+
+    //     for id in &tainted {
+    //         self.set_status_by_id(*id, Status::Stale);
+    //     }
+
+    //     tainted
+    // }
+
+    // fn evict_module_by_path<T>(&mut self, path: T) -> HashSet<ModuleId>
+    // where
+    //     T: AsRef<Path>,
+    // {
+    //     self.identify_live_path(path)
+    //         .map(|id| self.evict_module_by_id(id))
+    //         .unwrap_or_default()
+    // }
+
+    // fn taint_module_by_path<T>(&mut self, path: T) -> Option<ModuleId>
+    // where
+    //     T: AsRef<Path>,
+    // {
+    //     self.identify_live_path(path)
+    //         .inspect(|id| self.set_status_by_id(*id, Status::Tainted))
+    // }
+
+    // fn purge_evicted(&mut self) {
+    //     let to_purge = self
+    //         .modules
+    //         .values()
+    //         .filter_map(|x| (x.status == Status::Evicted).then_some(x.id))
+    //         .collect::<Vec<_>>();
+
+    //     for id in to_purge {
+    //         self.purge_module_by_id(&id);
+    //     }
+    // }
+
+    // fn apply_operations<Ops>(&mut self, operations: Ops) -> HashSet<ModuleId>
+    // where
+    //     Ops: AsRef<[(PathBuf, Operation)]>,
+    // {
+    //     operations
+    //         .as_ref()
+    //         .iter()
+    //         .flat_map(|(path, op)| match op {
+    //             Operation::Create => HashSet::from([self.registry.upsert(path)]),
+
+    //             Operation::Update => self
+    //                 .taint_module_by_path(path)
+    //                 .map(|id| HashSet::from([id]))
+    //                 .unwrap_or_default(),
+
+    //             Operation::Delete => self.evict_module_by_path(path),
+    //         })
+    //         .collect()
+    // }
+
+    pub fn evolve<Ops>(mut self, operations: Ops) -> Self
+    where
+        Ops: AsRef<[(PathBuf, Operation)]>,
+    {
+        // self.purge_evicted();
+
+        // let tainted = self.apply_operations(operations);
+
+        // self.scope = tainted
+        //     .into_iter()
+        //     .filter_map(|id| self.registry.get_path(id))
+        //     .collect();
+
+        self
+    }
+
+    pub fn get_absolute_path<T>(&self, path: T) -> PathBuf
+    where
+        T: AsRef<Path>,
+    {
+        self.context.root_dir.join(path.as_ref())
+    }
+
+    pub fn load_and_parse_module<T>(&self, path: T) -> (String, lang::ast::raw::Program)
+    where
+        T: AsRef<Path>,
+    {
+        let absolute = self.get_absolute_path(path.as_ref());
+        let text = fs::read_to_string(&absolute)
+            .unwrap_or_else(|err| panic!("failed to load module with path {absolute:?}: {err}"));
+
+        let (ast, _) = parse::program::parse(&text).unwrap();
+
+        (text, ast)
+    }
+
+    #[cfg(test)]
+    pub fn mock(context: &'a Context<Log>) -> Self {
+        Self::new(context, vec![])
     }
 }

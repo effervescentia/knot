@@ -1,7 +1,8 @@
-use crate::Link;
 use kore::color::{ClearIf, Colorize, Highlight};
+use kore::pretty::Pretty;
 use lang::Range;
 use std::fmt::Display;
+use std::path::Path;
 
 const BORDER: &str = "\u{2502}";
 const CORNER: &str = "\u{256d}\u{2500}";
@@ -16,7 +17,7 @@ pub enum Focus {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CodeFrame<'a> {
     pub root_dir: &'a str,
-    pub link: &'a Link,
+    pub path: &'a Path,
     pub source: &'a str,
     pub color: bool,
     pub focus: Focus,
@@ -24,11 +25,7 @@ pub struct CodeFrame<'a> {
     pub padding: usize,
 }
 
-impl<'a> CodeFrame<'a> {
-    pub const fn link(&self) -> &Link {
-        self.link
-    }
-
+impl CodeFrame<'_> {
     fn get_lines(&self) -> Lines {
         let Range(start, end) = self.range;
 
@@ -74,15 +71,16 @@ impl<'a> CodeFrame<'a> {
 
     fn format_header(&self, gutter_width: usize, no_color: bool) -> String {
         let gutter = " ".repeat(gutter_width);
-        let link = self.link();
+        let path = self.path;
 
         format!(
             "{gutter}{} {} {}\n{}\n",
             CORNER.subtle().clear_if(no_color),
-            link.to_string().highlight().clear_if(no_color),
+            path.pretty().clear_if(no_color),
             format!(
-                "({root_dir}/{link}:{point})",
+                "({root_dir}/{path}:{point})",
                 root_dir = self.root_dir,
+                path = path.display(),
                 point = self.range.0
             )
             .subtle()
@@ -92,7 +90,7 @@ impl<'a> CodeFrame<'a> {
     }
 }
 
-impl<'a> Display for CodeFrame<'a> {
+impl Display for CodeFrame<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         fn format_caret(
             gutter_width: usize,
@@ -190,13 +188,13 @@ struct Lines<'a> {
 #[cfg(test)]
 mod tests {
     use super::{CodeFrame, Focus};
-    use crate::Link;
     use kore::assert_str_eq;
     use lang::Range;
+    use std::path::Path;
 
     #[test]
     fn highlight_range() {
-        let link = Link::mock();
+        let path = Path::new("mock.kn");
         let source = "const FOO = 123;
 const BAR = FOO + 10;
 type Fizz = integer;
@@ -205,7 +203,7 @@ type Buzz = boolean;";
         assert_str_eq!(
             CodeFrame {
                 root_dir: "./src",
-                link: &link,
+                path,
                 source,
                 range: Range::new((2, 13), (2, 15)),
                 focus: Focus::Error,
@@ -225,7 +223,7 @@ type Buzz = boolean;";
 
     #[test]
     fn trim_empty_lines() {
-        let link = Link::mock();
+        let path = Path::new("mock.kn");
         let source = "
 
 const FOO = 123;
@@ -235,7 +233,7 @@ const FOO = 123;
         assert_str_eq!(
             CodeFrame {
                 root_dir: "./src",
-                link: &link,
+                path,
                 source,
                 range: Range::new((3, 13), (3, 15)),
                 focus: Focus::Error,

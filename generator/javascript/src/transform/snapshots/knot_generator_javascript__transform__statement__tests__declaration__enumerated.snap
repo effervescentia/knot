@@ -1,0 +1,57 @@
+---
+source: generator/javascript/src/transform/statement.rs
+expression: ast
+---
+[
+    Variable(
+        "foo",
+        Object(
+            [
+                (
+                    "Bar",
+                    Function(
+                        Some(
+                            "Bar",
+                        ),
+                        [
+                            "$param_0",
+                        ],
+                        [
+                            Return(
+                                Some(
+                                    Array(
+                                        [
+                                            PropertyAccess(
+                                                Identifier(
+                                                    "foo",
+                                                ),
+                                                "Bar",
+                                            ),
+                                            Identifier(
+                                                "$param_0",
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ),
+                        ],
+                    ),
+                ),
+                (
+                    "Fizz",
+                    Array(
+                        [
+                            Function(
+                                Some(
+                                    "Fizz",
+                                ),
+                                [],
+                                [],
+                            ),
+                        ],
+                    ),
+                ),
+            ],
+        ),
+    ),
+]

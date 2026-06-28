@@ -1,0 +1,24 @@
+---
+source: generator/javascript/src/transform/mod.rs
+expression: ast
+---
+JavaScript(
+    [
+        Import(
+            "@knot/runtime",
+            [
+                (
+                    "$knot",
+                    None,
+                ),
+            ],
+        ),
+        Variable(
+            "bar",
+            Null,
+        ),
+        Export(
+            "bar",
+        ),
+    ],
+)

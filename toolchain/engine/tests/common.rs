@@ -1,27 +1,23 @@
 #![allow(dead_code)]
 use assert_fs::prelude::*;
 use assert_fs::TempDir;
-use knot_engine::Engine;
+use knot_engine::{Analyzed, Context, Engine, Input};
 use kore::internal::{Library, PlatformLibrary};
 
-pub fn assert_valid(source: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let root_dir = TempDir::new()?;
-    root_dir.child("src/main.kn").write_str(source)?;
+pub fn assert_valid(source: &str) {
+    let root_dir = TempDir::new().unwrap();
+    root_dir.child("main.kn").write_str(source).unwrap();
 
-    let engine = Engine::new(&root_dir, false)
-        .from_entry("src/main.kn")
-        .include_libraries(&[MockLibrary])
-        .parse()
-        .link()
-        .analyze()
-        .into_result();
+    let input = Input::from_entry("main.kn", [MockLibrary]);
+    let engine = Engine::new(Context::mock_from(root_dir));
+    let plan = Engine::plan().parse_and_traverse().link().analyze();
 
-    assert!(engine.is_ok());
+    let (_, Analyzed(analyzed)) = engine.execute(&plan, &input);
 
-    Ok(())
+    assert!(!analyzed.is_empty());
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub struct MockLibrary;
 
 impl PlatformLibrary for MockLibrary {

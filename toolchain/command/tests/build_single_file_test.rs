@@ -65,6 +65,6 @@ export { my_module };
 
     assert_eq!(
         result.unwrap(),
-        HashMap::from_iter(vec![(str!("main.js"), OUTPUT.to_owned())])
+        HashMap::from([(str!("main.js"), OUTPUT.to_owned())])
     );
 }

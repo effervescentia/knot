@@ -269,7 +269,7 @@ pub struct TypeModule<Import, TypeDeclaration> {
 }
 
 impl<Import, TypeDeclaration> TypeModule<Import, TypeDeclaration> {
-    pub fn new(imports: Vec<Import>, declarations: Vec<TypeDeclaration>) -> Self {
+    pub const fn new(imports: Vec<Import>, declarations: Vec<TypeDeclaration>) -> Self {
         Self {
             imports,
             declarations,

@@ -1,21 +1,13 @@
 mod code_frame;
 mod error;
 mod example;
-mod into_errors;
 mod reporter;
 
 pub use code_frame::{CodeFrame, Focus};
 use error::Display;
 pub use error::{ConfigurationError, EnvironmentError, ErrorContext, ExecutionError};
-pub use into_errors::IntoErrors;
 use kore::color::{ColoredString, Colorize, Highlight};
 pub use reporter::Reporter;
-
-pub trait Enrich {
-    fn enrich(&self, root_dir: String, failure: Failure) -> Report {
-        failure.no_context(root_dir)
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Report {

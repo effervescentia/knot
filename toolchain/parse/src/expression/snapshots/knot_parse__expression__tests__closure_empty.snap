@@ -1,0 +1,22 @@
+---
+source: toolchain/parse/src/expression/mod.rs
+expression: ast
+---
+Expression(
+    Node(
+        Closure(
+            [],
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                2,
+            ),
+        ),
+        (),
+    ),
+)

@@ -8,7 +8,6 @@ edition = "2021"
 [dependencies]
 bimap = "0.6.3"
 glob = "0.3.1"
-petgraph = "0.6.4"
 kore = { package = "knot_core", path = "../kore" }
 lang = { package = "knot_language", path = "../language" }
 parse = { package = "knot_parse", path = "../parse" }
@@ -19,6 +18,7 @@ knot_engine = { path = ".", features = ["test"] }
 # TODO: replace with assert_fs
 tempfile = "3.8.0"
 assert_fs = "1.1.1"
+insta = "1.42.1"
 kore = { package = "knot_core", path = "../kore", features = ["test"] }
 
 [features]

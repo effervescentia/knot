@@ -15,7 +15,7 @@ pub struct Args<'a> {
     pub verbose: bool,
 }
 
-impl<'a> Args<'a> {
+impl Args<'_> {
     fn report(&self) {
         let Self {
             target,

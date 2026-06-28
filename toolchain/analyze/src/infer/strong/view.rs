@@ -94,7 +94,7 @@ mod tests {
         fn infer_view() {
             let mock = analyze_mock!();
             let ctx = mock.context();
-            let fragments = BTreeMap::from_iter(vec![
+            let fragments = BTreeMap::from([
                 (
                     NodeId(1),
                     (

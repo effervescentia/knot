@@ -1,0 +1,41 @@
+---
+source: toolchain/parse/src/component.rs
+expression: ast
+---
+Component(
+    Node(
+        Fragment(
+            [
+                Component(
+                    Node(
+                        Text(
+                            "foo",
+                        ),
+                        Range(
+                            Point(
+                                1,
+                                3,
+                            ),
+                            Point(
+                                1,
+                                5,
+                            ),
+                        ),
+                        (),
+                    ),
+                ),
+            ],
+        ),
+        Range(
+            Point(
+                1,
+                1,
+            ),
+            Point(
+                1,
+                8,
+            ),
+        ),
+        (),
+    ),
+)

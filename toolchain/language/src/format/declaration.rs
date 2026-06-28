@@ -86,7 +86,7 @@ where
 
 struct Storage<'a, Binding>(&'a str, &'a ast::Storage<Binding>);
 
-impl<'a, Binding> Display for Storage<'a, Binding>
+impl<Binding> Display for Storage<'_, Binding>
 where
     Binding: Display,
 {
@@ -115,7 +115,7 @@ struct Variants<'a, T>(&'a Vec<(String, Vec<T>)>)
 where
     T: Display;
 
-impl<'a, T> Display for Variants<'a, T>
+impl<T> Display for Variants<'_, T>
 where
     T: Display,
 {
@@ -140,7 +140,7 @@ struct Attributes<'a, T>(&'a Vec<T>)
 where
     T: Display;
 
-impl<'a, T> Display for Attributes<'a, T>
+impl<T> Display for Attributes<'_, T>
 where
     T: Display,
 {
