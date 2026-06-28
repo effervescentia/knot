@@ -79,7 +79,7 @@ mod tests {
             .write_str("const FOO = 123;")
             .unwrap();
 
-        let engine = Engine::new(Context::new(&root_dir, false));
+        let engine = Engine::new(Context::mock_from(&root_dir));
         let input = Input::from_entry("main.kn", [MockLibrary]);
         let plan = Engine::plan().parse().link();
 
@@ -107,7 +107,7 @@ mod tests {
             .write_str("const BAR = 456;")
             .unwrap();
 
-        let engine = Engine::new(Context::new(&root_dir, false));
+        let engine = Engine::new(Context::mock_from(&root_dir));
         let input = Input::from_entry("main.kn", [MockLibrary]);
         let plan = Engine::plan().parse_and_traverse().link();
 

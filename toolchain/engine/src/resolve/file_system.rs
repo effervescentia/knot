@@ -1,4 +1,4 @@
-use super::Resolver;
+use super::FileResolver;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -17,7 +17,7 @@ impl FileSystem<'_> {
     }
 }
 
-impl Resolver for FileSystem<'_> {
+impl FileResolver for FileSystem<'_> {
     fn resolve<P>(&mut self, relative: P) -> Option<String>
     where
         P: AsRef<Path>,
@@ -41,7 +41,7 @@ impl Resolver for FileSystem<'_> {
 #[cfg(test)]
 mod tests {
     use super::FileSystem;
-    use crate::resolve::Resolver;
+    use crate::resolve::FileResolver;
     use std::{fs::File, io::Write, path::Path};
     use tempfile::tempdir;
 

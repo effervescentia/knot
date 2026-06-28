@@ -51,7 +51,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::Format;
-    use crate::{state::Status, Context, MemoryLogger, Parsed, State};
+    use crate::{state::Status, Context, Parsed, State};
     use assert_fs::TempDir;
     use kore::{
         assert_eq_sorted,
@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn format_all_parsed_modules() {
         let root_dir = TempDir::new().unwrap();
-        let context = Context::new(&root_dir, MemoryLogger::default());
+        let context = Context::mock_from(&root_dir);
         let mut state = State::mock(&context);
 
         let main_id = mock_module(&mut state, "main.kn", fixture::constant::mock());

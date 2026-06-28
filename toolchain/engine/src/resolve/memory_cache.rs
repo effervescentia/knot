@@ -1,13 +1,13 @@
-use super::Resolver;
+use super::FileResolver;
 use std::{collections::HashMap, path::Path, time::SystemTime};
 
 pub struct MemoryCache<T>(HashMap<String, (String, SystemTime)>, T)
 where
-    T: Resolver;
+    T: FileResolver;
 
-impl<T> Resolver for MemoryCache<T>
+impl<T> FileResolver for MemoryCache<T>
 where
-    T: Resolver,
+    T: FileResolver,
 {
     fn resolve<P>(&mut self, relative: P) -> Option<String>
     where
@@ -48,7 +48,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::MemoryCache;
-    use crate::{resolve::Resolver, FileSystem};
+    use crate::{resolve::FileResolver, FileSystem};
     use std::{collections::HashMap, path::Path, time::SystemTime};
     use tempfile::tempdir;
 

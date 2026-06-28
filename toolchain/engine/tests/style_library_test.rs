@@ -3,10 +3,10 @@ mod common;
 use assert_fs::{prelude::*, TempDir};
 use knot_engine::{Analyzed, Context, Engine, Input, NoopLogger};
 use kore::internal::{AmbientScope, Library, PlatformLibrary};
+use lang::ModuleId;
 use std::collections::HashSet;
 
 #[test]
-#[ignore = "skip temporarily"]
 fn use_platform_enum_in_style_expression() {
     #[derive(Clone, Copy, Eq, Hash, PartialEq)]
     pub enum MockLibrary {
@@ -21,7 +21,7 @@ fn use_platform_enum_in_style_expression() {
                 Self::Std => "enum Color { red }",
                 Self::Style => {
                     "use std;
-  func color(std.Color) -> nil;"
+func color(std.Color) -> nil;"
                 }
                 Self::Noop => "",
             }
@@ -62,10 +62,10 @@ const STYLE = style { color: std.Color.red };",
         .unwrap();
 
     let input = Input::from_entry("src/main.kn", [MockLibrary::Std, MockLibrary::Style]);
-    let engine = Engine::new(Context::new(root_dir, NoopLogger));
+    let engine = Engine::new(Context::mock_from(&root_dir));
     let plan = Engine::plan().parse().link().analyze();
 
     let (_, Analyzed(analyzed)) = engine.execute(&plan, &input);
 
-    assert_eq!(analyzed, HashSet::from([]));
+    assert_eq!(analyzed, HashSet::from([ModuleId(0)]));
 }

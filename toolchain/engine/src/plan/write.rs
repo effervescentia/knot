@@ -128,7 +128,7 @@ mod tests {
     #[test]
     fn overwrite_file() {
         let root_dir = TempDir::new().unwrap();
-        let context = Context::new(&root_dir, MemoryLogger::default());
+        let context = Context::mock_from(&root_dir);
 
         let file = root_dir.child("main.kn");
 
@@ -146,7 +146,7 @@ mod tests {
     #[test]
     fn create_directories() {
         let root_dir = TempDir::new().unwrap();
-        let context = Context::new(&root_dir, MemoryLogger::default());
+        let context = Context::mock_from(&root_dir);
 
         let file = root_dir.child("foo/bar/main.kn");
 

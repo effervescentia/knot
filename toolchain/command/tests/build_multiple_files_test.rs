@@ -4,7 +4,6 @@ use kore::{assert_eq_sorted, str};
 use std::collections::HashMap;
 
 #[test]
-#[ignore = "skip temporarily"]
 fn with_absolute_imports() {
     const INPUT_A: &str = "const VALUE_A = 123;";
     const INPUT_B: &str = "const VALUE_B = 456;";
@@ -51,7 +50,6 @@ export { ROOT };
 }
 
 #[test]
-#[ignore = "skip temporarily"]
 fn with_relative_imports() {
     const INPUT_A: &str = "const VALUE_A = 123;";
     const INPUT_B: &str = "use ./deeper/a;

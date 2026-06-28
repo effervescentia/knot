@@ -162,7 +162,7 @@ impl<'a, Log> State<'a, Log> {
     {
         let absolute = self.get_absolute_path(path.as_ref());
         let text = fs::read_to_string(&absolute)
-            .unwrap_or_else(|_| panic!("failed to load module with path {absolute:?}"));
+            .unwrap_or_else(|err| panic!("failed to load module with path {absolute:?}: {err}"));
 
         let (ast, _) = parse::program::parse(&text).unwrap();
 

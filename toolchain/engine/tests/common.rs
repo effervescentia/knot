@@ -1,15 +1,15 @@
 #![allow(dead_code)]
 use assert_fs::prelude::*;
 use assert_fs::TempDir;
-use knot_engine::{Analyzed, Context, Engine, Input, NoopLogger};
+use knot_engine::{Analyzed, Context, Engine, Input};
 use kore::internal::{Library, PlatformLibrary};
 
 pub fn assert_valid(source: &str) {
     let root_dir = TempDir::new().unwrap();
-    root_dir.child("src/main.kn").write_str(source).unwrap();
+    root_dir.child("main.kn").write_str(source).unwrap();
 
-    let input = Input::from_entry("src/main.kn", [MockLibrary]);
-    let engine = Engine::new(Context::new(root_dir, NoopLogger));
+    let input = Input::from_entry("main.kn", [MockLibrary]);
+    let engine = Engine::new(Context::mock_from(root_dir));
     let plan = Engine::plan().parse_and_traverse().link().analyze();
 
     let (_, Analyzed(analyzed)) = engine.execute(&plan, &input);

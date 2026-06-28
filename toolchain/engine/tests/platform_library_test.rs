@@ -1,7 +1,7 @@
 mod common;
 
 use assert_fs::{prelude::*, TempDir};
-use knot_engine::{Analyzed, Context, Engine, Input, NoopLogger};
+use knot_engine::{Analyzed, Context, Engine, Input};
 use kore::internal::{AmbientScope, Library, PlatformLibrary};
 use std::collections::HashSet;
 
@@ -24,7 +24,7 @@ fn import_between_libraries() {
                 }
                 Self::Child => {
                     "use std;
-  func bar(std.foo.Foo) -> nil;"
+func bar(std.foo.Foo) -> nil;"
                 }
             }
         }
@@ -56,10 +56,10 @@ fn import_between_libraries() {
 
     let root_dir = TempDir::new().unwrap();
     // empty because we just want to validate the libraries
-    root_dir.child("src/main.kn").write_str("").unwrap();
+    root_dir.child("main.kn").touch().unwrap();
 
-    let input = Input::from_entry("src/main.kn", [MockLibrary::Parent, MockLibrary::Child]);
-    let engine = Engine::new(Context::new(root_dir, NoopLogger));
+    let input = Input::from_entry("main.kn", [MockLibrary::Parent, MockLibrary::Child]);
+    let engine = Engine::new(Context::mock_from(root_dir));
     let plan = Engine::plan().parse().link().analyze();
 
     let (_, Analyzed(analyzed)) = engine.execute(&plan, &input);

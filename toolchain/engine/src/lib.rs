@@ -9,7 +9,6 @@ mod validate;
 
 pub use input::Input;
 use kore::pipeline::{Execute, Identity, Transform};
-pub use link::Link;
 #[cfg(test)]
 pub use logger::MemoryLogger;
 pub use logger::{Logger, NoopLogger};
@@ -17,7 +16,7 @@ pub use plan::{Analyzed, Builder, Linked, Parsed};
 pub use report::{
     CodeFrame, ConfigurationError, EnvironmentError, ExecutionError, Report, Reporter,
 };
-pub use resolve::{FileCache, FileSystem, MemoryCache, Resolver};
+pub use resolve::{FileCache, FileResolver, FileSystem, MemoryCache};
 pub use state::State;
 use std::path::{Path, PathBuf};
 
@@ -44,10 +43,17 @@ impl<Log> Context<Log> {
     }
 }
 
-#[cfg(test)]
+#[cfg(feature = "test")]
 impl Context<NoopLogger> {
     pub fn mock() -> Self {
-        Self::new("root_dir", NoopLogger)
+        Self::mock_from("root_dir")
+    }
+
+    pub fn mock_from<T>(root_dir: T) -> Self
+    where
+        T: AsRef<Path>,
+    {
+        Self::new(root_dir, NoopLogger)
     }
 }
 

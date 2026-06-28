@@ -1,7 +1,7 @@
 use crate::ast;
 #[cfg(feature = "test")]
 use kore::str;
-use kore::{internal, invariant};
+use kore::{internal, invariant, pretty::Pretty};
 use std::{
     fmt::Debug,
     path::{Path, PathBuf},
@@ -90,5 +90,11 @@ impl Namespace {
 
             Self::Internal(path) => PathBuf::from_iter(path).with_extension(extension),
         }
+    }
+}
+
+impl Pretty for Namespace {
+    fn pretty(&self) -> kore::color::ColoredString {
+        self.to_path("kn").pretty()
     }
 }
